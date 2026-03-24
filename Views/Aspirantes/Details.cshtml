@@ -1,0 +1,66 @@
+@using ControlEscolar.Enums
+@model ControlEscolar.Models.Aspirante
+
+@{
+    ViewData["Title"] = "Comprobante de Inscripción";
+}
+
+<div class="main-container">
+    <div class="page-header">
+        <h1>¡Bienvenido(a) al Comienzo de Tu Viaje Académico!</h1>
+        <p>Comprobante de Inscripción</p>
+    </div>
+
+    <div class="form-container">
+        <div class="text-center mb-4">
+            <h3 class="text-primary">¡Gracias por finalizar tu inscripción!</h3>
+        </div>
+
+        <div class="form-section">
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <strong>Folio:</strong>
+                    <p class="h4 text-primary">@Model.Id</p>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <strong>Nombre:</strong>
+                    <p class="h5">@Model.Nombre @Model.ApellidoPaterno @Model.ApellidoMaterno</p>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-12 mb-3">
+                    <strong>Carrera:</strong>
+                    <p class="h5">@Model.CarreraSolicitada</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="info-box mt-4">
+            <h6>Información de Contacto</h6>
+            <p><strong>Email:</strong> @Model.Email</p>
+            <p><strong>Teléfono:</strong> @Model.Telefono</p>
+            <p><strong>CURP:</strong> @Model.CURP</p>
+            <p><strong>Domicilio:</strong> @Model.Calle, @Model.Colonia, @Model.Municipio, @Model.Estado</p>
+        </div>
+
+        <div class="info-box mt-3">
+            <h6>Información Académica</h6>
+            <p><strong>Escuela de Procedencia:</strong> @Model.EscuelaProcedencia</p>
+            <p><strong>Promedio:</strong> @Model.Promedio.ToString("F2")</p>
+            <p><strong>Tipo de Preparatoria:</strong> @Model.TipoPreparatoria</p>
+        </div>
+
+        <div class="alert alert-success mt-4">
+            <h6 class="mb-2">Estado del Registro</h6>
+            <p class="mb-0">
+                @await Html.PartialAsync("_StatusBadge", null, new ViewDataDictionary(ViewData) { { "StatusValue", Model.EstadoRegistro.ToString() }, { "StatusType", "registro" } })
+            </p>
+            <p class="mt-2 mb-0"><strong>Fecha de Registro:</strong> @Model.FechaRegistro.ToString("dd/MM/yyyy HH:mm")</p>
+        </div>
+
+        <div class="d-flex justify-content-between mt-4">
+            <a asp-controller="Home" asp-action="Index" class="btn btn-secondary">Volver al Inicio</a>
+            <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-warning">Editar</a>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,156 @@
+﻿@{
+    ViewData["Title"] = "Control de Asistencia: 7º A";
+    Layout = "_LayoutTutor";
+}
+
+<div class="d-flex flex-column gap-4">
+
+    <div class="bg-surface p-4 rounded-4 border-theme shadow-sm d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+        <div class="d-flex flex-column flex-md-row gap-3 flex-grow-1" style="max-width: 800px;">
+            <div class="d-flex align-items-center gap-2">
+                <label class="txt-title fw-bold text-xs flex-shrink-0">FECHA:</label>
+                <input type="date" id="dateFilter" class="form-control bg-app border-theme txt-title fw-bold" value="@DateTime.Now.ToString("yyyy-MM-dd")">
+            </div>
+            <div class="position-relative search-wrapper flex-grow-1">
+                <i class="bi bi-search position-absolute search-icon-left txt-body"></i>
+                <input type="text" id="searchInput" class="form-control search-input-custom" placeholder="Buscar alumno...">
+            </div>
+        </div>
+        <div class="d-flex gap-2">
+            <button class="btn btn-ghost-sep shadow-sm"><i class="bi bi-printer"></i></button>
+            <button class="btn btn-primary-sep d-flex align-items-center gap-2 shadow-sm" onclick="alert('Asistencia guardada en el sistema.')">
+                <i class="bi bi-cloud-check"></i> Guardar Pase de Lista
+            </button>
+        </div>
+    </div>
+
+    <div class="admin-card-white p-0 rounded-4 border-theme shadow-sm overflow-hidden d-flex flex-column">
+        <div class="table-responsive bg-surface" style="min-height: 400px;">
+            <table class="table table-borderless align-middle mb-0" style="min-width: 900px;">
+                <thead class="admin-table-header">
+                    <tr>
+                        <th class="py-3 px-4" width="15%">Matrícula</th>
+                        <th class="py-3" width="40%">Alumno</th>
+                        <th class="py-3 text-center" width="45%">Estado de Asistencia</th>
+                    </tr>
+                </thead>
+                <tbody id="attendanceTableBody">
+                    <tr class="border-bottom border-theme hover-bg-app data-row">
+                        <td class="px-4 py-3 txt-title fw-bold search-target">26001504</td>
+                        <td class="search-target">
+                            <div class="d-flex align-items-center gap-3">
+                                <div class="avatar-sm bg-accent-light txt-primary-dark fw-bold rounded-circle d-flex align-items-center justify-content-center flex-shrink-0">RC</div>
+                                <div class="txt-title fw-bold text-sm">Roberto Carlos Perez Cadena</div>
+                            </div>
+                        </td>
+                        <td class="px-4">
+                            <div class="btn-group w-100 shadow-sm rounded-3 overflow-hidden">
+                                <input type="radio" class="btn-check" name="att_1" id="p1" checked>
+                                <label class="btn btn-outline-success border-0 py-2 fw-bold text-xs" for="p1">PRESENTE</label>
+                                <input type="radio" class="btn-check" name="att_1" id="f1">
+                                <label class="btn btn-outline-danger border-0 py-2 fw-bold text-xs" for="f1">FALTA</label>
+                                <input type="radio" class="btn-check" name="att_1" id="r1">
+                                <label class="btn btn-outline-warning border-0 py-2 fw-bold text-xs" for="r1">RETARDO</label>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr class="border-bottom border-theme hover-bg-app data-row">
+                        <td class="px-4 py-3 txt-title fw-bold search-target">26001892</td>
+                        <td class="search-target">
+                            <div class="d-flex align-items-center gap-3">
+                                <div class="avatar-sm bg-app border border-theme txt-title fw-bold rounded-circle d-flex align-items-center justify-content-center flex-shrink-0">MA</div>
+                                <div class="txt-title fw-bold text-sm">Miguel Ángel Torres</div>
+                            </div>
+                        </td>
+                        <td class="px-4">
+                            <div class="btn-group w-100 shadow-sm rounded-3 overflow-hidden">
+                                <input type="radio" class="btn-check" name="att_2" id="p2">
+                                <label class="btn btn-outline-success border-0 py-2 fw-bold text-xs" for="p2">PRESENTE</label>
+                                <input type="radio" class="btn-check" name="att_2" id="f2" checked>
+                                <label class="btn btn-outline-danger border-0 py-2 fw-bold text-xs" for="f2">FALTA</label>
+                                <input type="radio" class="btn-check" name="att_2" id="r2">
+                                <label class="btn btn-outline-warning border-0 py-2 fw-bold text-xs" for="r2">RETARDO</label>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="bg-surface p-3 border-top border-theme d-flex flex-column flex-md-row justify-content-between align-items-center gap-3">
+            <div class="d-flex align-items-center gap-3">
+                <span class="txt-body text-xs fw-bold">Mostrar:</span>
+                <select id="rowsPerPage" class="form-select form-select-sm bg-app border-theme txt-title fw-bold" style="width: 70px; cursor: pointer;">
+                    <option value="5" selected>5</option>
+                    <option value="10">10</option>
+                </select>
+                <div class="txt-body text-xs fw-bold tracking-wide" id="tableInfo">
+                    Mostrando registros...
+                </div>
+            </div>
+            <nav aria-label="Navegación de tabla">
+                <ul class="pagination pagination-sm mb-0" id="paginationControls"></ul>
+            </nav>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            let currentPage = 1;
+
+            function updateTable() {
+                let searchTerm = $('#searchInput').val().toLowerCase();
+                let rowsPerPage = parseInt($('#rowsPerPage').val());
+                let filteredRows = [];
+
+                // Filtrado por búsqueda
+                $('.data-row').each(function () {
+                    let text = $(this).find('.search-target').text().toLowerCase();
+                    if (text.indexOf(searchTerm) > -1) {
+                        filteredRows.push($(this));
+                    }
+                    $(this).hide();
+                });
+
+                let totalRecords = filteredRows.length;
+                let totalPages = Math.ceil(totalRecords / rowsPerPage) || 1;
+                if (currentPage > totalPages) currentPage = totalPages;
+
+                let startIndex = (currentPage - 1) * rowsPerPage;
+                let endIndex = Math.min(startIndex + rowsPerPage, totalRecords);
+
+                for (let i = startIndex; i < endIndex; i++) {
+                    filteredRows[i].show();
+                }
+
+                $('#tableInfo').text(totalRecords === 0 ? 'No se encontraron registros' : `Mostrando ${startIndex + 1} a ${endIndex} de ${totalRecords} alumnos`);
+                renderPagination(totalPages);
+            }
+
+            function renderPagination(totalPages) {
+                let paginationHtml = '';
+                paginationHtml += `<li class="page-item ${currentPage === 1 ? 'disabled' : ''}"><a class="page-link page-link-custom" href="#" data-page="${currentPage - 1}"><i class="bi bi-chevron-left"></i></a></li>`;
+                for (let i = 1; i <= totalPages; i++) {
+                    paginationHtml += `<li class="page-item ${i === currentPage ? 'active' : ''}"><a class="page-link page-link-custom" href="#" data-page="${i}">${i}</a></li>`;
+                }
+                paginationHtml += `<li class="page-item ${currentPage === totalPages || totalPages === 0 ? 'disabled' : ''}"><a class="page-link page-link-custom" href="#" data-page="${currentPage + 1}"><i class="bi bi-chevron-right"></i></a></li>`;
+                $('#paginationControls').html(paginationHtml);
+            }
+
+            // Eventos
+            $('#searchInput').on('input', function() { currentPage = 1; updateTable(); });
+            $('#rowsPerPage').on('change', function() { currentPage = 1; updateTable(); });
+            $('#paginationControls').on('click', '.page-link', function(e) {
+                e.preventDefault();
+                if (!$(this).parent().hasClass('disabled')) {
+                    currentPage = parseInt($(this).data('page'));
+                    updateTable();
+                }
+            });
+
+            updateTable();
+        });
+    </script>
+}

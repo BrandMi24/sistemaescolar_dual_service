@@ -1,0 +1,202 @@
+﻿@{
+    ViewData["Title"] = "Control de Grupos";
+    Layout = "_LayoutCoordinador";
+}
+
+<div class="d-flex flex-column gap-4">
+
+    <div class="bg-surface p-4 rounded-4 border-theme shadow-sm d-flex flex-column flex-lg-row align-items-lg-end gap-3">
+        <div class="flex-grow-1">
+            <label class="form-label txt-body text-xs fw-bold tracking-wide">CICLO ESCOLAR</label>
+            <select class="form-select bg-app border-theme txt-title fw-bold">
+                <option>Enero - Abril 2026</option>
+                <option>Septiembre - Diciembre 2025</option>
+            </select>
+        </div>
+        <div class="flex-grow-1">
+            <label class="form-label txt-body text-xs fw-bold tracking-wide">PROGRAMA EDUCATIVO</label>
+            <select class="form-select bg-app border-theme txt-title fw-bold">
+                <option>Ing. Desarrollo y Gestión de Software</option>
+                <option>Mecatrónica</option>
+            </select>
+        </div>
+        <div class="flex-grow-1">
+            <label class="form-label txt-body text-xs fw-bold tracking-wide">GRUPO</label>
+            <select class="form-select bg-app border-theme txt-title fw-bold">
+                <option value="">Seleccionar...</option>
+                <option value="7A">7º A - Matutino</option>
+                <option value="7B">7º B - Vespertino</option>
+            </select>
+        </div>
+        <div class="flex-shrink-0">
+            <button id="btnCargarGrupo" class="btn btn-primary-sep w-100 d-flex align-items-center justify-content-center gap-2 shadow-sm" style="min-width: 180px;">
+                <i class="bi bi-box-arrow-in-right"></i> Entrar al Grupo
+            </button>
+        </div>
+    </div>
+
+    <div id="emptyStateGrupo" class="admin-card-white rounded-4 border-theme shadow-sm text-center py-5">
+        <div class="icon-circle-lg bg-app txt-body mx-auto mb-3" style="width: 80px; height: 80px;">
+            <i class="bi bi-people fs-1"></i>
+        </div>
+        <h5 class="txt-title fw-bold">Gestión de Aula</h5>
+        <p class="txt-body">Selecciona un ciclo, carrera y grupo en la parte superior para administrar a los alumnos.</p>
+    </div>
+
+    <div id="grupoContent" style="display: none;">
+        <div class="d-flex flex-column gap-4">
+
+            <div class="bg-surface p-4 rounded-4 border-theme shadow-sm d-flex flex-column flex-xl-row justify-content-between align-items-xl-center gap-4 border-start border-4" style="border-left-color: var(--primary-900) !important;">
+                <div>
+                    <div class="d-flex align-items-center gap-3 mb-1">
+                        <h4 class="txt-title fw-bold mb-0">Grupo 7º A</h4>
+                        <span class="badge bg-app border border-theme txt-title text-xxs px-2 py-1">MATUTINO</span>
+                    </div>
+                    <div class="txt-body text-xs">Ing. Desarrollo y Gestión de Software • Enero - Abril 2026</div>
+                </div>
+
+                <div class="bg-app p-3 rounded-3 border border-theme d-flex align-items-center gap-3" style="min-width: 350px;">
+                    <div class="icon-circle bg-accent-light txt-primary-dark flex-shrink-0"><i class="bi bi-person-badge"></i></div>
+                    <div class="flex-grow-1">
+                        <label class="form-label txt-body text-xs fw-bold tracking-wide mb-1">TUTOR ASIGNADO</label>
+                        <select class="form-select form-select-sm admin-select-dashed py-1">
+                            <option value="">Seleccionar Tutor...</option>
+                            <option value="1" selected>Ing. Juan Pérez Martínez</option>
+                            <option value="2">Dr. Gabriel López</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <div class="admin-card-white p-3 rounded-4 border-theme shadow-sm d-flex align-items-center gap-3">
+                        <div class="icon-circle-lg bg-success-100 txt-success-700"><i class="bi bi-person-check-fill fs-5"></i></div>
+                        <div>
+                            <div class="txt-body text-xs fw-bold tracking-wide mb-1">ALUMNOS INSCRITOS</div>
+                            <h4 class="txt-title fw-bold mb-0">28</h4>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="admin-card-white p-3 rounded-4 border-theme shadow-sm d-flex align-items-center gap-3">
+                        <div class="icon-circle-lg bg-accent-light txt-primary-dark"><i class="bi bi-graph-up fs-5"></i></div>
+                        <div>
+                            <div class="txt-body text-xs fw-bold tracking-wide mb-1">PROMEDIO GRUPAL</div>
+                            <h4 class="txt-title fw-bold mb-0">8.9</h4>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="admin-card-white p-3 rounded-4 border-theme shadow-sm d-flex align-items-center gap-3 border-start border-4" style="border-left-color: var(--error-700) !important;">
+                        <div class="icon-circle-lg bg-error-100 txt-error"><i class="bi bi-exclamation-triangle-fill fs-5"></i></div>
+                        <div>
+                            <div class="txt-body text-xs fw-bold tracking-wide mb-1">EN RIESGO (IRREGULARES)</div>
+                            <h4 class="txt-error fw-bold mb-0">2</h4>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="admin-card-white p-0 rounded-4 border-theme shadow-sm overflow-hidden d-flex flex-column">
+                <div class="bg-surface p-3 border-bottom border-theme d-flex justify-content-between align-items-center">
+                    <h6 class="txt-title fw-bold mb-0">Lista de Alumnos</h6>
+                    <div class="position-relative search-wrapper" style="width: 250px;">
+                        <i class="bi bi-search position-absolute search-icon-left txt-body"></i>
+                        <input type="text" class="form-control form-control-sm search-input-custom" placeholder="Buscar en este grupo...">
+                    </div>
+                </div>
+
+                <div class="table-responsive bg-surface" style="min-height: 300px;">
+                    <table class="table table-borderless align-middle mb-0" style="min-width: 800px;">
+                        <thead class="admin-table-header">
+                            <tr>
+                                <th class="py-3 px-4" width="15%">Matrícula</th>
+                                <th class="py-3" width="35%">Alumno</th>
+                                <th class="py-3 text-center" width="15%">Estado</th>
+                                <th class="py-3 text-center" width="15%">Promedio</th>
+                                <th class="py-3 text-end px-4" width="20%">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr class="border-bottom border-theme hover-bg-app">
+                                <td class="px-4 py-3 txt-title fw-bold">24001504</td>
+                                <td>
+                                    <div class="d-flex align-items-center gap-3">
+                                        <div class="avatar-sm bg-accent-light txt-primary-dark fw-bold rounded-circle d-flex align-items-center justify-content-center flex-shrink-0">RC</div>
+                                        <div>
+                                            <div class="txt-title fw-bold text-sm mb-1">Roberto Carlos Perez Cadena</div>
+                                            <div class="txt-body text-xs">rperez@alumnos.uttn.mx</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="text-center"><span class="badge status-aceptado text-xxs px-2 py-1 shadow-sm">REGULAR</span></td>
+                                <td class="text-center txt-title fw-bold">9.5</td>
+                                <td class="text-end px-4">
+                                    <button class="btn btn-sm btn-ghost-sep px-2 py-1 me-1 text-primary" title="Ver Expediente"><i class="bi bi-folder2-open"></i></button>
+                                    <button class="btn btn-sm btn-ghost-sep px-2 py-1 txt-body" title="Transferir de Grupo"><i class="bi bi-arrow-left-right"></i></button>
+                                </td>
+                            </tr>
+
+                            <tr class="border-bottom border-theme hover-bg-app bg-error-100 bg-opacity-10">
+                                <td class="px-4 py-3 txt-title fw-bold">24001892</td>
+                                <td>
+                                    <div class="d-flex align-items-center gap-3">
+                                        <div class="avatar-sm bg-app border border-theme txt-title fw-bold rounded-circle d-flex align-items-center justify-content-center flex-shrink-0">LA</div>
+                                        <div>
+                                            <div class="txt-title fw-bold text-sm mb-1">Luis Ángel García</div>
+                                            <div class="txt-body text-xs">lgarcia@alumnos.uttn.mx</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="text-center"><span class="badge bg-warning bg-opacity-25 txt-warning border border-warning border-opacity-50 text-xxs px-2 py-1 shadow-sm" style="color: var(--warning-700) !important;">IRREGULAR</span></td>
+                                <td class="text-center txt-error fw-bold">6.8</td>
+                                <td class="text-end px-4">
+                                    <button class="btn btn-sm btn-ghost-sep px-2 py-1 me-1 text-primary" title="Ver Expediente"><i class="bi bi-folder2-open"></i></button>
+                                    <button class="btn btn-sm btn-ghost-sep px-2 py-1 txt-body" title="Transferir de Grupo"><i class="bi bi-arrow-left-right"></i></button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="bg-surface p-3 border-top border-theme d-flex justify-content-between align-items-center">
+                    <div class="txt-body text-xs fw-bold tracking-wide">Mostrando 2 alumnos activos</div>
+                    <button class="btn btn-ghost-sep text-xs d-flex align-items-center gap-2"><i class="bi bi-download"></i> Descargar Lista (PDF)</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            $('#btnCargarGrupo').click(function() {
+                var $btn = $(this);
+
+                // Simulación de carga
+                $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span> Cargando...');
+
+                setTimeout(function() {
+                    $('#emptyStateGrupo').fadeOut(200, function() {
+                        // Cambiamos el script para que simplemente haga fadeIn sin forzar el 'display: flex' en el contenedor principal
+                        $('#grupoContent').fadeIn(300);
+                        $btn.prop('disabled', false).html('<i class="bi bi-arrow-clockwise"></i> Actualizar Grupo');
+                        $btn.removeClass('btn-primary-sep').addClass('btn-ghost-sep');
+                    });
+                }, 800);
+            });
+
+            // Lógica para cambiar el estilo del select del tutor
+            $('.admin-select-dashed').change(function() {
+                if($(this).val() !== "") {
+                    $(this).removeClass('admin-select-dashed').addClass('bg-success-100 border-success-700 txt-success-700 fw-bold');
+                } else {
+                    $(this).addClass('admin-select-dashed').removeClass('bg-success-100 border-success-700 txt-success-700 fw-bold');
+                }
+            });
+        });
+    </script>
+}

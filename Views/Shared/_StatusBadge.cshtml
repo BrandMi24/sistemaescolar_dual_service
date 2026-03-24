@@ -1,0 +1,46 @@
+@* @using ControlEscolar.Enums
+@{
+    // Recibe: ViewData["StatusValue"] (enum toString), ViewData["StatusType"] ("registro" o "preinscripcion")
+    var statusValue = ViewData["StatusValue"]?.ToString() ?? "";
+    var statusType = ViewData["StatusType"]?.ToString() ?? "registro";
+
+    string badgeClass;
+    if (statusType == "preinscripcion")
+    {
+        badgeClass = statusValue == nameof(EstadoPreinscripcion.Convertida) ? "bg-success"
+                   : statusValue == nameof(EstadoPreinscripcion.Cancelada) ? "bg-danger"
+                   : "bg-warning";
+    }
+    else
+    {
+        badgeClass = statusValue == nameof(EstadoRegistro.Aprobado) ? "bg-success"
+                   : statusValue == nameof(EstadoRegistro.Rechazado) ? "bg-danger"
+                   : "bg-warning";
+    }
+}
+<span class="badge @badgeClass">@statusValue</span>
+ *@
+
+@using ControlEscolar.Enums
+@{
+    var statusValue = ViewData["StatusValue"]?.ToString() ?? "";
+    var statusType = ViewData["StatusType"]?.ToString() ?? "registro";
+    string badgeClass;
+
+    if (statusType == "preinscripcion")
+    {
+        badgeClass = statusValue == nameof(EstadoPreinscripcion.Validada) ? "bg-info"
+                   : statusValue == nameof(EstadoPreinscripcion.InscripcionHabilitada) ? "bg-success"
+                   : statusValue == nameof(EstadoPreinscripcion.Rechazada) ? "bg-danger"
+                   : "bg-warning"; // Pendiente
+    }
+    else
+    {
+        badgeClass = statusValue == nameof(EstadoInscripcion.DocumentosValidados) ? "bg-info"
+                   : statusValue == nameof(EstadoInscripcion.PagoValidado) ? "bg-primary"
+                   : statusValue == nameof(EstadoInscripcion.Aprobada) ? "bg-success"
+                   : statusValue == nameof(EstadoInscripcion.Rechazada) ? "bg-danger"
+                   : "bg-warning"; // Pendiente
+    }
+}
+<span class="badge @badgeClass">@statusValue</span>

@@ -1,0 +1,477 @@
+﻿@{
+    ViewData["Title"] = "Catálogos Generales";
+    Layout = "_LayoutCoordinador";
+}
+
+<div class="d-flex flex-column gap-4">
+
+    <div class="nav-tabs-custom px-2 mb-1">
+        <a href="#" class="nav-tab-item active text-decoration-none" data-target="#tab-docentes">Docentes</a>
+        <a href="#" class="nav-tab-item text-decoration-none" data-target="#tab-alumnos">Alumnos</a>
+        <a href="#" class="nav-tab-item text-decoration-none" data-target="#tab-grupos">Grupos</a>
+        <a href="#" class="nav-tab-item text-decoration-none" data-target="#tab-materias">Materias</a>
+    </div>
+
+    <div id="tab-docentes" class="tab-content-pane">
+        <div class="bg-surface p-4 rounded-4 border-theme shadow-sm d-flex flex-column flex-xl-row justify-content-between align-items-xl-center gap-3 mb-4">
+            <div class="d-flex flex-column flex-md-row gap-3 flex-grow-1" style="max-width: 800px;">
+                <div class="position-relative search-wrapper flex-grow-1">
+                    <i class="bi bi-search position-absolute search-icon-left txt-body"></i>
+                    <input type="text" class="form-control search-input-custom tab-search" placeholder="Buscar docente...">
+                </div>
+                <select class="form-select bg-app border-theme txt-title fw-bold tab-filter" data-filter="especialidad" style="width: auto; min-width: 150px;">
+                    <option value="todos">Especialidad</option>
+                    <option value="software">Software</option>
+                    <option value="redes">Redes</option>
+                </select>
+                <select class="form-select bg-app border-theme txt-title fw-bold tab-filter" data-filter="estado" style="width: auto; min-width: 130px;">
+                    <option value="todos">Estado</option>
+                    <option value="activo">Activos</option>
+                    <option value="inactivo">Inactivos</option>
+                </select>
+            </div>
+            <div class="d-flex gap-2 flex-shrink-0">
+                <button class="btn btn-ghost-sep d-flex align-items-center gap-2 shadow-sm"><i class="bi bi-file-earmark-excel"></i> Importar</button>
+                <button class="btn btn-primary-sep d-flex align-items-center gap-2 shadow-sm bg-primary-900"><i class="bi bi-person-plus-fill"></i> Nuevo Docente</button>
+            </div>
+        </div>
+
+        <div class="admin-card-white p-0 rounded-4 border-theme shadow-sm overflow-hidden d-flex flex-column">
+            <div class="table-responsive bg-surface" style="min-height: 300px;">
+                <table class="table table-borderless align-middle mb-0" style="min-width: 1000px;">
+                    <thead class="admin-table-header">
+                        <tr>
+                            <th class="py-3 px-4" width="35%">Docente</th>
+                            <th class="py-3" width="20%">Especialidad</th>
+                            <th class="py-3" width="15%">Contrato</th>
+                            <th class="py-3 text-center" width="15%">Estado</th>
+                            <th class="py-3 text-end px-4" width="15%">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr class="border-bottom border-theme hover-bg-app data-row" data-estado="activo" data-especialidad="software">
+                            <td class="px-4 py-3 search-target">
+                                <div class="d-flex align-items-center gap-3">
+                                    <div class="avatar-md avatar-sm bg-accent-light txt-primary-dark fw-bold flex-shrink-0">JP</div>
+                                    <div>
+                                        <div class="txt-title fw-bold text-sm mb-1">Ing. Juan Pérez Martínez</div>
+                                        <div class="txt-body text-xs"><i class="bi bi-envelope me-1"></i> jperez@uttn.mx</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td><div class="txt-title fw-bold text-sm">Desarrollo de Software</div></td>
+                            <td class="txt-title fw-bold text-sm">Tiempo Completo</td>
+                            <td class="text-center"><span class="badge status-aceptado text-xxs px-2 py-1 shadow-sm">ACTIVO</span></td>
+                            <td class="text-end px-4"><button class="btn btn-sm btn-ghost-sep px-2 py-1 text-primary"><i class="bi bi-pencil"></i></button></td>
+                        </tr>
+                        <tr class="border-bottom border-theme hover-bg-app data-row" data-estado="activo" data-especialidad="redes">
+                            <td class="px-4 py-3 search-target">
+                                <div class="d-flex align-items-center gap-3">
+                                    <div class="avatar-md avatar-sm bg-app border border-theme txt-title fw-bold flex-shrink-0">GL</div>
+                                    <div>
+                                        <div class="txt-title fw-bold text-sm mb-1">Dr. Gabriel López</div>
+                                        <div class="txt-body text-xs"><i class="bi bi-envelope me-1"></i> glopez@uttn.mx</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td><div class="txt-title fw-bold text-sm">Redes y Telecom.</div></td>
+                            <td class="txt-title fw-bold text-sm">Por Asignatura</td>
+                            <td class="text-center"><span class="badge status-aceptado text-xxs px-2 py-1 shadow-sm">ACTIVO</span></td>
+                            <td class="text-end px-4"><button class="btn btn-sm btn-ghost-sep px-2 py-1 text-primary"><i class="bi bi-pencil"></i></button></td>
+                        </tr>
+                        <tr class="border-bottom border-theme hover-bg-app data-row" data-estado="inactivo" data-especialidad="software">
+                            <td class="px-4 py-3 search-target">
+                                <div class="d-flex align-items-center gap-3">
+                                    <div class="avatar-md avatar-sm bg-error-100 txt-error fw-bold flex-shrink-0">AM</div>
+                                    <div>
+                                        <div class="txt-title fw-bold text-sm mb-1">Ing. Ana Martínez</div>
+                                        <div class="txt-body text-xs"><i class="bi bi-envelope me-1"></i> amartinez@uttn.mx</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td><div class="txt-title fw-bold text-sm">Desarrollo de Software</div></td>
+                            <td class="txt-title fw-bold text-sm">Tiempo Completo</td>
+                            <td class="text-center"><span class="badge bg-error-100 txt-error border border-error border-opacity-25 text-xxs px-2 py-1">INACTIVO</span></td>
+                            <td class="text-end px-4"><button class="btn btn-sm btn-ghost-sep px-2 py-1 text-primary"><i class="bi bi-eye"></i></button></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="bg-surface p-3 border-top border-theme d-flex flex-column flex-md-row justify-content-between align-items-center gap-3">
+                <div class="d-flex align-items-center gap-3">
+                    <span class="txt-body text-xs fw-bold">Mostrar:</span>
+                    <select class="form-select form-select-sm bg-app border-theme txt-title fw-bold rows-per-page" style="width: 70px; cursor: pointer;">
+                        <option value="2" selected>2</option>
+                        <option value="10">10</option>
+                        <option value="20">20</option>
+                    </select>
+                    <div class="txt-body text-xs fw-bold tracking-wide table-info">Mostrando registros...</div>
+                </div>
+                <nav aria-label="Navegación de tabla">
+                    <ul class="pagination pagination-sm mb-0 pagination-controls" data-current-page="1"></ul>
+                </nav>
+            </div>
+        </div>
+    </div>
+
+    <div id="tab-alumnos" class="tab-content-pane" style="display: none;">
+        <div class="bg-surface p-4 rounded-4 border-theme shadow-sm d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+            <div class="d-flex gap-3 flex-grow-1" style="max-width: 600px;">
+                <div class="position-relative search-wrapper flex-grow-1">
+                    <i class="bi bi-search position-absolute search-icon-left txt-body"></i>
+                    <input type="text" class="form-control search-input-custom tab-search" placeholder="Buscar por matrícula o nombre...">
+                </div>
+                <select class="form-select bg-app border-theme txt-title fw-bold tab-filter" data-filter="carrera" style="width: auto; min-width: 150px;">
+                    <option value="todos">Carrera</option>
+                    <option value="software">Software</option>
+                    <option value="mecatronica">Mecatrónica</option>
+                </select>
+            </div>
+            <div class="d-flex gap-2 flex-shrink-0">
+                <button class="btn btn-ghost-sep d-flex align-items-center gap-2 shadow-sm"><i class="bi bi-file-earmark-excel"></i> Importar</button>
+                <button class="btn btn-primary-sep d-flex align-items-center gap-2 shadow-sm"><i class="bi bi-person-plus-fill"></i> Nuevo Alumno</button>
+            </div>
+        </div>
+
+        <div class="admin-card-white p-0 rounded-4 border-theme shadow-sm overflow-hidden d-flex flex-column">
+            <div class="table-responsive bg-surface" style="min-height: 300px;">
+                <table class="table table-borderless align-middle mb-0" style="min-width: 1000px;">
+                    <thead class="admin-table-header">
+                        <tr>
+                            <th class="py-3 px-4">Matrícula</th>
+                            <th class="py-3">Alumno</th>
+                            <th class="py-3">Carrera / Cuatrimestre</th>
+                            <th class="py-3 text-center">Estado</th>
+                            <th class="py-3 text-end px-4">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr class="border-bottom border-theme hover-bg-app border-start border-4 data-row" data-carrera="software" style="border-left-color: var(--accent-500) !important;">
+                            <td class="px-4 py-3 txt-title fw-bold search-target">24001504</td>
+                            <td class="search-target">
+                                <div class="d-flex align-items-center gap-3">
+                                    <div class="avatar-sm bg-accent-light txt-primary-dark fw-bold rounded-circle d-flex align-items-center justify-content-center flex-shrink-0">RC</div>
+                                    <div>
+                                        <div class="txt-title fw-bold text-sm mb-1">Roberto Carlos Perez Cadena</div>
+                                        <div class="txt-body text-xs">rperez@alumnos.uttn.mx</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="txt-title fw-bold text-sm">Ing. Desarrollo y Gestión de Software</div>
+                                <div class="txt-body text-xs mt-1">7º Cuatrimestre</div>
+                            </td>
+                            <td class="text-center"><span class="badge status-aceptado text-xxs px-2 py-1 shadow-sm">REGULAR</span></td>
+                            <td class="text-end px-4"><button class="btn btn-sm btn-ghost-sep px-2 py-1 text-primary"><i class="bi bi-pencil"></i></button></td>
+                        </tr>
+                        <tr class="border-bottom border-theme hover-bg-app data-row" data-carrera="mecatronica">
+                            <td class="px-4 py-3 txt-title fw-bold search-target">24001892</td>
+                            <td class="search-target">
+                                <div class="d-flex align-items-center gap-3">
+                                    <div class="avatar-sm bg-app border border-theme txt-title fw-bold rounded-circle d-flex align-items-center justify-content-center flex-shrink-0">LA</div>
+                                    <div>
+                                        <div class="txt-title fw-bold text-sm mb-1">Luis Ángel García</div>
+                                        <div class="txt-body text-xs">lgarcia@alumnos.uttn.mx</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="txt-title fw-bold text-sm">Mecatrónica</div>
+                                <div class="txt-body text-xs mt-1">4º Cuatrimestre</div>
+                            </td>
+                            <td class="text-center"><span class="badge status-rechazado text-xxs px-2 py-1 shadow-sm">BAJA TEMP</span></td>
+                            <td class="text-end px-4"><button class="btn btn-sm btn-ghost-sep px-2 py-1 text-primary"><i class="bi bi-pencil"></i></button></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="bg-surface p-3 border-top border-theme d-flex flex-column flex-md-row justify-content-between align-items-center gap-3">
+                <div class="d-flex align-items-center gap-3">
+                    <span class="txt-body text-xs fw-bold">Mostrar:</span>
+                    <select class="form-select form-select-sm bg-app border-theme txt-title fw-bold rows-per-page" style="width: 70px; cursor: pointer;">
+                        <option value="5" selected>5</option>
+                        <option value="10">10</option>
+                        <option value="20">20</option>
+                    </select>
+                    <div class="txt-body text-xs fw-bold tracking-wide table-info">Mostrando registros...</div>
+                </div>
+                <nav aria-label="Navegación de tabla">
+                    <ul class="pagination pagination-sm mb-0 pagination-controls" data-current-page="1"></ul>
+                </nav>
+            </div>
+        </div>
+    </div>
+
+    <div id="tab-grupos" class="tab-content-pane" style="display: none;">
+        <div class="bg-surface p-4 rounded-4 border-theme shadow-sm d-flex justify-content-between align-items-center mb-4">
+            <div class="position-relative search-wrapper" style="width: 350px;">
+                <i class="bi bi-search position-absolute search-icon-left txt-body"></i>
+                <input type="text" class="form-control search-input-custom tab-search" placeholder="Buscar grupo...">
+            </div>
+            <button class="btn btn-primary-sep d-flex align-items-center gap-2 shadow-sm"><i class="bi bi-plus-lg"></i> Crear Grupo</button>
+        </div>
+
+        <div class="admin-card-white p-0 rounded-4 border-theme shadow-sm overflow-hidden d-flex flex-column">
+            <div class="table-responsive bg-surface" style="min-height: 300px;">
+                <table class="table table-borderless align-middle mb-0" style="min-width: 800px;">
+                    <thead class="admin-table-header">
+                        <tr>
+                            <th class="py-3 px-4">Nombre del Grupo</th>
+                            <th class="py-3">Carrera</th>
+                            <th class="py-3 text-center">Turno</th>
+                            <th class="py-3 text-center">Alumnos</th>
+                            <th class="py-3 text-end px-4">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr class="border-bottom border-theme hover-bg-app data-row">
+                            <td class="px-4 py-3 txt-title fw-bold fs-6 search-target">7º A</td>
+                            <td class="txt-title fw-bold text-sm search-target">Ing. Desarrollo y Gestión de Software</td>
+                            <td class="text-center"><span class="badge bg-app border border-theme txt-title text-xxs px-2 py-1">MATUTINO</span></td>
+                            <td class="text-center txt-title fw-bold">28 / 30</td>
+                            <td class="text-end px-4"><button class="btn btn-sm btn-ghost-sep px-2 py-1 text-primary"><i class="bi bi-pencil"></i></button></td>
+                        </tr>
+                        <tr class="border-bottom border-theme hover-bg-app data-row">
+                            <td class="px-4 py-3 txt-title fw-bold fs-6 search-target">4º B</td>
+                            <td class="txt-title fw-bold text-sm search-target">Mecatrónica</td>
+                            <td class="text-center"><span class="badge bg-primary-dark txt-white text-xxs px-2 py-1">VESPERTINO</span></td>
+                            <td class="text-center txt-title fw-bold">25 / 35</td>
+                            <td class="text-end px-4"><button class="btn btn-sm btn-ghost-sep px-2 py-1 text-primary"><i class="bi bi-pencil"></i></button></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="bg-surface p-3 border-top border-theme d-flex flex-column flex-md-row justify-content-between align-items-center gap-3">
+                <div class="d-flex align-items-center gap-3">
+                    <span class="txt-body text-xs fw-bold">Mostrar:</span>
+                    <select class="form-select form-select-sm bg-app border-theme txt-title fw-bold rows-per-page" style="width: 70px; cursor: pointer;">
+                        <option value="5" selected>5</option>
+                        <option value="10">10</option>
+                        <option value="20">20</option>
+                    </select>
+                    <div class="txt-body text-xs fw-bold tracking-wide table-info">Mostrando registros...</div>
+                </div>
+                <nav aria-label="Navegación de tabla">
+                    <ul class="pagination pagination-sm mb-0 pagination-controls" data-current-page="1"></ul>
+                </nav>
+            </div>
+        </div>
+    </div>
+
+    <div id="tab-materias" class="tab-content-pane" style="display: none;">
+        <div class="bg-surface p-4 rounded-4 border-theme shadow-sm d-flex justify-content-between align-items-center mb-4">
+            <div class="position-relative search-wrapper" style="width: 350px;">
+                <i class="bi bi-search position-absolute search-icon-left txt-body"></i>
+                <input type="text" class="form-control search-input-custom tab-search" placeholder="Buscar materia o clave...">
+            </div>
+            <button class="btn btn-primary-sep d-flex align-items-center gap-2 shadow-sm"><i class="bi bi-plus-lg"></i> Añadir Materia</button>
+        </div>
+
+        <div class="admin-card-white p-0 rounded-4 border-theme shadow-sm overflow-hidden d-flex flex-column">
+            <div class="table-responsive bg-surface" style="min-height: 300px;">
+                <table class="table table-borderless align-middle mb-0" style="min-width: 800px;">
+                    <thead class="admin-table-header">
+                        <tr>
+                            <th class="py-3 px-4">Clave</th>
+                            <th class="py-3">Nombre de la Materia</th>
+                            <th class="py-3 text-center">Horas / Sem</th>
+                            <th class="py-3 text-center">Tipo</th>
+                            <th class="py-3 text-end px-4">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr class="border-bottom border-theme hover-bg-app data-row">
+                            <td class="px-4 py-3 txt-body fw-bold search-target">SW-401</td>
+                            <td class="txt-title fw-bold text-sm search-target">Arquitectura N-Capas (C#)</td>
+                            <td class="text-center txt-title fw-bold">6 hrs</td>
+                            <td class="text-center"><span class="badge bg-accent-light txt-primary-dark border border-theme text-xxs px-2 py-1">ESPECIALIDAD</span></td>
+                            <td class="text-end px-4"><button class="btn btn-sm btn-ghost-sep px-2 py-1 text-primary"><i class="bi bi-pencil"></i></button></td>
+                        </tr>
+                        <tr class="border-bottom border-theme hover-bg-app data-row">
+                            <td class="px-4 py-3 txt-body fw-bold search-target">TC-105</td>
+                            <td class="txt-title fw-bold text-sm search-target">Inglés VII</td>
+                            <td class="text-center txt-title fw-bold">4 hrs</td>
+                            <td class="text-center"><span class="badge bg-app txt-body border border-theme text-xxs px-2 py-1">TRONCO COMÚN</span></td>
+                            <td class="text-end px-4"><button class="btn btn-sm btn-ghost-sep px-2 py-1 text-primary"><i class="bi bi-pencil"></i></button></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="bg-surface p-3 border-top border-theme d-flex flex-column flex-md-row justify-content-between align-items-center gap-3">
+                <div class="d-flex align-items-center gap-3">
+                    <span class="txt-body text-xs fw-bold">Mostrar:</span>
+                    <select class="form-select form-select-sm bg-app border-theme txt-title fw-bold rows-per-page" style="width: 70px; cursor: pointer;">
+                        <option value="5" selected>5</option>
+                        <option value="10">10</option>
+                        <option value="20">20</option>
+                    </select>
+                    <div class="txt-body text-xs fw-bold tracking-wide table-info">Mostrando registros...</div>
+                </div>
+                <nav aria-label="Navegación de tabla">
+                    <ul class="pagination pagination-sm mb-0 pagination-controls" data-current-page="1"></ul>
+                </nav>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<style>
+    .page-link-custom {
+        color: var(--text-title);
+        background-color: var(--white);
+        border-color: var(--border-color);
+        font-weight: 700;
+        cursor: pointer;
+    }
+
+        .page-link-custom:hover {
+            background-color: var(--bg-main);
+            color: var(--primary-900);
+        }
+
+    .page-item.active .page-link-custom {
+        background-color: var(--primary-900);
+        border-color: var(--primary-900);
+        color: var(--white);
+    }
+
+    .page-item.disabled .page-link-custom {
+        color: var(--text-body);
+        background-color: var(--bg-main);
+        opacity: 0.6;
+        cursor: not-allowed;
+    }
+</style>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+
+            function updateActiveTable() {
+                let $activePane = $('.tab-content-pane:visible');
+                if ($activePane.length === 0) return;
+
+                let searchTerm = $activePane.find('.tab-search').val()?.toLowerCase() || '';
+                let rowsPerPage = parseInt($activePane.find('.rows-per-page').val()) || 5;
+                let $paginationControls = $activePane.find('.pagination-controls');
+                let currentPage = parseInt($paginationControls.attr('data-current-page')) || 1;
+
+                let activeFilters = {};
+                $activePane.find('.tab-filter').each(function() {
+                    activeFilters[$(this).data('filter')] = $(this).val();
+                });
+
+                let filteredRows = [];
+
+                $activePane.find('.data-row').each(function () {
+                    let text = $(this).find('.search-target').text().toLowerCase();
+                    let matchesSearch = text.indexOf(searchTerm) > -1;
+
+                    let matchesFilters = true;
+                    for (const [key, value] of Object.entries(activeFilters)) {
+                        let rowValue = $(this).data(key);
+                        if (value !== 'todos' && rowValue !== value) {
+                            matchesFilters = false;
+                            break;
+                        }
+                    }
+
+                    if (matchesSearch && matchesFilters) {
+                        filteredRows.push($(this));
+                    }
+                    $(this).hide();
+                });
+
+                let totalRecords = filteredRows.length;
+                let totalPages = Math.ceil(totalRecords / rowsPerPage) || 1;
+
+                if (currentPage > totalPages) {
+                    currentPage = totalPages;
+                    $paginationControls.attr('data-current-page', currentPage);
+                }
+
+                let startIndex = (currentPage - 1) * rowsPerPage;
+                let endIndex = Math.min(startIndex + rowsPerPage, totalRecords);
+
+                for (let i = startIndex; i < endIndex; i++) {
+                    filteredRows[i].show();
+                }
+
+                if (totalRecords === 0) {
+                    $activePane.find('.table-info').text('No se encontraron registros');
+                } else {
+                    $activePane.find('.table-info').text(`Mostrando ${startIndex + 1} a ${endIndex} de ${totalRecords} registros`);
+                }
+
+                renderPagination($paginationControls, currentPage, totalPages);
+            }
+
+            function renderPagination($container, currentPage, totalPages) {
+                let paginationHtml = '';
+
+                paginationHtml += `
+                    <li class="page-item ${currentPage === 1 ? 'disabled' : ''}">
+                        <a class="page-link page-link-custom" href="#" data-page="${currentPage - 1}"><i class="bi bi-chevron-left"></i></a>
+                    </li>`;
+
+                for (let i = 1; i <= totalPages; i++) {
+                    paginationHtml += `
+                        <li class="page-item ${i === currentPage ? 'active' : ''}">
+                            <a class="page-link page-link-custom" href="#" data-page="${i}">${i}</a>
+                        </li>`;
+                }
+
+                paginationHtml += `
+                    <li class="page-item ${currentPage === totalPages || totalPages === 0 ? 'disabled' : ''}">
+                        <a class="page-link page-link-custom" href="#" data-page="${currentPage + 1}"><i class="bi bi-chevron-right"></i></a>
+                    </li>`;
+
+                $container.html(paginationHtml);
+            }
+
+            // Cambio de Pestañas
+            $('.nav-tab-item').on('click', function(e) {
+                e.preventDefault();
+                $('.nav-tab-item').removeClass('active');
+                $(this).addClass('active');
+                $('.tab-content-pane').hide();
+                var targetId = $(this).data('target');
+                $(targetId).fadeIn(300, function() {
+                    updateActiveTable();
+                });
+            });
+
+            // Listeners globales delegados para la tabla activa
+            $(document).on('input change', '.tab-search, .tab-filter', function() {
+                let $pane = $(this).closest('.tab-content-pane');
+                $pane.find('.pagination-controls').attr('data-current-page', 1);
+                updateActiveTable();
+            });
+
+            $(document).on('change', '.rows-per-page', function() {
+                let $pane = $(this).closest('.tab-content-pane');
+                $pane.find('.pagination-controls').attr('data-current-page', 1);
+                updateActiveTable();
+            });
+
+            $(document).on('click', '.pagination-controls .page-link', function(e) {
+                e.preventDefault();
+                let $parent = $(this).parent();
+                if (!$parent.hasClass('disabled') && !$parent.hasClass('active')) {
+                    let newPage = $(this).data('page');
+                    let $pane = $(this).closest('.tab-content-pane');
+                    $pane.find('.pagination-controls').attr('data-current-page', newPage);
+                    updateActiveTable();
+                }
+            });
+
+            // Inicializar la tabla activa al cargar
+            updateActiveTable();
+        });
+    </script>
+}

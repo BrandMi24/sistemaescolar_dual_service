@@ -1,0 +1,227 @@
+﻿@{
+    ViewData["Title"] = "Mi Grupo: 7º A - Software";
+    Layout = "_LayoutTutor";
+}
+
+<div class="d-flex flex-column gap-4">
+
+    <div class="bg-surface p-4 rounded-4 border-theme shadow-sm d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+        <div class="d-flex gap-3 flex-grow-1" style="max-width: 600px;">
+            <div class="position-relative search-wrapper flex-grow-1">
+                <i class="bi bi-search position-absolute search-icon-left txt-body"></i>
+                <input type="text" id="searchInput" class="form-control search-input-custom" placeholder="Buscar alumno por matrícula o nombre...">
+            </div>
+            <select id="statusFilter" class="form-select bg-app border-theme txt-title fw-bold" style="width: auto; min-width: 150px;">
+                <option value="todos">Todos los Estados</option>
+                <option value="regular">Regular</option>
+                <option value="riesgo">En Riesgo</option>
+            </select>
+        </div>
+        <button class="btn btn-ghost-sep d-flex align-items-center gap-2 shadow-sm">
+            <i class="bi bi-printer"></i> Imprimir Lista
+        </button>
+    </div>
+
+    <div class="admin-card-white p-0 rounded-4 border-theme shadow-sm overflow-hidden d-flex flex-column">
+        <div class="table-responsive bg-surface" style="min-height: 400px;">
+            <table class="table table-borderless align-middle mb-0" style="min-width: 1000px;">
+                <thead class="admin-table-header">
+                    <tr>
+                        <th class="py-3 px-4" width="15%">Matrícula</th>
+                        <th class="py-3" width="35%">Alumno</th>
+                        <th class="py-3 text-center" width="15%">Estatus</th>
+                        <th class="py-3 text-center" width="15%">Promedio</th>
+                        <th class="py-3 text-end px-4" width="20%">Expediente</th>
+                    </tr>
+                </thead>
+                <tbody>
+
+                    <tr class="border-bottom border-theme hover-bg-app border-start border-4 data-row" data-estado="regular" style="border-left-color: var(--success-700) !important;">
+                        <td class="px-4 py-3 txt-title fw-bold search-target">26001504</td>
+                        <td class="search-target">
+                            <div class="d-flex align-items-center gap-3">
+                                <div class="avatar-sm bg-accent-light txt-primary-dark fw-bold rounded-circle d-flex align-items-center justify-content-center flex-shrink-0">RC</div>
+                                <div>
+                                    <div class="txt-title fw-bold text-sm mb-1">Roberto Carlos Perez Cadena</div>
+                                    <div class="txt-body text-xs">rperez@alumnos.uttn.mx</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="text-center">
+                            <span class="badge status-aceptado text-xxs px-2 py-1 shadow-sm">REGULAR</span>
+                        </td>
+                        <td class="text-center txt-title fw-bold">9.2</td>
+                        <td class="text-end px-4">
+                            <a href="@Url.Action("Entrevista", "Tutor")" class="btn btn-sm btn-ghost-sep px-2 py-1 me-1 text-primary" title="Entrevista Inicial"><i class="bi bi-clipboard-data"></i></a>
+                            <a href="@Url.Action("Seguimiento", "Tutor")" class="btn btn-sm btn-ghost-sep px-2 py-1 txt-body" title="Bitácora de Seguimiento"><i class="bi bi-journal-text"></i></a>
+                        </td>
+                    </tr>
+
+                    <tr class="border-bottom border-theme hover-bg-app border-start border-4 data-row" data-estado="riesgo" style="border-left-color: var(--error-700) !important;">
+                        <td class="px-4 py-3 txt-title fw-bold search-target">26001892</td>
+                        <td class="search-target">
+                            <div class="d-flex align-items-center gap-3">
+                                <div class="avatar-sm bg-error-100 txt-error fw-bold rounded-circle d-flex align-items-center justify-content-center flex-shrink-0">MA</div>
+                                <div>
+                                    <div class="txt-title fw-bold text-sm mb-1">Miguel Ángel Torres</div>
+                                    <div class="txt-body text-xs">mtorres@alumnos.uttn.mx</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="text-center">
+                            <span class="badge bg-warning bg-opacity-25 txt-warning border border-warning border-opacity-50 text-xxs px-2 py-1 shadow-sm" style="color: var(--warning-700) !important;">EN RIESGO</span>
+                        </td>
+                        <td class="text-center txt-error fw-bold">6.5</td>
+                        <td class="text-end px-4">
+                            <a href="@Url.Action("Entrevista", "Tutor")" class="btn btn-sm btn-ghost-sep px-2 py-1 me-1 text-primary" title="Entrevista Inicial"><i class="bi bi-clipboard-data"></i></a>
+                            <a href="@Url.Action("Seguimiento", "Tutor")" class="btn btn-sm btn-ghost-sep px-2 py-1 txt-body" title="Bitácora de Seguimiento"><i class="bi bi-journal-text"></i></a>
+                        </td>
+                    </tr>
+
+                </tbody>
+            </table>
+        </div>
+
+        <div class="bg-surface p-3 border-top border-theme d-flex flex-column flex-md-row justify-content-between align-items-center gap-3">
+            <div class="d-flex align-items-center gap-3">
+                <span class="txt-body text-xs fw-bold">Mostrar:</span>
+                <select id="rowsPerPage" class="form-select form-select-sm bg-app border-theme txt-title fw-bold" style="width: 70px; cursor: pointer;">
+                    <option value="5" selected>5</option>
+                    <option value="10">10</option>
+                    <option value="20">20</option>
+                </select>
+                <div class="txt-body text-xs fw-bold tracking-wide" id="tableInfo">
+                    Mostrando registros...
+                </div>
+            </div>
+
+            <nav aria-label="Navegación de tabla">
+                <ul class="pagination pagination-sm mb-0" id="paginationControls">
+                </ul>
+            </nav>
+        </div>
+    </div>
+</div>
+
+<style>
+    .page-link-custom {
+        color: var(--text-title);
+        background-color: var(--white);
+        border-color: var(--border-color);
+        font-weight: 700;
+        cursor: pointer;
+    }
+
+        .page-link-custom:hover {
+            background-color: var(--bg-main);
+            color: var(--primary-900);
+        }
+
+    .page-item.active .page-link-custom {
+        background-color: var(--primary-900);
+        border-color: var(--primary-900);
+        color: var(--white);
+    }
+
+    .page-item.disabled .page-link-custom {
+        color: var(--text-body);
+        background-color: var(--bg-main);
+        opacity: 0.6;
+        cursor: not-allowed;
+    }
+</style>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            let currentPage = 1;
+
+            function updateTable() {
+                let searchTerm = $('#searchInput').val().toLowerCase();
+                let statusFilter = $('#statusFilter').val();
+                let rowsPerPage = parseInt($('#rowsPerPage').val());
+
+                let filteredRows = [];
+
+                $('.data-row').each(function () {
+                    let text = $(this).find('.search-target').text().toLowerCase();
+                    let status = $(this).data('estado');
+
+                    let matchesSearch = text.indexOf(searchTerm) > -1;
+                    let matchesStatus = (statusFilter === 'todos') || (status === statusFilter);
+
+                    if (matchesSearch && matchesStatus) {
+                        filteredRows.push($(this));
+                    }
+                    $(this).hide();
+                });
+
+                let totalRecords = filteredRows.length;
+                let totalPages = Math.ceil(totalRecords / rowsPerPage) || 1;
+
+                if (currentPage > totalPages) {
+                    currentPage = totalPages;
+                }
+
+                let startIndex = (currentPage - 1) * rowsPerPage;
+                let endIndex = Math.min(startIndex + rowsPerPage, totalRecords);
+
+                for (let i = startIndex; i < endIndex; i++) {
+                    filteredRows[i].show();
+                }
+
+                if (totalRecords === 0) {
+                    $('#tableInfo').text('No se encontraron registros');
+                } else {
+                    $('#tableInfo').text(`Mostrando ${startIndex + 1} a ${endIndex} de ${totalRecords} registros`);
+                }
+
+                renderPagination(totalPages);
+            }
+
+            function renderPagination(totalPages) {
+                let paginationHtml = '';
+
+                paginationHtml += `
+                    <li class="page-item ${currentPage === 1 ? 'disabled' : ''}">
+                        <a class="page-link page-link-custom" href="#" data-page="${currentPage - 1}"><i class="bi bi-chevron-left"></i></a>
+                    </li>`;
+
+                for (let i = 1; i <= totalPages; i++) {
+                    paginationHtml += `
+                        <li class="page-item ${i === currentPage ? 'active' : ''}">
+                            <a class="page-link page-link-custom" href="#" data-page="${i}">${i}</a>
+                        </li>`;
+                }
+
+                paginationHtml += `
+                    <li class="page-item ${currentPage === totalPages || totalPages === 0 ? 'disabled' : ''}">
+                        <a class="page-link page-link-custom" href="#" data-page="${currentPage + 1}"><i class="bi bi-chevron-right"></i></a>
+                    </li>`;
+
+                $('#paginationControls').html(paginationHtml);
+            }
+
+            $('#searchInput, #statusFilter').on('input change', function() {
+                currentPage = 1;
+                updateTable();
+            });
+
+            $('#rowsPerPage').on('change', function() {
+                currentPage = 1;
+                updateTable();
+            });
+
+            $('#paginationControls').on('click', '.page-link', function(e) {
+                e.preventDefault();
+                let $parent = $(this).parent();
+                if (!$parent.hasClass('disabled') && !$parent.hasClass('active')) {
+                    currentPage = parseInt($(this).data('page'));
+                    updateTable();
+                }
+            });
+
+            updateTable();
+        });
+    </script>
+}

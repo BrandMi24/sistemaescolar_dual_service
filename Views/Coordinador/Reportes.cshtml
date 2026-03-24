@@ -1,0 +1,262 @@
+﻿@{
+    ViewData["Title"] = "Reportes y Deserción";
+    Layout = "_LayoutCoordinador";
+}
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<div class="d-flex flex-column gap-4">
+
+    <div class="bg-surface p-4 rounded-4 border-theme shadow-sm d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+        <div class="d-flex align-items-center gap-3">
+            <div class="icon-circle bg-primary-900 txt-white"><i class="bi bi-funnel-fill"></i></div>
+            <h6 class="txt-title fw-bold mb-0">Parámetros del Reporte</h6>
+        </div>
+
+        <div class="d-flex flex-column flex-md-row gap-3">
+            <select class="form-select bg-app border-theme txt-title fw-bold" style="min-width: 200px;">
+                <option>Ciclo: Ene - Abr 2026</option>
+                <option>Ciclo: Sep - Dic 2025</option>
+                <option>Histórico (1 Año)</option>
+            </select>
+            <select class="form-select bg-app border-theme txt-title fw-bold" style="min-width: 250px;">
+                <option>Todas las Carreras</option>
+                <option>Ing. Desarrollo de Software</option>
+                <option>Mecatrónica</option>
+            </select>
+            <button class="btn btn-primary-sep d-flex align-items-center gap-2 shadow-sm">
+                <i class="bi bi-download"></i> Exportar a PDF
+            </button>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-md-3">
+            <div class="admin-card-white p-4 rounded-4 border-theme shadow-sm border-start border-4 h-100 d-flex flex-column justify-content-center" style="border-left-color: var(--primary-900) !important;">
+                <div class="txt-body text-xs fw-bold tracking-wide mb-2">MATRÍCULA ACTIVA</div>
+                <div class="d-flex align-items-baseline gap-2">
+                    <h2 class="txt-title fw-bold mb-0">1,240</h2>
+                    <span class="badge bg-success-100 txt-success-700 text-xxs"><i class="bi bi-arrow-up-short"></i> 2.4%</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="admin-card-white p-4 rounded-4 border-theme shadow-sm border-start border-4 h-100 d-flex flex-column justify-content-center" style="border-left-color: var(--error-700) !important;">
+                <div class="txt-body text-xs fw-bold tracking-wide mb-2">BAJAS DEFINITIVAS</div>
+                <div class="d-flex align-items-baseline gap-2">
+                    <h2 class="txt-error fw-bold mb-0">45</h2>
+                    <span class="badge bg-error-100 txt-error text-xxs border border-error border-opacity-25"><i class="bi bi-arrow-up-short"></i> 1.2%</span>
+                </div>
+                <div class="txt-body text-xs mt-2 opacity-75">Este ciclo</div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="admin-card-white p-4 rounded-4 border-theme shadow-sm border-start border-4 h-100 d-flex flex-column justify-content-center" style="border-left-color: var(--warning-700) !important;">
+                <div class="txt-body text-xs fw-bold tracking-wide mb-2">BAJAS TEMPORALES</div>
+                <h2 class="txt-title fw-bold mb-0">18</h2>
+                <div class="txt-body text-xs mt-2 opacity-75">Esperando reingreso</div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="admin-card-white p-4 rounded-4 border-theme shadow-sm border-start border-4 h-100 d-flex flex-column justify-content-center" style="border-left-color: var(--accent-500) !important;">
+                <div class="txt-body text-xs fw-bold tracking-wide mb-2">TASA DE RETENCIÓN</div>
+                <div class="d-flex align-items-baseline gap-2">
+                    <h2 class="txt-title fw-bold mb-0">96.3%</h2>
+                </div>
+                <div class="progress mt-2" style="height: 6px;">
+                    <div class="progress-bar bg-accent-500" style="width: 96.3%;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+
+        <div class="col-lg-8">
+            <div class="admin-card-white p-4 rounded-4 border-theme shadow-sm h-100 d-flex flex-column">
+                <h6 class="txt-title fw-bold mb-4">Tendencia de Deserción Anual</h6>
+                <div class="flex-grow-1 position-relative" style="min-height: 300px;">
+                    <canvas id="desertionChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="admin-card-white p-4 rounded-4 border-theme shadow-sm h-100 d-flex flex-column">
+                <h6 class="txt-title fw-bold mb-4">Motivos Principales de Baja</h6>
+                <div class="flex-grow-1 position-relative d-flex justify-content-center align-items-center" style="min-height: 300px;">
+                    <canvas id="reasonsChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="admin-card-white p-0 rounded-4 border-theme shadow-sm overflow-hidden d-flex flex-column">
+        <div class="bg-surface p-4 border-bottom border-theme d-flex align-items-center gap-2">
+            <i class="bi bi-exclamation-triangle-fill txt-error fs-5"></i>
+            <h6 class="txt-error fw-bold mb-0">Grupos con Foco Rojo (Alta Deserción)</h6>
+        </div>
+
+        <div class="table-responsive bg-surface">
+            <table class="table table-borderless align-middle mb-0">
+                <thead class="admin-table-header">
+                    <tr>
+                        <th class="py-3 px-4">Grupo</th>
+                        <th class="py-3">Carrera</th>
+                        <th class="py-3 text-center">Inscritos Iniciales</th>
+                        <th class="py-3 text-center">Bajas Acumuladas</th>
+                        <th class="py-3 text-end px-4">Tasa Crítica</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr class="border-bottom border-theme hover-bg-app bg-error-100 bg-opacity-10">
+                        <td class="px-4 py-3 txt-title fw-bold fs-6">4º A</td>
+                        <td class="txt-body text-sm">Ing. Desarrollo y Gestión de Software</td>
+                        <td class="text-center txt-title fw-bold">30</td>
+                        <td class="text-center txt-error fw-bold fs-5">5</td>
+                        <td class="text-end px-4 txt-error fw-bold">16.6%</td>
+                    </tr>
+                    <tr class="border-bottom border-theme hover-bg-app">
+                        <td class="px-4 py-3 txt-title fw-bold fs-6">1º C</td>
+                        <td class="txt-body text-sm">Mecatrónica</td>
+                        <td class="text-center txt-title fw-bold">35</td>
+                        <td class="text-center txt-title fw-bold fs-5">4</td>
+                        <td class="text-end px-4 txt-warning fw-bold" style="color: var(--warning-700) !important;">11.4%</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+
+            // ---------------------------------------------------------
+            // 1. CONFIGURACIÓN DE COLORES (Conectado a tu CSS root)
+            // ---------------------------------------------------------
+            const colorPrimary = getComputedStyle(document.documentElement).getPropertyValue('--primary-900').trim() || '#13322B';
+            const colorAccent = getComputedStyle(document.documentElement).getPropertyValue('--accent-500').trim() || '#D4C19C';
+            const colorError = getComputedStyle(document.documentElement).getPropertyValue('--error-700').trim() || '#991B1B';
+            const colorWarning = getComputedStyle(document.documentElement).getPropertyValue('--warning-700').trim() || '#B45309';
+            const colorSurface = getComputedStyle(document.documentElement).getPropertyValue('--surface').trim() || '#F9F5EC';
+            const colorText = getComputedStyle(document.documentElement).getPropertyValue('--text-body').trim() || '#6B7280';
+            const colorGrid = getComputedStyle(document.documentElement).getPropertyValue('--border-color').trim() || '#E5E7EB';
+
+            // Configuración global de fuentes para Chart.js
+            Chart.defaults.font.family = "'Montserrat', sans-serif";
+            Chart.defaults.color = colorText;
+
+            // ---------------------------------------------------------
+            // 2. GRÁFICA DE TENDENCIA (LÍNEAS)
+            // ---------------------------------------------------------
+            const ctxDesertion = document.getElementById('desertionChart').getContext('2d');
+
+            // Crear gradiente para la línea principal
+            let gradientFill = ctxDesertion.createLinearGradient(0, 0, 0, 400);
+            gradientFill.addColorStop(0, 'rgba(19, 50, 43, 0.2)'); // Primary con opacidad
+            gradientFill.addColorStop(1, 'rgba(19, 50, 43, 0)');
+
+            new Chart(ctxDesertion, {
+                type: 'line',
+                data: {
+                    labels: ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'],
+                    datasets: [{
+                        label: 'Bajas por mes (2025)',
+                        data: [12, 19, 8, 5, 22, 15, 10, 4, 30, 25, 12, 8],
+                        borderColor: colorPrimary,
+                        backgroundColor: gradientFill,
+                        borderWidth: 3,
+                        pointBackgroundColor: colorWhite,
+                        pointBorderColor: colorPrimary,
+                        pointBorderWidth: 2,
+                        pointRadius: 4,
+                        pointHoverRadius: 6,
+                        fill: true,
+                        tension: 0.4 // Hace la línea curva
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            backgroundColor: colorPrimary,
+                            titleFont: { family: 'Montserrat', size: 13 },
+                            bodyFont: { family: 'Montserrat', size: 14, weight: 'bold' },
+                            padding: 12,
+                            cornerRadius: 8,
+                            displayColors: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: { color: colorGrid, drawBorder: false },
+                            ticks: { font: { size: 11 } }
+                        },
+                        x: {
+                            grid: { display: false, drawBorder: false },
+                            ticks: { font: { size: 11 } }
+                        }
+                    }
+                }
+            });
+
+            // ---------------------------------------------------------
+            // 3. GRÁFICA DE MOTIVOS (DONA)
+            // ---------------------------------------------------------
+            const ctxReasons = document.getElementById('reasonsChart').getContext('2d');
+
+            new Chart(ctxReasons, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Económico', 'Reprobación', 'Cambio de Residencia', 'Problemas de Salud', 'Otros'],
+                    datasets: [{
+                        data: [45, 25, 15, 10, 5],
+                        backgroundColor: [
+                            colorPrimary,
+                            colorError,
+                            colorWarning,
+                            colorAccent,
+                            '#9CA3AF' // Gris genérico
+                        ],
+                        borderWidth: 2,
+                        borderColor: '#FFFFFF',
+                        hoverOffset: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: '70%', // Grosor de la dona
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                padding: 20,
+                                usePointStyle: true,
+                                pointStyle: 'circle',
+                                font: { family: 'Montserrat', size: 11 }
+                            }
+                        },
+                        tooltip: {
+                            backgroundColor: colorPrimary,
+                            bodyFont: { family: 'Montserrat', size: 13 },
+                            padding: 10,
+                            cornerRadius: 8
+                        }
+                    }
+                }
+            });
+
+        });
+    </script>
+}

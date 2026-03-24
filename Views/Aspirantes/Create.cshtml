@@ -1,0 +1,302 @@
+@using ControlEscolar.Helpers
+@model ControlEscolar.Models.Aspirante
+
+@{
+    ViewData["Title"] = "Nueva Inscripción";
+    Layout = "_Layout";
+}
+
+<div class="wizard-wrapper pt-5 mb-5">
+    <div class="container">
+
+        <div class="stepper mx-auto mb-5" id="pre-stepper" style="max-width: 700px;">
+            <div class="step-badge active" data-step="1">
+                <span class="step-number"><i class="bi bi-check-lg completed-icon d-none"></i><span class="step-num">1</span></span>
+                <span class="step-label txt-title fw-bold text-xs">Validación</span>
+            </div>
+            <div class="step-badge" data-step="2">
+                <span class="step-number"><i class="bi bi-check-lg completed-icon d-none"></i><span class="step-num">2</span></span>
+                <span class="step-label txt-title fw-bold text-xs">Ingreso Académico</span>
+            </div>
+            <div class="step-badge" data-step="3">
+                <span class="step-number"><i class="bi bi-check-lg completed-icon d-none"></i><span class="step-num">3</span></span>
+                <span class="step-label txt-title fw-bold text-xs">Documentación</span>
+            </div>
+        </div>
+
+        <div class="form-container bg-surface rounded-4 shadow-sm border-theme p-4 p-md-5">
+
+            <div class="alert-box-sep shadow-sm mb-5 d-flex align-items-start gap-3">
+                <i class="bi bi-info-circle-fill fs-4 txt-primary-dark"></i>
+                <div>
+                    <h6 class="txt-title fw-bold text-sm mb-1">Antes de iniciar</h6>
+                    <ul class="txt-body text-xs mb-0 ps-3">
+                        <li>Tenga a la mano el Folio que recibió por correo de aceptación.</li>
+                        <li>Tenga listos sus documentos oficiales escaneados en formato PDF.</li>
+                    </ul>
+                </div>
+            </div>
+
+            <form asp-action="Create" enctype="multipart/form-data" id="aspiranteForm">
+                <div asp-validation-summary="ModelOnly" class="alert alert-danger bg-error-100 txt-error border-error rounded-3"></div>
+
+                <div class="wizard-step active" data-step="1">
+                    <h3 class="fw-bold mb-1 txt-primary-dark">Validación de Aspirante</h3>
+                    <p class="txt-body mb-4 small">Ingrese su folio de aceptación y CURP para vincular su expediente.</p>
+
+                    <div class="row g-4 mb-4">
+                        <div class="col-md-6">
+                            <label class="form-label txt-body text-xs fw-bold tracking-wide">FOLIO DE ACEPTACIÓN *</label>
+                            <input name="Folio" class="form-control bg-app border-theme txt-title fw-bold" required placeholder="Ej. PRE-2024-0001" />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label txt-body text-xs fw-bold tracking-wide">CURP *</label>
+                            <input name="CurpValidacion" class="form-control bg-app border-theme txt-title fw-bold text-uppercase" maxlength="18" required placeholder="XXXXYYYYZZZZ0000AA" />
+                        </div>
+                    </div>
+                </div>
+
+                <div class="wizard-step" data-step="2">
+                    <h3 class="fw-bold mb-1 txt-primary-dark">Datos de Ingreso</h3>
+                    <p class="txt-body mb-4 small">Confirme la carrera a inscribirse y su historial en la institución.</p>
+
+                    <div class="row g-4 mb-4">
+                        <div class="col-md-6">
+                            <label asp-for="CarreraSolicitada" class="form-label txt-body text-xs fw-bold tracking-wide">CARRERA SOLICITADA (1ª OPCIÓN) *</label>
+                            <select asp-for="CarreraSolicitada" class="form-select bg-app border-theme txt-title fw-bold" required>
+                                <option value="">SIN SELECCIÓN</option>
+                                @foreach (var c in CatalogosHelper.Carreras)
+                                {
+                                    <option value="@c">@c</option>
+                                }
+                            </select>
+                            <span asp-validation-for="CarreraSolicitada" class="txt-error text-xs fw-bold"></span>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label txt-body text-xs fw-bold tracking-wide">¿YA CUENTAS CON MATRÍCULA DEL NIVEL TSU?</label>
+                            <div class="d-flex gap-4 mt-2">
+                                <div class="form-check">
+                                    <input class="form-check-input form-check-custom" type="radio" name="TieneMatriculaTSU" value="false" checked id="matriculaNo">
+                                    <label class="form-check-label fw-bold txt-title" for="matriculaNo">No</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input form-check-custom" type="radio" name="TieneMatriculaTSU" value="true" id="matriculaSi" data-toggle-target="#matriculaGroup" data-toggle-value="true">
+                                    <label class="form-check-label fw-bold txt-title" for="matriculaSi">Sí</label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row g-4 conditional-field" id="matriculaGroup" style="display:none;">
+                        <div class="col-md-6">
+                            <label asp-for="Matricula" class="form-label txt-body text-xs fw-bold tracking-wide">MATRÍCULA PREVIA</label>
+                            <input asp-for="Matricula" class="form-control bg-app border-theme txt-title fw-bold" placeholder="Ej. 20240001" />
+                            <span asp-validation-for="Matricula" class="txt-error text-xs fw-bold"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="wizard-step" data-step="3">
+                    <h3 class="fw-bold mb-1 txt-primary-dark">Carga de Documentos</h3>
+                    <p class="txt-body mb-4 small">Suba sus documentos oficiales en formato PDF. Asegúrese de que sean legibles.</p>
+
+                    <div class="bg-surface border border-theme rounded-4 p-4 mb-4 shadow-sm">
+                        <div class="row g-4">
+                            <div class="col-12">
+                                <label class="form-label txt-title fw-bold d-flex align-items-center gap-2 mb-2">
+                                    <i class="bi bi-file-earmark-pdf text-danger fs-5"></i> Acta de Nacimiento *
+                                </label>
+                                <input name="ActaNacimientoFile" type="file" class="form-control bg-app border-theme txt-title" accept=".pdf" required />
+                            </div>
+
+                            <div class="col-12">
+                                <label class="form-label txt-title fw-bold d-flex align-items-center gap-2 mb-2">
+                                    <i class="bi bi-file-earmark-pdf text-danger fs-5"></i> CURP (Formato reciente) *
+                                </label>
+                                <input name="CurpPdfFile" type="file" class="form-control bg-app border-theme txt-title" accept=".pdf" required />
+                            </div>
+
+                            <div class="col-12">
+                                <label class="form-label txt-title fw-bold d-flex align-items-center gap-2 mb-2">
+                                    <i class="bi bi-file-earmark-pdf text-danger fs-5"></i> Certificado de Estudios o Boleta *
+                                </label>
+                                <input name="BoletaPdfFile" type="file" class="form-control bg-app border-theme txt-title" accept=".pdf" required />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-between align-items-center mt-5 pt-4 border-top border-theme">
+                    <button type="button" class="btn btn-ghost-sep px-4" id="prevStep" disabled>
+                        <i class="bi bi-arrow-left me-2"></i> Anterior
+                    </button>
+                    <div class="d-flex gap-3">
+                        <button type="button" class="btn btn-primary-sep px-5" id="nextStep">
+                            Siguiente <i class="bi bi-arrow-right ms-2"></i>
+                        </button>
+                        <button type="button" class="btn btn-primary-sep px-5 d-none" id="submitBtn" style="background-color: var(--success-700);">
+                            <i class="bi bi-check2-circle me-2"></i> Enviar Inscripción
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <div class="text-center mt-5 txt-body pb-4 fw-bold text-xxs tracking-wide opacity-50">
+            SISTEMA INTEGRAL ESCOLAR © 2026 - TODOS LOS DERECHOS RESERVADOS
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+    
+    <script>
+        const CreateUrl = '@Url.Action("Create", "Aspirantes")';
+    </script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const nextBtn = document.getElementById('nextStep');
+            const prevBtn = document.getElementById('prevStep');
+            const submitBtn = document.getElementById('submitBtn');
+            const steps = document.querySelectorAll('.wizard-step');
+            const stepBadges = document.querySelectorAll('.step-badge');
+
+            let currentStep = 1;
+            const totalSteps = steps.length;
+
+            function updateUI() {
+                steps.forEach((step) => {
+                    if (parseInt(step.getAttribute('data-step')) === currentStep) {
+                        step.classList.add('active');
+                    } else {
+                        step.classList.remove('active');
+                    }
+                });
+
+                stepBadges.forEach((badge, index) => {
+                    const stepNum = index + 1;
+                    badge.classList.remove('active', 'completed');
+                    const numSpan = badge.querySelector('.step-num');
+                    const icon = badge.querySelector('.completed-icon');
+
+                    if (stepNum < currentStep) {
+                        badge.classList.add('completed');
+                        if (numSpan) numSpan.classList.add('d-none');
+                        if (icon) icon.classList.remove('d-none');
+                    } else if (stepNum === currentStep) {
+                        badge.classList.add('active');
+                        if (numSpan) numSpan.classList.remove('d-none');
+                        if (icon) icon.classList.add('d-none');
+                    } else {
+                        if (numSpan) numSpan.classList.remove('d-none');
+                        if (icon) icon.classList.add('d-none');
+                    }
+                });
+
+                if(prevBtn) prevBtn.disabled = (currentStep === 1);
+
+                if (currentStep === totalSteps) {
+                    if(nextBtn) nextBtn.classList.add('d-none');
+                    if(submitBtn) submitBtn.classList.remove('d-none');
+                } else {
+                    if(nextBtn) nextBtn.classList.remove('d-none');
+                    if(submitBtn) submitBtn.classList.add('d-none');
+                }
+            }
+
+            if (nextBtn) {
+                nextBtn.addEventListener('click', () => {
+                    if (currentStep < totalSteps) {
+                        currentStep++;
+                        updateUI();
+                    }
+                });
+            }
+
+            if (prevBtn) {
+                prevBtn.addEventListener('click', () => {
+                    if (currentStep > 1) {
+                        currentStep--;
+                        updateUI();
+                    }
+                });
+            }
+
+            updateUI();
+
+                    document.getElementById('submitBtn').addEventListener('click', async () => {
+            const form = document.getElementById('aspiranteForm');
+            const formData = new FormData(form);
+
+            try {
+                const response = await fetch(CreateUrl, {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
+                    }
+                });
+
+                if (!response.ok) {
+                    console.error('Error en el servidor:', response.status);
+                    return;
+                }
+
+                const contentType = response.headers.get('Content-Type') || '';
+
+                // ===== RESPUESTA PDF =====
+                if (contentType.includes('application/pdf')) {
+
+                    const blob = await response.blob();
+                    const url = URL.createObjectURL(blob);
+
+                    const disposition = response.headers.get('Content-Disposition');
+                    let fileName = 'FichaInscripcion.pdf';
+
+                    if (disposition) {
+                        const match = disposition.match(/filename="?([^"]+)"?/);
+                        if (match) fileName = match[1];
+                    }
+
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = fileName;
+
+                    document.body.appendChild(a);
+                    a.click();
+                    a.remove();
+
+                    URL.revokeObjectURL(url);
+
+                    const matricula = response.headers.get('X-Matricula');
+                    const detailsUrl = response.headers.get('X-Details-Url');
+
+                    if (matricula) {
+                        sessionStorage.setItem(
+                            'successMessage',
+                            `Inscripción registrada exitosamente. Su matrícula es: ${matricula}`
+                        );
+                    }
+
+                    if (detailsUrl) {
+                        window.location.href = detailsUrl;
+                    }
+
+                    return;
+                }
+
+                // ===== REDIRECT =====
+                window.location.href = response.url;
+
+            } catch (error) {
+                console.error('Error al enviar:', error);
+            }
+        });
+        });
+    </script>
+}

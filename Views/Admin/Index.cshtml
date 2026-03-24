@@ -1,0 +1,212 @@
+@{
+    ViewData["Title"] = "Dashboard General";
+    Layout = "_LayoutAdmin";
+}
+
+<div class="row g-4 mb-4">
+    <div class="col-md-6 col-lg-3">
+        <div class="admin-card-white h-100 p-4 shadow-sm border-0" style="border-radius: 16px;">
+            <div class="d-flex justify-content-between align-items-start mb-4">
+                <div class="bg-light rounded p-2 text-muted d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                    <i class="bi bi-people-fill fs-5"></i>
+                </div>
+                <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 px-2 py-1" style="font-size: 0.7rem;">~ 4%</span>
+            </div>
+            <div class="text-muted small fw-bold mb-1">Total Alumnos</div>
+            <h3 class="fw-bold mb-0" style="color: var(--primary-900);">1,240</h3>
+        </div>
+    </div>
+
+    <div class="col-md-6 col-lg-3">
+        <div class="admin-card-white h-100 p-4 shadow-sm border-0" style="border-radius: 16px;">
+            <div class="d-flex justify-content-between align-items-start mb-4">
+                <div class="bg-light rounded p-2 text-muted d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                    <i class="bi bi-mortarboard-fill fs-5"></i>
+                </div>
+            </div>
+            <div class="text-muted small fw-bold mb-1">Docentes</div>
+            <h3 class="fw-bold mb-0" style="color: var(--primary-900);">85</h3>
+        </div>
+    </div>
+
+    <div class="col-md-6 col-lg-3">
+        <div class="admin-card-white h-100 p-4 shadow-sm border-0" style="border-radius: 16px;">
+            <div class="d-flex justify-content-between align-items-start mb-4">
+                <div class="bg-success bg-opacity-10 rounded p-2 text-success d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                    <i class="bi bi-person-plus-fill fs-5"></i>
+                </div>
+            </div>
+            <div class="text-muted small fw-bold mb-1">Inscritos Hoy</div>
+            <h3 class="fw-bold mb-0 text-success">+12 <span class="fs-6 fw-normal text-muted">nuevos ingresos</span></h3>
+        </div>
+    </div>
+
+    <div class="col-md-6 col-lg-3">
+        <div class="admin-card-white h-100 p-4 shadow-sm border-0" style="border-radius: 16px;">
+            <div class="d-flex justify-content-between align-items-start mb-4">
+                <div class="bg-light rounded p-2 text-muted d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                    <i class="bi bi-check-circle-fill fs-5"></i>
+                </div>
+                <span class="text-success small fw-bold">Meta 95%</span>
+            </div>
+            <div class="text-muted small fw-bold mb-1">Retención</div>
+            <h3 class="fw-bold mb-0" style="color: var(--primary-900);">98%</h3>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4 mb-4">
+    <div class="col-lg-8">
+        <div class="admin-card-white h-100 p-4 shadow-sm border-0" style="border-radius: 16px;">
+            <div class="d-flex justify-content-between align-items-start mb-4">
+                <div>
+                    <h6 class="fw-bold mb-1" style="color: var(--primary-900);">Inscripciones por Carrera</h6>
+                    <p class="text-muted small mb-0">Distribución de alumnos por programa académico</p>
+                </div>
+                <select class="form-select form-select-sm w-auto shadow-sm border-0 bg-light text-muted fw-bold" style="border-radius: 8px;">
+                    <option>Semestre Actual</option>
+                </select>
+            </div>
+            <div style="height: 250px; width: 100%;">
+                <canvas id="barChartMockup"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <div class="admin-card-white h-100 p-4 d-flex flex-column shadow-sm border-0" style="border-radius: 16px;">
+            <h6 class="fw-bold mb-1" style="color: var(--primary-900);">Distribución de Género</h6>
+            <p class="text-muted small mb-4">Población estudiantil actual</p>
+
+            <div class="position-relative d-flex justify-content-center align-items-center flex-grow-1" style="min-height: 180px;">
+                <canvas id="doughnutChartMockup"></canvas>
+                <div class="position-absolute text-center">
+                    <div class="small text-muted fw-bold" style="letter-spacing: 1px; font-size: 0.65rem;">TOTAL</div>
+                    <h4 class="fw-bold mb-0" style="color: var(--primary-900);">1,240</h4>
+                </div>
+            </div>
+
+            <div class="mt-4 pt-3 border-top">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <div class="small text-muted fw-bold d-flex align-items-center">
+                        <span class="rounded-circle me-2" style="width:10px;height:10px;background-color: var(--primary-900);"></span> Hombres
+                    </div>
+                    <div class="small fw-bold" style="color: var(--primary-900);">768 (62%)</div>
+                </div>
+                <div class="d-flex justify-content-between align-items-center">
+                    <div class="small text-muted fw-bold d-flex align-items-center">
+                        <span class="rounded-circle me-2" style="width:10px;height:10px;background-color: var(--accent-500);"></span> Mujeres
+                    </div>
+                    <div class="small fw-bold text-muted">472 (38%)</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4 pb-5">
+    <div class="col-12">
+        <div class="admin-card-white p-4 shadow-sm border-0" style="border-radius: 16px;">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h6 class="fw-bold mb-0" style="color: var(--primary-900);">Últimos Movimientos</h6>
+                <a href="#" class="text-decoration-none fw-bold" style="color: var(--primary-700); font-size: 0.85rem;">Ver todos</a>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table table-borderless align-middle mb-0" style="font-size: 0.85rem;">
+                    <thead>
+                        <tr class="text-muted border-bottom">
+                            <th class="pb-3 fw-bold px-0">Alumno</th>
+                            <th class="pb-3 fw-bold">Carrera</th>
+                            <th class="pb-3 fw-bold">Tipo</th>
+                            <th class="pb-3 fw-bold text-end px-0">Fecha</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr class="border-bottom">
+                            <td class="py-3 fw-bold px-0" style="color: var(--text-title);">Garza González, Luis</td>
+                            <td class="text-muted">Ing. Sistemas</td>
+                            <td>
+                                <span class="badge text-success bg-success bg-opacity-10 border border-success border-opacity-25 px-2 py-1 text-uppercase" style="font-size: 0.65rem; letter-spacing: 0.5px;">Reinscripción</span>
+                            </td>
+                            <td class="text-end text-muted small px-0">Hoy, 10:45 AM</td>
+                        </tr>
+                        <tr class="border-bottom">
+                            <td class="py-3 fw-bold px-0" style="color: var(--text-title);">Hernández Ruiz, María</td>
+                            <td class="text-muted">Derecho</td>
+                            <td>
+                                <span class="badge text-primary bg-primary bg-opacity-10 border border-primary border-opacity-25 px-2 py-1 text-uppercase" style="font-size: 0.65rem; letter-spacing: 0.5px;">Nuevo Ingreso</span>
+                            </td>
+                            <td class="text-end text-muted small px-0">Hoy, 09:12 AM</td>
+                        </tr>
+                        <tr>
+                            <td class="py-3 fw-bold px-0" style="color: var(--text-title);">Mendoza Ortiz, Jorge</td>
+                            <td class="text-muted">Administración</td>
+                            <td>
+                                <span class="badge text-success bg-success bg-opacity-10 border border-success border-opacity-25 px-2 py-1 text-uppercase" style="font-size: 0.65rem; letter-spacing: 0.5px;">Reinscripción</span>
+                            </td>
+                            <td class="text-end text-muted small px-0">Ayer, 04:30 PM</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        // Scripts para renderizar gráficos de diseño estático
+        const primaryColor = '#13322B';
+        const accentColor = '#D4C19C';
+        const lightGray = '#f1f5f9';
+
+        const ctxBar = document.getElementById('barChartMockup').getContext('2d');
+        new Chart(ctxBar, {
+            type: 'bar',
+            data: {
+                labels: ['ING. SISTEMAS', 'ADMINISTRACIÓN', 'DERECHO', 'PSICOLOGÍA', 'DISEÑO', 'ARQUITECTURA'],
+                datasets: [{
+                    data: [120, 150, 90, 70, 40, 60],
+                    backgroundColor: lightGray,
+                    hoverBackgroundColor: primaryColor,
+                    borderRadius: 4,
+                    barPercentage: 0.5
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false }, tooltip: { enabled: false } },
+                scales: {
+                    y: { display: false, beginAtZero: true },
+                    x: {
+                        grid: { display: false, drawBorder: false },
+                        ticks: { font: { size: 9, family: 'Montserrat', weight: 'bold' }, color: '#94a3b8' }
+                    }
+                }
+            }
+        });
+
+        const ctxDoughnut = document.getElementById('doughnutChartMockup').getContext('2d');
+        new Chart(ctxDoughnut, {
+            type: 'doughnut',
+            data: {
+                labels: ['Hombres', 'Mujeres'],
+                datasets: [{
+                    data: [62, 38],
+                    backgroundColor: [primaryColor, accentColor],
+                    borderWidth: 0,
+                    hoverOffset: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: '75%',
+                plugins: { legend: { display: false }, tooltip: { enabled: false } }
+            }
+        });
+    </script>
+}

@@ -1,0 +1,152 @@
+﻿@{
+    ViewData["Title"] = "Validación de Inscripciones";
+    Layout = "_LayoutAdmin";
+}
+
+<div class="row g-4 mb-4">
+    <div class="col-12">
+
+        <div class="admin-card-white shadow-sm border-0 p-0 d-flex flex-column overflow-hidden">
+            <div class="row g-0 m-0">
+
+                <div class="col-lg-4 col-xl-3 d-flex flex-column border-end bg-white">
+
+                    <div class="p-4 border-bottom">
+                        <div class="position-relative">
+                            <i class="bi bi-search position-absolute text-muted search-icon-left"></i>
+                            <input type="text" class="form-control bg-light border-0 rounded-pill py-2 search-input-custom" placeholder="Buscar folio o nombre...">
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center mt-4">
+                            <span class="text-muted section-label">Aspirantes Recientes</span>
+                            <a href="#" class="text-dark text-decoration-none fw-bold small"><i class="bi bi-filter"></i> Filtrar</a>
+                        </div>
+                    </div>
+
+                    <div class="flex-grow-1 scroll-area custom-scroll p-2">
+                        <div class="aspirante-item active px-3 rounded">
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <span class="badge status-pendiente">PENDIENTE</span>
+                                <span class="text-muted text-xs">Hoy, 10:24 AM</span>
+                            </div>
+                            <div class="fw-bold text-dark fs-6">Rodríguez Sosa, Mateo</div>
+                            <div class="text-muted text-xs">PRE-2026-001 • Mecatrónica</div>
+                        </div>
+
+                        <div class="aspirante-item px-3 rounded border-0">
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <span class="badge status-aceptado">REVISADO</span>
+                                <span class="text-muted text-xs">Ayer</span>
+                            </div>
+                            <div class="fw-bold text-dark fs-6">López Hernández, Ximena</div>
+                            <div class="text-muted text-xs">PRE-2026-002 • Diseño Digital</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-8 col-xl-9 d-flex flex-column bg-white">
+
+                    <div class="d-flex justify-content-between align-items-center p-4 border-bottom">
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="bg-light text-dark fw-bold icon-circle-lg fs-5">
+                                MR
+                            </div>
+                            <div>
+                                <h4 class="fw-bold mb-1 text-dark">Mateo Rodríguez Sosa</h4>
+                                <div class="text-muted small">
+                                    <span>CURP: ROSM150422HDFLSR02</span> • <span>Fecha Nac: 22/04/2015</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="d-flex gap-3 text-muted fs-5">
+                            <i class="bi bi-printer cursor-pointer"></i>
+                            <i class="bi bi-share cursor-pointer"></i>
+                        </div>
+                    </div>
+
+                    <div class="row flex-grow-1 m-0 p-4">
+
+                        <div class="col-md-5 col-xl-4 scroll-area custom-scroll px-0 pe-4">
+                            <span class="text-muted section-label d-block mb-3">Documentos Cargados</span>
+
+                            <div class="doc-card active shadow-sm">
+                                <i class="bi bi-file-earmark-text fs-4 me-3"></i>
+                                <div class="flex-grow-1">
+                                    <div class="fw-bold fs-6">Acta de Nacimiento</div>
+                                    <div class="text-xs opacity-75">acta_mateo_v2.pdf</div>
+                                </div>
+                                <i class="bi bi-check-circle-fill"></i>
+                            </div>
+
+                            <div class="doc-card shadow-sm">
+                                <i class="bi bi-shield-check text-muted fs-4 me-3"></i>
+                                <div class="flex-grow-1">
+                                    <div class="fw-bold text-dark fs-6">CURP (Formato Nuevo)</div>
+                                    <div class="text-muted text-xs">curp_validado.pdf</div>
+                                </div>
+                            </div>
+
+                            <div class="admin-card-white bg-admin-light p-3 mt-4 border border-success border-opacity-25">
+                                <span class="text-muted section-label d-block mb-3">Checklist de Validación</span>
+
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input form-check-custom" type="checkbox" checked id="chk1">
+                                    <label class="form-check-label fw-bold text-dark small" for="chk1">Legibilidad del texto</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input form-check-custom" type="checkbox" id="chk3">
+                                    <label class="form-check-label text-dark small" for="chk3">Vigencia correcta</label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-7 col-xl-8 px-0 d-flex flex-column">
+                            <div class="pdf-viewer-wrapper flex-grow-1 shadow-sm border pb-4">
+                                <div class="d-flex justify-content-between align-items-center p-2 border-bottom bg-white text-muted small flex-shrink-0">
+                                    <div class="d-flex gap-3 px-2">
+                                        <i class="bi bi-zoom-out cursor-pointer"></i>
+                                        <span class="fw-bold">100%</span>
+                                        <i class="bi bi-zoom-in cursor-pointer"></i>
+                                    </div>
+                                    <span class="pe-3">Página 1 de 1</span>
+                                </div>
+                                <div class="flex-grow-1 scroll-area custom-scroll d-flex justify-content-center p-4">
+
+                                    <div class="bg-white shadow p-5 pdf-mockup-page">
+                                        <div class="text-center mb-5">
+                                            <h5 class="fw-bold mb-1 text-dark">ESTADOS UNIDOS MEXICANOS</h5>
+                                            <h6 class="text-muted small text-uppercase">Acta de Nacimiento</h6>
+                                        </div>
+                                        <div class="row mb-3">
+                                            <div class="col-6">
+                                                <small class="text-muted d-block text-uppercase text-xxs">Nombre(s)</small>
+                                                <strong class="fs-6 text-dark">MATEO</strong>
+                                            </div>
+                                            <div class="col-6">
+                                                <small class="text-muted d-block text-uppercase text-xxs">Primer Apellido</small>
+                                                <strong class="fs-6 text-dark">RODRÍGUEZ</strong>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="flex-shrink-0 d-flex justify-content-between align-items-center p-4 border-top bg-light">
+                        <div class="text-danger small fw-bold d-flex align-items-center">
+                            <i class="bi bi-info-circle me-2"></i> Faltan campos obligatorios
+                        </div>
+                        <div class="d-flex gap-2">
+                            <button class="btn btn-ghost-sep text-danger border-danger">Rechazar</button>
+                            <button class="btn btn-primary-sep d-flex align-items-center gap-2">
+                                <i class="bi bi-person-check-fill"></i> Validar
+                            </button>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

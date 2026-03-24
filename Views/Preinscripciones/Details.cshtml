@@ -1,0 +1,134 @@
+@using ControlEscolar.Enums
+@model ControlEscolar.Models.Preinscripcion
+
+@{
+    ViewData["Title"] = "Comprobante de Preinscripción";
+}
+
+<div class="main-container">
+    <div class="page-header">
+        <h1>Comprobante de Preinscripción</h1>
+        <p>Folio: @Model.Id</p>
+    </div>
+
+    <div class="form-container">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            @await Html.PartialAsync("_StatusBadge", null, new ViewDataDictionary(ViewData) { { "StatusValue", Model.EstadoPreinscripcion.ToString() }, { "StatusType", "preinscripcion" } })
+            <small class="text-muted">Registrado el @Model.FechaPreinscripcion.ToString("dd/MM/yyyy HH:mm")</small>
+        </div>
+
+        <div class="form-section">
+            <h3 class="form-section-title">Datos personales</h3>
+            <dl class="row">
+                <dt class="col-sm-4">Nombre</dt>
+                <dd class="col-sm-8">@Model.Nombre @Model.ApellidoPaterno @Model.ApellidoMaterno</dd>
+
+                <dt class="col-sm-4">CURP</dt>
+                <dd class="col-sm-8">@Model.CURP</dd>
+
+                <dt class="col-sm-4">Fecha de nacimiento</dt>
+                <dd class="col-sm-8">@Model.FechaNacimiento.ToString("dd/MM/yyyy") (@Model.Edad años)</dd>
+
+                <dt class="col-sm-4">Sexo</dt>
+                <dd class="col-sm-8">@Model.Sexo</dd>
+
+                <dt class="col-sm-4">Estado civil</dt>
+                <dd class="col-sm-8">@Model.EstadoCivil</dd>
+            </dl>
+        </div>
+
+        <div class="form-section">
+            <h3 class="form-section-title">Contacto y domicilio</h3>
+            <dl class="row">
+                <dt class="col-sm-4">Correo</dt>
+                <dd class="col-sm-8">@Model.Email</dd>
+
+                <dt class="col-sm-4">Teléfonos</dt>
+                <dd class="col-sm-8">@Model.Telefono <br /><small class="text-muted">Emergencia: @Model.TelefonoEmergencia</small></dd>
+
+                <dt class="col-sm-4">Dirección</dt>
+                <dd class="col-sm-8">
+                    @Model.Calle @Model.NumeroExterior, @Model.Colonia<br />
+                    @Model.Municipio, @Model.Estado @Model.CodigoPostal
+                    @if (!string.IsNullOrEmpty(Model.Localidad))
+                    {
+                        <div><small class="text-muted">Localidad: @Model.Localidad</small></div>
+                    }
+                </dd>
+            </dl>
+        </div>
+
+        <div class="form-section">
+            <h3 class="form-section-title">Salud y otros</h3>
+            <dl class="row">
+                <dt class="col-sm-4">Institución médica</dt>
+                <dd class="col-sm-8">@Model.ServicioMedico</dd>
+
+                <dt class="col-sm-4">Comunidad indígena</dt>
+                <dd class="col-sm-8">@((Model.ComunidadIndigena ? "Sí" : "No") + (string.IsNullOrWhiteSpace(Model.ComunidadIndigenaDescripcion) ? string.Empty : $" - {Model.ComunidadIndigenaDescripcion}"))</dd>
+
+                <dt class="col-sm-4">Discapacidad</dt>
+                <dd class="col-sm-8">@((Model.TieneDiscapacidad ? Model.DiscapacidadDescripcion : "Ninguna"))</dd>
+
+                <dt class="col-sm-4">¿Tiene hijos?</dt>
+                <dd class="col-sm-8">@((Model.TieneHijos ? "Sí" : "No"))</dd>
+
+                <dt class="col-sm-4">Cómo se enteró</dt>
+                <dd class="col-sm-8">@Model.MedioDifusion</dd>
+
+                <dt class="col-sm-4">Comentarios</dt>
+                <dd class="col-sm-8">@Model.Comentarios</dd>
+            </dl>
+        </div>
+
+        <div class="form-section">
+            <h3 class="form-section-title">Académicos y carrera</h3>
+            <dl class="row">
+                <dt class="col-sm-4">Escuela de egreso</dt>
+                <dd class="col-sm-8">@Model.EscuelaProcedencia (@Model.MunicipioEscuela, @Model.EstadoEscuela)</dd>
+
+                <dt class="col-sm-4">Promedio</dt>
+                <dd class="col-sm-8">@Model.Promedio?.ToString("0.00")</dd>
+
+                <dt class="col-sm-4">Periodo de bachillerato</dt>
+                <dd class="col-sm-8">@Model.InicioBachillerato?.ToString("dd/MM/yyyy") - @Model.FinBachillerato?.ToString("dd/MM/yyyy")</dd>
+
+                <dt class="col-sm-4">Carrera solicitada</dt>
+                <dd class="col-sm-8">
+                    @Model.CarreraSolicitada
+                    @if (!string.IsNullOrWhiteSpace(Model.OpcionEducativa))
+                    {
+                        <div><small class="text-muted">Opción: @Model.OpcionEducativa</small></div>
+                    }
+                    @if (!string.IsNullOrWhiteSpace(Model.Division))
+                    {
+                        <div><small class="text-muted">División / área: @Model.Division</small></div>
+                    }
+                </dd>
+            </dl>
+        </div>
+
+        <div class="form-section">
+            <h3 class="form-section-title">Documentos</h3>
+            <ul class="list-unstyled">
+                @if (!string.IsNullOrEmpty(Model.ActaNacimientoPath))
+                {
+                    <li><a href="@Model.ActaNacimientoPath" target="_blank">Acta de nacimiento</a></li>
+                }
+                @if (!string.IsNullOrEmpty(Model.CurpPdfPath))
+                {
+                    <li><a href="@Model.CurpPdfPath" target="_blank">CURP</a></li>
+                }
+                @if (!string.IsNullOrEmpty(Model.BoletaPdfPath))
+                {
+                    <li><a href="@Model.BoletaPdfPath" target="_blank">Certificado / boleta</a></li>
+                }
+            </ul>
+        </div>
+
+        <div class="d-flex justify-content-between mt-4">
+            <a asp-controller="Home" asp-action="Index" class="btn btn-secondary">Volver al inicio</a>
+            <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-warning">Editar</a>
+        </div>
+    </div>
+</div>

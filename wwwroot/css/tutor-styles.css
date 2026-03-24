@@ -1,0 +1,205 @@
+﻿/* =========================================
+   ESTILOS CENTRALIZADOS - MÓDULO TUTOR
+   Archivo: wwwroot/css/tutor-styles.css
+   ========================================= */
+
+/* 1. CONTROL DE ASISTENCIA Y RADIOS */
+.attendance-cell {
+    padding: 0.35rem !important;
+    vertical-align: middle;
+    text-align: center;
+}
+
+.btn-check:checked + .btn-outline-success {
+    background-color: var(--success-100) !important;
+    color: var(--success-700) !important;
+    border: 1px solid var(--success-700) !important;
+}
+
+.btn-check:checked + .btn-outline-danger {
+    background-color: var(--error-100) !important;
+    color: var(--error-700) !important;
+    border: 1px solid var(--error-700) !important;
+}
+
+.btn-check:checked + .btn-outline-warning {
+    background-color: #fef3c7 !important;
+    color: #92400e !important;
+    border: 1px solid #92400e !important;
+}
+
+.btn-outline-success, .btn-outline-danger, .btn-outline-warning {
+    background-color: var(--bg-main);
+    color: var(--text-body);
+    border: 1px solid var(--border-color) !important;
+}
+
+/* 2. GRID DE EXPEDIENTES (TARJETAS) */
+.avatar-xl-img {
+    width: 100px;
+    height: 100px;
+    object-fit: cover;
+    border: 5px solid var(--white);
+    border-radius: 50%; /* Asegura que sea circular */
+}
+
+/* Avatar pequeño para las tablas de lista */
+.avatar-table {
+    width: 40px;
+    height: 40px;
+    object-fit: cover;
+    border: 2px solid var(--white);
+    border-radius: 50%;
+    box-shadow: var(--shadow-sm);
+}
+
+.avatar-container {
+    transition: transform 0.3s ease;
+    display: inline-block;
+}
+
+.alumno-card-wrapper:hover .avatar-container {
+    transform: scale(1.08);
+}
+
+.status-indicator {
+    position: absolute;
+    bottom: 5px;
+    right: 5px;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    border: 3px solid var(--white);
+}
+
+    .status-indicator.bg-success {
+        background-color: #10b981 !important;
+    }
+
+    .status-indicator.bg-secondary {
+        background-color: #9ca3af !important;
+    }
+
+.hover-shadow-md {
+    transition: all 0.3s ease;
+}
+
+    .hover-shadow-md:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1) !important;
+    }
+
+/* 3. PAGINACIÓN */
+.page-link-custom {
+    color: var(--text-title);
+    background-color: var(--white);
+    border-color: var(--border-color);
+    font-weight: 700;
+    cursor: pointer;
+}
+
+    .page-link-custom:hover {
+        background-color: var(--bg-main);
+        color: var(--primary-900);
+    }
+
+.page-item.active .page-link-custom {
+    background-color: var(--primary-900);
+    border-color: var(--primary-900);
+    color: var(--white);
+}
+
+.page-item.disabled .page-link-custom {
+    color: var(--text-body);
+    background-color: var(--bg-main);
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* 4. ENTREVISTA INICIAL (Layout Dividido) */
+.tutor-split-layout {
+    display: grid;
+    grid-template-columns: 280px 1fr;
+    gap: 1.5rem;
+    align-items: start;
+}
+
+.tutor-sticky-nav {
+    position: sticky;
+    top: 100px;
+}
+
+.tutor-nav-item {
+    display: block;
+    padding: 1rem 1.25rem;
+    color: var(--text-body);
+    font-weight: 600;
+    border-radius: var(--border-radius-md);
+    margin-bottom: 0.5rem;
+    transition: all 0.2s;
+    text-decoration: none;
+    border-left: 4px solid transparent;
+}
+
+    .tutor-nav-item.active, .tutor-nav-item:hover {
+        background-color: var(--white);
+        color: var(--primary-900);
+        border-left-color: var(--accent-500);
+        box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+    }
+
+/* 5. BITÁCORA DE SEGUIMIENTO (Línea de Tiempo) */
+.tutor-timeline {
+    position: relative;
+    padding-left: 2rem;
+}
+
+    .tutor-timeline::before {
+        content: '';
+        position: absolute;
+        left: 7px;
+        top: 0;
+        bottom: 0;
+        width: 2px;
+        background-color: var(--border-color);
+    }
+
+.tutor-timeline-item {
+    position: relative;
+    margin-bottom: 1.5rem;
+}
+
+.tutor-timeline-dot {
+    position: absolute;
+    left: -2rem;
+    top: 1.25rem;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background-color: var(--white);
+    border: 3px solid var(--accent-500);
+    z-index: 1;
+}
+
+/* 6. ESTILOS DE MODALES */
+.modal-content {
+    border: none;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+}
+
+.modal-header {
+    background-color: var(--bg-main);
+}
+
+/* RESPONSIVO */
+@media (max-width: 991.98px) {
+    .tutor-split-layout {
+        grid-template-columns: 1fr;
+    }
+
+    .tutor-sticky-nav {
+        position: relative;
+        top: 0;
+        margin-bottom: 1rem;
+    }
+}

@@ -1,0 +1,49 @@
+@using ControlEscolar.Enums
+@model ControlEscolar.Models.Aspirante
+
+@{
+    ViewData["Title"] = "Editar Aspirante";
+}
+
+<div class="main-container">
+    <div class="page-header">
+        <h1>Editar Aspirante</h1>
+        <p>Folio: @Model.Id</p>
+    </div>
+
+    <div class="form-container">
+        <form asp-action="Edit">
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+            <input type="hidden" asp-for="Id" />
+            
+            <div class="form-section">
+                <h3 class="form-section-title">Datos del Aspirante</h3>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label asp-for="CarreraSolicitada" class="form-label"><strong>Carrera Solicitada (1ª opción) *</strong></label>
+                        <select asp-for="CarreraSolicitada" class="form-select" required>
+                            <option value="">SIN SELECCION</option>
+                            <option value="INGENIERÍA MECATRÓNICA">INGENIERÍA MECATRÓNICA</option>
+                            <option value="INGENIERÍA EN DESARROLLO Y GESTIÓN DE SOFTWARE">INGENIERÍA EN DESARROLLO Y GESTIÓN DE SOFTWARE</option>
+                            <option value="INGENIERÍA EN PROCESOS Y OPERACIONES INDUSTRIALES">INGENIERÍA EN PROCESOS Y OPERACIONES INDUSTRIALES</option>
+                        </select>
+                        <span asp-validation-for="CarreraSolicitada" class="text-danger"></span>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label asp-for="EstadoRegistro" class="form-label"><strong>Estado del Registro</strong></label>
+                        <select asp-for="EstadoRegistro" class="form-select" asp-items="Html.GetEnumSelectList<EstadoRegistro>()"></select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="d-flex justify-content-between mt-4">
+                <a asp-action="Index" class="btn btn-secondary">Cancelar</a>
+                <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

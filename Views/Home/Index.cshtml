@@ -1,0 +1,111 @@
+@{
+    ViewData["Title"] = "Portal de Registro";
+}
+
+<div class="text-center py-5 mb-2 mt-3">
+    <div class="icon-circle-lg mx-auto bg-accent-light txt-primary-dark mb-4" style="width: 80px; height: 80px;">
+        <i class="bi bi-bank fs-1"></i>
+    </div>
+    <h1 class="display-5 fw-bold mb-3 txt-primary-dark" style="letter-spacing: -1px;">Portal de Ingreso a Preparatoria</h1>
+    <p class="fs-5 mx-auto txt-body" style="max-width: 600px;">
+        Bienvenidos a la Universidad Tecnológica de Tamaulipas Norte (Nivel Medio Superior). Realiza tu proceso de admisión de forma rápida, guiada y segura.
+    </p>
+</div>
+
+<div class="container pb-5" style="max-width: 1100px;">
+
+    <div class="bg-surface rounded-4 p-4 shadow-sm border-theme border-start mb-5 d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-4" style="border-left-width: 5px !important; border-left-color: var(--accent-500) !important;">
+        <div class="d-flex align-items-start gap-3">
+            <i class="bi bi-info-circle-fill fs-2" style="color: var(--accent-500);"></i>
+            <div>
+                <h5 class="fw-bold mb-1 txt-title">Antes de iniciar tu registro</h5>
+                <p class="mb-0 txt-body" style="font-size: 0.95rem;">
+                    Asegúrate de tener a la mano tu <strong>CURP</strong>. Todos los campos marcados con (*) son obligatorios para evaluar tu solicitud de ingreso.
+                </p>
+            </div>
+        </div>
+        <div class="flex-shrink-0 text-md-end">
+            <button class="btn btn-link txt-primary-dark fw-bold text-decoration-none d-flex align-items-center gap-2">
+                Ver Requisitos <i class="bi bi-arrow-right"></i>
+            </button>
+        </div>
+    </div>
+
+    <div class="row g-4">
+
+        <div class="col-lg-6">
+            <div class="bg-surface h-100 d-flex flex-column p-4 p-lg-5 rounded-4 shadow-sm border border-theme border-top position-relative overflow-hidden" style="border-top-width: 4px !important; border-top-color: var(--accent-500) !important;">
+
+                <i class="bi bi-person-vcard position-absolute opacity-10" style="font-size: 12rem; right: -30px; top: -10px; color: var(--text-body);"></i>
+
+                <div class="position-relative z-1 flex-grow-1">
+                    <div class="d-flex justify-content-between align-items-start mb-4">
+                        <h2 class="fw-bold m-0 txt-primary-dark">Preinscripción</h2>
+                        <span class="badge bg-accent-light txt-primary-dark tracking-wide py-2 px-3">PASO 1</span>
+                    </div>
+                    <p class="txt-body mb-4" style="line-height: 1.6;">
+                        Inicia tu proceso de ingreso a bachillerato. Registra tu información personal y datos de secundaria para evaluar tu perfil.
+                    </p>
+
+                    <ul class="list-unstyled mb-5 d-flex flex-column gap-3">
+                        <li class="d-flex align-items-center txt-body fw-bold">
+                            <i class="bi bi-check-circle-fill me-3 fs-5" style="color: var(--accent-500);"></i> Registro de datos personales y tutor
+                        </li>
+                        <li class="d-flex align-items-center txt-body fw-bold">
+                            <i class="bi bi-check-circle-fill me-3 fs-5" style="color: var(--accent-500);"></i> Información académica (Secundaria)
+                        </li>
+                        <li class="d-flex align-items-center txt-body fw-bold">
+                            <i class="bi bi-check-circle-fill me-3 fs-5" style="color: var(--accent-500);"></i> Generación de Folio por correo
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="mt-auto position-relative z-1">
+                    <a asp-controller="Preinscripciones" asp-action="Create" class="btn btn-primary-sep w-100 d-flex justify-content-center align-items-center py-3 fs-6 rounded-3">
+                        COMENZAR PREINSCRIPCIÓN <i class="bi bi-arrow-right ms-2"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-6">
+            <div class="bg-surface h-100 d-flex flex-column p-4 p-lg-5 rounded-4 shadow-sm border border-theme border-top position-relative overflow-hidden" style="border-top-width: 4px !important; border-top-color: var(--primary-900) !important;">
+
+                <i class="bi bi-folder-check position-absolute opacity-10" style="font-size: 12rem; right: -30px; top: -10px; color: var(--text-body);"></i>
+
+                <div class="position-relative z-1 flex-grow-1">
+                    <div class="d-flex justify-content-between align-items-start mb-4">
+                        <h2 class="fw-bold m-0 txt-primary-dark">Inscripción</h2>
+                        <span class="badge bg-app txt-body border border-theme tracking-wide py-2 px-3">PASO 2</span>
+                    </div>
+                    <p class="txt-body mb-4" style="line-height: 1.6;">
+                        ¿Recibiste tu folio de aceptación por correo? Formaliza tu ingreso a preparatoria cargando tus documentos oficiales.
+                    </p>
+
+                    <ul class="list-unstyled mb-5 d-flex flex-column gap-3">
+                        <li class="d-flex align-items-center txt-body fw-bold">
+                            <i class="bi bi-check-circle-fill me-3 fs-5 txt-primary-dark"></i> Ingresa con tu Folio recibido
+                        </li>
+                        <li class="d-flex align-items-center txt-body fw-bold">
+                            <i class="bi bi-check-circle-fill me-3 fs-5 txt-primary-dark"></i> Carga de documentos (PDF)
+                        </li>
+                        <li class="d-flex align-items-center txt-body fw-bold">
+                            <i class="bi bi-check-circle-fill me-3 fs-5 txt-primary-dark"></i> Generación de matrícula oficial
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="mt-auto position-relative z-1">
+                    <a asp-controller="Aspirantes" asp-action="Create" class="btn btn-ghost-sep w-100 d-flex justify-content-center align-items-center py-3 fs-6 rounded-3 border-2" style="border-color: var(--primary-900); color: var(--primary-900);">
+                        CONTINUAR INSCRIPCIÓN <i class="bi bi-box-arrow-in-right ms-2"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="text-center mt-5 txt-body pb-4 fw-bold text-xxs tracking-wide opacity-50">
+        SISTEMA INTEGRAL ESCOLAR © 2026 - TODOS LOS DERECHOS RESERVADOS
+    </div>
+</div>

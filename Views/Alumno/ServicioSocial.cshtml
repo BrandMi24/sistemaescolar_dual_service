@@ -1,0 +1,472 @@
+﻿@* Nota: Para esta vista unificada, asegúrate de que tu Controlador envíe un ViewModel Maestro que contenga la información de todos los pasos, o adapta las variables @Model según tu estructura *@
+@{
+    ViewData["Title"] = "Servicio Social Comunitario";
+    Layout = "_LayoutAlumno";
+    ViewData["ShowBackButton"] = true;
+}
+
+<div class="row g-4 align-items-start mx-auto" style="max-width: 1200px;">
+    
+    <div class="col-12 col-lg-4 col-xl-3 position-lg-sticky" style="top: 80px;">
+        <div class="bg-white p-4 rounded-4 shadow-sm border border-light d-flex flex-column gap-4">
+            
+            <div class="text-center pb-3 border-bottom border-light">
+                <div class="bg-light rounded-circle d-flex align-items-center justify-content-center mx-auto mb-3 border shadow-sm" style="width: 60px; height: 60px;">
+                    <i class="bi bi-heart-pulse-fill text-dark fs-3"></i>
+                </div>
+                <h6 class="fw-bold mb-1 txt-title">Servicio Social</h6>
+                <p class="text-muted text-xs mb-0">Gestión y Liberación</p>
+                
+                <div class="mt-3">
+                    <div class="d-flex justify-content-between mb-1">
+                        <span class="text-xs fw-bold text-muted">Avance General</span>
+                        <span class="text-xs fw-bold text-dark">30%</span>
+                    </div>
+                    <div class="progress shadow-sm" style="height: 6px;">
+                        <div class="progress-bar bg-dark" role="progressbar" style="width: 30%;"></div>
+                    </div>
+                </div>
+            </div>
+
+            <ul class="nav flex-column nav-pills-custom" id="socialTabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link w-100 active d-flex justify-content-between align-items-center" data-bs-toggle="pill" data-bs-target="#paso1" type="button">
+                        <span><i class="bi bi-person-badge me-2"></i> 1. Mis Datos</span>
+                        <i class="bi bi-check-circle-fill text-success" style="font-size: 0.8rem;"></i>
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link w-100 d-flex justify-content-between align-items-center" data-bs-toggle="pill" data-bs-target="#paso2" type="button">
+                        <span><i class="bi bi-building me-2"></i> 2. Institución</span>
+                        <i class="bi bi-check-circle-fill text-success d-none" style="font-size: 0.8rem;"></i>
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link w-100 d-flex justify-content-between align-items-center" data-bs-toggle="pill" data-bs-target="#paso3" type="button">
+                        <span><i class="bi bi-envelope-paper me-2"></i> 3. Carta Solicitud</span>
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link w-100 d-flex justify-content-between align-items-center" data-bs-toggle="pill" data-bs-target="#paso4" type="button">
+                        <span><i class="bi bi-person-workspace me-2"></i> 4. Asesor Asignado</span>
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link w-100 d-flex justify-content-between align-items-center" data-bs-toggle="pill" data-bs-target="#paso5" type="button">
+                        <span><i class="bi bi-clock-history me-2"></i> 5. Registro de Horas</span>
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link w-100 d-flex justify-content-between align-items-center" data-bs-toggle="pill" data-bs-target="#paso6" type="button">
+                        <span><i class="bi bi-clipboard-check me-2"></i> 6. Evaluación Final</span>
+                    </button>
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="col-12 col-lg-8 col-xl-9">
+        <div class="tab-content bg-white p-4 p-md-5 rounded-4 shadow-sm border border-light">
+            
+            <div class="tab-pane fade show active" id="paso1" role="tabpanel">
+                <div class="mb-4 pb-3 border-bottom">
+                    <h4 class="fw-bold txt-title mb-1">1. Datos del Estudiante</h4>
+                    <p class="text-muted text-sm mb-0">Información personal y académica para tu expediente de servicio social.</p>
+                </div>
+
+                <form asp-action="StudentInfo" asp-controller="SocialServiceStudent" method="post">
+                    @Html.AntiForgeryToken()
+                    
+                    <div class="bg-light p-3 rounded-3 border border-light mb-4">
+                        <h6 class="fw-bold text-dark text-sm mb-3"><i class="bi bi-shield-lock-fill me-2"></i>Datos del Sistema</h6>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label-custom">Nombre Completo</label>
+                                <input type="text" class="form-control custom-input bg-white text-muted" value="Roberto Carlos Perez Cadena" readonly />
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label-custom">Carrera</label>
+                                <input type="text" class="form-control custom-input bg-white text-muted" value="TSU en Desarrollo de Software" readonly />
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label-custom">Matrícula</label>
+                                <input type="text" class="form-control custom-input bg-white text-muted" value="26001504" readonly />
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label-custom">CURP</label>
+                                <input type="text" class="form-control custom-input bg-white text-muted" value="PECR000000XXXXXX00" readonly />
+                            </div>
+                        </div>
+                    </div>
+
+                    <h6 class="fw-bold text-dark text-sm mb-3"><i class="bi bi-pencil-square me-2"></i>Información a Completar</h6>
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-6">
+                            <label class="form-label-custom">Correo Institucional *</label>
+                            <input type="email" class="form-control custom-input" name="InstitutionalEmail" placeholder="correo@uttn.mx" required />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label-custom">Teléfono Celular *</label>
+                            <input type="tel" class="form-control custom-input" name="MobilePhone" placeholder="899-000-0000" required />
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label-custom">Grado *</label>
+                            <select class="form-select custom-input" name="Grade" required>
+                                <option value="">Selecciona...</option>
+                                <option value="7">7° Cuatrimestre</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label-custom">Grupo *</label>
+                            <input type="text" class="form-control custom-input" name="GroupCode" placeholder="Ej. A" required />
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label-custom">Turno *</label>
+                            <select class="form-select custom-input" name="Shift" required>
+                                <option value="">Selecciona...</option>
+                                <option value="Matutino">Matutino</option>
+                                <option value="Vespertino">Vespertino</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label-custom">Periodo de Servicio *</label>
+                            <select class="form-select custom-input" name="ServicePeriod" required>
+                                <option value="">Selecciona...</option>
+                                <option value="ENE-JUN">Enero - Junio</option>
+                                <option value="AGO-DIC">Agosto - Diciembre</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label-custom">Año *</label>
+                            <select class="form-select custom-input" name="ServiceYear" required>
+                                <option value="2026">2026</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="mt-4 text-end border-top pt-4">
+                        <button type="submit" class="btn btn-outline-dark px-4 fw-bold shadow-sm">Guardar Datos <i class="bi bi-save ms-2"></i></button>
+                        <button type="button" class="btn btn-dark px-4 fw-bold shadow-sm ms-2" onclick="$('#socialTabs button[data-bs-target=\'#paso2\']').tab('show'); window.scrollTo(0,0);">Siguiente Paso <i class="bi bi-arrow-right ms-2"></i></button>
+                    </div>
+                </form>
+            </div>
+
+            <div class="tab-pane fade" id="paso2" role="tabpanel">
+                <div class="mb-4 pb-3 border-bottom">
+                    <h4 class="fw-bold txt-title mb-1">2. Institución de Servicio</h4>
+                    <p class="text-muted text-sm mb-0">Selecciona o registra la institución donde realizarás tu servicio social.</p>
+                </div>
+
+                <form asp-action="PlacementSupport" asp-controller="SocialServiceStudent" method="post">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="PlacementType" id="placementTypeInput" value="NEEDS_HELP" />
+
+                    <div class="row g-4 mb-4">
+                        <div class="col-md-6">
+                            <div class="card h-100 border-0 shadow-sm custom-radio-card border-dark bg-white" id="card-needs-help" onclick="selectType('NEEDS_HELP')" style="cursor:pointer; border-width: 2px !important;">
+                                <div class="card-body text-center p-4">
+                                    <i class="bi bi-search fs-1 text-dark mb-3"></i>
+                                    <h6 class="fw-bold text-dark">Buscar Institución</h6>
+                                    <p class="text-muted text-xs mb-0">Ver catálogo de instituciones disponibles en la universidad.</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card h-100 border-0 shadow-sm custom-radio-card bg-light" id="card-has-institution" onclick="selectType('HAS_INSTITUTION')" style="cursor:pointer; border-width: 2px !important; border-color: transparent;">
+                                <div class="card-body text-center p-4">
+                                    <i class="bi bi-building-check fs-1 text-secondary mb-3"></i>
+                                    <h6 class="fw-bold text-dark">Ya tengo Institución</h6>
+                                    <p class="text-muted text-xs mb-0">Registraré los datos manualmente.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="section-needs-help" class="bg-light p-4 rounded-4 border border-light mb-4">
+                        <h6 class="fw-bold text-dark text-sm mb-3"><i class="bi bi-geo-alt-fill me-2"></i>Filtrar Instituciones</h6>
+                        <select class="form-select custom-input mb-4" name="SelectedZoneId">
+                            <option value="">-- Todas las zonas --</option>
+                            <option value="1">Zona Centro</option>
+                            <option value="2">Zona Norte</option>
+                        </select>
+
+                        <label class="form-label fw-bold text-sm text-dark">Selecciona tu institución:</label>
+                        <div class="row g-3">
+                            <div class="col-md-12">
+                                <div class="form-check bg-white border rounded-3 p-3 shadow-sm d-flex align-items-center cursor-pointer">
+                                    <input class="form-check-input ms-0 me-3" type="radio" name="SelectedInstitutionId" value="1" id="inst-1">
+                                    <label class="form-check-label text-sm w-100 cursor-pointer" for="inst-1">
+                                        <strong class="d-block text-dark">Centro de Salud Comunitario Reynosa</strong>
+                                        <span class="text-muted text-xs"><i class="bi bi-geo-alt me-1"></i>Calle Pemex #123, Col. Centro</span>
+                                        <span class="d-block text-muted text-xs mt-1"><i class="bi bi-person me-1"></i>Dra. Elena Silva | <i class="bi bi-telephone ms-2 me-1"></i>899-123-4567</span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="section-has-institution" class="d-none">
+                        <h6 class="fw-bold text-dark border-bottom pb-2 mb-3">Datos de la Institución</h6>
+                        <div class="row g-3 mb-4">
+                            <div class="col-12">
+                                <label class="form-label-custom">Nombre de la Institución *</label>
+                                <input type="text" class="form-control custom-input" name="InstitutionName" placeholder="Ej: DIF Municipal" />
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label-custom">Dirección Completa *</label>
+                                <input type="text" class="form-control custom-input" name="Address" placeholder="Calle, número, colonia" />
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label-custom">Persona de Contacto *</label>
+                                <input type="text" class="form-control custom-input" name="ContactName" placeholder="Nombre completo" />
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label-custom">Teléfono *</label>
+                                <input type="tel" class="form-control custom-input" name="Phone" placeholder="899-000-0000" />
+                            </div>
+                            <div class="col-md-12">
+                                <label class="form-label-custom">Correo Electrónico</label>
+                                <input type="email" class="form-control custom-input" name="Email" placeholder="correo@institucion.com" />
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-4 mt-md-5 d-flex flex-column-reverse flex-md-row justify-content-md-between gap-3 border-top pt-4">
+                        <button type="button" class="btn text-muted fw-bold px-4" onclick="$('#socialTabs button[data-bs-target=\'#paso1\']').tab('show'); window.scrollTo(0,0);">
+                            <i class="bi bi-arrow-left me-2"></i> Anterior
+                        </button>
+                        <div class="text-end">
+                            <button type="submit" class="btn btn-outline-dark px-4 fw-bold shadow-sm">Guardar <i class="bi bi-save ms-2"></i></button>
+                            <button type="button" class="btn btn-dark px-4 fw-bold shadow-sm ms-2" onclick="$('#socialTabs button[data-bs-target=\'#paso3\']').tab('show'); window.scrollTo(0,0);">Siguiente <i class="bi bi-arrow-right ms-2"></i></button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <div class="tab-pane fade" id="paso3" role="tabpanel">
+                <div class="mb-4 pb-3 border-bottom">
+                    <h4 class="fw-bold txt-title mb-1">3. Carta de Presentación</h4>
+                    <p class="text-muted text-sm mb-0">Solicita tu carta oficial de asignación de servicio social.</p>
+                </div>
+
+                <div class="alert alert-light border border-secondary shadow-sm mb-4">
+                    <i class="bi bi-info-circle me-2 text-dark"></i> Rellena los datos faltantes para generar la carta dirigida a tu institución.
+                </div>
+
+                <form asp-action="PresentationLetter" asp-controller="SocialServiceStudent" method="post">
+                    @Html.AntiForgeryToken()
+                    
+                    <h6 class="fw-bold text-dark border-bottom pb-2 mb-3">Datos del Destinatario</h6>
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-12">
+                            <label class="form-label-custom">Nombre de la Institución *</label>
+                            <input type="text" class="form-control custom-input" name="InstitutionName" placeholder="Razón Social Completa" required />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label-custom">Dirigida a (Nombre completo) *</label>
+                            <input type="text" class="form-control custom-input" name="RecipientName" placeholder="Ej. Lic. Ana Torres" required />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label-custom">Cargo del Destinatario *</label>
+                            <input type="text" class="form-control custom-input" name="RecipientRole" placeholder="Ej. Directora General" required />
+                        </div>
+                    </div>
+
+                    <div class="mt-4 mt-md-5 d-flex flex-column-reverse flex-md-row justify-content-md-between gap-3 border-top pt-4">
+                        <button type="button" class="btn text-muted fw-bold px-4" onclick="$('#socialTabs button[data-bs-target=\'#paso2\']').tab('show'); window.scrollTo(0,0);">
+                            <i class="bi bi-arrow-left me-2"></i> Anterior
+                        </button>
+                        <div class="text-end">
+                            <button type="submit" class="btn btn-outline-dark px-4 fw-bold shadow-sm"><i class="bi bi-envelope-paper me-2"></i> Solicitar Carta</button>
+                            <button type="button" class="btn btn-dark px-4 fw-bold shadow-sm ms-2" onclick="$('#socialTabs button[data-bs-target=\'#paso4\']').tab('show'); window.scrollTo(0,0);">Siguiente <i class="bi bi-arrow-right ms-2"></i></button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <div class="tab-pane fade" id="paso4" role="tabpanel">
+                <div class="mb-4 pb-3 border-bottom">
+                    <h4 class="fw-bold txt-title mb-1">4. Asesor Académico</h4>
+                    <p class="text-muted text-sm mb-0">Consulta tu asesor asignado por coordinación.</p>
+                </div>
+
+                <div class="bg-light border rounded-4 p-4 mb-4 shadow-sm">
+                    <div class="d-flex flex-column flex-md-row align-items-center align-items-md-start gap-4">
+                        <div class="bg-white rounded-circle d-flex align-items-center justify-content-center border shadow-sm flex-shrink-0" style="width: 80px; height: 80px;">
+                            <i class="bi bi-person-fill text-dark fs-1"></i>
+                        </div>
+                        <div class="w-100 text-center text-md-start">
+                            <h5 class="fw-bold text-dark mb-1">Mtra. Laura Martínez</h5>
+                            <span class="badge bg-white text-dark border px-3 py-1 mb-3 shadow-sm">Asesor Académico</span>
+                            
+                            <div class="row g-3 text-start bg-white p-3 rounded-3 border">
+                                <div class="col-md-6">
+                                    <small class="text-muted fw-bold d-block text-xs">Correo Electrónico</small>
+                                    <span class="text-dark fw-bold text-sm"><i class="bi bi-envelope me-1"></i> lmartinez@uttn.mx</span>
+                                </div>
+                                <div class="col-md-6">
+                                    <small class="text-muted fw-bold d-block text-xs">Teléfono</small>
+                                    <span class="text-dark fw-bold text-sm"><i class="bi bi-telephone me-1"></i> 899-123-4567 Ext. 102</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-4 mt-md-5 d-flex flex-column-reverse flex-md-row justify-content-md-between gap-3 border-top pt-4">
+                    <button type="button" class="btn text-muted fw-bold px-4" onclick="$('#socialTabs button[data-bs-target=\'#paso3\']').tab('show'); window.scrollTo(0,0);">
+                        <i class="bi bi-arrow-left me-2"></i> Anterior
+                    </button>
+                    <button type="button" class="btn btn-dark px-4 fw-bold shadow-sm" onclick="$('#socialTabs button[data-bs-target=\'#paso5\']').tab('show'); window.scrollTo(0,0);">
+                        Siguiente (Horas) <i class="bi bi-arrow-right ms-2"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="tab-pane fade" id="paso5" role="tabpanel">
+                <div class="mb-4 pb-3 border-bottom d-flex flex-column flex-sm-row justify-content-between align-items-sm-center">
+                    <div>
+                        <h4 class="fw-bold txt-title mb-1">5. Registro de Horas</h4>
+                        <p class="text-muted text-sm mb-0">Registra y consulta tus horas de servicio completadas.</p>
+                    </div>
+                    <div class="text-start text-sm-end mt-3 mt-sm-0">
+                        <span class="badge bg-light text-dark border px-3 py-2 fs-6 shadow-sm">Total: <strong class="text-success">120</strong> / 480 hrs</span>
+                    </div>
+                </div>
+
+                <div class="bg-light p-4 rounded-4 border border-light mb-4 shadow-sm">
+                    <h6 class="fw-bold text-dark text-sm mb-3"><i class="bi bi-plus-circle me-2"></i>Registrar Nuevas Horas</h6>
+                    <form asp-action="HoursLog" asp-controller="SocialServiceStudent" method="post">
+                        @Html.AntiForgeryToken()
+                        <div class="row g-3 align-items-end">
+                            <div class="col-md-3">
+                                <label class="form-label-custom">Fecha *</label>
+                                <input type="date" class="form-control custom-input bg-white" name="LogDate" max="@DateTime.Today.ToString("yyyy-MM-dd")" required />
+                            </div>
+                            <div class="col-md-2">
+                                <label class="form-label-custom">Horas *</label>
+                                <input type="number" class="form-control custom-input bg-white" name="HoursWorked" min="0.5" max="12" step="0.5" placeholder="Ej. 4" required />
+                            </div>
+                            <div class="col-md-5">
+                                <label class="form-label-custom">Descripción de Actividad *</label>
+                                <input type="text" class="form-control custom-input bg-white" name="ActivityDescription" placeholder="Ej. Apoyo administrativo" required />
+                            </div>
+                            <div class="col-md-2 d-grid">
+                                <button type="submit" class="btn btn-dark fw-bold shadow-sm">Registrar</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+
+                <h6 class="fw-bold text-dark mb-3"><i class="bi bi-table me-2"></i>Historial Reciente</h6>
+                <div class="table-responsive border rounded-3 overflow-hidden bg-white shadow-sm mb-4">
+                    <table class="table table-borderless align-middle mb-0 text-sm">
+                        <thead class="bg-light border-bottom text-muted">
+                            <tr>
+                                <th class="py-2 px-3 fw-bold text-xs" width="15%">FECHA</th>
+                                <th class="py-2 fw-bold text-xs" width="40%">ACTIVIDAD</th>
+                                <th class="py-2 text-center fw-bold text-xs" width="15%">HORAS</th>
+                                <th class="py-2 text-center fw-bold text-xs px-3" width="30%">ESTADO</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr class="border-bottom hover-bg-light">
+                                <td class="px-3 fw-bold text-dark">21/03/2026</td>
+                                <td class="text-muted">Organización de expedientes médicos.</td>
+                                <td class="text-center fw-bold">4.0</td>
+                                <td class="text-center px-3">
+                                    <span class="badge bg-white text-dark border px-3 py-2 shadow-sm"><i class="bi bi-circle-fill text-success me-1" style="font-size:0.5rem;"></i> Aprobado</span>
+                                </td>
+                            </tr>
+                            <tr class="border-bottom hover-bg-light">
+                                <td class="px-3 fw-bold text-dark">22/03/2026</td>
+                                <td class="text-muted">Captura de datos en sistema.</td>
+                                <td class="text-center fw-bold">4.0</td>
+                                <td class="text-center px-3">
+                                    <span class="badge bg-white text-dark border px-3 py-2 shadow-sm"><i class="bi bi-circle-fill text-warning me-1" style="font-size:0.5rem;"></i> Pendiente</span>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="mt-4 mt-md-5 d-flex flex-column-reverse flex-md-row justify-content-md-between gap-3 border-top pt-4">
+                    <button type="button" class="btn text-muted fw-bold px-4" onclick="$('#socialTabs button[data-bs-target=\'#paso4\']').tab('show'); window.scrollTo(0,0);">
+                        <i class="bi bi-arrow-left me-2"></i> Anterior
+                    </button>
+                    <button type="button" class="btn btn-dark px-4 fw-bold shadow-sm" onclick="$('#socialTabs button[data-bs-target=\'#paso6\']').tab('show'); window.scrollTo(0,0);">
+                        Evaluación Final <i class="bi bi-arrow-right ms-2"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="tab-pane fade" id="paso6" role="tabpanel">
+                <div class="mb-4 pb-3 border-bottom">
+                    <h4 class="fw-bold txt-title mb-1">6. Evaluación y Liberación</h4>
+                    <p class="text-muted text-sm mb-0">Consulta tus evaluaciones y estado final de liberación.</p>
+                </div>
+
+                <div class="alert alert-light border border-dark rounded-4 shadow-sm mb-4 d-flex align-items-center p-4">
+                    <div class="bg-dark rounded-circle d-flex align-items-center justify-content-center text-white me-4 flex-shrink-0" style="width: 60px; height: 60px;">
+                        <i class="bi bi-trophy-fill fs-2"></i>
+                    </div>
+                    <div>
+                        <h5 class="fw-bold text-dark mb-1">¡Servicio Social Liberado!</h5>
+                        <p class="text-muted mb-0 text-sm">Felicidades, has completado satisfactoriamente tus 480 horas y evaluaciones.</p>
+                    </div>
+                </div>
+
+                <h6 class="fw-bold text-dark mb-3"><i class="bi bi-clipboard-check me-2"></i>Evaluaciones Recibidas</h6>
+                
+                <div class="card border border-light shadow-sm rounded-4 mb-3">
+                    <div class="card-body p-4">
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <div>
+                                <h6 class="fw-bold text-dark mb-1">Evaluación Final</h6>
+                                <small class="text-muted"><i class="bi bi-calendar me-1"></i> 20/03/2026</small>
+                            </div>
+                            <span class="badge bg-white text-dark border px-3 py-2 shadow-sm"><i class="bi bi-check-circle-fill text-success me-1"></i> Liberado</span>
+                        </div>
+                        <div class="bg-light p-3 rounded-3 border">
+                            <p class="mb-0 text-muted text-sm"><i class="bi bi-quote fs-5 text-secondary me-1"></i>El alumno demostró gran compromiso y responsabilidad en todas las actividades asignadas.</p>
+                        </div>
+                        <div class="mt-3 text-end">
+                            <span class="badge bg-dark text-white px-3 py-2 fs-6 shadow-sm">Calificación: 9.5</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-4 mt-md-5 border-top pt-4">
+                    <button type="button" class="btn text-muted fw-bold px-0" onclick="$('#socialTabs button[data-bs-target=\'#paso5\']').tab('show'); window.scrollTo(0,0);">
+                        <i class="bi bi-arrow-left me-2"></i> Regresar a Horas
+                    </button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+
+
+@section Scripts {
+    <script>
+        // Lógica visual para la selección de tipo de institución en el Paso 2
+        function selectType(type) {
+            document.getElementById('placementTypeInput').value = type;
+            
+            // Reiniciar estilos
+            $('.custom-radio-card').removeClass('border-dark bg-white').addClass('bg-light').css({'border-color': 'transparent'});
+            $('#section-needs-help, #section-has-institution').addClass('d-none');
+            
+            // Aplicar selección
+            if (type === 'NEEDS_HELP') {
+                $('#card-needs-help').removeClass('bg-light').addClass('border-dark bg-white');
+                $('#section-needs-help').removeClass('d-none').hide().fadeIn(300);
+            } else {
+                $('#card-has-institution').removeClass('bg-light').addClass('border-dark bg-white');
+                $('#section-has-institution').removeClass('d-none').hide().fadeIn(300);
+            }
+        }
+    </script>
+}

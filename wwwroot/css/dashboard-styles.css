@@ -1,0 +1,360 @@
+﻿/* =========================================
+   1. VARIABLES ESPECÍFICAS DEL DASHBOARD
+      (Heredan de tu root principal si es necesario, 
+      pero aquí aseguramos consistencia en las gráficas)
+   ========================================= */
+:root {
+    /* Mantenemos tu paleta base para consistencia */
+    --dash-bg-card: var(--white, #FFFFFF);
+    --dash-bg-body: var(--bg-main, #F3F4F6);
+    --dash-bg-input: #F9FAFB;
+    --dash-border: var(--border-color, #E5E7EB);
+    --dash-radius: var(--border-radius-lg, 12px);
+    --dash-radius-sm: var(--border-radius-md, 8px);
+    --dash-text-primary: var(--text-title, #1F2937);
+    --dash-text-secondary: var(--text-body, #6B7280);
+    --dash-text-muted: #9CA3AF;
+    --dash-shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    /* Colores semánticos para Gráficas y KPIs */
+    --dash-accent: var(--primary-700, #204A40); /* Verde oscuro UTTN */
+    --dash-accent-light: var(--primary-100, #E0EFEA);
+    --dash-success: var(--success-700, #065F46);
+    --dash-success-light: var(--success-100, #D1FAE5);
+    --dash-warning: var(--warning-700, #92400E);
+    --dash-warning-light: var(--warning-100, #FEF3C7);
+    --dash-danger: var(--error-700, #991B1B);
+    --dash-danger-light: var(--error-100, #FEE2E2);
+    --dash-purple: #6D28D9;
+    --dash-purple-light: #EDE9FE;
+    --dash-info: #1D4ED8;
+    --dash-info-light: #DBEAFE;
+}
+
+/* =========================================
+   2. LAYOUT DASHBOARD (SOBRESCRIBIR ADMIN-LAYOUT)
+   ========================================= */
+.dash-layout {
+    display: flex;
+    height: 100vh;
+    width: 100vw;
+    overflow: hidden;
+    background-color: var(--dash-bg-body);
+    font-family: 'Montserrat', sans-serif;
+}
+
+.dash-main-content {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+}
+
+.dash-header {
+    background: var(--dash-bg-card);
+    padding: 1.25rem 2.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    border-bottom: 1px solid var(--dash-border);
+}
+
+.dash-body-padding {
+    padding: 2rem 2.5rem;
+}
+
+/* =========================================
+   3. TARJETAS KPI (INDICADORES CLAVE)
+   ========================================= */
+.kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1.25rem;
+    margin-bottom: 2rem;
+}
+
+@media (max-width: 1200px) {
+    .kpi-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 768px) {
+    .kpi-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.kpi-card {
+    background: var(--dash-bg-card);
+    border: 1px solid var(--dash-border);
+    border-radius: var(--dash-radius);
+    padding: 1.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: var(--dash-shadow-sm);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+    .kpi-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    }
+
+.kpi-label {
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--dash-text-muted);
+    margin-bottom: 0.5rem;
+}
+
+.kpi-value {
+    font-size: 2rem;
+    font-weight: 800;
+    line-height: 1;
+    letter-spacing: -0.02em;
+    font-family: 'Montserrat', sans-serif;
+}
+
+.kpi-sub {
+    font-size: 0.75rem;
+    color: var(--dash-text-secondary);
+    margin-top: 0.5rem;
+    font-weight: 500;
+}
+
+.kpi-icon {
+    width: 54px;
+    height: 54px;
+    border-radius: var(--dash-radius-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+    .kpi-icon svg {
+        width: 26px;
+        height: 26px;
+        stroke-width: 2;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+        fill: none;
+    }
+
+/* =========================================
+   4. CONTENEDORES DE GRÁFICAS
+   ========================================= */
+.section-title {
+    font-size: 1rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    color: var(--dash-text-primary);
+    margin-bottom: 1.25rem;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+    .section-title svg {
+        width: 22px;
+        height: 22px;
+        stroke: var(--dash-accent);
+        fill: none;
+        stroke-width: 2;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+    }
+
+.chart-row {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 1.25rem;
+    margin-bottom: 2rem;
+}
+
+.chart-row-equal {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.25rem;
+    margin-bottom: 2rem;
+}
+
+@media (max-width: 992px) {
+    .chart-row, .chart-row-equal {
+        grid-template-columns: 1fr;
+    }
+}
+
+.chart-box {
+    background: var(--dash-bg-card);
+    border: 1px solid var(--dash-border);
+    border-radius: var(--dash-radius);
+    padding: 1.5rem;
+    box-shadow: var(--dash-shadow-sm);
+}
+
+.chart-box-title {
+    font-size: 0.85rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    color: var(--dash-text-primary);
+    margin-bottom: 1.25rem;
+}
+
+.chart-container {
+    position: relative;
+    width: 100%;
+    height: 320px;
+}
+
+.chart-container-donut {
+    position: relative;
+    width: 100%;
+    height: 300px;
+}
+
+.no-data {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 200px;
+    color: var(--dash-text-muted);
+    font-weight: 500;
+    font-style: italic;
+    background: var(--dash-bg-input);
+    border-radius: var(--dash-radius-sm);
+    border: 1px dashed var(--dash-border);
+}
+
+/* =========================================
+   5. TABLAS DE DATOS DASHBOARD
+   ========================================= */
+.filter-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+    .filter-row select {
+        padding: 0.5rem 1rem;
+        border: 1px solid var(--dash-border);
+        border-radius: var(--dash-radius-sm);
+        font-family: 'Montserrat', sans-serif;
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: var(--dash-text-primary);
+        background: var(--dash-bg-input);
+        cursor: pointer;
+        outline: none;
+        transition: border-color 0.2s;
+    }
+
+        .filter-row select:focus {
+            border-color: var(--primary-700);
+        }
+
+.filter-label {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--dash-text-secondary);
+}
+
+.record-count {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--dash-text-muted);
+    margin-bottom: 0.5rem;
+}
+
+.data-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.85rem;
+    font-family: 'Montserrat', sans-serif;
+}
+
+    .data-table th {
+        padding: 1rem;
+        border-bottom: 2px solid var(--dash-border);
+        color: var(--dash-text-muted);
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        font-size: 0.7rem;
+        text-align: left;
+    }
+
+    .data-table td {
+        padding: 1rem;
+        border-bottom: 1px solid var(--dash-border);
+        color: var(--dash-text-secondary);
+        vertical-align: middle;
+    }
+
+    .data-table tbody tr:hover {
+        background-color: var(--dash-bg-input);
+    }
+
+/* =========================================
+   6. COMPONENTES EXTRA (Píldoras, Barras)
+   ========================================= */
+.btn-export {
+    background: var(--white);
+    border: 1px solid var(--dash-border);
+    padding: 0.5rem 1rem;
+    border-radius: var(--dash-radius-sm);
+    font-size: 0.85rem;
+    font-weight: 600;
+    font-family: 'Montserrat', sans-serif;
+    color: var(--dash-text-secondary);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: all 0.2s;
+}
+
+    .btn-export:hover {
+        background: var(--dash-bg-input);
+        color: var(--dash-text-primary);
+    }
+
+/* Barras de progreso pequeñas */
+.progress-track {
+    width: 100%;
+    height: 8px;
+    background: var(--dash-bg-input);
+    border-radius: 4px;
+    overflow: hidden;
+    margin-top: 10px;
+}
+
+.progress-fill {
+    height: 100%;
+    border-radius: 4px;
+    transition: width 0.8s ease-out;
+}
+
+.tipo-bar {
+    height: 12px;
+    border-radius: 6px;
+    display: flex;
+    overflow: hidden;
+    background: var(--dash-bg-input);
+}
+
+.tipo-bar-seg {
+    height: 100%;
+    transition: width 0.5s ease-out;
+}

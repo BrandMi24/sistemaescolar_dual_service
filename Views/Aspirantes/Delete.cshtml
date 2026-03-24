@@ -1,0 +1,33 @@
+@model ControlEscolar.Models.Aspirante
+
+@{
+    ViewData["Title"] = "Eliminar Aspirante";
+}
+
+<div class="main-container">
+    <div class="form-container">
+        <h2>¿Está seguro que desea eliminar este registro?</h2>
+        <hr />
+        <dl class="row">
+            <dt class="col-sm-3">Folio:</dt>
+            <dd class="col-sm-9">@Html.DisplayFor(model => model.Id)</dd>
+
+            <dt class="col-sm-3">Nombre Completo:</dt>
+            <dd class="col-sm-9">@Html.DisplayFor(model => model.Nombre) @Html.DisplayFor(model => model.ApellidoPaterno) @Html.DisplayFor(model => model.ApellidoMaterno)</dd>
+
+            <dt class="col-sm-3">Carrera:</dt>
+            <dd class="col-sm-9">@Html.DisplayFor(model => model.CarreraSolicitada)</dd>
+
+            <dt class="col-sm-3">Email:</dt>
+            <dd class="col-sm-9">@Html.DisplayFor(model => model.Email)</dd>
+        </dl>
+
+        <form asp-action="Delete">
+            <input type="hidden" asp-for="Id" />
+            <div class="d-flex justify-content-between mt-4">
+                <a asp-action="Index" class="btn btn-secondary">Cancelar</a>
+                <button type="submit" class="btn btn-danger">Eliminar</button>
+            </div>
+        </form>
+    </div>
+</div>

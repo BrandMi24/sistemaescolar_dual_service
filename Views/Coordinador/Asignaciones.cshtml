@@ -1,0 +1,161 @@
+﻿@{
+    ViewData["Title"] = "Matriz de Asignaciones";
+    Layout = "_LayoutCoordinador";
+}
+
+<div class="admin-matrix-container">
+
+    <div class="admin-filter-panel shadow-sm">
+        <h6 class="txt-title fw-bold mb-4 border-bottom border-theme pb-2">Filtros de Asignación</h6>
+
+        <div class="d-flex flex-column gap-4">
+            <div>
+                <label class="form-label txt-body text-xs fw-bold tracking-wide">CICLO ESCOLAR</label>
+                <select class="form-select bg-app border-theme txt-title fw-bold">
+                    <option>Enero - Abril 2026</option>
+                    <option>Septiembre - Diciembre 2025</option>
+                </select>
+            </div>
+
+            <div>
+                <label class="form-label txt-body text-xs fw-bold tracking-wide">PROGRAMA EDUCATIVO</label>
+                <select class="form-select bg-app border-theme txt-title fw-bold">
+                    <option>Ing. Desarrollo y Gestión de Software</option>
+                    <option>Mecatrónica</option>
+                </select>
+            </div>
+
+            <div>
+                <label class="form-label txt-body text-xs fw-bold tracking-wide">GRUPO</label>
+                <select class="form-select bg-app border-theme txt-title fw-bold">
+                    <option>7º A - Matutino</option>
+                    <option>7º B - Vespertino</option>
+                </select>
+            </div>
+
+            <button id="btnCargarReticula" class="btn btn-primary-sep w-100 mt-2">Cargar Retícula</button>
+        </div>
+    </div>
+
+    <div class="bg-surface rounded-4 border-theme shadow-sm p-4 p-md-5 d-flex flex-column h-100 position-relative">
+
+        <div id="emptyState" class="text-center py-5 my-auto">
+            <div class="icon-circle-lg bg-app txt-body mx-auto mb-3" style="width: 80px; height: 80px;">
+                <i class="bi bi-table fs-1"></i>
+            </div>
+            <h5 class="txt-title fw-bold">Selecciona un grupo</h5>
+            <p class="txt-body">Utiliza los filtros de la izquierda para cargar las materias y asignar a los docentes.</p>
+        </div>
+
+        <div id="matrixContent" style="display: none;" class="flex-column flex-grow-1">
+            <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4 border-bottom border-theme pb-3">
+                <div>
+                    <h5 class="txt-title fw-bold mb-1">Materias para 7º A</h5>
+                    <div class="txt-body text-xs">Ing. Desarrollo y Gestión de Software • Enero - Abril 2026</div>
+                </div>
+                <span class="badge bg-accent-light txt-primary-dark px-3 py-2 border border-theme shadow-sm">5 Materias en la Retícula</span>
+            </div>
+
+            <div class="d-flex flex-column flex-grow-1">
+
+                <div class="admin-assignment-row shadow-sm">
+                    <div>
+                        <div class="txt-title fw-bold mb-1 fs-6">Arquitectura N-Capas (C#)</div>
+                        <div class="txt-body text-xs">SW-401 • 6 horas/semana • Especialidad</div>
+                    </div>
+                    <div style="width: 100%; max-width: 320px;">
+                        <select class="form-select admin-select-dashed py-2">
+                            <option value="">+ Asignar Docente...</option>
+                            <option value="1">Ing. Juan Pérez Martínez</option>
+                            <option value="2">Mtra. Ana Martínez Ruiz</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="admin-assignment-row shadow-sm">
+                    <div>
+                        <div class="txt-title fw-bold mb-1 fs-6">Desarrollo Móvil Multiplataforma</div>
+                        <div class="txt-body text-xs">SW-502 • 6 horas/semana • Especialidad</div>
+                    </div>
+                    <div style="width: 100%; max-width: 320px;">
+                        <select class="form-select admin-select-dashed py-2">
+                            <option value="">+ Asignar Docente...</option>
+                            <option value="1">Ing. Juan Pérez Martínez</option>
+                            <option value="2">Mtra. Ana Martínez Ruiz</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="admin-assignment-row shadow-sm" style="border-color: var(--primary-900); background-color: var(--white);">
+                    <div>
+                        <div class="txt-title fw-bold mb-1 fs-6">Bases de Datos Avanzadas</div>
+                        <div class="txt-body text-xs">SW-405 • 5 horas/semana • Especialidad</div>
+                    </div>
+                    <div style="width: 100%; max-width: 320px;">
+                        <select class="form-select bg-success-100 border-success-700 txt-success-700 fw-bold py-2">
+                            <option value="3" selected>Dr. Gabriel López</option>
+                            <option value="1">Ing. Juan Pérez Martínez</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="admin-assignment-row shadow-sm" style="border-color: var(--primary-900); background-color: var(--white);">
+                    <div>
+                        <div class="txt-title fw-bold mb-1 fs-6">Inglés VII</div>
+                        <div class="txt-body text-xs">TC-105 • 4 horas/semana • Tronco Común</div>
+                    </div>
+                    <div style="width: 100%; max-width: 320px;">
+                        <select class="form-select bg-success-100 border-success-700 txt-success-700 fw-bold py-2">
+                            <option value="4" selected>Lic. María Rodríguez Gómez</option>
+                            <option value="5">Mtro. Carlos Hernández</option>
+                        </select>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="mt-4 pt-4 border-top border-theme d-flex justify-content-end">
+                <button class="btn btn-primary-sep d-flex align-items-center gap-2 px-4 shadow-sm" onclick="alert('Asignaciones guardadas correctamente en la base de datos.')">
+                    <i class="bi bi-save"></i> Guardar Asignaciones
+                </button>
+            </div>
+        </div>
+
+    </div>
+
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            $('#btnCargarReticula').click(function() {
+                var $btn = $(this);
+                $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span> Cargando...');
+
+                setTimeout(function() {
+                    $('#emptyState').fadeOut(200, function() {
+                        $('#matrixContent').css('display', 'flex').hide().fadeIn(300);
+                        $btn.prop('disabled', false).html('Retícula Cargada <i class="bi bi-check-lg ms-1"></i>');
+                        $btn.removeClass('btn-primary-sep').addClass('btn-ghost-sep');
+                    });
+                }, 600);
+            });
+
+            $('.admin-select-dashed').change(function() {
+                if($(this).val() !== "") {
+                    $(this).removeClass('admin-select-dashed').addClass('bg-success-100 border-success-700 txt-success-700');
+                    $(this).closest('.admin-assignment-row').css({
+                        'border-color': 'var(--primary-900)',
+                        'background-color': 'var(--white)'
+                    });
+                } else {
+                    $(this).addClass('admin-select-dashed').removeClass('bg-success-100 border-success-700 txt-success-700');
+                    $(this).closest('.admin-assignment-row').css({
+                        'border-color': 'transparent',
+                        'background-color': 'var(--bg-main)'
+                    });
+                }
+            });
+        });
+    </script>
+}

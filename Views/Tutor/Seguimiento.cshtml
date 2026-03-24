@@ -1,0 +1,129 @@
+﻿@{
+    ViewData["Title"] = "Bitácora de Seguimiento";
+    Layout = "_LayoutTutor";
+}
+
+<div class="tutor-split-layout">
+
+    <aside class="tutor-sticky-nav">
+        <div class="admin-card-white p-4 rounded-4 border-theme shadow-sm text-center">
+            <div class="avatar-container mb-3 position-relative">
+                <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Roberto" class="avatar-xl-img rounded-circle shadow-sm" style="width: 120px; height: 120px;">
+                <div class="status-indicator bg-success"></div>
+            </div>
+            <h5 class="txt-title fw-bold mb-1">Roberto Carlos Perez Cadena</h5>
+            <p class="txt-body text-xs mb-3 fw-bold">Matrícula: 26001504</p>
+
+            <div class="d-flex flex-column gap-2 border-top border-theme pt-3">
+                <div class="d-flex justify-content-between text-xxs fw-bold tracking-wide">
+                    <span class="txt-body">CARRERA:</span>
+                    <span class="txt-title">IDGS</span>
+                </div>
+                <div class="d-flex justify-content-between text-xxs fw-bold tracking-wide">
+                    <span class="txt-body">GRUPO:</span>
+                    <span class="txt-title">7º A</span>
+                </div>
+                <div class="d-flex justify-content-between text-xxs fw-bold tracking-wide">
+                    <span class="txt-body">PROMEDIO:</span>
+                    <span class="txt-success-700">9.2</span>
+                </div>
+            </div>
+
+            <button class="btn btn-primary-sep w-100 mt-4 d-flex align-items-center justify-content-center gap-2 shadow-sm" data-bs-toggle="modal" data-bs-target="#modalNuevaNota">
+                <i class="bi bi-plus-circle-fill"></i> Nueva Nota
+            </button>
+        </div>
+
+        <a href="@Url.Action("Entrevista", "Tutor")" class="btn btn-ghost-sep w-100 mt-3 text-xs fw-bold">
+            <i class="bi bi-arrow-left me-2"></i> Volver a Expedientes
+        </a>
+    </aside>
+
+    <main class="d-flex flex-column gap-3">
+
+        <div class="bg-surface p-3 rounded-4 border-theme d-flex justify-content-between align-items-center">
+            <h6 class="txt-title fw-bold mb-0">Historial Cronológico</h6>
+            <div class="position-relative search-wrapper" style="width: 250px;">
+                <i class="bi bi-search position-absolute search-icon-left txt-body"></i>
+                <input type="text" class="form-control form-control-sm search-input-custom" placeholder="Filtrar notas...">
+            </div>
+        </div>
+
+        <div class="tutor-timeline pt-3">
+
+            <div class="tutor-timeline-item">
+                <div class="tutor-timeline-dot"></div>
+                <div class="admin-card-white p-4 rounded-4 border-theme shadow-sm hover-shadow-md transition-all">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <div>
+                            <span class="badge status-aceptado text-xxs px-2 py-1 mb-2">ACADÉMICO</span>
+                            <h6 class="txt-title fw-bold mb-0">Solicitud de Asesoría</h6>
+                        </div>
+                        <span class="txt-body text-xxs fw-bold tracking-wide">15 MARZO, 2026</span>
+                    </div>
+                    <p class="txt-body text-sm">El alumno solicita apoyo extra en la materia de Integración de Seguridad. Se le canaliza con el Ing. García para sesiones los jueves.</p>
+                    <div class="border-top border-theme pt-2 mt-2 d-flex align-items-center gap-2">
+                        <div class="avatar-sm bg-app border border-theme txt-title text-xxs fw-bold rounded-circle d-flex align-items-center justify-content-center" style="width: 25px; height: 25px;">JP</div>
+                        <span class="txt-body text-xxs">Registrado por: <strong>Ing. Juan Pérez (Tutor)</strong></span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="tutor-timeline-item">
+                <div class="tutor-timeline-dot" style="border-color: var(--error-700);"></div>
+                <div class="admin-card-white p-4 rounded-4 border-theme shadow-sm hover-shadow-md transition-all">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <div>
+                            <span class="badge bg-error-100 txt-error text-xxs px-2 py-1 mb-2 border border-error border-opacity-25">INCIDENCIA</span>
+                            <h6 class="txt-title fw-bold mb-0">Inasistencia Injustificada</h6>
+                        </div>
+                        <span class="txt-body text-xxs fw-bold tracking-wide">10 MARZO, 2026</span>
+                    </div>
+                    <p class="txt-body text-sm">Se detectaron 3 faltas consecutivas sin previo aviso. Se realizó llamada telefónica al padre de familia para seguimiento.</p>
+                    <div class="border-top border-theme pt-2 mt-2 d-flex align-items-center gap-2">
+                        <div class="avatar-sm bg-app border border-theme txt-title text-xxs fw-bold rounded-circle d-flex align-items-center justify-content-center" style="width: 25px; height: 25px;">JP</div>
+                        <span class="txt-body text-xxs">Registrado por: <strong>Ing. Juan Pérez (Tutor)</strong></span>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+    </main>
+</div>
+
+<div class="modal fade" id="modalNuevaNota" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-theme rounded-4 shadow-lg">
+            <div class="modal-header border-bottom border-theme p-4">
+                <h5 class="modal-title txt-title fw-bold">Nueva Nota de Seguimiento</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+                <div class="row g-3">
+                    <div class="col-12">
+                        <label class="form-label txt-body text-xs fw-bold">CATEGORÍA</label>
+                        <select class="form-select bg-app border-theme fw-bold">
+                            <option>Académico</option>
+                            <option>Conductual</option>
+                            <option>Médico / Psicológico</option>
+                            <option>Personal</option>
+                        </select>
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label txt-body text-xs fw-bold">ASUNTO</label>
+                        <input type="text" class="form-control bg-app border-theme" placeholder="Ej. Reporte de entrevista">
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label txt-body text-xs fw-bold">DESCRIPCIÓN DETALLADA</label>
+                        <textarea class="form-control bg-app border-theme text-sm" rows="4" placeholder="Escribe aquí los detalles de la nota..."></textarea>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer border-top border-theme p-3">
+                <button type="button" class="btn btn-ghost-sep px-4" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary-sep px-4" onclick="location.reload()">Guardar Nota</button>
+            </div>
+        </div>
+    </div>
+</div>
