@@ -1,7 +1,8 @@
-﻿@{
+@{
     ViewData["Title"] = "Registrar Usuario";
     Layout = "_LayoutCoordinador";
 }
+@model CreateUserViewModel
 
 <div class="fade-in d-flex flex-column gap-4">
 
@@ -19,10 +20,16 @@
         </div>
     </div>
 
-    <form action="/Coordinador/CreateUser" method="post" class="needs-validation">
+    @{
+        var isEdit = ViewBag.IsEdit as bool? ?? false;
+    }
+    <form asp-action="@(isEdit ? "EditUser" : "CreateUser")"
+      asp-controller="Coordinador" method="post" class="needs-validation">
         @Html.AntiForgeryToken()
 
         <div class="row g-4">
+            <input asp-for="UserId" type="hidden" />
+            <input asp-for="PersonId" type="hidden" />
             <div class="col-lg-8 d-flex flex-column gap-4">
                 
                 <div class="admin-card-white p-4 p-md-5 rounded-4 border-theme shadow-sm bg-white">
@@ -32,23 +39,19 @@
                     <div class="row g-4">
                         <div class="col-md-4">
                             <label class="txt-body text-xs fw-bold tracking-wide mb-2">NOMBRE(S) <span class="text-danger">*</span></label>
-                            <input name="FirstName" type="text" class="form-control search-input-custom ps-3" required />
+                            <input name="FirstName" type="text" value="@Model?.FirstName" class="form-control search-input-custom ps-3" required />
                         </div>
                         <div class="col-md-4">
                             <label class="txt-body text-xs fw-bold tracking-wide mb-2">APELLIDO PATERNO <span class="text-danger">*</span></label>
-                            <input name="LastNamePaternal" type="text" class="form-control search-input-custom ps-3" required />
+                            <input name="LastNamePaternal" type="text" value="@Model?.LastNamePaternal" class="form-control search-input-custom ps-3" required />
                         </div>
                         <div class="col-md-4">
                             <label class="txt-body text-xs fw-bold tracking-wide mb-2">APELLIDO MATERNO</label>
-                            <input name="LastNameMaternal" type="text" class="form-control search-input-custom ps-3" />
+                            <input name="LastNameMaternal" type="text" value="@Model?.LastNameMaternal" class="form-control search-input-custom ps-3" />
                         </div>
                         <div class="col-md-6">
                             <label class="txt-body text-xs fw-bold tracking-wide mb-2">CORREO INSTITUCIONAL <span class="text-danger">*</span></label>
-                            <input name="Email" type="email" class="form-control search-input-custom ps-3" placeholder="usuario@uttn.mx" required />
-                        </div>
-                        <div class="col-md-6">
-                            <label class="txt-body text-xs fw-bold tracking-wide mb-2">DEPARTAMENTO / ÁREA</label>
-                            <input name="Department" type="text" class="form-control search-input-custom ps-3" placeholder="Ej. Sistemas y Soporte" />
+                            <input name="Email" type="email" value="@Model?.Email" class="form-control search-input-custom ps-3" placeholder="usuario@uttn.mx" required />
                         </div>
                     </div>
                 </div>
@@ -64,25 +67,31 @@
                         <label class="txt-body text-xs fw-bold tracking-wide mb-2">ROL EN EL SISTEMA <span class="text-danger">*</span></label>
                         <select name="Role" class="form-select bg-app border-theme txt-title fw-semibold py-2" required>
                             <option value="">-- Seleccionar Rol --</option>
-                            <option value="ADMINISTRADOR">Administrador Global</option>
-                            <option value="COORDINADOR">Coordinador Académico</option>
-                            <option value="SOPORTE">Soporte Técnico</option>
+                            @if (ViewBag.Roles != null)
+                            {
+                                foreach (var role in (Dictionary<int, string>)ViewBag.Roles)
+                                {
+                                    <option value="@role.Key" selected="@(Model?.Role == role.Key.ToString())">
+                                        @role.Value
+                                    </option>
+                                }
+                            }
                         </select>
                     </div>
 
                     <div class="mb-4">
                         <label class="txt-body text-xs fw-bold tracking-wide mb-2">NUEVO USUARIO DE ACCESO <span class="text-danger">*</span></label>
-                        <input name="Username" type="text" class="form-control search-input-custom ps-3" autocomplete="off" required />
+                        <input name="Username" type="text" value="@Model?.Username" class="form-control search-input-custom ps-3" autocomplete="off"/>
                     </div>
 
                     <div class="mb-5">
-                        <label class="txt-body text-xs fw-bold tracking-wide mb-2">CONTRASEÑA TEMPORAL <span class="text-danger">*</span></label>
-                        <input name="Password" type="password" class="form-control search-input-custom ps-3" placeholder="Mínimo 8 caracteres" autocomplete="new-password" required />
+                        <label class="txt-body text-xs fw-bold tracking-wide mb-2">CONTRASEÑA<span class="text-danger">*</span></label>
+                        <input name="Password" type="password" value="@Model?.Password" class="form-control search-input-custom ps-3" placeholder="Mínimo 8 caracteres" autocomplete="new-password" />
                     </div>
 
                     <div class="mt-auto pt-4 border-top border-theme d-flex flex-column gap-3">
                         <button type="submit" class="btn btn-primary-sep bg-primary-900 w-100 fw-bold py-3 shadow-sm text-white">
-                            Crear Usuario
+                            @(isEdit ? "Editar Usuario" : "Crear Usuario")
                         </button>
                         <a href="@Url.Action("Catalogos", "Coordinador")" class="btn btn-ghost-sep border border-theme w-100 py-2 shadow-sm text-body fw-semibold">
                             Cancelar
