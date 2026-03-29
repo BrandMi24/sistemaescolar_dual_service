@@ -22,11 +22,16 @@
     <div class="alert bg-error-100 border border-error border-opacity-25 txt-error rounded-3 mb-4 shadow-sm" style="display: none;">
         <span class="text-sm fw-bold">Por favor, verifique los datos ingresados e intente nuevamente.</span>
     </div>
-
-    <form action="/Coordinador/CreateTeacher" method="post" class="needs-validation">
+    @{
+        var isEdit = ViewBag.IsEdit as bool? ?? false;
+    }
+    <form asp-action="@(isEdit ? "EditTeacher" : "CreateTeacher")"
+      asp-controller="Coordinador" method="post" class="needs-validation">
         @Html.AntiForgeryToken()
 
         <div class="row g-4">
+            <input type="hidden" name="TeacherId" value="@Model?.TeacherId" />
+            <input type="hidden" name="PersonId" value="@Model?.PersonId" />
             <div class="col-lg-8 d-flex flex-column gap-4">
                 
                 <div class="admin-card-white p-4 p-md-5 rounded-4 border-theme shadow-sm bg-white">
@@ -36,23 +41,23 @@
                     <div class="row g-4">
                         <div class="col-md-4">
                             <label class="txt-body text-xs fw-bold tracking-wide mb-2">NOMBRE(S) <span class="text-danger">*</span></label>
-                            <input name="FirstName" type="text" class="form-control search-input-custom ps-3" placeholder="Ej. Carlos" required />
+                            <input name="FirstName" type="text" class="form-control search-input-custom ps-3" placeholder="Ej. Carlos" required value="@Model?.FirstName" />
                         </div>
                         <div class="col-md-4">
                             <label class="txt-body text-xs fw-bold tracking-wide mb-2">APELLIDO PATERNO <span class="text-danger">*</span></label>
-                            <input name="LastNamePaternal" type="text" class="form-control search-input-custom ps-3" placeholder="Ej. García" required />
+                            <input name="LastNamePaternal" type="text" class="form-control search-input-custom ps-3" placeholder="Ej. García" required value="@Model?.LastNamePaternal" />
                         </div>
                         <div class="col-md-4">
                             <label class="txt-body text-xs fw-bold tracking-wide mb-2">APELLIDO MATERNO</label>
-                            <input name="LastNameMaternal" type="text" class="form-control search-input-custom ps-3" placeholder="Opcional" />
+                            <input name="LastNameMaternal" type="text" class="form-control search-input-custom ps-3" placeholder="Opcional" value="@Model?.LastNameMaternal" />
                         </div>
                         <div class="col-md-6">
                             <label class="txt-body text-xs fw-bold tracking-wide mb-2">CORREO ELECTRÓNICO</label>
-                            <input name="Email" type="email" class="form-control search-input-custom ps-3" placeholder="correo@institucion.edu.mx" />
+                            <input name="Email" type="email" class="form-control search-input-custom ps-3" placeholder="correo@institucion.edu.mx" value="@Model?.Email" />
                         </div>
                         <div class="col-md-6">
                             <label class="txt-body text-xs fw-bold tracking-wide mb-2">TELÉFONO</label>
-                            <input name="Phone" type="text" class="form-control search-input-custom ps-3" placeholder="10 dígitos (opcional)" maxlength="30" />
+                            <input name="Phone" type="text" class="form-control search-input-custom ps-3" placeholder="10 dígitos (opcional)" maxlength="30" value="@Model?.Phone" />
                         </div>
                     </div>
                 </div>
@@ -64,11 +69,11 @@
                     <div class="row g-4">
                         <div class="col-md-6">
                             <label class="txt-body text-xs fw-bold tracking-wide mb-2">NÚMERO DE EMPLEADO</label>
-                            <input name="EmployeeNumber" type="text" class="form-control search-input-custom ps-3" placeholder="Ej. EMP-001 (opcional)" maxlength="30" />
+                            <input name="EmployeeNumber" type="text" class="form-control search-input-custom ps-3" placeholder="Ej. EMP-001 (opcional)" maxlength="30" value="@Model?.EmployeeNumber" />
                         </div>
                         <div class="col-md-6">
                             <label class="txt-body text-xs fw-bold tracking-wide mb-2">ESTADO INICIAL</label>
-                            <select name="StatusCode" class="form-select bg-app border-theme txt-title fw-semibold py-2">
+                            <select name="StatusCode" class="form-select bg-app border-theme txt-title fw-semibold py-2" value="@Model?.StatusCode">
                                 <option value="ACTIVO" selected>Activo</option>
                                 <option value="INACTIVO">Inactivo</option>
                                 <option value="LICENCIA">Licencia</option>
@@ -81,26 +86,27 @@
             <div class="col-lg-4">
                 <div class="admin-card-white p-4 p-md-5 rounded-4 shadow-sm h-100 d-flex flex-column bg-white border-theme">
                     <h6 class="txt-title fw-bold mb-4 border-bottom border-theme pb-2">
-                        CUENTA DE SISTEMA <span class="fw-normal text-muted text-xs ms-2">(Opcional)</span>
+                        CUENTA DE SISTEMA
                     </h6>
-                    
-                    <div class="alert bg-surface border border-theme txt-body text-xs mb-4 lh-base shadow-sm">
-                        Si proporciona credenciales, el profesor tendrá acceso al sistema con roles de <strong>Profesor / Asesor</strong> y <strong>Supervisor Académico</strong>.
-                    </div>
+                    @if (!(ViewBag.IsEdit as bool? ?? false))
+                        {
+                            <div class="alert bg-surface border border-theme txt-body text-xs mb-4 lh-base shadow-sm">
+                                Si proporciona credenciales, el profesor tendrá acceso al sistema con roles de <strong>Profesor / Asesor</strong> y <strong>Supervisor Académico</strong>.
+                            </div>
 
-                    <div class="mb-4">
-                        <label class="txt-body text-xs fw-bold tracking-wide mb-2">USUARIO DE ACCESO</label>
-                        <input name="Username" type="text" class="form-control search-input-custom ps-3" placeholder="Ej. jgarcia" maxlength="80" autocomplete="off" />
-                    </div>
+                            <div class="mb-4">
+                                <label class="txt-body text-xs fw-bold tracking-wide mb-2">USUARIO DE ACCESO</label>
+                                <input name="Username" type="text" class="form-control search-input-custom ps-3" placeholder="Ej. jgarcia" maxlength="80" autocomplete="off" value="@Model?.Username" />
+                            </div>
 
-                    <div class="mb-5">
-                        <label class="txt-body text-xs fw-bold tracking-wide mb-2">CONTRASEÑA TEMPORAL</label>
-                        <input name="Password" type="password" class="form-control search-input-custom ps-3" placeholder="Mínimo 6 caracteres" autocomplete="new-password" />
-                    </div>
-
-                    <div class="mt-auto pt-4 border-top border-theme d-flex flex-column gap-3">
+                            <div class="mb-5">
+                                <label class="txt-body text-xs fw-bold tracking-wide mb-2">CONTRASEÑA</label>
+                                <input name="Password" type="password" class="form-control search-input-custom ps-3" placeholder="Mínimo 8 caracteres" autocomplete="new-password" value="@Model?.Password" />
+                            </div>
+                        }
+                        <div class="mt-auto pt-4 border-top border-theme d-flex flex-column gap-3">
                         <button type="submit" class="btn btn-primary-sep bg-primary-900 w-100 fw-bold py-3 shadow-sm text-white">
-                            Registrar Profesor
+                            @(isEdit ? "Editar Profesor" : "Registrar Nuevo Profesor")
                         </button>
                         <a href="@Url.Action("Catalogos", "Coordinador")" class="btn btn-ghost-sep border border-theme w-100 py-2 shadow-sm text-body fw-semibold">
                             Cancelar

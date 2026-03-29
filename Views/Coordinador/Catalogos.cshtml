@@ -1,4 +1,4 @@
-﻿@inject Microsoft.AspNetCore.Antiforgery.IAntiforgery Antiforgery
+@inject Microsoft.AspNetCore.Antiforgery.IAntiforgery Antiforgery
 @{
     ViewData["Title"] = "Gestión Académica y Usuarios";
     Layout = "_LayoutCoordinador";
@@ -12,7 +12,7 @@
         <a href="#" class="nav-tab-item text-decoration-none" data-target="#tab-alumnos">Alumnos</a>
         <a href="#" class="nav-tab-item text-decoration-none" data-target="#tab-docentes">Docentes</a>
         <a href="#" class="nav-tab-item text-decoration-none" data-target="#tab-grupos">Grupos</a>
-        <a href="#" class="nav-tab-item text-decoration-none" data-target="#tab-nuevo">Nuevo Ingreso</a>
+        <a href="#" class="nav-tab-item text-decoration-none" data-target="#tab-career">Carrera</a>
         <a href="#" class="nav-tab-item text-decoration-none" data-target="#tab-bajas">Histórico Bajas</a>
         <a href="#" class="nav-tab-item text-decoration-none" data-target="#tab-bitacora">Bitácora</a>
     </div>
@@ -51,18 +51,6 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <tr class="border-bottom border-theme hover-bg-app">
-                            <td class="px-4 py-3 txt-title fw-bold text-sm">10293</td>
-                            <td><div class="txt-title fw-bold text-sm">Gabriel López</div></td>
-                            <td><span class="badge bg-primary-dark text-white text-xxs px-2 py-1">ADMINISTRADOR</span></td>
-                            <td class="txt-body text-xs">Sistemas y Soporte</td>
-                            <td class="txt-body text-xs">glopez@uttn.mx</td>
-                            <td class="text-center"><span class="badge status-aceptado text-xxs px-2 py-1 shadow-sm">ACTIVO</span></td>
-                            <td class="text-end px-4">
-                                <button class="btn btn-sm btn-ghost-sep text-primary px-2"><i class="bi bi-pencil"></i></button>
-                                <button class="btn btn-sm btn-ghost-sep text-danger px-2"><i class="bi bi-trash"></i></button>
-                            </td>
-                        </tr>
                     </tbody>
                 </table>
             </div>
@@ -96,29 +84,13 @@
                         <th class="py-3 px-4">Matrícula / Folio</th>
                         <th class="py-3">Nombre Completo</th>
                         <th class="py-3">Carrera</th>
+                        <th class="py-3">Grupo</th> 
                         <th class="py-3 text-center">Semestre</th>
                         <th class="py-3 text-center">Estado</th>
                         <th class="py-3 text-end px-4">Acciones</th>
                     </tr>
                 </thead>
                 <tbody>
-                    <tr class="border-bottom border-theme hover-bg-app">
-                        <td class="px-4 py-3 txt-title fw-bold text-sm">24001504</td>
-                        <td>
-                            <div class="txt-title fw-bold text-sm mb-1">Roberto Carlos Perez Cadena</div>
-                            <div class="txt-body text-xs">rperez@alumnos.uttn.mx</div>
-                        </td>
-                        <td><div class="txt-title text-sm">Ing. Desarrollo de Software</div></td>
-                        <td class="text-center"><span class="badge bg-app border border-theme text-dark text-xxs px-2 py-1">7º Sem</span></td>
-                        <td class="text-center"><span class="badge status-aceptado text-xxs px-2 py-1 shadow-sm">INSCRITO</span></td>
-                        <td class="text-end px-4">
-                            <button onclick="window.location.href='@Url.Action("StudentDetail", "Coordinador", new { id = 1 })'" class="btn btn-sm btn-ghost-sep text-body px-2" title="Ver Expediente">
-                                <i class="bi bi-eye"></i>
-                            </button>
-                            <button class="btn btn-sm btn-ghost-sep text-primary px-2" title="Editar"><i class="bi bi-pencil"></i></button>
-                            <button class="btn btn-sm btn-ghost-sep text-danger px-2" title="Dar de baja"><i class="bi bi-trash"></i></button>
-                        </td>
-                    </tr>
                 </tbody>
             </table>
         </div>
@@ -158,20 +130,6 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <tr class="border-bottom border-theme hover-bg-app">
-                            <td class="px-4 py-3 txt-title fw-bold text-sm">20192</td>
-                            <td><div class="txt-title fw-bold text-sm">Mtra. Ana Martínez Ruiz</div></td>
-                            <td class="txt-body text-xs">amartinez@uttn.mx</td>
-                            <td class="txt-body text-xs">899-123-4567</td>
-                            <td class="text-center"><span class="badge status-aceptado text-xxs px-2 py-1 shadow-sm">ACTIVO</span></td>
-                            <td class="text-end px-4">
-    <button onclick="window.location.href='@Url.Action("TeacherDetail", "Coordinador", new { id = 20192 })'" class="btn btn-sm btn-ghost-sep text-body px-2" title="Ver Perfil">
-        <i class="bi bi-eye"></i>
-    </button>
-    <button class="btn btn-sm btn-ghost-sep text-primary px-2" title="Editar"><i class="bi bi-pencil"></i></button>
-    <button class="btn btn-sm btn-ghost-sep text-danger px-2" title="Eliminar"><i class="bi bi-trash"></i></button>
-</td>
-                        </tr>
                     </tbody>
                 </table>
             </div>
@@ -210,36 +168,26 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <tr class="border-bottom border-theme hover-bg-app">
-                            <td class="px-4 py-3 txt-title fw-bold text-sm">G-7A-SW</td>
-                            <td><div class="txt-title fw-bold text-sm">7º A Matutino</div></td>
-                            <td class="txt-body text-xs">Desarrollo de Software</td>
-                            <td class="text-center"><span class="badge status-aceptado text-xxs px-2 py-1 shadow-sm">ACTIVO</span></td>
-                            <td class="text-end px-4">
-                                <button class="btn btn-sm btn-ghost-sep text-primary px-2"><i class="bi bi-pencil"></i></button>
-                                <button class="btn btn-sm btn-ghost-sep text-danger px-2"><i class="bi bi-trash"></i></button>
-                            </td>
-                        </tr>
                     </tbody>
                 </table>
             </div>
         </div>
     </div>
 
-   <div id="tab-nuevo" class="tab-content-pane" style="display: none;">
+   <div id="tab-career" class="tab-content-pane" style="display: none;">
     <div class="bg-surface p-4 rounded-4 border-theme shadow-sm mb-4">
         <div class="d-flex flex-column flex-xl-row justify-content-between align-items-xl-center gap-3">
             <div style="max-width: 700px;">
-                <h5 class="txt-title fw-bold mb-1">Aspirantes y Nuevo Ingreso</h5>
-                <p class="txt-body text-xs mb-3">Muestra a los usuarios recientemente registrados o en estado de preinscripción.</p>
+                <h5 class="txt-title fw-bold mb-1">Carreras</h5>
+                <p class="txt-body text-xs mb-3">Muestra las carreras registradas en el sistema.</p>
                 <div class="position-relative search-wrapper" style="max-width: 350px;">
                     <i class="bi bi-search position-absolute search-icon-left txt-body"></i>
-                    <input type="text" id="dtSearchNuevos" class="form-control search-input-custom tab-search" placeholder="Buscar aspirante...">
+                    <input type="text" id="dtSearchNuevos" class="form-control search-input-custom tab-search" placeholder="Buscar carrera...">
                 </div>
             </div>
             <div class="flex-shrink-0">
-                <a href="@Url.Action("CreateStudent", "Coordinador")" class="btn btn-primary-sep bg-primary-900 shadow-sm d-flex align-items-center gap-2">
-                    Registrar Aspirante
+                <a href="@Url.Action("CreateCareer", "Coordinador")" class="btn btn-primary-sep bg-primary-900 shadow-sm d-flex align-items-center gap-2">
+                    Registrar Carrera
                 </a>
             </div>
         </div>
@@ -247,32 +195,16 @@
 
     <div class="admin-card-white p-0 rounded-4 border-theme shadow-sm overflow-hidden d-flex flex-column">
         <div class="table-responsive bg-surface">
-            <table id="tablaNuevos" class="table table-borderless align-middle mb-0 w-100" style="min-width: 1000px;">
+            <table id="tablaCareer" class="table table-borderless align-middle mb-0 w-100" style="min-width: 1000px;">
                 <thead class="admin-table-header border-bottom border-theme">
                     <tr>
-                        <th class="py-3 px-4">Folio</th>
-                        <th class="py-3">Nombre Completo</th>
-                        <th class="py-3">CURP</th>
-                        <th class="py-3">Correo Electrónico</th>
-                        <th class="py-3 text-center">Estado</th>
-                        <th class="py-3 text-end px-4">Acciones</th>
+                        <th>ID</th>
+                        <th>Código</th>
+                        <th>Nombre de la Carrera</th>
+                        <th>Acciones</th>
                     </tr>
                 </thead>
                 <tbody>
-                    <tr class="border-bottom border-theme hover-bg-app">
-                        <td class="px-4 py-3 txt-title fw-bold text-sm">ASP-001</td>
-                        <td><div class="txt-title fw-bold text-sm">Luis Ángel García</div></td>
-                        <td class="txt-body text-xs text-uppercase">GAML000101XYZ</td>
-                        <td class="txt-body text-xs">lgarcia@aspirante.uttn.mx</td>
-                        <td class="text-center"><span class="badge bg-app border border-theme txt-title text-xxs px-2 py-1 shadow-sm">PREINSCRITO</span></td>
-                        <td class="text-end px-4">
-                            <button onclick="window.location.href='@Url.Action("StudentDetail", "Coordinador", new { id = 2 })'" class="btn btn-sm btn-ghost-sep text-body px-2" title="Ver Expediente">
-                                <i class="bi bi-eye"></i>
-                            </button>
-                            <button class="btn btn-sm btn-ghost-sep text-primary px-2" title="Editar"><i class="bi bi-pencil"></i></button>
-                            <button class="btn btn-sm btn-ghost-sep text-danger px-2" title="Eliminar"><i class="bi bi-trash"></i></button>
-                        </td>
-                    </tr>
                 </tbody>
             </table>
         </div>
@@ -312,23 +244,50 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <tr class="border-bottom border-theme hover-bg-app">
-                        <td class="px-4 py-3 txt-title fw-bold text-sm">23001122</td>
-                        <td><div class="txt-title fw-bold text-sm">María Fernanda Salas</div></td>
-                        <td class="txt-body text-xs">Mecatrónica</td>
-                        <td class="txt-body text-xs">msalas@alumnos.uttn.mx</td>
-                        <td class="text-center"><span class="badge status-rechazado text-xxs px-2 py-1 shadow-sm">BAJA DEFINITIVA</span></td>
-                        <td class="text-end px-4">
-                            <button onclick="window.location.href='@Url.Action("StudentDetail", "Coordinador", new { id = 3 })'" class="btn btn-sm btn-ghost-sep text-body px-2" title="Ver Expediente">
-                                <i class="bi bi-eye"></i>
-                            </button>
-                        </td>
-                    </tr>
                 </tbody>
             </table>
         </div>
     </div>
 </div>
+</div>
+
+<div id="tab-bitacora" class="tab-content-pane" style="display: none;">
+    <div class="bg-surface p-4 rounded-4 border-theme shadow-sm mb-4">
+        <div class="d-flex flex-column flex-xl-row justify-content-between align-items-xl-center gap-3">
+            <div style="max-width: 700px;">
+                <h5 class="txt-title fw-bold mb-1">Bitácora del Sistema</h5>
+                <p class="txt-body text-xs mb-3">
+                    Registro histórico de todas las acciones realizadas en el sistema (altas, bajas, modificaciones).
+                </p>
+                <div class="position-relative search-wrapper" style="max-width: 350px;">
+                    <i class="bi bi-search position-absolute search-icon-left txt-body"></i>
+                    <input type="text" id="dtSearchBitacora" class="form-control search-input-custom tab-search" placeholder="Buscar en bitácora...">
+                </div>
+            </div>
+            <div class="flex-shrink-0">
+                <button class="btn btn-ghost-sep border border-theme d-flex align-items-center gap-2 shadow-sm">
+                    Exportar Reporte
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="admin-card-white p-0 rounded-4 border-theme shadow-sm overflow-hidden d-flex flex-column">
+        <div class="table-responsive bg-surface">
+            <table id="tablaHistorial" class="table table-borderless align-middle mb-0 w-100" style="min-width: 1000px;">
+                <thead class="admin-table-header border-bottom border-theme">
+                    <tr>
+                        <th class="py-3 px-4">Fecha</th>
+                        <th class="py-3">Usuario</th>
+                        <th class="py-3">Nombre Completo</th>
+                        <th class="py-3 text-center">Acción</th>
+                    </tr>
+                </thead>
+                <tbody>
+                </tbody>
+            </table>
+        </div>
+    </div>
 </div>
 
 <style>
@@ -352,7 +311,7 @@
 
     <script>
         $(document).ready(function () {
-            var dtLang = "https://cdn.datatables.net/plug-ins/2.0.0/i18n/es-ES.json";
+            var dtLang = "https://cdn.datatables.net/plug-ins/2.1.0/i18n/es-ES.json";
             var csrfToken = '@token';
 
             // ==========================================
@@ -381,7 +340,7 @@
                 dom: '<"d-flex justify-content-end pt-3"B>rtip', 
                 language: { url: dtLang },
                 buttons: [{ extend: 'excel', text: 'Excel' }, { extend: 'pdf', text: 'PDF' }],
-                // ajax: { url: '@Url.Action("GetUsersJson", "Usuarios")', type: 'GET', dataSrc: 'data' },
+                ajax: { url: '@Url.Action("GetUsersJson", "Coordinador")', type: 'GET', dataSrc: 'data' },
                 columns: [
                     { data: 'identificador', className: 'px-4 fw-bold txt-primary-dark text-sm' },
                     { data: 'nombreCompleto', className: 'txt-title fw-bold text-sm' },
@@ -406,7 +365,7 @@
                     { 
                         data: 'id', orderable: false, className: 'text-end px-4',
                         render: function (data) {
-                            return `<button onclick="window.location.href='@Url.Action("Edit", "Usuarios")/${data}'" class="btn btn-sm btn-ghost-sep text-primary px-2" title="Editar"><i class="bi bi-pencil"></i></button>
+                            return `<button onclick="window.location.href='@Url.Action("EditUser", "Coordinador")/${data}'" class="btn btn-sm btn-ghost-sep text-primary px-2" title="Editar"><i class="bi bi-pencil"></i></button>
                                     <button onclick="eliminarRegistro('Usuarios', ${data})" class="btn btn-sm btn-ghost-sep text-danger px-2" title="Eliminar"><i class="bi bi-trash"></i></button>`;
                         }
                     }
@@ -422,11 +381,12 @@
                 dom: '<"d-flex justify-content-end pt-3"B>rtip', 
                 language: { url: dtLang },
                 buttons: [{ extend: 'excel', text: 'Excel' }, { extend: 'pdf', text: 'PDF' }],
-                // ajax: { url: '@Url.Action("GetAlumnosJson", "Alumnos")', type: 'GET', dataSrc: 'data' },
+                ajax: { url: '@Url.Action("GetAlumnosJson", "Coordinador")', type: 'GET', dataSrc: 'data' },
                 columns: [
                     { data: 'identificador', className: 'px-4 fw-bold txt-primary-dark text-sm' },
                     { data: 'nombreCompleto', className: 'txt-title fw-bold text-sm' },
                     { data: 'carrera', className: 'txt-body text-xs' },
+                    { data: 'grupo', className: 'txt-body text-xs' }, 
                     { 
                         data: 'semestre', className: 'text-center',
                         render: function(data) { return data ? `<span class="badge bg-app border border-theme text-dark text-xxs px-2">${data}° Sem</span>` : '<span class="badge bg-secondary text-xxs px-2">N/A</span>'; }
@@ -442,7 +402,7 @@
                             
                             // BOTON DETALLE + EDITAR + ELIMINAR
                             return `<button onclick="window.location.href='@Url.Action("StudentDetail", "Coordinador")/${data}'" class="btn btn-sm btn-ghost-sep text-body px-2" title="Ver Expediente"><i class="bi bi-eye"></i></button>
-                                    <button onclick="window.location.href='@Url.Action("Edit", "Alumnos")/${data}'" class="btn btn-sm btn-ghost-sep text-primary px-2" title="Editar"><i class="bi bi-pencil"></i></button> ${btnDel}`;
+                                    <button onclick="window.location.href='@Url.Action("EditStudent", "Coordinador")/${data}'" class="btn btn-sm btn-ghost-sep text-primary px-2" title="Editar"><i class="bi bi-pencil"></i></button> ${btnDel}`;
                         }
                     }
                 ]
@@ -456,7 +416,7 @@
                 responsive: true, 
                 dom: 'rtp', 
                 language: { url: dtLang },
-                // ajax: { url: '@Url.Action("GetDocentesJson", "Docentes")', type: 'GET', dataSrc: 'data' },
+                ajax: { url: '@Url.Action("GetDocentesJson", "Coordinador")', type: 'GET', dataSrc: 'data' },
                 columns: [
                     { data: 'numeroEmpleado', className: 'text-center px-4 fw-bold text-sm txt-body' },
                     { data: 'nombreCompleto', className: 'txt-title fw-bold text-sm' },
@@ -467,18 +427,18 @@
                         render: function(data, type, row) { return `<span class="badge ${row.badgeClass} text-xxs px-2 py-1">${data === 'ACTIVO' ? 'Activo' : data}</span>`; }
                     },
                     { 
-    data: 'userId', orderable: false, className: 'text-end px-4',
-    render: function(data) {
-        // AGREGAMOS EL BOTÓN DE DETALLE (EL OJITO)
-        let btnDetail = `<button onclick="window.location.href='@Url.Action("TeacherDetail", "Coordinador")/${data}'" class="btn btn-sm btn-ghost-sep text-body px-2" title="Ver Perfil"><i class="bi bi-eye"></i></button>`;
+                        data: 'teacherId', orderable: false, className: 'text-end px-4',
+                        render: function(data, type, row) {
+                            // AGREGAMOS EL BOTÓN DE DETALLE (EL OJITO)
+                            let btnDetail = `<button onclick="window.location.href='/Coordinador/TeacherDetail/${row.teacherId}'" class="btn btn-sm btn-ghost-sep text-body px-2" title="Ver Perfil"><i class="bi bi-eye"></i></button>`;
         
-        let btnEdit = `<button onclick="window.location.href='@Url.Action("Edit", "Docentes")/${data}'" class="btn btn-sm btn-ghost-sep text-primary px-2" title="Editar"><i class="bi bi-pencil"></i></button>`;
+                            let btnEdit = `<button onclick="window.location.href='/Coordinador/EditTeacher/${row.teacherId}'" class="btn btn-sm btn-ghost-sep text-primary px-2" title="Editar"><i class="bi bi-pencil"></i></button>`;
         
-        let btnDel = `<button onclick="eliminarRegistro('Docentes', ${data})" class="btn btn-sm btn-ghost-sep text-danger px-2" title="Eliminar"><i class="bi bi-trash"></i></button>`;
+                            let btnDel = `<button onclick="eliminarRegistro('Docentes', ${data})" class="btn btn-sm btn-ghost-sep text-danger px-2" title="Eliminar"><i class="bi bi-trash"></i></button>`;
 
-        return btnDetail + btnEdit + btnDel;
-    }
-}
+                            return btnDetail + btnEdit + btnDel;
+                        }
+                    }
                 ]
             });
             $('#dtSearchDocentes').on('keyup', function () { dtDocentes.search(this.value).draw(); });
@@ -490,11 +450,11 @@
                 responsive: true, 
                 dom: 'rtp', 
                 language: { url: dtLang },
-                // ajax: { url: '@Url.Action("GetGrupos", "Grupos")', type: 'GET', dataSrc: 'data' },
+                ajax: { url: '@Url.Action("GetGruposJson", "Coordinador")', type: 'GET', dataSrc: 'data' },
                 columns: [
                     { data: 'id', className: 'px-4 fw-bold txt-primary-dark text-sm' },
                     { data: 'nombre', className: 'txt-title fw-bold text-sm' },
-                    { data: 'estadoCodigo', className: 'txt-body text-xs' },
+                    { data: 'carrera', className: 'txt-body text-xs' },
                     { 
                         data: 'esActivo', className: 'text-center',
                         render: function(data) { return `<span class="badge ${data ? 'status-aceptado' : 'status-rechazado'} text-xxs px-2 py-1">${data ? 'Activo' : 'Inactivo'}</span>`; }
@@ -502,7 +462,7 @@
                     { 
                         data: 'id', orderable: false, className: 'text-end px-4',
                         render: function(data) {
-                            return `<button onclick="window.location.href='@Url.Action("Edit", "Grupos")/${data}'" class="btn btn-sm btn-ghost-sep text-primary px-2"><i class="bi bi-pencil"></i></button>
+                            return `<button onclick="window.location.href='@Url.Action("EditGroup", "Coordinador")/${data}'" class="btn btn-sm btn-ghost-sep text-primary px-2"><i class="bi bi-pencil"></i></button>
                                     <button onclick="eliminarRegistro('Grupos', ${data})" class="btn btn-sm btn-ghost-sep text-danger px-2"><i class="bi bi-trash"></i></button>`;
                         }
                     }
@@ -511,34 +471,31 @@
             $('#dtSearchGrupos').on('keyup', function () { dtGrupos.search(this.value).draw(); });
 
             // ==========================================
-            // 5. DATATABLE: NUEVO INGRESO
+            // 5. DATATABLE: Carrera
             // ==========================================
-            var dtNuevos = $('#tablaNuevos').DataTable({
+            var dtCarrera = $('#tablaCareer').DataTable({
                 responsive: true, 
                 dom: 'rtp', 
                 language: { url: dtLang },
-                // ajax: { url: '@Url.Action("GetNuevosJson", "Alumnos")', type: 'GET', dataSrc: 'data' },
+                ajax: { url: '@Url.Action("GetCareersJson", "Coordinador")', type: 'GET', dataSrc: 'data' },
                 columns: [
-                    { data: 'identificador', className: 'px-4 fw-bold txt-primary-dark text-sm' },
-                    { data: 'nombreCompleto', className: 'txt-title fw-bold text-sm' },
-                    { data: 'curp', className: 'txt-body text-xs text-uppercase' },
-                    { data: 'email', className: 'txt-body text-xs' },
-                    { 
-                        data: 'estadoCodigo', className: 'text-center',
-                        render: function(data, type, row) { return `<span class="badge ${row.estadoBadgeClass} text-xxs px-2 py-1">${data}</span>`; }
-                    },
+                    { data: 'id', className: 'px-4 fw-bold txt-primary-dark text-sm' },
+                    { data: 'codigo', className: 'txt-title fw-bold text-sm' },
+                    { data: 'nombre', className: 'txt-body text-xs text-uppercase' },
                     { 
                         data: 'id', orderable: false, className: 'text-end px-4',
                         render: function (data, type, row) {
-                            let btnDel = row.estadoCodigo !== 'BAJA' ? `<button onclick="eliminarRegistro('Alumnos', ${data})" class="btn btn-sm btn-ghost-sep text-danger px-2"><i class="bi bi-trash"></i></button>` : '';
+                            let btnDel = row.estado ? `<button onclick="eliminarRegistro('Carrera', ${data})" 
+                            class="btn btn-sm btn-ghost-sep text-danger px-2">
+                            <i class="bi bi-trash"></i></button>` : '';
                             
-                            // BOTON DETALLE + EDITAR + ELIMINAR
-                            return `<button onclick="window.location.href='@Url.Action("StudentDetail", "Coordinador")/${data}'" class="btn btn-sm btn-ghost-sep text-primary px-2"><i class="bi bi-pencil"></i></button> ${btnDel}`;
+                            // EDITAR + ELIMINAR
+                            return `<button onclick="window.location.href='@Url.Action("EditCareer", "Coordinador")/${data}'" class="btn btn-sm btn-ghost-sep text-primary px-2"><i class="bi bi-pencil"></i></button> ${btnDel}`;
                         }
                     }
                 ]
             });
-            $('#dtSearchNuevos').on('keyup', function () { dtNuevos.search(this.value).draw(); });
+            $('#dtSearchNuevos').on('keyup', function () { dtCarrera.search(this.value).draw(); });
 
             // ==========================================
             // 6. DATATABLE: BAJAS
@@ -548,7 +505,7 @@
                 dom: '<"d-flex justify-content-end pt-3"B>rtip', 
                 language: { url: dtLang },
                 buttons: [{ extend: 'excel', text: 'Excel' }, { extend: 'pdf', text: 'PDF' }, { extend: 'print', text: 'Imprimir' }],
-                // ajax: { url: '@Url.Action("GetBajasJson", "Alumnos")', type: 'GET', dataSrc: 'data' },
+                ajax: { url: '@Url.Action("GetBajasJson", "Coordinador")', type: 'GET', dataSrc: 'data' },
                 columns: [
                     { data: 'identificador', className: 'px-4 fw-bold txt-primary-dark text-sm' },
                     { data: 'nombreCompleto', className: 'txt-title fw-bold text-sm' },
@@ -573,55 +530,55 @@
             // 7. DATATABLE: BITÁCORA
             // ==========================================
             var dtBitacora = $('#tablaHistorial').DataTable({
-    responsive: true, 
-    dom: '<"d-flex justify-content-end pt-3"B>rtip', 
-    language: { url: dtLang },
-    buttons: [{ extend: 'excel', text: 'Excel' }, { extend: 'pdf', text: 'PDF' }],
-    order: [[0, 'desc']],
+                responsive: true, 
+                dom: '<"d-flex justify-content-end pt-3"B>rtip', 
+                language: { url: dtLang },
+                buttons: [{ extend: 'excel', text: 'Excel' }, { extend: 'pdf', text: 'PDF' }],
+                order: [[0, 'desc']],
     
-    // DESCOMENTAR ESTA LÍNEA PARA HACERLA FUNCIONAL:
-    ajax: { url: '@Url.Action("GetHistorial", "Coordinador")', type: 'GET', dataSrc: 'data' },
+                // DESCOMENTAR ESTA LÍNEA PARA HACERLA FUNCIONAL:
+                ajax: { url: '@Url.Action("GetHistorial", "Coordinador")', type: 'GET', dataSrc: 'data' },
     
-    columns: [
-        { data: 'fechaFormateada', className: 'text-center px-4 txt-body text-xs' },
-        { data: 'usuario', className: 'txt-title fw-bold text-sm' },
-        { data: 'nombreCompleto', className: 'txt-body text-xs' },
-        { 
-            data: 'esActivo', className: 'text-center',
-            render: function(data) { 
-                const clase = data ? 'status-aceptado' : 'status-rechazado';
-                const texto = data ? 'Alta/Activo' : 'Baja/Inactivo';
-                return `<span class="badge ${clase} text-xxs px-2 py-1 shadow-sm">${texto}</span>`; 
-            }
-        }
-    ]
-});
+                columns: [
+                    { data: 'fechaFormateada', className: 'text-center px-4 txt-body text-xs' },
+                    { data: 'usuario', className: 'txt-title fw-bold text-sm' },
+                    { data: 'nombreCompleto', className: 'txt-body text-xs' },
+                    { 
+                        data: 'esActivo', className: 'text-center',
+                        render: function(data) { 
+                            const clase = data ? 'status-aceptado' : 'status-rechazado';
+                            const texto = data ? 'Alta/Activo' : 'Baja/Inactivo';
+                            return `<span class="badge ${clase} text-xxs px-2 py-1 shadow-sm">${texto}</span>`; 
+                        }
+                    }
+                ]
+            });
             $('#dtSearchBitacora').on('keyup', function () { dtBitacora.search(this.value).draw(); });
 
             // ==========================================
             // FUNCIÓN GLOBAL DE ELIMINACIÓN (AJAX FETCH)
             // ==========================================
             window.eliminarRegistro = function (controlador, id) {
-                if (!confirm(`¿Deseas realizar esta acción en el módulo ${controlador}?`)) return;
+                if (!confirm(`¿Deseas eliminar este registro?`)) return;
 
-                fetch(`/${controlador}/Delete/${id}`, {
+                let url = "";
+
+                if (controlador === "Usuarios") url = `/Coordinador/DeleteUser/${id}`;
+                if (controlador === "Alumnos") url = `/Coordinador/DeleteStudent/${id}`;
+                if (controlador === "Docentes") url = `/Coordinador/DeleteTeacher/${id}`;
+                if (controlador === "Grupos") url = `/Coordinador/DeleteGroup/${id}`;
+                if (controlador === "Carrera") url = `/Coordinador/DeleteCareer/${id}`;
+
+                fetch(url, {
                     method: 'POST',
                     headers: {
-                        'Content-Type': 'application/json',
                         'RequestVerificationToken': csrfToken
                     }
                 }).then(r => {
-                    if (r.ok) {
-                        // Recargar la tabla activa (o podrías recargarlas todas)
-                        if ($.fn.DataTable.isDataTable('.table:visible')) {
-                            $('.table:visible').DataTable().ajax.reload(null, false);
-                        } else {
-                            location.reload();
-                        }
-                    } else {
-                        alert('Error al procesar la solicitud.');
-                    }
-                }).catch(err => alert('Error de conexión: ' + err.message));
+                    if (!r.ok) throw new Error("Error al eliminar");
+                    location.reload();
+                })
+                .catch(err => alert(err.message));
             };
 
         });

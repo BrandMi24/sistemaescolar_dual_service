@@ -1,4 +1,5 @@
-﻿@{
+@model CreateStudentViewModel
+@{
     ViewData["Title"] = "Registrar Estudiante";
     Layout = "_LayoutCoordinador";
 }
@@ -19,7 +20,11 @@
         </div>
     </div>
 
-    <form asp-action="CreateStudent" method="post" class="needs-validation">
+    @{
+        var isEdit = ViewBag.IsEdit as bool? ?? false;
+    }
+    <form asp-action="@(isEdit ? "EditStudent" : "CreateStudent")"
+      asp-controller="Coordinador" method="post" class="needs-validation">
         @Html.AntiForgeryToken()
         
         <div class="alert bg-error-100 border border-error border-opacity-25 txt-error rounded-3 mb-4 shadow-sm" style="display: none;">
@@ -27,6 +32,8 @@
         </div>
 
         <div class="row g-4">
+            <input type="hidden" asp-for="StudentId" />
+            <input type="hidden" asp-for="PersonId" />
             <div class="col-lg-8 d-flex flex-column gap-4">
                 
                 <div class="admin-card-white p-4 p-md-5 rounded-4 border-theme shadow-sm bg-white">
@@ -36,27 +43,27 @@
                     <div class="row g-4">
                         <div class="col-md-6">
                             <label class="txt-body text-xs fw-bold tracking-wide mb-2">NOMBRE(S) <span class="text-danger">*</span></label>
-                            <input name="FirstName" type="text" class="form-control search-input-custom ps-3" placeholder="Ej. Carlos" required />
+                            <input name="FirstName" type="text" value="@Model?.FirstName" class="form-control search-input-custom ps-3" placeholder="Ej. Carlos" required />
                         </div>
                         <div class="col-md-6">
                             <label class="txt-body text-xs fw-bold tracking-wide mb-2">CORREO INSTITUCIONAL <span class="text-danger">*</span></label>
-                            <input name="Email" type="email" class="form-control search-input-custom ps-3" placeholder="correo@alumnos.uttn.mx" required />
+                            <input name="Email" type="email" value="@Model?.Email" class="form-control search-input-custom ps-3" placeholder="correo@alumnos.uttn.mx" required />
                         </div>
                         <div class="col-md-4">
                             <label class="txt-body text-xs fw-bold tracking-wide mb-2">APELLIDO PATERNO <span class="text-danger">*</span></label>
-                            <input name="LastNamePaternal" type="text" class="form-control search-input-custom ps-3" placeholder="Ej. Pérez" required />
+                            <input name="LastNamePaternal" type="text" value="@Model?.LastNamePaternal" class="form-control search-input-custom ps-3" placeholder="Ej. Pérez" required />
                         </div>
                         <div class="col-md-4">
                             <label class="txt-body text-xs fw-bold tracking-wide mb-2">APELLIDO MATERNO</label>
-                            <input name="LastNameMaternal" type="text" class="form-control search-input-custom ps-3" placeholder="Opcional" />
+                            <input name="LastNameMaternal" type="text" value="@Model?.LastNameMaternal" class="form-control search-input-custom ps-3" placeholder="Opcional" />
                         </div>
                         <div class="col-md-4">
                             <label class="txt-body text-xs fw-bold tracking-wide mb-2">TELÉFONO</label>
-                            <input name="Phone" type="tel" class="form-control search-input-custom ps-3" placeholder="10 dígitos" maxlength="10" />
+                            <input name="Phone" type="tel" value="@Model?.Phone" class="form-control search-input-custom ps-3" placeholder="10 dígitos" maxlength="10" />
                         </div>
                         <div class="col-12">
                             <label class="txt-body text-xs fw-bold tracking-wide mb-2">CURP <span class="text-danger">*</span></label>
-                            <input name="CURP" type="text" class="form-control search-input-custom ps-3 text-uppercase" placeholder="18 caracteres alfanuméricos" maxlength="18" required />
+                            <input name="CURP" type="text" value="@Model?.CURP" class="form-control search-input-custom ps-3 text-uppercase" placeholder="18 caracteres alfanuméricos" maxlength="18" required />
                         </div>
                     </div>
                 </div>
@@ -67,12 +74,8 @@
                     </h6>
                     <div class="row g-4">
                         <div class="col-md-6">
-                            <label class="txt-body text-xs fw-bold tracking-wide mb-2">MATRÍCULA / NO. CONTROL <span class="text-danger">*</span></label>
-                            <input name="Matricula" type="text" class="form-control search-input-custom ps-3" placeholder="Ej. 24001504" required />
-                        </div>
-                        <div class="col-md-6">
                             <label class="txt-body text-xs fw-bold tracking-wide mb-2">ESTADO INICIAL <span class="text-danger">*</span></label>
-                            <select name="StatusCode" class="form-select bg-app border-theme txt-title fw-semibold py-2">
+                            <select name="StatusCode" value="@Model?.StatusCode" class="form-select bg-app border-theme txt-title fw-semibold py-2">
                                 <option value="PREINSCRITO">Preinscrito (Aspirante)</option>
                                 <option value="INSCRITO" selected>Inscrito Oficial</option>
                             </select>
@@ -81,16 +84,33 @@
                             <label class="txt-body text-xs fw-bold tracking-wide mb-2">CARRERA <span class="text-danger">*</span></label>
                             <select name="CareerId" class="form-select bg-app border-theme txt-title fw-semibold py-2" id="careerSelect" required>
                                 <option value="">-- Seleccionar carrera --</option>
-                                <option value="1">Ingeniería en Desarrollo de Software</option>
-                                <option value="2">Ingeniería Mecatrónica</option>
+                                @if (ViewBag.Careers != null)
+                                {
+                                    foreach (var career in (Dictionary<int, string>)ViewBag.Careers)
+                                    {
+                                        <option value="@career.Key"
+                                                selected="@(Model?.CareerId == career.Key)">
+                                            @career.Value
+                                        </option>
+                                    }
+                                }
                             </select>
                         </div>
                         <div class="col-md-6">
                             <label class="txt-body text-xs fw-bold tracking-wide mb-2">GRUPO ASIGNADO</label>
                             <select name="GroupId" class="form-select bg-app border-theme txt-title fw-semibold py-2" id="groupSelect">
                                 <option value="">-- Seleccionar grupo --</option>
-                                <option value="1" data-career="1">7º A - Software</option>
-                                <option value="2" data-career="2">4º B - Mecatrónica</option>
+                                @if (ViewBag.Groups != null)
+                                {
+                                    foreach (var group in (List<GroupViewModel>)ViewBag.Groups)
+                                    {
+                                        <option value="@group.Id"
+                                                data-career="@group.CareerId"
+                                                selected="@(Model?.GroupId == group.Id)">
+                                            @group.Codigo - @group.Nombre
+                                        </option>
+                                    }
+                                }
                             </select>
                         </div>
                     </div>
@@ -100,26 +120,27 @@
             <div class="col-lg-4">
                 <div class="admin-card-white p-4 p-md-5 rounded-4 shadow-sm h-100 d-flex flex-column bg-white border-theme">
                     <h6 class="txt-title fw-bold mb-4 border-bottom border-theme pb-2">
-                        CUENTA DE SISTEMA <span class="fw-normal text-muted text-xs ms-2">(Opcional)</span>
+                        CUENTA DE SISTEMA
                     </h6>
-                    
+                    @if (!isEdit)
+                    {
                     <div class="alert bg-surface border border-theme txt-body text-xs mb-4 lh-base shadow-sm">
                         Si proporciona un usuario y contraseña, el sistema generará automáticamente las credenciales con rol de <strong>Estudiante</strong> para el acceso al portal.
                     </div>
 
                     <div class="mb-4">
                         <label class="txt-body text-xs fw-bold tracking-wide mb-2">USUARIO DE ACCESO</label>
-                        <input name="Username" type="text" class="form-control search-input-custom ps-3" placeholder="ej: nombre.apellido" autocomplete="off" />
+                        <input name="Username" type="text" value="@Model?.Username" class="form-control search-input-custom ps-3" placeholder="ej: nombre.apellido" autocomplete="off"/>
                     </div>
 
                     <div class="mb-5">
-                        <label class="txt-body text-xs fw-bold tracking-wide mb-2">CONTRASEÑA TEMPORAL</label>
-                        <input name="Password" type="password" class="form-control search-input-custom ps-3" placeholder="Mínimo 6 caracteres" autocomplete="new-password" />
+                        <label class="txt-body text-xs fw-bold tracking-wide mb-2">CONTRASEÑA</label>
+                        <input name="Password" type="password" value="@Model?.Password" class="form-control search-input-custom ps-3" placeholder="Mínimo 6 caracteres" autocomplete="new-password"/>
                     </div>
-
+                    }
                     <div class="mt-auto pt-4 border-top border-theme d-flex flex-column gap-3">
                         <button type="submit" class="btn btn-primary-sep bg-primary-900 w-100 fw-bold py-3 shadow-sm text-white">
-                            Registrar Estudiante
+                            @(isEdit ? "Editar Alumno" : "Registrar Nuevo Alumno")
                         </button>
                         <a href="@Url.Action("Catalogos", "Coordinador")" class="btn btn-ghost-sep border border-theme w-100 py-2 shadow-sm text-body fw-semibold">
                             Cancelar
