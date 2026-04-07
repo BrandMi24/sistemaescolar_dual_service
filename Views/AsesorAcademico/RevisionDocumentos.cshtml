@@ -1,0 +1,82 @@
+﻿@{
+    ViewData["Title"] = "Revisión de Documentación";
+    Layout = "_LayoutTutor";
+}
+
+<div class="d-flex flex-column gap-4 fade-in">
+    <div class="bg-surface p-4 rounded-4 border-theme shadow-sm d-flex flex-column flex-xl-row justify-content-between align-items-xl-center gap-3">
+        <form method="get" class="d-flex flex-column flex-md-row gap-3 flex-grow-1 w-100">
+            <div class="position-relative search-wrapper flex-grow-1">
+                <i class="bi bi-search position-absolute search-icon-left txt-body"></i>
+                <input type="text" name="search" class="form-control search-input-custom tab-search" placeholder="Buscar por alumno o matrícula...">
+            </div>
+            <select class="form-select bg-app border-theme txt-title fw-bold tab-filter" style="width: auto;">
+                <option value="">Todos los Documentos</option>
+                <option value="PENDIENTE">Solo Pendientes</option>
+                <option value="RECHAZADO">Corregidos</option>
+            </select>
+            <button type="submit" class="btn btn-primary-sep bg-primary-900 text-white shadow-sm">
+                <i class="bi bi-funnel-fill"></i>
+            </button>
+        </form>
+    </div>
+
+    <div class="admin-card-white p-0 rounded-4 border-theme shadow-sm overflow-hidden d-flex flex-column">
+        <div class="table-responsive bg-surface">
+            <table class="table table-borderless align-middle mb-0" style="min-width: 1000px;">
+                <thead class="admin-table-header">
+                    <tr>
+                        <th class="py-3 px-4">Estudiante</th>
+                        <th class="py-3">Tipo de Documento</th>
+                        <th class="py-3">Fecha Envío</th>
+                        <th class="py-3 text-center">Estado</th>
+                        <th class="py-3 text-end px-4">Dictamen</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr class="border-bottom border-theme hover-bg-app">
+                        <td class="px-4 py-3">
+                            <div class="txt-title fw-bold text-sm">Luis Ángel García</div>
+                            <div class="txt-body text-xxs">Mat: 24001892</div>
+                        </td>
+                        <td>
+                            <div class="txt-title fw-bold text-sm">Plan de Trabajo Inicial</div>
+                            <a href="#" class="text-primary text-xs text-decoration-none fw-bold"><i class="bi bi-file-earmark-pdf-fill me-1"></i>VER DOCUMENTO</a>
+                        </td>
+                        <td class="txt-body text-xs">25/03/2026</td>
+                        <td class="text-center">
+                            <span class="badge bg-warning text-dark text-xxs px-2 py-1 shadow-sm">PENDIENTE</span>
+                        </td>
+                        <td class="text-end px-4">
+                            <div class="d-flex gap-2 justify-content-end">
+                                <button class="btn btn-sm btn-ghost-sep text-success border border-success border-opacity-25" title="Aprobar"><i class="bi bi-check-lg"></i></button>
+                                <button class="btn btn-sm btn-ghost-sep text-danger border border-danger border-opacity-25" data-bs-toggle="modal" data-bs-target="#modalRechazo"><i class="bi bi-x-lg"></i></button>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="modalRechazo" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-theme shadow-sm rounded-4 overflow-hidden bg-surface">
+            <div class="modal-header border-bottom border-theme p-4">
+                <h5 class="modal-title txt-title fw-bold">
+                    <i class="bi bi-exclamation-circle me-2 text-danger"></i> Rechazar Documento
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4">
+                <label class="txt-body text-xs fw-bold tracking-wide mb-2 d-block">MOTIVO DEL RECHAZO / CORRECCIONES</label>
+                <textarea class="form-control bg-app border-theme text-sm" rows="4" placeholder="Describa qué debe cambiar el alumno..."></textarea>
+            </div>
+            <div class="modal-footer border-top border-theme bg-app p-3">
+                <button type="button" class="btn btn-ghost-sep" data-bs-dismiss="modal">Cancelar</button>
+                <button type="submit" class="btn btn-primary-sep bg-primary-900 text-white shadow-sm">Enviar Retroalimentación</button>
+            </div>
+        </div>
+    </div>
+</div>
