@@ -1,0 +1,156 @@
+﻿<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Salud Integral UTTN</title>
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    
+    <link rel="stylesheet" href="~/css/design-system.css" asp-append-version="true" />
+    @* Si tienes estilos específicos para salud, agrégalos aquí *@
+</head>
+<body>
+    <div class="admin-layout">
+
+        <div class="bg-primary-dark p-3 d-flex d-lg-none justify-content-between align-items-center flex-shrink-0 z-3">
+            <div class="d-flex align-items-center gap-2">
+                <div class="brand-logo avatar-sm text-xs">UT</div>
+                <span class="txt-white fw-bold fs-6">Salud Integral</span>
+            </div>
+            <button id="btnMobileMenu" class="btn btn-link text-white p-0 fs-2 lh-1 border-0 shadow-none">
+                <i class="bi bi-list"></i>
+            </button>
+        </div>
+
+        <div id="mobileOverlay" class="mobile-overlay"></div>
+
+        <aside id="sidebar" class="sidebar-sep">
+            <div class="sidebar-brand">
+                <div class="brand-logo"><i class="bi bi-heart-pulse-fill"></i></div>
+                <div class="ms-2">
+                    <div class="fw-bold small text-white">UT TAMAULIPAS</div>
+                    <div class="opacity-50 text-white text-xxs">Módulo de Salud</div>
+                </div>
+            </div>
+
+            <div class="d-flex d-lg-none justify-content-end p-2">
+                <button id="btnCloseMenu" class="btn btn-link text-white p-0 fs-3 border-0 shadow-none">
+                    <i class="bi bi-x-lg"></i>
+                </button>
+            </div>
+
+            <nav class="sidebar-nav mt-1">
+                <div class="nav-group-label">ÁREA MÉDICA</div>
+                <a class="nav-link" href="@Url.Action("Index", "VisitaMedica")">
+                    <i class="bi bi-people-fill"></i> Directorio Alumnos
+                </a>
+                <a class="nav-link" href="@Url.Action("Register", "VisitaMedica")">
+                    <i class="bi bi-plus-circle-fill"></i> Nueva Consulta
+                </a>
+
+                <div class="nav-group-label">ÁREA PSICOLOGÍA</div>
+                <a class="nav-link" href="@Url.Action("Index", "VisitaPsicologica")">
+                    <i class="bi bi-person-heart"></i> Directorio Pacientes
+                </a>
+                <a class="nav-link" href="@Url.Action("Register", "VisitaPsicologica")">
+                    <i class="bi bi-chat-dots-fill"></i> Nueva Sesión
+                </a>
+
+                @if (User.IsInRole("Admin") || User.IsInRole("Jefe de enfermeros") || User.IsInRole("Jefe de psicología"))
+                {
+                    <div class="nav-group-label">Administración</div>
+                    <a class="nav-link" href="@Url.Action("GestionUsuarios", "VisitaMedica")">
+                        <i class="bi bi-person-gear"></i> Roles Personal
+                    </a>
+                }
+            </nav>
+
+            <div class="sidebar-footer">
+                <div class="d-flex align-items-center gap-2">
+                    <div class="avatar-sm bg-accent-light txt-primary-dark fw-bold">
+                        @User.Identity.Name?.Substring(0, 1).ToUpper()
+                    </div>
+                    <div class="overflow-hidden">
+                        <div class="fw-bold small text-white text-truncate">@User.Identity.Name</div>
+                        <form asp-controller="Account" asp-action="Logout" method="post">
+                            <button type="submit" class="btn btn-link p-0 opacity-50 text-xxs text-white text-decoration-none shadow-none border-0">
+                                Cerrar Sesión
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <header class="admin-header border-bottom border-theme d-flex align-items-center px-4">
+                <h5 class="fw-bold txt-title mb-0">@ViewData["Title"]</h5>
+            </header>
+
+            @if (TempData["Success"] != null || TempData["SuccessMessage"] != null)
+            {
+                <div class="p-4 pb-0">
+                    <div class="alert bg-success-100 border border-success-700 text-success-700 rounded-3 alert-dismissible fade show shadow-sm mb-0" role="alert">
+                        <i class="bi bi-check-circle-fill me-2"></i> @(TempData["Success"] ?? TempData["SuccessMessage"])
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                </div>
+            }
+
+            @if (TempData["Error"] != null)
+            {
+                <div class="p-4 pb-0">
+                    <div class="alert bg-danger-100 border border-danger-700 text-danger-700 rounded-3 alert-dismissible fade show shadow-sm mb-0" role="alert">
+                        <i class="bi bi-exclamation-triangle-fill me-2"></i> @TempData["Error"]
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                </div>
+            }
+
+            <div class="p-4 p-lg-5 container-fluid">
+                @RenderBody()
+            </div>
+        </main>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        $(document).ready(function() {
+        const sidebar = $('#sidebar');
+        const overlay = $('#mobileOverlay');
+
+        // Funciones de Menú Móvil
+        $('#btnMobileMenu').click(function() {
+        sidebar.addClass('show');
+        overlay.addClass('active');
+        });
+
+        $('#btnCloseMenu, #mobileOverlay').click(function() {
+        sidebar.removeClass('show');
+        overlay.removeClass('active');
+        });
+
+        // Script para marcar la pestaña activa automáticamente
+        const currentPath = window.location.pathname;
+        $('.sidebar-nav a').each(function() {
+        const linkPath = $(this).attr('href');
+        if (linkPath && currentPath.includes(linkPath) && linkPath !== '/') {
+        $('.sidebar-nav a').removeClass('active');
+        $(this).addClass('active');
+        }
+        });
+
+        // Autocerrar alertas después de 5 segundos
+        setTimeout(function() {
+        $(".alert").fadeTo(500, 0).slideUp(500, function(){
+        $(this).remove();
+        });
+        }, 5000);
+        });
+    </script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

@@ -1,0 +1,141 @@
+﻿@model IEnumerable<ControlEscolar.Models.VisitaPsicologica>
+@{
+    ViewData["Title"] = "Historial de Consultas";
+    Layout = "_LayoutSalud";
+}
+
+<div class="scroll-area custom-scroll">
+    <div class="max-w-1050 mx-auto px-lg-3 py-2 pb-5">
+        
+        <div class="admin-card-white mb-4 d-flex flex-column flex-md-row justify-content-between align-items-center gap-3">
+            <a asp-action="Index" class="btn-ghost-sep text-decoration-none text-xs">
+                <i class="bi bi-arrow-left me-2"></i> Directorio
+            </a>
+            
+            <div class="d-flex align-items-center gap-3">
+                <div class="icon-circle-lg bg-accent-light txt-primary-dark shadow-sm">
+                    <i class="bi bi-file-earmark-person-fill fs-3"></i>
+                </div>
+                <div class="text-center text-md-start">
+                    <div class="section-label text-muted mb-1">Expediente Psicológico</div>
+                    <h5 class="mb-0 fw-bold txt-title text-uppercase">ID: @ViewData["Matricula"]</h5>
+                </div>
+            </div>
+        </div>
+
+        @if (!Model.Any())
+        {
+            <div class="admin-card-white text-center py-5">
+                <div class="icon-circle-lg bg-app text-muted mx-auto mb-3">
+                    <i class="bi bi-folder-x fs-2"></i>
+                </div>
+                <h6 class="txt-title">Sin registros psicológicos</h6>
+                <p class="txt-body text-sm mb-0">El estudiante no cuenta con sesiones previas en este departamento.</p>
+            </div>
+        }
+
+        <div class="d-flex flex-column gap-3">
+            @foreach (var s in Model)
+            {
+                <div class="admin-card-white border-start border-4 transition-all mb-2" style="border-left-color: var(--primary-900) !important; padding: 1.25rem 1.5rem;">
+                    <div class="row align-items-center">
+                        
+                        <div class="col-md-3 border-end border-theme text-center text-md-start mb-3 mb-md-0">
+                            <div class="stat-value">@s.FechaVisita.ToString("dd MMM")</div>
+                            <div class="stat-label">@s.FechaVisita.ToString("yyyy") • @s.FechaVisita.ToString("HH:mm") hrs</div>
+                        </div>
+                        
+                        <div class="col-md-6 ps-md-4 mb-3 mb-md-0">
+                            <div class="section-label text-muted mb-2">Motivo de Sesión</div>
+                            <div class="txt-title text-sm fw-bold text-truncate">@s.MotivoConsulta</div>
+                        </div>
+                        
+                        <div class="col-md-3 text-end">
+                            <button class="btn-primary-sep w-100 w-md-auto text-xs tracking-wide" data-bs-toggle="modal" data-bs-target="#modal-@s.Id">
+                                VER BITÁCORA
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal fade" id="modal-@s.Id" tabindex="-1" aria-hidden="true">
+                    <div class="modal-dialog modal-dialog-centered modal-lg">
+                        <div class="modal-content admin-card-white p-0 border-0">
+                            
+                            <div class="modal-header bg-app border-bottom border-theme px-4 py-3">
+                                <div>
+                                    <h6 class="txt-title mb-0">Bitácora Psicológica</h6>
+                                    <div class="txt-body text-xs fw-bold mt-1">@s.FechaVisita.ToString("f")</div>
+                                </div>
+                                <button type="button" class="btn-close shadow-none" data-bs-dismiss="modal"></button>
+                            </div>
+
+                            <div class="modal-body p-4 bg-surface custom-scroll" style="max-height: 70vh; overflow-y: auto;">
+                                
+                                <div class="section-label text-muted mb-3 border-bottom border-theme pb-2">DATOS GENERALES</div>
+                                <div class="row g-3 mb-4">
+                                    <div class="col-6 col-md-4">
+                                        <div class="stat-card-sep p-2 text-center bg-app">
+                                            <div class="stat-label">EDAD REGISTRADA</div>
+                                            <div class="txt-title fw-bold text-sm mt-1">@s.Edad años</div>
+                                        </div>
+                                    </div>
+                                    <div class="col-6 col-md-4">
+                                        <div class="stat-card-sep p-2 text-center bg-app">
+                                            <div class="stat-label">TERAPIA PREVIA</div>
+                                            <div class="fw-bold text-sm mt-1 @(s.TerapiaPrevia ? "txt-error" : "txt-title")">
+                                                @(s.TerapiaPrevia ? "SÍ" : "NO")
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="section-label text-muted mb-3 border-bottom border-theme pb-2">ANTECEDENTES CLÍNICOS</div>
+                                <div class="admin-card-white bg-app p-3 mb-4 border-0">
+                                    <div class="row g-3">
+                                        <div class="col-md-6 border-end-md border-theme">
+                                            <div class="stat-label mb-1">MEDICACIÓN ACTUAL</div>
+                                            <div class="text-sm fw-bold txt-title">
+                                                @(string.IsNullOrEmpty(s.MedicacionPsiquiatrica) ? "Ninguna reportada" : s.MedicacionPsiquiatrica)
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="stat-label mb-1">NOTAS ANTERIORES</div>
+                                            <div class="text-sm fw-bold txt-title">
+                                                @if (s.TerapiaPrevia)
+                                                {
+                                                    @(string.IsNullOrEmpty(s.MotivoConsultaPrevia) ? "Sin notas previas" : s.MotivoConsultaPrevia)
+                                                }
+                                                else
+                                                {
+                                                    <span class="txt-body fw-normal">No aplica</span>
+                                                }
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="section-label text-muted mb-3 border-bottom border-theme pb-2">MOTIVO DE CONSULTA Y NOTAS DE SESIÓN</div>
+                                <div class="bg-white border border-theme rounded-3 p-3 shadow-sm">
+                                    <p class="text-sm txt-title mb-0" style="white-space: pre-wrap; line-height: 1.6;">@s.MotivoConsulta</p>
+                                </div>
+
+                            </div>
+                            
+                            <div class="modal-footer bg-app border-top border-theme p-3" style="border-bottom-left-radius: var(--border-radius-xl); border-bottom-right-radius: var(--border-radius-xl);">
+                                <button type="button" class="btn-ghost-sep w-100 text-xs tracking-wide text-uppercase" data-bs-dismiss="modal">Cerrar Bitácora</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Utilidad extra para el borde responsivo (Doble arroba para no romper Razor) */
+    @@media (min-width: 768px) {
+        .border-end-md { border-right: 1px solid var(--border-color) !important; }
+    }
+</style>

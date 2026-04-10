@@ -1,0 +1,189 @@
+﻿@model IEnumerable<ControlEscolar.Models.VisitaMedica>
+@{
+    ViewData["Title"] = "Directorio Médico";
+    Layout = "_LayoutSalud";
+}
+
+<div class="d-flex flex-column gap-4 fade-in">
+    <div class="bg-surface p-4 rounded-4 border-theme shadow-sm d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+        
+        <div class="d-flex flex-column flex-md-row gap-3 flex-grow-1" style="max-width: 700px;">
+            <div class="position-relative flex-grow-1">
+                <i class="bi bi-search position-absolute text-muted" style="top: 50%; left: 18px; transform: translateY(-50%);"></i>
+                <input type="text" id="searchInput" class="form-control ps-5" 
+                       placeholder="Buscar por nombre o matrícula..." 
+                       style="height: 48px; border-radius: 8px; background-color: var(--app-bg); border: 1px solid var(--border-color); box-shadow: none;">
+            </div>
+
+            <select id="statusFilter" class="form-select bg-app border-theme txt-title fw-bold" 
+                    style="height: 48px; border-radius: 8px; min-width: 200px; cursor: pointer; box-shadow: none;">
+                <option value="todos">Todos los casos</option>
+                <option value="seguimiento">En Seguimiento</option>
+                <option value="concluido">Concluidos</option>
+            </select>
+        </div>
+
+        <a asp-action="Register" class="btn btn-primary-sep d-flex align-items-center gap-2 px-4 py-2" style="height: 48px; border-radius: 8px;">
+            <i class="bi bi-plus-lg"></i> 
+            <span class="fw-bold">Registrar Nueva Visita</span>
+        </a>
+    </div>
+
+    <div class="admin-card-white p-0 rounded-4 border-theme shadow-sm overflow-hidden d-flex flex-column">
+        <div class="table-responsive bg-surface" style="min-height: 450px;">
+            <table class="table align-middle mb-0" id="medicoTable" style="min-width: 900px;">
+                <thead class="admin-table-header bg-app">
+                    <tr class="text-uppercase" style="font-size: 0.75rem;">
+                        <th class="py-4 px-4 text-muted fw-bold">Estudiante</th>
+                        <th class="py-4 text-center text-muted fw-bold">Matrícula</th>
+                        <th class="py-4 text-muted fw-bold">Programa / Carrera</th>
+                        <th class="py-4 text-center text-muted fw-bold">Estado</th>
+                        <th class="py-4 text-end px-4 text-muted fw-bold">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var alumno in Model)
+                    {
+                        var estado = "seguimiento"; 
+
+                        <tr class="border-bottom border-theme data-row">
+                            <td class="px-4 py-3 search-target">
+                                <div class="txt-title fw-bold fs-6">@alumno.NombreCompleto</div>
+                                <div class="text-muted text-xxs mt-1">
+                                    Atención: @alumno.FechaVisita.ToString("dd/MM/yyyy")
+                                </div>
+                            </td>
+                            <td class="text-center">
+                                <span class="badge fw-bold px-3 py-2" 
+                                      style="background-color: #495057; color: #ffffff; border-radius: 6px; font-size: 0.85rem; font-family: monospace;">
+                                    @alumno.Matricula
+                                </span>
+                            </td>
+                            <td>
+                                <div class="text-xs txt-body fw-bold">@alumno.Carrera</div>
+                            </td>
+                            <td class="text-center">
+                                @if(estado == "seguimiento") {
+                                    <span class="badge px-3 py-2 fw-bolder" 
+                                          style="background-color: #d1e7dd; color: #0a3622; border: 1.5px solid #0a3622; font-size: 0.75rem; min-width: 100px;">
+                                        SEGUIMIENTO
+                                    </span>
+                                } else {
+                                    <span class="badge px-3 py-2 fw-bolder" 
+                                          style="background-color: #e2e3e5; color: #212529; border: 1.5px solid #212529; font-size: 0.75rem; min-width: 100px;">
+                                        CONCLUIDO
+                                    </span>
+                                }
+                            </td>
+                            <td class="text-end px-4">
+                                <a asp-action="History" asp-route-id="@alumno.Matricula" 
+                                   class="btn p-2 text-primary" 
+                                   style="background-color: #e7f1ff; border: 1px solid #0d6efd; border-radius: 6px;">
+                                    <i class="bi bi-folder2-open fs-5"></i>
+                                </a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <div class="bg-surface p-3 border-top border-theme d-flex flex-column flex-md-row justify-content-between align-items-center gap-3">
+            <div class="d-flex align-items-center gap-3">
+                <span class="txt-body text-xs fw-bold">Mostrar:</span>
+                <select id="rowsPerPage" class="form-select form-select-sm border-theme fw-bold" style="width: 75px;">
+                    <option value="5" selected>5</option>
+                    <option value="10">10</option>
+                    <option value="25">25</option>
+                </select>
+                <div class="txt-body text-xs fw-bold" id="tableInfo"></div>
+            </div>
+
+            <nav aria-label="Navegación">
+                <ul class="pagination pagination-sm mb-0 gap-1" id="paginationControls"></ul>
+            </nav>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Reset de efectos visuales (Sin Hovers) */
+    .table-hover tbody tr:hover { background-color: transparent !important; }
+    .data-row { background-color: white !important; }
+    
+    .btn, .page-link, .form-control, .form-select { 
+        transition: none !important; 
+        box-shadow: none !important;
+    }
+
+    /* Paginación sólida */
+    .page-link-custom {
+        border-radius: 4px !important;
+        color: #333;
+        border: 1px solid #ccc;
+        background-color: #fff;
+        padding: 5px 12px;
+        font-weight: bold;
+    }
+    .page-item.active .page-link-custom {
+        background-color: #006d31 !important; /* Verde UTTN */
+        border-color: #006d31 !important;
+        color: white !important;
+    }
+</style>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            let currentPage = 1;
+            function updateTable() {
+                let searchTerm = $('#searchInput').val().toLowerCase();
+                let statusFilter = $('#statusFilter').val();
+                let rowsPerPage = parseInt($('#rowsPerPage').val());
+                let filteredRows = [];
+
+                $('.data-row').each(function () {
+                    let text = $(this).find('.search-target').text().toLowerCase();
+                    let mat = $(this).find('.badge').first().text().toLowerCase();
+                    let status = $(this).data('estado');
+
+                    if ((text.includes(searchTerm) || mat.includes(searchTerm)) && 
+                        (statusFilter === 'todos' || status === statusFilter)) {
+                        filteredRows.push($(this));
+                    }
+                    $(this).hide();
+                });
+
+                let total = filteredRows.length;
+                let pages = Math.ceil(total / rowsPerPage) || 1;
+                if (currentPage > pages) currentPage = pages;
+                let start = (currentPage - 1) * rowsPerPage;
+                let end = Math.min(start + rowsPerPage, total);
+
+                for (let i = start; i < end; i++) filteredRows[i].show();
+
+                $('#tableInfo').text(total === 0 ? 'Sin registros' : `Mostrando ${start + 1} a ${end} de ${total}`);
+                renderPagination(pages);
+            }
+
+            function renderPagination(totalPages) {
+                let html = `<li class="page-item ${currentPage === 1 ? 'disabled' : ''}"><a class="page-link page-link-custom" href="#" data-page="${currentPage - 1}"><i class="bi bi-chevron-left"></i></a></li>`;
+                for (let i = 1; i <= totalPages; i++) {
+                    html += `<li class="page-item ${i === currentPage ? 'active' : ''}"><a class="page-link page-link-custom" href="#" data-page="${i}">${i}</a></li>`;
+                }
+                html += `<li class="page-item ${currentPage === totalPages || totalPages === 0 ? 'disabled' : ''}"><a class="page-link page-link-custom" href="#" data-page="${currentPage + 1}"><i class="bi bi-chevron-right"></i></a></li>`;
+                $('#paginationControls').html(html);
+            }
+
+            $('#searchInput, #statusFilter, #rowsPerPage').on('input change', function() { currentPage = 1; updateTable(); });
+            $('#paginationControls').on('click', '.page-link', function(e) {
+                e.preventDefault();
+                if (!$(this).parent().hasClass('disabled')) {
+                    currentPage = parseInt($(this).data('page'));
+                    updateTable();
+                }
+            });
+            updateTable();
+        });
+    </script>
+}
