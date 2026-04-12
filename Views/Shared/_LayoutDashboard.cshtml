@@ -25,22 +25,24 @@
 
             <nav class="sidebar-nav mt-1">
                 <div class="nav-group-label">Tableros Directivos</div>
-                <a class="nav-link" href="@Url.Action("Index", "Home")">
+                <a class="nav-link" href="@Url.Action("Index", "Dashboard")">
                     <i class="bi bi-building"></i> Visión Rectoría
                 </a>
-                <a class="nav-link" href="@Url.Action("Index", "Aspirantes")">
-                    <i class="bi bi-people-fill"></i> Aspirantes
-                </a>
-                <a class="nav-link" href="@Url.Action("Index", "Admissions")">
+                <a class="nav-link" href="@Url.Action("Admisiones", "Dashboard")">
                     <i class="bi bi-door-open-fill"></i> Admisiones
                 </a>
-                <a class="nav-link" href="@Url.Action("Index", "Tramites")">
+                <a class="nav-link" href="@Url.Action("Tramites", "Dashboard")">
                     <i class="bi bi-file-earmark-check-fill"></i> Trámites Operativos
                 </a>
-
-                <div class="nav-group-label">Mantenimiento</div>
-                <a class="nav-link" href="@Url.Action("Index", "Diagnostic")">
-                    <i class="bi bi-database-check"></i> Diagnóstico de BD
+                <a class="nav-link" href="@Url.Action("Vinculacion", "Dashboard")">
+                    <i class="bi bi-briefcase-fill"></i> Vinculación
+                </a>
+                <a class="nav-link" href="@Url.Action("Calidad", "Dashboard")">
+                    <i class="bi bi-journal-bookmark-fill"></i> Calidad Académica
+                </a>
+             
+                <a class="nav-link" href="@Url.Action("Salud", "Dashboard")">
+                    <i class="bi bi-heart-pulse-fill"></i> Salud Integral
                 </a>
             </nav>
             

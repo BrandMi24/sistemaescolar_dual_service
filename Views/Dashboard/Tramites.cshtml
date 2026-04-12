@@ -1,5 +1,430 @@
-﻿@*
-    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-*@
+﻿@model ControlEscolar.Models.Dashboard.TramitesViewModel
 @{
+    ViewData["Title"] = "Control de Trámites y Ventanilla";
+    Layout = "_LayoutDashboard";
+    
+    var totalDocs = Model.DocsAprobados + Model.DocsPendientes + Model.DocsRechazados;
+    var cuatNames = new Dictionary<int, string> { { 0, "Todo el año" }, { 1, "Ene — Abr" }, { 2, "May — Ago" }, { 3, "Sep — Dic" } };
+}
+
+@if (ViewBag.Error != null)
+{
+    <div class="alert alert-danger shadow-sm border-0 d-flex align-items-center mb-4 text-sm">
+        <i class="bi bi-exclamation-triangle-fill fs-5 me-3"></i>
+        <div><strong>Error:</strong> @ViewBag.Error</div>
+    </div>
+}
+
+<div class="admin-card-white p-3 mb-4 shadow-sm border-0">
+    <form method="get" class="row g-3 align-items-end">
+        <div class="col-md-3">
+            <label class="form-label text-xs fw-bold text-muted mb-1">AÑO</label>
+            <select name="year" class="form-select bg-app border-0 text-sm fw-bold">
+                @foreach (var y in Model.AvailableYears)
+                {
+                    if (y == Model.SelectedYear)
+                    {
+                        <option value="@y" selected>@y</option>
+                    }
+                    else
+                    {
+                        <option value="@y">@y</option>
+                    }
+                }
+            </select>
+        </div>
+        <div class="col-md-3">
+            <label class="form-label text-xs fw-bold text-muted mb-1">CUATRIMESTRE</label>
+            <select name="cuatrimestre" class="form-select bg-app border-0 text-sm fw-bold">
+                @{
+                    var cuatOptions = new Dictionary<int, string> { { 0, "Todo el año" }, { 1, "Ene — Abr" }, { 2, "May — Ago" }, { 3, "Sep — Dic" } };
+                }
+                @foreach (var opt in cuatOptions)
+                {
+                    if (opt.Key == Model.SelectedCuatrimestre)
+                    {
+                        <option value="@opt.Key" selected>@opt.Value</option>
+                    }
+                    else
+                    {
+                        <option value="@opt.Key">@opt.Value</option>
+                    }
+                }
+            </select>
+        </div>
+        <div class="col-md-6 d-flex gap-2">
+            <button type="submit" class="btn btn-dark text-xs px-4 fw-bold shadow-sm">
+                <i class="bi bi-funnel-fill me-2"></i> APLICAR
+            </button>
+            <a href="@Url.Action("Tramites", "Dashboard")" class="btn btn-light border text-xs px-4 fw-bold">
+                LIMPIAR
+            </a>
+        </div>
+    </form>
+</div>
+
+@if (Model.SelectedCuatrimestre > 0)
+{
+    <div class="badge bg-dark mb-4 px-3 py-2 fw-normal text-xs shadow-sm">
+        <i class="bi bi-filter-circle me-1"></i> Filtro activo: Año @Model.SelectedYear, @cuatNames[Model.SelectedCuatrimestre]
+    </div>
+}
+
+<div class="row g-3 mb-4">
+    <div class="col-12 col-md-6 col-xl-3">
+        <div class="admin-card-white p-4 h-100 shadow-sm border-0 d-flex justify-content-between align-items-center">
+            <div>
+                <div class="text-xs fw-bold text-muted text-uppercase tracking-wide mb-1">Total Solicitudes</div>
+                <div class="fs-2 fw-bold txt-title" style="color: #0d9e7a;">@Model.TotalSolicitudes</div>
+            </div>
+            <div class="icon-circle-lg bg-app text-dark"><i class="bi bi-folder2-open fs-3"></i></div>
+        </div>
+    </div>
+    <div class="col-12 col-md-6 col-xl-3">
+        <div class="admin-card-white p-4 h-100 shadow-sm border-0 d-flex justify-content-between align-items-center">
+            <div>
+                <div class="text-xs fw-bold text-muted text-uppercase tracking-wide mb-1">Pendientes</div>
+                <div class="fs-2 fw-bold txt-title text-warning">@Model.Pendientes</div>
+            </div>
+            <div class="icon-circle-lg bg-app text-dark"><i class="bi bi-hourglass-split fs-3"></i></div>
+        </div>
+    </div>
+    <div class="col-12 col-md-6 col-xl-3">
+        <div class="admin-card-white p-4 h-100 shadow-sm border-0 d-flex justify-content-between align-items-center">
+            <div>
+                <div class="text-xs fw-bold text-muted text-uppercase tracking-wide mb-1">Tiempo Promedio</div>
+                <div class="fs-2 fw-bold txt-title text-primary">@Model.PromedioResolucionDias <span class="text-sm text-muted">Días</span></div>
+            </div>
+            <div class="icon-circle-lg bg-app text-dark"><i class="bi bi-stopwatch fs-3"></i></div>
+        </div>
+    </div>
+    <div class="col-12 col-md-6 col-xl-3">
+        <div class="admin-card-white p-4 h-100 shadow-sm border-0 d-flex justify-content-between align-items-center">
+            <div class="w-100">
+                <div class="text-xs fw-bold text-muted text-uppercase tracking-wide mb-1">Tasa Completado</div>
+                <div class="fs-2 fw-bold txt-title text-success">@Model.TasaCompletado%</div>
+                <div class="progress mt-2" style="height: 6px;">
+                    <div class="progress-bar bg-success" role="progressbar" style="width: @Model.TasaCompletado%"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4 mb-4">
+    <div class="col-12 col-lg-8">
+        <div class="admin-card-white p-4 h-100 shadow-sm border-0">
+            <h6 class="txt-title fw-bold text-uppercase mb-4 text-sm"><i class="bi bi-bar-chart-fill text-muted me-2"></i>Volumen por Tipo de Trámite</h6>
+            @if (Model.ByTipoTramite.Any())
+            {
+                <div style="position: relative; height: 280px; width: 100%;">
+                    <canvas id="chartVolume"></canvas>
+                </div>
+            }
+            else
+            {
+                <div class="text-center text-muted p-5 bg-app rounded-3 text-sm">Sin datos para este periodo</div>
+            }
+        </div>
+    </div>
+    <div class="col-12 col-lg-4">
+        <div class="admin-card-white p-4 h-100 shadow-sm border-0">
+            <h6 class="txt-title fw-bold text-uppercase mb-4 text-sm"><i class="bi bi-pie-chart-fill text-muted me-2"></i>Semáforo de Entregas</h6>
+            @if (Model.ByStatus.Any())
+            {
+                <div style="position: relative; height: 260px; width: 100%;">
+                    <canvas id="chartSemaforo"></canvas>
+                </div>
+            }
+            else
+            {
+                <div class="text-center text-muted p-5 bg-app rounded-3 text-sm">Sin datos para este periodo</div>
+            }
+        </div>
+    </div>
+</div>
+
+@if (Model.ByTipoTramite.Any())
+{
+    <div class="admin-card-white p-4 shadow-sm border-0 mb-4">
+        <h6 class="txt-title fw-bold text-uppercase mb-3 text-sm border-bottom pb-2"><i class="bi bi-list-columns-reverse me-2"></i>Desglose por Tipo de Trámite</h6>
+        <div class="table-responsive custom-scroll" style="max-height: 350px;">
+            <table class="table table-hover align-middle text-sm mb-0" id="tblTipos">
+                <thead class="bg-app text-muted text-xs" style="position: sticky; top: 0; z-index: 1;">
+                    <tr>
+                        <th class="ps-3 border-0">Tipo de Trámite</th>
+                        <th class="text-center border-0">Total</th>
+                        <th class="text-center border-0">Completadas</th>
+                        <th class="text-center border-0">Pendientes</th>
+                        <th class="text-center border-0">Rechazadas</th>
+                        <th class="pe-3 border-0" style="width: 250px;">Progreso Global</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var tipo in Model.ByTipoTramite)
+                    {
+                        var pComp = tipo.Total > 0 ? Math.Round((decimal)tipo.Completadas / tipo.Total * 100, 0) : 0;
+                        var pPend = tipo.Total > 0 ? Math.Round((decimal)tipo.Pendientes / tipo.Total * 100, 0) : 0;
+                        var pRech = tipo.Total > 0 ? Math.Round((decimal)tipo.Rechazadas / tipo.Total * 100, 0) : 0;
+                        <tr>
+                            <td class="ps-3 fw-bold txt-title text-xs">@tipo.TipoNombre</td>
+                            <td class="text-center"><span class="badge bg-light text-dark border">@tipo.Total</span></td>
+                            <td class="text-center text-success fw-bold">@tipo.Completadas</td>
+                            <td class="text-center text-warning fw-bold">@tipo.Pendientes</td>
+                            <td class="text-center @(tipo.Rechazadas > 0 ? "text-danger fw-bold" : "text-muted")">@tipo.Rechazadas</td>
+                            <td class="pe-3">
+                                <div class="progress" style="height: 10px; border-radius: 5px;">
+                                    <div class="progress-bar bg-success" style="width: @pComp%"></div>
+                                    <div class="progress-bar bg-warning" style="width: @pPend%"></div>
+                                    <div class="progress-bar bg-danger" style="width: @pRech%"></div>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+}
+
+<div class="row g-4 mb-4">
+    @if (totalDocs > 0)
+    {
+        <div class="col-12 col-lg-5">
+            <div class="admin-card-white p-4 h-100 shadow-sm border-0">
+                <h6 class="txt-title fw-bold text-uppercase mb-3 text-sm border-bottom pb-2">Validación de Documentos</h6>
+                <div class="table-responsive custom-scroll" style="max-height: 250px;">
+                    <table class="table table-hover align-middle text-sm mb-0">
+                        <thead class="bg-app text-muted text-xs" style="position: sticky; top: 0; z-index: 1;">
+                            <tr><th class="ps-3 border-0">Estatus</th><th class="text-center border-0">Total</th><th class="text-center pe-3 border-0">%</th></tr>
+                        </thead>
+                        <tbody>
+                            <tr><td class="ps-3 fw-bold text-success">Aprobados</td><td class="text-center"><span class="badge bg-success">@Model.DocsAprobados</span></td><td class="text-center pe-3 text-muted">@(totalDocs > 0 ? Math.Round((decimal)Model.DocsAprobados / totalDocs * 100, 1) : 0)%</td></tr>
+                            <tr><td class="ps-3 fw-bold text-warning text-dark">Pendientes</td><td class="text-center"><span class="badge bg-warning text-dark">@Model.DocsPendientes</span></td><td class="text-center pe-3 text-muted">@(totalDocs > 0 ? Math.Round((decimal)Model.DocsPendientes / totalDocs * 100, 1) : 0)%</td></tr>
+                            <tr><td class="ps-3 fw-bold text-danger">Rechazados</td><td class="text-center"><span class="badge bg-danger">@Model.DocsRechazados</span></td><td class="text-center pe-3 text-muted">@(totalDocs > 0 ? Math.Round((decimal)Model.DocsRechazados / totalDocs * 100, 1) : 0)%</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    }
+
+    @if (Model.OldestPending.Any())
+    {
+        <div class="col-12 col-lg-7">
+            <div class="admin-card-white p-4 h-100 shadow-sm border-0" style="border-left: 4px solid #ef4444 !important;">
+                <h6 class="text-danger fw-bold text-uppercase mb-3 text-sm border-bottom pb-2"><i class="bi bi-exclamation-triangle-fill me-2"></i>Solicitudes con Mayor Antigüedad</h6>
+                <div class="table-responsive custom-scroll" style="max-height: 250px;">
+                    <table class="table table-hover align-middle text-sm mb-0">
+                        <thead class="bg-app text-muted text-xs" style="position: sticky; top: 0; z-index: 1;">
+                            <tr>
+                                <th class="ps-3 border-0">Folio</th>
+                                <th class="border-0">Alumno</th>
+                                <th class="border-0">Trámite</th>
+                                <th class="border-0">Fecha</th>
+                                <th class="text-center pe-3 border-0">Estatus</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in Model.OldestPending)
+                            {
+                                var uc = item.DiasTranscurridos > 30 ? "bg-danger" : item.DiasTranscurridos > 15 ? "bg-warning text-dark" : "bg-success";
+                                var ul = item.DiasTranscurridos > 30 ? "Retrasado" : item.DiasTranscurridos > 15 ? "Por Vencer" : "A Tiempo";
+                                <tr>
+                                    <td class="ps-3 fw-bold" style="color: var(--primary-900);">TRM-@item.Id</td>
+                                    <td class="fw-bold txt-title text-xs">@item.Nombre</td>
+                                    <td class="text-muted text-xs text-truncate" style="max-width: 120px;" title="@item.TipoTramite">@item.TipoTramite</td>
+                                    <td class="text-muted text-xs">@item.Fecha.ToString("dd/MMM/yyyy")</td>
+                                    <td class="text-center pe-3"><span class="badge @uc">@ul (@item.DiasTranscurridos d)</span></td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@if (Model.RecentSolicitudes.Any())
+{
+    <div class="admin-card-white p-4 shadow-sm border-0 mb-5">
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center border-bottom pb-3 mb-3 gap-3">
+            <h6 class="txt-title fw-bold text-uppercase mb-0"><i class="bi bi-inboxes me-2"></i>Bandeja de Solicitudes Recientes</h6>
+            <div class="d-flex gap-2 flex-wrap">
+                <select class="form-select form-select-sm bg-app border-0 text-xs fw-bold" style="width: auto;" onchange="filterTableByColumn(this.value,'tblSolicitudes',4)">
+                    <option value="">Estatus (Todos)</option>
+                    @foreach (var s in Model.ByStatus)
+                    {
+                        <option value="@s.Status">@s.Status</option>
+                    }
+                </select>
+                <select class="form-select form-select-sm bg-app border-0 text-xs fw-bold" style="width: auto;" onchange="filterTableByColumn(this.value,'tblSolicitudes',3)">
+                    <option value="">Trámite (Todos)</option>
+                    @foreach (var t in Model.ByTipoTramite)
+                    {
+                        <option value="@t.TipoNombre">@t.TipoNombre</option>
+                    }
+                </select>
+                <button class="btn btn-dark text-xs fw-bold px-3 py-1" onclick="exportTableToCSV('tblSolicitudes','reporte_tramites.csv')">
+                    <i class="bi bi-download me-1"></i> EXPORTAR
+                </button>
+            </div>
+        </div>
+
+        <div class="text-xxs text-muted mb-2 fw-bold" id="tblSolicitudesCount">Mostrando 1 a @Model.RecentSolicitudes.Count registros</div>
+
+        <div class="table-responsive custom-scroll" style="max-height: 450px;">
+            <table class="table table-hover align-middle text-sm mb-0" id="tblSolicitudes">
+                <thead class="bg-app text-muted text-xs" style="position: sticky; top: 0; z-index: 1;">
+                    <tr>
+                        <th class="ps-3 border-0">Folio</th>
+                        <th class="border-0">Alumno</th>
+                        <th class="border-0">Matrícula</th>
+                        <th class="border-0">Trámite</th>
+                        <th class="text-center border-0">Estatus</th>
+                        <th class="text-end border-0">Fecha</th>
+                        <th class="text-end pe-3 border-0">Días</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model.RecentSolicitudes)
+                    {
+                        var sc = item.Estatus switch { "Completado" or "Aprobado" => "bg-success", "Pendiente" => "bg-warning text-dark", "En Revisión" => "bg-info text-dark", "Rechazado" => "bg-danger", _ => "bg-secondary" };
+                        <tr>
+                            <td class="ps-3 fw-bold" style="color: var(--primary-900);">TRM-@item.Id</td>
+                            <td class="fw-bold txt-title text-xs">@item.Nombre</td>
+                            <td class="text-muted text-xs">@item.Matricula</td>
+                            <td class="text-truncate text-xs text-muted" style="max-width: 180px;" title="@item.TipoTramite">@item.TipoTramite</td>
+                            <td class="text-center"><span class="badge @sc">@item.Estatus</span></td>
+                            <td class="text-end text-xs text-muted">@item.Fecha.ToString("dd/MMM/yyyy")</td>
+                            <td class="text-end pe-3 fw-bold">@item.DiasTranscurridos</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+}
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
+    
+    <script>
+        Chart.register(ChartDataLabels);
+        Chart.defaults.color = '#6c757d';
+        Chart.defaults.borderColor = 'rgba(0,0,0,0.05)';
+        Chart.defaults.font.family = "'Plus Jakarta Sans', system-ui, sans-serif";
+        Chart.defaults.font.size = 12;
+
+        @if (Model.ByTipoTramite.Any())
+        {
+            <text>
+                new Chart(document.getElementById('chartVolume'), {
+                type: 'bar',
+                data: {
+                labels: [@Html.Raw(string.Join(",", Model.ByTipoTramite.Select(t => $"'{t.TipoNombre}'")))],
+                datasets: [{
+                data: [@string.Join(",", Model.ByTipoTramite.Select(t => t.Total))],
+                backgroundColor: '#2C3E50', // Color oscuro corporativo
+                borderRadius: 6,
+                maxBarThickness: 50
+                }]
+                },
+                options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                legend: { display: false },
+                datalabels: { anchor: 'end', align: 'top', color: '#212529', font: { weight: 'bold', size: 12 }, offset: 4 }
+                },
+                scales: {
+                x: { grid: { display: false }, ticks: { font: { size: 10 }, maxRotation: 45 } },
+                y: { grid: { color: 'rgba(0,0,0,0.05)' }, ticks: { precision: 0 } }
+                }
+                }
+                });
+            </text>
+        }
+
+        @if (Model.ByStatus.Any())
+        {
+            <text>
+                new Chart(document.getElementById('chartSemaforo'), {
+                type: 'doughnut',
+                data: {
+                labels: [@Html.Raw(string.Join(",", Model.ByStatus.Select(s => $"'{s.Status}'")))],
+                datasets: [{
+                data: [@string.Join(",", Model.ByStatus.Select(s => s.Count))],
+                backgroundColor: ['#18BC9C', '#F39C12', '#3498DB', '#E74C3C', '#9B59B6'], // Colores flat/alertas
+                borderWidth: 0
+                }]
+                },
+                options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: '65%',
+                plugins: {
+                legend: { position: 'bottom', labels: { padding: 20, usePointStyle: true, boxWidth: 8, font: { size: 11 } } },
+                datalabels: {
+                color: '#fff',
+                font: { weight: 'bold', size: 13 },
+                formatter: function(v, ctx) {
+                var t = ctx.dataset.data.reduce((a, b) => a + b, 0);
+                var p = t > 0 ? Math.round(v / t * 100) : 0;
+                return p > 5 ? p + '%' : '';
+                }
+                }
+                }
+                }
+                });
+            </text>
+        }
+
+        // Funciones de filtrado y exportación unificadas
+        function filterTableByColumn(value, tableId, colIndex) {
+        var table = document.getElementById(tableId);
+        if (!table) return;
+        if (!window._filters) window._filters = {};
+        if (!window._filters[tableId]) window._filters[tableId] = {};
+            
+        if (value) window._filters[tableId][colIndex] = value;
+        else delete window._filters[tableId][colIndex];
+            
+        var rows = table.querySelectorAll('tbody tr');
+        var visible = 0;
+        rows.forEach(function(row) {
+        var show = true;
+        for (var ci in window._filters[tableId]) {
+        var filterVal = window._filters[tableId][ci];
+        var cell = row.cells[parseInt(ci)];
+        if (cell && cell.textContent.trim().indexOf(filterVal) === -1) { show = false; break; }
+        }
+        row.style.display = show ? '' : 'none';
+        if (show) visible++;
+        });
+            
+        var countEl = document.getElementById(tableId + 'Count');
+        if (countEl) countEl.textContent = 'Mostrando 1 a ' + visible + ' registros';
+        }
+
+        function exportTableToCSV(tid, fn) {
+        var t = document.getElementById(tid);
+        var r = t.querySelectorAll('tr');
+        var c = [];
+        r.forEach(function(row) {
+        if (row.style.display === 'none') return;
+        var cols = row.querySelectorAll('th,td');
+        var d = [];
+        cols.forEach(function(col) { d.push('"' + col.textContent.trim().replace(/\n/g,' ').replace(/"/g,'""') + '"'); });
+        c.push(d.join(','));
+        });
+        var b = new Blob(['\uFEFF' + c.join('\n')], { type: 'text/csv;charset=utf-8;' });
+        var l = document.createElement('a');
+        l.href = URL.createObjectURL(b);
+        l.download = fn;
+        l.click();
+        }
+    </script>
 }

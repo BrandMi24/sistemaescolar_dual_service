@@ -29,6 +29,9 @@ builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
+builder.Services.AddSingleton<ControlEscolar.Data.DapperContext>();
+builder.Services.AddScoped<ControlEscolar.Services.IDashboardService, ControlEscolar.Services.DashboardService>();
+
 // Límite de tamaño de archivos subidos (5 MB)
 builder.Services.Configure<FormOptions>(options =>
 {

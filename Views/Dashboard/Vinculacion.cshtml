@@ -1,0 +1,604 @@
+﻿@model ControlEscolar.Models.Dashboard.VinculacionViewModel
+@{
+    ViewData["Title"] = "Vinculación — Relaciones Corporativas";
+    Layout = "_LayoutDashboard";
+    var cuatNames = new Dictionary<int, string> { { 0, "Todo el año" }, { 1, "Ene — Abr" }, { 2, "May — Ago" }, { 3, "Sep — Dic" } };
+}
+
+@if (ViewBag.Error != null)
+{
+    <div class="alert alert-danger shadow-sm border-0 d-flex align-items-center mb-4 text-sm">
+        <i class="bi bi-exclamation-triangle-fill fs-5 me-3"></i>
+        <div><strong>Error:</strong> @ViewBag.Error</div>
+    </div>
+}
+
+<div class="admin-card-white p-3 mb-4 shadow-sm border-0">
+    <form method="get" class="row g-3 align-items-end">
+        <div class="col-md-3">
+            <label class="form-label text-xs fw-bold text-muted mb-1">AÑO</label>
+            <select name="year" class="form-select bg-app border-0 text-sm fw-bold">
+                @foreach (var y in Model.AvailableYears)
+                {
+                    if (y == Model.SelectedYear)
+                    {
+                        <option value="@y" selected>@y</option>
+                    }
+                    else
+                    {
+                        <option value="@y">@y</option>
+                    }
+                }
+            </select>
+        </div>
+        <div class="col-md-3">
+            <label class="form-label text-xs fw-bold text-muted mb-1">CUATRIMESTRE</label>
+            <select name="cuatrimestre" class="form-select bg-app border-0 text-sm fw-bold">
+                @{
+                    var cuatOptions = new Dictionary<int, string> { { 0, "Todo el año" }, { 1, "Ene — Abr" }, { 2, "May — Ago" }, { 3, "Sep — Dic" } };
+                }
+                @foreach (var opt in cuatOptions)
+                {
+                    if (opt.Key == Model.SelectedCuatrimestre)
+                    {
+                        <option value="@opt.Key" selected>@opt.Value</option>
+                    }
+                    else
+                    {
+                        <option value="@opt.Key">@opt.Value</option>
+                    }
+                }
+            </select>
+        </div>
+        <div class="col-md-6 d-flex gap-2">
+            <button type="submit" class="btn btn-dark text-xs px-4 fw-bold shadow-sm">
+                <i class="bi bi-funnel-fill me-2"></i> APLICAR
+            </button>
+            <a href="@Url.Action("Vinculacion", "Dashboard")" class="btn btn-light border text-xs px-4 fw-bold">
+                LIMPIAR
+            </a>
+        </div>
+    </form>
+</div>
+
+@if (Model.SelectedCuatrimestre > 0)
+{
+    <div class="badge bg-dark mb-4 px-3 py-2 fw-normal text-xs shadow-sm">
+        <i class="bi bi-filter-circle me-1"></i> Filtro activo: Año @Model.SelectedYear, @cuatNames[Model.SelectedCuatrimestre]
+    </div>
+}
+
+<div class="row g-3 mb-4">
+    <div class="col-12 col-md-6 col-xl-3">
+        <div class="admin-card-white p-4 h-100 shadow-sm border-0 d-flex justify-content-between align-items-center">
+            <div>
+                <div class="text-xs fw-bold text-muted text-uppercase tracking-wide mb-1">Programas Activos</div>
+                <div class="fs-2 fw-bold txt-title" style="color: #0d9e7a;">@Model.TotalPrograms</div>
+            </div>
+            <div class="icon-circle-lg bg-app text-dark"><i class="bi bi-briefcase fs-3"></i></div>
+        </div>
+    </div>
+    <div class="col-12 col-md-6 col-xl-3">
+        <div class="admin-card-white p-4 h-100 shadow-sm border-0 d-flex justify-content-between align-items-center">
+            <div>
+                <div class="text-xs fw-bold text-muted text-uppercase tracking-wide mb-1">Organizaciones</div>
+                <div class="fs-2 fw-bold txt-title text-success">@Model.TotalOrganizations</div>
+            </div>
+            <div class="icon-circle-lg bg-app text-dark"><i class="bi bi-buildings fs-3"></i></div>
+        </div>
+    </div>
+    <div class="col-12 col-md-6 col-xl-3">
+        <div class="admin-card-white p-4 h-100 shadow-sm border-0 d-flex justify-content-between align-items-center">
+            <div>
+                <div class="text-xs fw-bold text-muted text-uppercase tracking-wide mb-1">Asignaciones</div>
+                <div class="fs-2 fw-bold txt-title text-primary">@Model.TotalAssignments</div>
+                <div class="text-xxs text-muted mt-1">@Model.Completados completados · @Model.EnProceso en proceso</div>
+            </div>
+            <div class="icon-circle-lg bg-app text-dark"><i class="bi bi-person-workspace fs-3"></i></div>
+        </div>
+    </div>
+    <div class="col-12 col-md-6 col-xl-3">
+        <div class="admin-card-white p-4 h-100 shadow-sm border-0 d-flex justify-content-between align-items-center">
+            <div>
+                <div class="text-xs fw-bold text-muted text-uppercase tracking-wide mb-1">Evaluación Promedio</div>
+                <div class="fs-2 fw-bold txt-title text-warning">@Model.PromedioEvaluacion</div>
+                <div class="text-xxs text-muted mt-1">@Model.PromedioHoras hrs aprobadas prom.</div>
+            </div>
+            <div class="icon-circle-lg bg-app text-dark"><i class="bi bi-star-fill fs-3"></i></div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4 mb-4">
+    <div class="col-12 col-lg-8">
+        <div class="admin-card-white p-4 h-100 shadow-sm border-0">
+            <h6 class="txt-title fw-bold text-uppercase mb-4 text-sm"><i class="bi bi-bar-chart-fill text-muted me-2"></i>Asignaciones por Tipo de Programa</h6>
+            @if (Model.ByProgramType.Any())
+            {
+                <div style="position: relative; height: 280px; width: 100%;">
+                    <canvas id="chartType"></canvas>
+                </div>
+            }
+            else
+            {
+                <div class="text-center text-muted p-5 bg-app rounded-3 text-sm">Sin datos para este periodo</div>
+            }
+        </div>
+    </div>
+    <div class="col-12 col-lg-4">
+        <div class="admin-card-white p-4 h-100 shadow-sm border-0">
+            <h6 class="txt-title fw-bold text-uppercase mb-4 text-sm"><i class="bi bi-pie-chart-fill text-muted me-2"></i>Estatus de Asignaciones</h6>
+            @if (Model.ByStatus.Any())
+            {
+                <div style="position: relative; height: 260px; width: 100%;">
+                    <canvas id="chartStatus"></canvas>
+                </div>
+            }
+            else
+            {
+                <div class="text-center text-muted p-5 bg-app rounded-3 text-sm">Sin datos para este periodo</div>
+            }
+        </div>
+    </div>
+</div>
+
+<div class="row g-4 mb-4">
+    @if (Model.ByStatus.Any())
+    {
+        <div class="col-12 col-lg-6">
+            <div class="admin-card-white p-4 h-100 shadow-sm border-0">
+                <h6 class="txt-title fw-bold text-uppercase mb-3 text-sm border-bottom pb-2">Resumen por Estatus</h6>
+                <div class="table-responsive custom-scroll" style="max-height: 250px;">
+                    <table class="table table-hover align-middle text-sm mb-0">
+                        <thead class="bg-app text-muted text-xs" style="position: sticky; top: 0; z-index: 1;">
+                            <tr><th class="ps-3 border-0">Estatus</th><th class="text-center border-0">Total</th><th class="text-center pe-3 border-0">%</th></tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var s in Model.ByStatus)
+                            {
+                                var sc = s.Status switch { "Completado" => "bg-success", "En Proceso" => "bg-info text-dark", "Asignado" or "Por Iniciar" => "bg-warning text-dark", "Cancelado" => "bg-danger", _ => "bg-secondary" };
+                                <tr>
+                                    <td class="ps-3 fw-bold txt-body">@s.Status</td>
+                                    <td class="text-center"><span class="badge @sc">@s.Count</span></td>
+                                    <td class="text-center pe-3 text-muted">@s.Percentage%</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    }
+
+    @if (Model.DocsByStatus.Any())
+    {
+        <div class="col-12 col-lg-6">
+            <div class="admin-card-white p-4 h-100 shadow-sm border-0">
+                <h6 class="txt-title fw-bold text-uppercase mb-3 text-sm border-bottom pb-2">Documentos por Estatus</h6>
+                <div class="table-responsive custom-scroll" style="max-height: 250px;">
+                    <table class="table table-hover align-middle text-sm mb-0">
+                        <thead class="bg-app text-muted text-xs" style="position: sticky; top: 0; z-index: 1;">
+                            <tr><th class="ps-3 border-0">Estatus</th><th class="text-center border-0">Total</th><th class="text-center pe-3 border-0">%</th></tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var d in Model.DocsByStatus)
+                            {
+                                var dc = d.Status switch { "APPROVED" => "bg-success", "PENDING" => "bg-warning text-dark", "SUBMITTED" => "bg-info text-dark", "REJECTED" => "bg-danger", _ => "bg-secondary" };
+                                <tr>
+                                    <td class="ps-3 fw-bold txt-body">@d.Status</td>
+                                    <td class="text-center"><span class="badge @dc">@d.Count</span></td>
+                                    <td class="text-center pe-3 text-muted">@d.Percentage%</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@if (Model.ByOrganization.Any())
+{
+    <div class="admin-card-white p-4 shadow-sm border-0 mb-4">
+        <h6 class="txt-title fw-bold text-uppercase mb-3 text-sm border-bottom pb-2"><i class="bi bi-award me-2"></i>Top Organizaciones</h6>
+        <div class="table-responsive custom-scroll" style="max-height: 350px;">
+            <table class="table table-hover align-middle text-sm mb-0">
+                <thead class="bg-app text-muted text-xs" style="position: sticky; top: 0; z-index: 1;">
+                    <tr>
+                        <th class="ps-3 border-0">#</th>
+                        <th class="border-0">Organización</th>
+                        <th class="text-center border-0">Estudiantes</th>
+                        <th class="text-center pe-3 border-0">%</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @{
+                        var rk = 1;
+                    }
+                    @foreach (var o in Model.ByOrganization)
+                    {
+                        <tr>
+                            <td class="ps-3 text-muted fw-bold">@rk</td>
+                            <td class="fw-bold txt-title">@o.Status</td>
+                            <td class="text-center"><span class="badge bg-light text-dark border">@o.Count</span></td>
+                            <td class="text-center pe-3 text-muted">@o.Percentage%</td>
+                        </tr>
+                        rk++;
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+}
+
+@if (Model.Programs.Any())
+{
+    <div class="admin-card-white p-4 shadow-sm border-0 mb-4">
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center border-bottom pb-3 mb-3 gap-3">
+            <h6 class="txt-title fw-bold text-uppercase mb-0 text-sm"><i class="bi bi-collection me-2"></i>Catálogo de Programas</h6>
+            <div class="d-flex gap-2">
+                <select class="form-select form-select-sm bg-app border-0 text-xs fw-bold" style="width: auto;" onchange="filterTableByColumn(this.value,'tblPrograms',2)">
+                    <option value="">Tipo (Todos)</option>
+                    @foreach (var t in Model.ByProgramType)
+                    {
+                        <option value="@t.Status">@t.Status</option>
+                    }
+                </select>
+                <button class="btn btn-light border text-xs fw-bold px-3 py-1" onclick="exportTableToCSV('tblPrograms','catalogo_programas.csv')">
+                    <i class="bi bi-download me-1"></i> CSV
+                </button>
+            </div>
+        </div>
+        
+        <div class="text-xxs text-muted mb-2 fw-bold" id="tblProgramsCount">Mostrando 1 a @Model.Programs.Count registros</div>
+
+        <div class="table-responsive custom-scroll" style="max-height: 400px;">
+            <table class="table table-hover align-middle text-sm mb-0" id="tblPrograms">
+                <thead class="bg-app text-muted text-xs" style="position: sticky; top: 0; z-index: 1;">
+                    <tr>
+                        <th class="ps-3 border-0">Código</th>
+                        <th class="border-0">Programa</th>
+                        <th class="border-0">Tipo</th>
+                        <th class="border-0">Periodo</th>
+                        <th class="text-center border-0">Año</th>
+                        <th class="text-center border-0">Hrs. Req.</th>
+                        <th class="text-center border-0">Estudiantes</th>
+                        <th class="text-center pe-3 border-0">Activo</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var p in Model.Programs)
+                    {
+                        <tr>
+                            <td class="ps-3 fw-bold" style="color: var(--primary-900);">@p.Code</td>
+                            <td class="fw-bold txt-title text-xs">@p.Name</td>
+                            <td><span class="badge bg-info text-dark">@p.Type</span></td>
+                            <td class="text-muted text-xs">@p.Period</td>
+                            <td class="text-center text-muted text-xs">@p.Year</td>
+                            <td class="text-center"><span class="badge bg-light text-dark border">@p.RequiredHours</span></td>
+                            <td class="text-center"><span class="badge bg-primary">@p.TotalStudents</span></td>
+                            <td class="text-center pe-3">
+                                @if (p.IsActive)
+                                {
+                                    <span class="badge bg-success">Sí</span>
+                                }
+                                else
+                                {
+
+                                    <span class="badge bg-danger">No</span>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+}
+
+@if (Model.Organizations.Any())
+{
+    <div class="admin-card-white p-4 shadow-sm border-0 mb-4">
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center border-bottom pb-3 mb-3 gap-3">
+            <h6 class="txt-title fw-bold text-uppercase mb-0 text-sm"><i class="bi bi-buildings me-2"></i>Directorio de Organizaciones</h6>
+            <div class="d-flex gap-2">
+                <select class="form-select form-select-sm bg-app border-0 text-xs fw-bold" style="width: auto;" onchange="filterTableByColumn(this.value,'tblOrgs',1)">
+                    <option value="">Tipo (Todos)</option>
+                    @{
+                        var orgTypes = Model.Organizations.Select(o => o.Type).Distinct().OrderBy(t => t);
+                    }
+                    @foreach (var t in orgTypes)
+                    {
+                        <option value="@t">@t</option>
+                    }
+                </select>
+                <button class="btn btn-light border text-xs fw-bold px-3 py-1" onclick="exportTableToCSV('tblOrgs','directorio_organizaciones.csv')">
+                    <i class="bi bi-download me-1"></i> CSV
+                </button>
+            </div>
+        </div>
+        
+        <div class="text-xxs text-muted mb-2 fw-bold" id="tblOrgsCount">Mostrando 1 a @Model.Organizations.Count registros</div>
+
+        <div class="table-responsive custom-scroll" style="max-height: 400px;">
+            <table class="table table-hover align-middle text-sm mb-0" id="tblOrgs">
+                <thead class="bg-app text-muted text-xs" style="position: sticky; top: 0; z-index: 1;">
+                    <tr>
+                        <th class="ps-3 border-0">Organización</th>
+                        <th class="border-0">Tipo</th>
+                        <th class="border-0">Ciudad</th>
+                        <th class="border-0">Contacto</th>
+                        <th class="border-0">Teléfono</th>
+                        <th class="text-center pe-3 border-0">Estudiantes</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var o in Model.Organizations)
+                    {
+                        <tr>
+                            <td class="ps-3 fw-bold txt-title text-xs">@o.Name</td>
+                            <td><span class="badge bg-info text-dark">@o.Type</span></td>
+                            <td class="text-muted text-xs">@o.City</td>
+                            <td class="text-xs">@o.ContactName</td>
+                            <td class="text-muted text-xs">@o.Phone</td>
+                            <td class="text-center pe-3"><span class="badge bg-primary">@o.TotalStudents</span></td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+}
+
+@if (Model.RecentAssignments.Any())
+{
+    <div class="admin-card-white p-4 shadow-sm border-0 mb-4">
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center border-bottom pb-3 mb-3 gap-3">
+            <h6 class="txt-title fw-bold text-uppercase mb-0 text-sm"><i class="bi bi-person-check me-2"></i>Asignaciones de Estudiantes</h6>
+            <div class="d-flex gap-2 flex-wrap">
+                <select class="form-select form-select-sm bg-app border-0 text-xs fw-bold" style="width: auto;" onchange="filterTableByColumn(this.value,'tblAssign',5)">
+                    <option value="">Estatus (Todos)</option>
+                    @foreach (var s in Model.ByStatus)
+                    {
+                        <option value="@s.Status">@s.Status</option>
+                    }
+                </select>
+                <select class="form-select form-select-sm bg-app border-0 text-xs fw-bold" style="width: auto;" onchange="filterTableByColumn(this.value,'tblAssign',3)">
+                    <option value="">Tipo (Todos)</option>
+                    @foreach (var t in Model.ByProgramType)
+                    {
+                        <option value="@t.Status">@t.Status</option>
+                    }
+                </select>
+                <button class="btn btn-dark text-xs fw-bold px-3 py-1" onclick="exportTableToCSV('tblAssign','asignaciones_estudiantes.csv')">
+                    <i class="bi bi-download me-1"></i> EXPORTAR
+                </button>
+            </div>
+        </div>
+
+        <div class="text-xxs text-muted mb-2 fw-bold" id="tblAssignCount">Mostrando 1 a @Model.RecentAssignments.Count registros</div>
+
+        <div class="table-responsive custom-scroll" style="max-height: 450px;">
+            <table class="table table-hover align-middle text-sm mb-0" id="tblAssign">
+                <thead class="bg-app text-muted text-xs" style="position: sticky; top: 0; z-index: 1;">
+                    <tr>
+                        <th class="ps-3 border-0">Alumno</th>
+                        <th class="border-0">Matrícula</th>
+                        <th class="border-0">Programa</th>
+                        <th class="border-0">Tipo</th>
+                        <th class="border-0">Organización</th>
+                        <th class="text-center border-0">Estatus</th>
+                        <th class="text-center border-0">Hrs. Apr.</th>
+                        <th class="text-center border-0">Eval.</th>
+                        <th class="text-end pe-3 border-0">Inicio</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var a in Model.RecentAssignments)
+                    {
+                        var sc = a.Status switch { "Completado" => "bg-success", "En Proceso" => "bg-info text-dark", "Asignado" or "Por Iniciar" => "bg-warning text-dark", "Cancelado" => "bg-danger", _ => "bg-secondary" };
+                        var ec = a.EvaluationScore.HasValue ? (a.EvaluationScore >= 9 ? "text-success fw-bold" : a.EvaluationScore >= 8 ? "text-primary fw-bold" : a.EvaluationScore >= 7 ? "text-warning fw-bold" : "text-danger fw-bold") : "text-muted";
+                        <tr>
+                            <td class="ps-3 fw-bold txt-title">@a.StudentName</td>
+                            <td class="text-muted text-xs">@a.Matricula</td>
+                            <td class="text-truncate text-xs" style="max-width:160px;" title="@a.ProgramName">@a.ProgramName</td>
+                            <td><span class="badge bg-info text-dark" style="font-size:10px;">@a.ProgramType</span></td>
+                            <td class="text-truncate text-xs" style="max-width:140px;" title="@a.OrganizationName">@a.OrganizationName</td>
+                            <td class="text-center"><span class="badge @sc">@a.Status</span></td>
+                            <td class="text-center"><span class="badge bg-light text-dark border">@a.ApprovedHours</span></td>
+                            <td class="text-center @ec">@(a.EvaluationScore.HasValue? a.EvaluationScore.Value.ToString("0.0") : "—")</td>
+                            <td class="text-end pe-3 text-muted text-xs">@(a.StartDate.HasValue? a.StartDate.Value.ToString("dd/MMM/yy") : "—")</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+}
+
+@if (Model.RecentDocuments.Any())
+{
+    <div class="admin-card-white p-4 shadow-sm border-0 mb-5">
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center border-bottom pb-3 mb-3 gap-3">
+            <h6 class="txt-title fw-bold text-uppercase mb-0 text-sm"><i class="bi bi-file-earmark-pdf me-2"></i>Documentos de Vinculación</h6>
+            <div class="d-flex gap-2 flex-wrap">
+                <select class="form-select form-select-sm bg-app border-0 text-xs fw-bold" style="width: auto;" onchange="filterTableByColumn(this.value,'tblDocs',4)">
+                    <option value="">Estatus (Todos)</option>
+                    @foreach (var d in Model.DocsByStatus)
+                    {
+                        <option value="@d.Status">@d.Status</option>
+                    }
+                </select>
+                <select class="form-select form-select-sm bg-app border-0 text-xs fw-bold" style="width: auto;" onchange="filterTableByColumn(this.value,'tblDocs',2)">
+                    <option value="">Tipo (Todos)</option>
+                    @{
+                        var docTypes = Model.RecentDocuments.Select(d => d.DocumentType).Distinct().OrderBy(t => t);
+                    }
+                    @foreach (var t in docTypes)
+                    {
+                        <option value="@t">@t</option>
+                    }
+                </select>
+                <button class="btn btn-dark text-xs fw-bold px-3 py-1" onclick="exportTableToCSV('tblDocs','documentos_vinculacion.csv')">
+                    <i class="bi bi-download me-1"></i> EXPORTAR
+                </button>
+            </div>
+        </div>
+
+        <div class="text-xxs text-muted mb-2 fw-bold" id="tblDocsCount">Mostrando 1 a @Model.RecentDocuments.Count registros</div>
+
+        <div class="table-responsive custom-scroll" style="max-height: 400px;">
+            <table class="table table-hover align-middle text-sm mb-0" id="tblDocs">
+                <thead class="bg-app text-muted text-xs" style="position: sticky; top: 0; z-index: 1;">
+                    <tr>
+                        <th class="ps-3 border-0">Título</th>
+                        <th class="border-0">Alumno</th>
+                        <th class="border-0">Tipo</th>
+                        <th class="border-0">Programa</th>
+                        <th class="text-center border-0">Estatus</th>
+                        <th class="border-0">Archivo</th>
+                        <th class="text-end pe-3 border-0">Fecha</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var doc in Model.RecentDocuments)
+                    {
+                        var dc = doc.Status switch { "APPROVED" => "bg-success", "PENDING" => "bg-warning text-dark", "SUBMITTED" => "bg-info text-dark", "REJECTED" => "bg-danger", _ => "bg-secondary" };
+                        <tr>
+                            <td class="ps-3 fw-bold txt-title text-truncate" style="max-width:200px;" title="@doc.Title">@doc.Title</td>
+                            <td class="text-xs">@doc.StudentName</td>
+                            <td><span class="badge bg-info text-dark" style="font-size:10px;">@doc.DocumentType</span></td>
+                            <td class="text-muted text-xs text-truncate" style="max-width:160px;" title="@doc.ProgramName">@doc.ProgramName</td>
+                            <td class="text-center"><span class="badge @dc">@doc.Status</span></td>
+                            <td class="font-monospace text-muted" style="font-size:11px; max-width:120px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="@doc.FileName">@doc.FileName</td>
+                            <td class="text-end pe-3 text-muted text-xs">@doc.UploadDate.ToString("dd/MMM/yy")</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+}
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
+    
+    <script>
+        Chart.register(ChartDataLabels);
+        Chart.defaults.color = '#6c757d';
+        Chart.defaults.borderColor = 'rgba(0,0,0,0.05)';
+        Chart.defaults.font.family = "'Plus Jakarta Sans', system-ui, sans-serif";
+        Chart.defaults.font.size = 12;
+
+        @if (Model.ByProgramType.Any())
+        {
+            <text>
+                new Chart(document.getElementById('chartType'), {
+                type: 'bar',
+                data: {
+                labels: [@Html.Raw(string.Join(",", Model.ByProgramType.Select(t => $"'{t.Status}'")))],
+                datasets: [{
+                data: [@string.Join(",", Model.ByProgramType.Select(t => t.Count))],
+                backgroundColor: '#2C3E50', // Color institucional oscuro
+                borderRadius: 6,
+                maxBarThickness: 55
+                }]
+                },
+                options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                legend: { display: false },
+                datalabels: { anchor: 'end', align: 'top', color: '#212529', font: { weight: 'bold', size: 12 }, offset: 4 }
+                },
+                scales: {
+                x: { grid: { display: false } },
+                y: { grid: { color: 'rgba(0,0,0,0.05)' }, ticks: { precision: 0 } }
+                }
+                }
+                });
+            </text>
+        }
+
+        @if (Model.ByStatus.Any())
+        {
+            <text>
+                new Chart(document.getElementById('chartStatus'), {
+                type: 'doughnut',
+                data: {
+                labels: [@Html.Raw(string.Join(",", Model.ByStatus.Select(s => $"'{s.Status}'")))],
+                datasets: [{
+                data: [@string.Join(",", Model.ByStatus.Select(s => s.Count))],
+                backgroundColor: ['#18BC9C', '#3498DB', '#F39C12', '#E74C3C', '#9B59B6'], // Colores flat/alertas
+                borderWidth: 0
+                }]
+                },
+                options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: '65%',
+                plugins: {
+                legend: { position: 'bottom', labels: { padding: 14, usePointStyle: true, boxWidth: 8, font: { size: 11 } } },
+                datalabels: {
+                color: '#fff',
+                font: { weight: 'bold', size: 13 },
+                formatter: function(v, ctx) {
+                var t = ctx.dataset.data.reduce((a, b) => a + b, 0);
+                var p = t > 0 ? Math.round(v / t * 100) : 0;
+                return p > 5 ? p + '%' : '';
+                }
+                }
+                }
+                }
+                });
+            </text>
+        }
+
+        // Funciones de filtrado y exportación unificadas
+        function filterTableByColumn(value, tableId, colIndex) {
+        var table = document.getElementById(tableId);
+        if (!table) return;
+        if (!window._filters) window._filters = {};
+        if (!window._filters[tableId]) window._filters[tableId] = {};
+            
+        if (value) window._filters[tableId][colIndex] = value;
+        else delete window._filters[tableId][colIndex];
+            
+        var rows = table.querySelectorAll('tbody tr');
+        var visible = 0;
+        rows.forEach(function(row) {
+        var show = true;
+        for (var ci in window._filters[tableId]) {
+        var filterVal = window._filters[tableId][ci];
+        var cell = row.cells[parseInt(ci)];
+        if (cell && cell.textContent.trim().indexOf(filterVal) === -1) { show = false; break; }
+        }
+        row.style.display = show ? '' : 'none';
+        if (show) visible++;
+        });
+            
+        var countEl = document.getElementById(tableId + 'Count');
+        if (countEl) countEl.textContent = 'Mostrando 1 a ' + visible + ' registros';
+        }
+
+        function exportTableToCSV(tid, fn) {
+        var t = document.getElementById(tid);
+        var r = t.querySelectorAll('tr');
+        var c = [];
+        r.forEach(function(row) {
+        if (row.style.display === 'none') return;
+        var cols = row.querySelectorAll('th,td');
+        var d = [];
+        cols.forEach(function(col) { d.push('"' + col.textContent.trim().replace(/\n/g,' ').replace(/"/g,'""') + '"'); });
+        c.push(d.join(','));
+        });
+        var b = new Blob(['\uFEFF' + c.join('\n')], { type: 'text/csv;charset=utf-8;' });
+        var l = document.createElement('a');
+        l.href = URL.createObjectURL(b);
+        l.download = fn;
+        l.click();
+        }
+    </script>
+}
