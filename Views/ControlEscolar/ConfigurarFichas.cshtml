@@ -1,0 +1,383 @@
+﻿@using ControlEscolar.Helpers
+@model ControlEscolar.Models.ConfiguracionViewModel
+
+@{
+    ViewData["Title"] = "Configuración de Fichas";
+    Layout = "_Layout";
+}
+
+<div class="main-container pt-5 mb-5">
+    <div class="container">
+
+        @if (TempData["SuccessMessage"] != null)
+        {
+            <div class="alert alert-success alert-dismissible fade show rounded-3 mb-4" role="alert">
+                <i class="bi bi-check-circle-fill me-2"></i> @TempData["SuccessMessage"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        }
+
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h2 class="fw-bold txt-primary-dark mb-1">Configuración de Fichas</h2>
+                <p class="txt-body small mb-0">Define el límite de preinscripciones por carrera y periodo</p>
+            </div>
+            <div class="d-flex gap-2">
+                <a asp-action="Index" class="btn btn-ghost-sep px-4">
+                    <i class="bi bi-arrow-left me-2"></i> Volver
+                </a>
+                <button type="button" class="btn btn-primary-sep px-4"
+                        data-bs-toggle="modal" data-bs-target="#modalNuevaConfig">
+                    <i class="bi bi-plus-lg me-2"></i> Nueva Configuración
+                </button>
+            </div>
+        </div>
+
+        <div class="bg-surface rounded-4 shadow-sm border-theme p-4">
+            @if (!Model.Configuraciones.Any())
+            {
+                <div class="text-center py-5">
+                    <i class="bi bi-gear fs-1 txt-body opacity-50"></i>
+                    <p class="txt-body mt-3">No hay configuraciones registradas.</p>
+                </div>
+            }
+            else
+            {
+                <div class="table-responsive">
+                    <table class="table align-middle mb-0" style="font-size: 0.875rem;">
+                        <thead>
+                            <tr class="txt-body border-bottom border-theme">
+                                <th class="fw-bold pb-3">Carrera</th>
+                                <th class="fw-bold pb-3">Límite</th>
+                                <th class="fw-bold pb-3">Fecha Inicio</th>
+                                <th class="fw-bold pb-3">Fecha Fin</th>
+                                <th class="fw-bold pb-3">Estado</th>
+                                <th class="fw-bold pb-3 text-end">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in Model.Configuraciones)
+                            {
+                                <tr class="border-bottom border-theme">
+                                    <td class="fw-bold txt-title">@item.academiccontrol_inscription_ticketconfig_career</td>
+                                    <td>
+                                        <span class="badge bg-primary bg-opacity-10 txt-primary-dark border px-3 py-2">
+                                            @item.academiccontrol_inscription_ticketconfig_limit fichas
+                                        </span>
+                                    </td>
+                                    <td class="txt-body">@item.academiccontrol_inscription_ticketconfig_startDate.ToString("dd/MM/yyyy")</td>
+                                    <td class="txt-body">@item.academiccontrol_inscription_ticketconfig_endDate.ToString("dd/MM/yyyy")</td>
+                                    <td>
+                                        <span class="badge @(item.academiccontrol_inscription_ticketconfig_status ? "bg-success" : "bg-secondary")">
+                                            @(item.academiccontrol_inscription_ticketconfig_status ? "Activo" : "Inactivo")
+                                        </span>
+                                    </td>
+                                    <td class="text-end">
+                                        <button type="button" class="btn btn-sm btn-ghost-sep px-3"
+                                                data-bs-toggle="modal" data-bs-target="#modalEditarConfig"
+                                                data-id="@item.academiccontrol_inscription_ticketconfig_ID"
+                                                data-carrera="@item.academiccontrol_inscription_ticketconfig_career"
+                                                data-limite="@item.academiccontrol_inscription_ticketconfig_limit"
+                                                data-inicio="@item.academiccontrol_inscription_ticketconfig_startDate.ToString("yyyy-MM-dd")"
+                                                data-fin="@item.academiccontrol_inscription_ticketconfig_endDate.ToString("yyyy-MM-dd")"
+                                                data-activo="@item.academiccontrol_inscription_ticketconfig_status.ToString().ToLower()">
+                                            <i class="bi bi-pencil me-1"></i> Editar
+                                        </button>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </div>
+
+        @* SECCIÓN PERIODOS *@
+        <div class="d-flex justify-content-between align-items-center mt-5 mb-4">
+            <div>
+                <h4 class="fw-bold txt-primary-dark mb-1">Periodos de Inscripción</h4>
+                <p class="txt-body small mb-0">Define cuándo está activo el proceso de preinscripción</p>
+            </div>
+            <button type="button" class="btn btn-primary-sep px-4"
+                    data-bs-toggle="modal" data-bs-target="#modalNuevoPeriodo">
+                <i class="bi bi-plus-lg me-2"></i> Nuevo Periodo
+            </button>
+        </div>
+
+        <div class="bg-surface rounded-4 shadow-sm border-theme p-4">
+            @if (!Model.Periodos.Any())
+            {
+                <div class="text-center py-5">
+                    <i class="bi bi-calendar-x fs-1 txt-body opacity-50"></i>
+                    <p class="txt-body mt-3">No hay periodos registrados.</p>
+                </div>
+            }
+            else
+            {
+                <div class="table-responsive">
+                    <table class="table align-middle mb-0" style="font-size: 0.875rem;">
+                        <thead>
+                            <tr class="txt-body border-bottom border-theme">
+                                <th class="fw-bold pb-3">Nombre</th>
+                                <th class="fw-bold pb-3">Fecha Inicio</th>
+                                <th class="fw-bold pb-3">Fecha Fin</th>
+                                <th class="fw-bold pb-3">Estado</th>
+                                <th class="fw-bold pb-3 text-end">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in Model.Periodos)
+                            {
+                                <tr class="border-bottom border-theme">
+                                    <td class="fw-bold txt-title">@item.academiccontrol_inscription_period_name</td>
+                                    <td class="txt-body">@item.academiccontrol_inscription_period_startDate.ToString("dd/MM/yyyy")</td>
+                                    <td class="txt-body">@item.academiccontrol_inscription_period_endDate.ToString("dd/MM/yyyy")</td>
+                                    <td>
+                                        @{
+                                            bool isActivo = item.academiccontrol_inscription_period_status &&
+                                            item.academiccontrol_inscription_period_startDate <= DateTime.Today &&
+                                            item.academiccontrol_inscription_period_endDate >= DateTime.Today;
+                                        }
+                                        <span class="badge @(isActivo ? "bg-success" : "bg-secondary")">
+                                            @(isActivo ? "Activo" : "Inactivo")
+                                        </span>
+                                    </td>
+                                    <td class="text-end">
+                                        @* Corregido: Agregados atributos data-bs para que abra el modal *@
+                                        <button type="button" class="btn btn-sm btn-ghost-sep px-3"
+                                                data-bs-toggle="modal" data-bs-target="#modalEditarPeriodo"
+                                                data-id="@item.academiccontrol_inscription_period_ID"
+                                                data-nombre="@item.academiccontrol_inscription_period_name"
+                                                data-inicio="@item.academiccontrol_inscription_period_startDate.ToString("yyyy-MM-dd")"
+                                                data-fin="@item.academiccontrol_inscription_period_endDate.ToString("yyyy-MM-dd")"
+                                                data-activo="@item.academiccontrol_inscription_period_status.ToString().ToLower()">
+                                            <i class="bi bi-pencil me-1"></i> Editar
+                                        </button>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </div>
+
+    </div>
+</div>
+
+@* MODALES DE CONFIGURACIÓN *@
+<div class="modal fade" id="modalNuevaConfig" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content bg-surface border-theme">
+            <div class="modal-header border-theme">
+                <h5 class="modal-title fw-bold txt-primary-dark">Nueva Configuración</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form asp-action="GuardarConfiguracionFichas" method="post">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="academiccontrol_inscription_ticketconfig_ID" value="0" />
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label txt-body text-xs fw-bold tracking-wide">CARRERA *</label>
+                        <select name="academiccontrol_inscription_ticketconfig_career" class="form-select bg-app border-theme txt-title fw-bold" required>
+                            @foreach (var c in CatalogosHelper.Carreras)
+                            {
+                                <option value="@c">@c</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label txt-body text-xs fw-bold tracking-wide">LÍMITE *</label>
+                        <input type="number" name="academiccontrol_inscription_ticketconfig_limit" class="form-control bg-app border-theme txt-title fw-bold" required />
+                    </div>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label txt-body text-xs fw-bold tracking-wide">INICIO</label>
+                            <input type="date" name="academiccontrol_inscription_ticketconfig_startDate" class="form-control bg-app border-theme txt-title fw-bold" required />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label txt-body text-xs fw-bold tracking-wide">FIN</label>
+                            <input type="date" name="academiccontrol_inscription_ticketconfig_endDate" class="form-control bg-app border-theme txt-title fw-bold" required />
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer border-theme">
+                    <button type="submit" class="btn btn-primary-sep">Guardar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="modalEditarConfig" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content bg-surface border-theme">
+            <div class="modal-header border-theme">
+                <h5 class="modal-title fw-bold txt-primary-dark">Editar Configuración</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form asp-action="GuardarConfiguracionFichas" method="post">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="academiccontrol_inscription_ticketconfig_ID" id="editId" />
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label txt-body text-xs fw-bold tracking-wide">CARRERA</label>
+                        <select name="academiccontrol_inscription_ticketconfig_career" id="editCarrera" class="form-select bg-app border-theme txt-title fw-bold" required>
+                            @foreach (var c in CatalogosHelper.Carreras)
+                            {
+                                <option value="@c">@c</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label txt-body text-xs fw-bold tracking-wide">LÍMITE</label>
+                        <input type="number" name="academiccontrol_inscription_ticketconfig_limit" id="editLimite" class="form-control bg-app border-theme txt-title fw-bold" required />
+                    </div>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label txt-body text-xs fw-bold tracking-wide">INICIO</label>
+                            <input type="date" name="academiccontrol_inscription_ticketconfig_startDate" id="editInicio" class="form-control bg-app border-theme txt-title fw-bold" required />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label txt-body text-xs fw-bold tracking-wide">FIN</label>
+                            <input type="date" name="academiccontrol_inscription_ticketconfig_endDate" id="editFin" class="form-control bg-app border-theme txt-title fw-bold" required />
+                        </div>
+                    </div>
+                    <div class="form-check mt-3">
+                        <input type="hidden" id="hiddenConfigActivo"
+                               name="academiccontrol_inscription_ticketconfig_status" value="false" />
+                        <input class="form-check-input" type="checkbox"
+                               id="editActivo" />
+                        <label class="form-check-label fw-bold" for="editActivo">Activo</label>
+                    </div>
+                </div>
+                <div class="modal-footer border-theme">
+                    <button type="submit" class="btn btn-primary-sep">Guardar Cambios</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@* MODALES DE PERIODOS *@
+<div class="modal fade" id="modalNuevoPeriodo" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content bg-surface border-theme">
+            <div class="modal-header border-theme">
+                <h5 class="modal-title fw-bold txt-primary-dark">Nuevo Periodo</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form asp-action="GuardarPeriodo" method="post">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="academiccontrol_inscription_period_ID" value="0" />
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label txt-body text-xs fw-bold tracking-wide">NOMBRE</label>
+                        <input type="text" name="academiccontrol_inscription_period_name" class="form-control bg-app border-theme txt-title fw-bold" required />
+                    </div>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label txt-body text-xs fw-bold tracking-wide">INICIO</label>
+                            <input type="date" name="academiccontrol_inscription_period_startDate" class="form-control bg-app border-theme txt-title fw-bold" required />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label txt-body text-xs fw-bold tracking-wide">FIN</label>
+                            <input type="date" name="academiccontrol_inscription_period_endDate" class="form-control bg-app border-theme txt-title fw-bold" required />
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer border-theme">
+                    <button type="submit" class="btn btn-primary-sep">Guardar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="modalEditarPeriodo" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content bg-surface border-theme">
+            <div class="modal-header border-theme">
+                <h5 class="modal-title fw-bold txt-primary-dark">Editar Periodo</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form asp-action="GuardarPeriodo" method="post">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="academiccontrol_inscription_period_ID" id="editPeriodoId" />
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label txt-body text-xs fw-bold tracking-wide">NOMBRE</label>
+                        <input type="text" name="academiccontrol_inscription_period_name" id="editPeriodoNombre" class="form-control bg-app border-theme txt-title fw-bold" required />
+                    </div>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label txt-body text-xs fw-bold tracking-wide">INICIO</label>
+                            <input type="date" name="academiccontrol_inscription_period_startDate" id="editPeriodoInicio" class="form-control bg-app border-theme txt-title fw-bold" required />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label txt-body text-xs fw-bold tracking-wide">FIN</label>
+                            <input type="date" name="academiccontrol_inscription_period_endDate" id="editPeriodoFin" class="form-control bg-app border-theme txt-title fw-bold" required />
+                        </div>
+                    </div>
+                    <div class="form-check mt-3">
+                        <input type="hidden" id="hiddenPeriodoActivo"
+                               name="academiccontrol_inscription_period_status" value="false" />
+                        <input class="form-check-input" type="checkbox"
+                               id="editPeriodoActivo" />
+                        <label class="form-check-label fw-bold" for="editPeriodoActivo">Activo</label>
+                    </div>
+                </div>
+                <div class="modal-footer border-theme">
+                    <button type="submit" class="btn btn-primary-sep">Guardar Cambios</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+                // JS PARA MODAL DE PERIODOS
+        document.getElementById('modalEditarPeriodo')?.addEventListener('show.bs.modal', function (e) {
+            const btn = e.relatedTarget;
+            document.getElementById('editPeriodoId').value = btn.dataset.id;
+            document.getElementById('editPeriodoNombre').value = btn.dataset.nombre;
+            document.getElementById('editPeriodoInicio').value = btn.dataset.inicio;
+            document.getElementById('editPeriodoFin').value = btn.dataset.fin;
+
+            // Setear checkbox y hidden desde el data attribute
+            const isActivo = btn.dataset.activo === 'true';
+            document.getElementById('editPeriodoActivo').checked = isActivo;
+            document.getElementById('hiddenPeriodoActivo').value = isActivo ? 'true' : 'false';
+        });
+
+        // Actualizar hidden cuando cambia el checkbox de periodo
+        document.getElementById('editPeriodoActivo')?.addEventListener('change', function () {
+            document.getElementById('hiddenPeriodoActivo').value = this.checked ? 'true' : 'false';
+        });
+
+        // JS PARA MODAL DE CONFIGURACIÓN DE FICHAS
+        document.getElementById('modalEditarConfig')?.addEventListener('show.bs.modal', function (e) {
+            const btn = e.relatedTarget;
+            document.getElementById('editId').value = btn.dataset.id;
+            document.getElementById('editLimite').value = btn.dataset.limite;
+            document.getElementById('editInicio').value = btn.dataset.inicio;
+            document.getElementById('editFin').value = btn.dataset.fin;
+
+            // Setear checkbox y hidden desde el data attribute
+            const isActivo = btn.dataset.activo === 'true';
+            document.getElementById('editActivo').checked = isActivo;
+            document.getElementById('hiddenConfigActivo').value = isActivo ? 'true' : 'false';
+
+            const selectCarrera = document.getElementById('editCarrera');
+            if (selectCarrera) {
+                selectCarrera.value = btn.dataset.carrera;
+            }
+        });
+
+        // Actualizar hidden cuando cambia el checkbox de configuracion
+        document.getElementById('editActivo')?.addEventListener('change', function () {
+            document.getElementById('hiddenConfigActivo').value = this.checked ? 'true' : 'false';
+        });
+    </script>
+}

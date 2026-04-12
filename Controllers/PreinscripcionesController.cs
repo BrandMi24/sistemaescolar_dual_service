@@ -13,14 +13,12 @@ namespace ControlEscolar.Controllers
         private readonly ApplicationDbContext _context;
         private readonly IPdfService _pdfService;
 
-
         public PreinscripcionesController(ApplicationDbContext context, IPdfService pdfService)
         {
             _context = context;
             _pdfService = pdfService;
         }
 
-        // GET: Preinscripciones
         [Authorize]
         public async Task<IActionResult> Index()
         {
@@ -31,7 +29,6 @@ namespace ControlEscolar.Controllers
             return View(entidades.Select(e => MapToViewModel(e)).ToList());
         }
 
-        // GET: Preinscripciones/Details/5
         [Authorize]
         public async Task<IActionResult> Details(int? id)
         {
@@ -43,60 +40,71 @@ namespace ControlEscolar.Controllers
                 .Include(p => p.Tutor)
                 .Include(p => p.DatosEscolares)
                 .Include(p => p.Salud)
-                .FirstOrDefaultAsync(p => p.Id == id);
+                .FirstOrDefaultAsync(p => p.academiccontrol_preinscription_ID == id);
 
             if (entidad == null) return NotFound();
 
             return View(MapToViewModel(entidad));
         }
 
-        // GET: Preinscripciones/Create
-        public IActionResult Create()
-        {
-            return View();
-        }
+        public IActionResult Create() => View();
 
-        // POST: Preinscripciones/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(Preinscripcion vm)
         {
-            ModelState.Remove("Telefono");
-            ModelState.Remove("Division");
-            ModelState.Remove("OpcionEducativa");
-            ModelState.Remove("Localidad");
+            // Validar que exista un período de inscripción activo
+            //var periodoActivo = await _context.PeriodosInscripcion
+            //    .AnyAsync(p => p.academiccontrol_inscription_period_status
+            //                && p.academiccontrol_inscription_period_startDate <= DateTime.Today
+            //                && p.academiccontrol_inscription_period_endDate >= DateTime.Today);
 
-            // Validar límite de fichas por carrera 
-            var config = await _context.ConfiguracionFichas
-                .FirstOrDefaultAsync(c => c.Carrera == vm.CarreraSolicitada
-                                       && c.Activo
-                                       && c.FechaInicio <= DateTime.Today
-                                       && c.FechaFin >= DateTime.Today);
+            //if (!periodoActivo)
+            //{
+            //    TempData["ErrorMessage"] = "El periodo de preinscripción no está activo. No es posible registrarse en este momento.";
+            //    return View(vm);
+            //}
 
-            if (config != null)
+            // Validar unicidad de CURP en el periodo activo actual
+            var activePeriodConfig = await _context.PeriodosInscripcion
+                .FirstOrDefaultAsync(p => p.academiccontrol_inscription_period_status
+                            && p.academiccontrol_inscription_period_startDate <= DateTime.Today
+                            && p.academiccontrol_inscription_period_endDate >= DateTime.Today);
+                            
+            if (activePeriodConfig != null)
             {
-                var fichasUsadas = await _context.Preinscripciones
-                    .CountAsync(p => p.CarreraSolicitada == vm.CarreraSolicitada
-                                  && p.FechaPreinscripcion >= config.FechaInicio
-                                  && p.FechaPreinscripcion <= config.FechaFin);
+                var curpExistente = await _context.Preinscripciones
+                    .Include(p => p.DatosPersonales)
+                    .AnyAsync(p => p.DatosPersonales!.academiccontrol_preinscription_personaldata_CURP == vm.academiccontrol_preinscription_personaldata_CURP
+                                && p.academiccontrol_preinscription_registrationDate >= activePeriodConfig.academiccontrol_inscription_period_startDate
+                                && p.academiccontrol_preinscription_registrationDate <= activePeriodConfig.academiccontrol_inscription_period_endDate);
 
-                if (fichasUsadas >= config.LimiteFichas)
+                if (curpExistente)
                 {
-                    TempData["ErrorMessage"] = $"Lo sentimos, el cupo para la carrera '{vm.CarreraSolicitada}' ha sido completado. No hay fichas disponibles.";
+                    TempData["ErrorMessage"] = "El CURP ingresado ya se encuentra registrado en el periodo de preinscripción actual.";
                     return View(vm);
                 }
             }
 
-            // Validar periodo de inscripción activo 
-            var periodoActivo = await _context.PeriodosInscripcion
-                .AnyAsync(p => p.Activo
-                            && p.FechaInicio <= DateTime.Today
-                            && p.FechaFin >= DateTime.Today);
+            // Validar límite de fichas por carrera
+            var config = await _context.ConfiguracionFichas
+                .FirstOrDefaultAsync(c => c.academiccontrol_inscription_ticketconfig_career == vm.academiccontrol_preinscription_careerRequested
+                                       && c.academiccontrol_inscription_ticketconfig_status
+                                       && c.academiccontrol_inscription_ticketconfig_startDate <= DateTime.Today
+                                       && c.academiccontrol_inscription_ticketconfig_endDate >= DateTime.Today);
 
-            if (!periodoActivo)
+            if (config != null)
             {
-                TempData["ErrorMessage"] = "Lo sentimos, el periodo de preinscripción no está activo en este momento.";
-                return View(vm);
+                var fichasUsadas = await _context.Preinscripciones
+                    .CountAsync(p => p.academiccontrol_preinscription_careerRequested == vm.academiccontrol_preinscription_careerRequested
+                                  && p.academiccontrol_preinscription_registrationDate >= config.academiccontrol_inscription_ticketconfig_startDate
+                                  && p.academiccontrol_preinscription_registrationDate <= config.academiccontrol_inscription_ticketconfig_endDate);
+
+                if (fichasUsadas >= config.academiccontrol_inscription_ticketconfig_limit)
+                {
+                    TempData["ErrorMessage"] = $"Cupo completo para '{vm.academiccontrol_preinscription_careerRequested}'.";
+                    return View(vm);
+                }
             }
 
             if (ModelState.IsValid)
@@ -105,69 +113,77 @@ namespace ControlEscolar.Controllers
                 {
                     var entidad = new PreinscripcionEntity
                     {
-                        CarreraSolicitada = vm.CarreraSolicitada,
-                        Promedio = vm.Promedio ?? 0,
-                        MedioDifusion = vm.MedioDifusion,
-                        FechaPreinscripcion = DateTime.Now,
-                        EstadoPreinscripcion = EstadoPreinscripcion.Pendiente.ToString(),
+                        academiccontrol_preinscription_careerRequested = vm.academiccontrol_preinscription_careerRequested,
+                        academiccontrol_preinscription_average = vm.academiccontrol_preinscription_average ?? 0,
+                        academiccontrol_preinscription_diffusionMedia = vm.academiccontrol_preinscription_diffusionMedia,
+                        academiccontrol_preinscription_registrationDate = DateTime.Now,
+                        academiccontrol_preinscription_state = "Pendiente",
+                        academiccontrol_preinscription_createdDate = DateTime.Now,
 
                         DatosPersonales = new PreinscripcionDatosPersonalesEntity
                         {
-                            Nombre = vm.Nombre,
-                            ApellidoPaterno = vm.ApellidoPaterno,
-                            ApellidoMaterno = vm.ApellidoMaterno,
-                            CURP = vm.CURP,
-                            FechaNacimiento = vm.FechaNacimiento,
-                            Sexo = vm.Sexo,
-                            EstadoCivil = vm.EstadoCivil,
-                            Email = vm.Email,
-                            Telefono = vm.Telefono
+                            academiccontrol_preinscription_personaldata_name = vm.academiccontrol_preinscription_personaldata_name,
+                            academiccontrol_preinscription_personaldata_paternalSurname = vm.academiccontrol_preinscription_personaldata_paternalSurname,
+                            academiccontrol_preinscription_personaldata_maternalSurname = vm.academiccontrol_preinscription_personaldata_maternalSurname,
+                            academiccontrol_preinscription_personaldata_CURP = vm.academiccontrol_preinscription_personaldata_CURP,
+                            academiccontrol_preinscription_personaldata_birthDate = vm.academiccontrol_preinscription_personaldata_birthDate,
+                            academiccontrol_preinscription_personaldata_gender = vm.academiccontrol_preinscription_personaldata_gender,
+                            academiccontrol_preinscription_personaldata_maritalStatus = vm.academiccontrol_preinscription_personaldata_maritalStatus,
+                            academiccontrol_preinscription_personaldata_email = vm.academiccontrol_preinscription_personaldata_email,
+                            academiccontrol_preinscription_personaldata_phone = vm.academiccontrol_preinscription_personaldata_phone,
+                            academiccontrol_preinscription_personaldata_createdDate = DateTime.Now
                         },
 
                         Domicilio = new PreinscripcionDomicilioEntity
                         {
-                            Estado = vm.Estado,
-                            Municipio = vm.Municipio,
-                            CodigoPostal = vm.CodigoPostal,
-                            Colonia = vm.Colonia,
-                            Calle = vm.Calle,
-                            NumeroExterior = vm.NumeroExterior
+                            academiccontrol_preinscription_address_state = vm.academiccontrol_preinscription_address_state,
+                            academiccontrol_preinscription_address_municipality = vm.academiccontrol_preinscription_address_municipality,
+                            academiccontrol_preinscription_address_zipCode = vm.academiccontrol_preinscription_address_zipCode,
+                            academiccontrol_preinscription_address_neighborhood = vm.academiccontrol_preinscription_address_neighborhood,
+                            academiccontrol_preinscription_address_street = vm.academiccontrol_preinscription_address_street,
+                            academiccontrol_preinscription_address_exteriorNumber = vm.academiccontrol_preinscription_address_exteriorNumber,
+                            academiccontrol_preinscription_address_createdDate = DateTime.Now
                         },
 
                         Tutor = new PreinscripcionTutorEntity
                         {
-                            TutorNombre = vm.TutorNombre ?? string.Empty,
-                            Parentesco = vm.Parentesco ?? string.Empty,
-                            Telefono = vm.TelefonoEmergencia ?? string.Empty
+                            academiccontrol_preinscription_tutor_fullName = vm.academiccontrol_preinscription_tutor_fullName,
+                            academiccontrol_preinscription_tutor_relationship = vm.academiccontrol_preinscription_tutor_relationship,
+                            academiccontrol_preinscription_tutor_phone = vm.academiccontrol_preinscription_tutor_phone,
+                            academiccontrol_preinscription_tutor_createdDate = DateTime.Now
                         },
 
                         DatosEscolares = new PreinscripcionEscolarEntity
                         {
-                            EscuelaProcedencia = vm.EscuelaProcedencia ?? string.Empty,
-                            EstadoEscuela = vm.EstadoEscuela,
-                            MunicipioEscuela = vm.MunicipioEscuela,
-                            CCT = vm.CCT,
-                            InicioBachillerato = vm.InicioBachillerato,
-                            FinBachillerato = vm.FinBachillerato
+                            academiccontrol_preinscription_academic_originSchool = vm.academiccontrol_preinscription_academic_originSchool,
+                            academiccontrol_preinscription_academic_schoolState = vm.academiccontrol_preinscription_academic_schoolState,
+                            academiccontrol_preinscription_academic_schoolMunicipality = vm.academiccontrol_preinscription_academic_schoolMunicipality,
+                            academiccontrol_preinscription_academic_CCT = vm.academiccontrol_preinscription_academic_CCT,
+                            academiccontrol_preinscription_academic_startDate = vm.academiccontrol_preinscription_academic_startDate,
+                            academiccontrol_preinscription_academic_endDate = vm.academiccontrol_preinscription_academic_endDate,
+                            academiccontrol_preinscription_academic_createdDate = DateTime.Now
                         },
 
                         Salud = new PreinscripcionSaludEntity
                         {
-                            ServicioMedico = vm.ServicioMedico,
-                            TieneDiscapacidad = vm.TieneDiscapacidad,
-                            DiscapacidadDescripcion = vm.DiscapacidadDescripcion,
-                            ComunidadIndigena = vm.ComunidadIndigena,
-                            ComunidadIndigenaDescripcion = vm.ComunidadIndigenaDescripcion,
-                            Comentarios = vm.Comentarios
+                            academiccontrol_preinscription_health_medicalService = vm.academiccontrol_preinscription_health_medicalService,
+                            academiccontrol_preinscription_health_hasDisability = vm.academiccontrol_preinscription_health_hasDisability,
+                            academiccontrol_preinscription_health_disabilityDescription = vm.academiccontrol_preinscription_health_disabilityDescription,
+                            academiccontrol_preinscription_health_indigenousCommunity = vm.academiccontrol_preinscription_health_indigenousCommunity,
+                            academiccontrol_preinscription_health_indigenousCommunityDescription = vm.academiccontrol_preinscription_health_indigenousCommunityDescription,
+                            academiccontrol_preinscription_health_comments = vm.academiccontrol_preinscription_health_comments,
+                            academiccontrol_preinscription_health_hasChildren = vm.academiccontrol_preinscription_health_hasChildren,
+                            academiccontrol_preinscription_health_createdDate = DateTime.Now
                         }
                     };
 
                     _context.Preinscripciones.Add(entidad);
                     await _context.SaveChangesAsync();
 
-                    entidad.Folio = $"PRE-{DateTime.Now.Year}-{entidad.Id:D5}";
+                    entidad.academiccontrol_preinscription_folio = $"PRE-{DateTime.Now.Year}-{entidad.academiccontrol_preinscription_ID:D5}";
                     await _context.SaveChangesAsync();
 
+                    // Carga para PDF
                     await _context.Entry(entidad).Reference(p => p.DatosPersonales).LoadAsync();
                     await _context.Entry(entidad).Reference(p => p.Domicilio).LoadAsync();
                     await _context.Entry(entidad).Reference(p => p.Tutor).LoadAsync();
@@ -176,26 +192,22 @@ namespace ControlEscolar.Controllers
 
                     var pdfBytes = _pdfService.GenerarFichaPreinscripcion(entidad);
 
-                    TempData["SuccessMessage"] = $"Preinscripción registrada. Folio: {entidad.Folio}";
+                    TempData["SuccessMessage"] = $"Registro exitoso. Folio: {entidad.academiccontrol_preinscription_folio}";
 
-                    Response.Headers.Append("X-Folio", entidad.Folio);
-                    Response.Headers.Append("X-Details-Url", Url.Action("Details", "Preinscripciones", new { id = entidad.Id }));
+                    Response.Headers.Append("X-Folio", entidad.academiccontrol_preinscription_folio);
+                    Response.Headers.Append("X-Details-Url", Url.Action("Details", "Preinscripciones", new { id = entidad.academiccontrol_preinscription_ID }));
                     Response.Headers.Append("Access-Control-Expose-Headers", "X-Folio, X-Details-Url");
-                    return File(pdfBytes, "application/pdf", $"Ficha_{entidad.Folio}.pdf");
+
+                    return File(pdfBytes, "application/pdf", $"Ficha_{entidad.academiccontrol_preinscription_folio}.pdf");
                 }
-                catch (Exception ex)
+                catch (Exception)
                 {
-                    var error = ex.InnerException;
-                    ModelState.AddModelError(string.Empty, "Ocurrió un error inesperado al procesar tu solicitud. Por favor, inténtalo de nuevo.");
-
-
+                    ModelState.AddModelError(string.Empty, "Error al procesar la preinscripción.");
                 }
             }
-
             return View(vm);
         }
 
-        // GET: Preinscripciones/Edit/5
         [Authorize]
         public async Task<IActionResult> Edit(int? id)
         {
@@ -207,162 +219,148 @@ namespace ControlEscolar.Controllers
                 .Include(p => p.Tutor)
                 .Include(p => p.DatosEscolares)
                 .Include(p => p.Salud)
-                .FirstOrDefaultAsync(p => p.Id == id);
+                .FirstOrDefaultAsync(p => p.academiccontrol_preinscription_ID == id);
 
             if (entidad == null) return NotFound();
 
             return View(MapToViewModel(entidad));
         }
 
-        // POST: Preinscripciones/Edit/5
         [HttpPost]
         [Authorize]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, Preinscripcion vm)
         {
-            ModelState.Remove("Telefono");
-            ModelState.Remove("Division");
-            ModelState.Remove("OpcionEducativa");
-            ModelState.Remove("Localidad");
-
             var entidad = await _context.Preinscripciones
                 .Include(p => p.DatosPersonales)
                 .Include(p => p.Domicilio)
                 .Include(p => p.Tutor)
                 .Include(p => p.DatosEscolares)
                 .Include(p => p.Salud)
-                .FirstOrDefaultAsync(p => p.Id == id);
+                .FirstOrDefaultAsync(p => p.academiccontrol_preinscription_ID == id);
 
             if (entidad == null) return NotFound();
 
             if (ModelState.IsValid)
             {
-                entidad.CarreraSolicitada = vm.CarreraSolicitada;
-                entidad.Promedio = vm.Promedio ?? 0;
-                entidad.MedioDifusion = vm.MedioDifusion;
+                entidad.academiccontrol_preinscription_careerRequested = vm.academiccontrol_preinscription_careerRequested;
+                entidad.academiccontrol_preinscription_average = vm.academiccontrol_preinscription_average ?? 0;
+                entidad.academiccontrol_preinscription_diffusionMedia = vm.academiccontrol_preinscription_diffusionMedia;
 
-                entidad.DatosPersonales!.Nombre = vm.Nombre;
-                entidad.DatosPersonales.ApellidoPaterno = vm.ApellidoPaterno;
-                entidad.DatosPersonales.ApellidoMaterno = vm.ApellidoMaterno;
-                entidad.DatosPersonales.CURP = vm.CURP;
-                entidad.DatosPersonales.FechaNacimiento = vm.FechaNacimiento;
-                entidad.DatosPersonales.Sexo = vm.Sexo;
-                entidad.DatosPersonales.EstadoCivil = vm.EstadoCivil;
-                entidad.DatosPersonales.Email = vm.Email;
-                entidad.DatosPersonales.Telefono = vm.Telefono;
+                if (entidad.DatosPersonales != null)
+                {
+                    entidad.DatosPersonales.academiccontrol_preinscription_personaldata_name = vm.academiccontrol_preinscription_personaldata_name;
+                    entidad.DatosPersonales.academiccontrol_preinscription_personaldata_paternalSurname = vm.academiccontrol_preinscription_personaldata_paternalSurname;
+                    entidad.DatosPersonales.academiccontrol_preinscription_personaldata_maternalSurname = vm.academiccontrol_preinscription_personaldata_maternalSurname;
+                    entidad.DatosPersonales.academiccontrol_preinscription_personaldata_CURP = vm.academiccontrol_preinscription_personaldata_CURP;
+                    entidad.DatosPersonales.academiccontrol_preinscription_personaldata_email = vm.academiccontrol_preinscription_personaldata_email;
+                    entidad.DatosPersonales.academiccontrol_preinscription_personaldata_phone = vm.academiccontrol_preinscription_personaldata_phone;
+                    entidad.DatosPersonales.academiccontrol_preinscription_personaldata_birthDate = vm.academiccontrol_preinscription_personaldata_birthDate;
+                    entidad.DatosPersonales.academiccontrol_preinscription_personaldata_gender = vm.academiccontrol_preinscription_personaldata_gender;
+                    entidad.DatosPersonales.academiccontrol_preinscription_personaldata_maritalStatus = vm.academiccontrol_preinscription_personaldata_maritalStatus;
+                }
 
-                entidad.Domicilio!.Estado = vm.Estado;
-                entidad.Domicilio.Municipio = vm.Municipio;
-                entidad.Domicilio.CodigoPostal = vm.CodigoPostal;
-                entidad.Domicilio.Colonia = vm.Colonia;
-                entidad.Domicilio.Calle = vm.Calle;
-                entidad.Domicilio.NumeroExterior = vm.NumeroExterior;
+                if (entidad.Domicilio != null)
+                {
+                    entidad.Domicilio.academiccontrol_preinscription_address_state = vm.academiccontrol_preinscription_address_state;
+                    entidad.Domicilio.academiccontrol_preinscription_address_municipality = vm.academiccontrol_preinscription_address_municipality;
+                    entidad.Domicilio.academiccontrol_preinscription_address_zipCode = vm.academiccontrol_preinscription_address_zipCode;
+                    entidad.Domicilio.academiccontrol_preinscription_address_neighborhood = vm.academiccontrol_preinscription_address_neighborhood;
+                    entidad.Domicilio.academiccontrol_preinscription_address_street = vm.academiccontrol_preinscription_address_street;
+                    entidad.Domicilio.academiccontrol_preinscription_address_exteriorNumber = vm.academiccontrol_preinscription_address_exteriorNumber;
+                }
 
-                entidad.Tutor!.TutorNombre = vm.TutorNombre ?? string.Empty;
-                entidad.Tutor.Parentesco = vm.Parentesco ?? string.Empty;
-                entidad.Tutor.Telefono = vm.TelefonoEmergencia ?? string.Empty;
+                if (entidad.Tutor != null)
+                {
+                    entidad.Tutor.academiccontrol_preinscription_tutor_fullName = vm.academiccontrol_preinscription_tutor_fullName;
+                    entidad.Tutor.academiccontrol_preinscription_tutor_relationship = vm.academiccontrol_preinscription_tutor_relationship;
+                    entidad.Tutor.academiccontrol_preinscription_tutor_phone = vm.academiccontrol_preinscription_tutor_phone;
+                }
 
-                entidad.DatosEscolares!.EscuelaProcedencia = vm.EscuelaProcedencia ?? string.Empty;
-                entidad.DatosEscolares.EstadoEscuela = vm.EstadoEscuela;
-                entidad.DatosEscolares.MunicipioEscuela = vm.MunicipioEscuela;
-                entidad.DatosEscolares.CCT = vm.CCT;
-                entidad.DatosEscolares.InicioBachillerato = vm.InicioBachillerato;
-                entidad.DatosEscolares.FinBachillerato = vm.FinBachillerato;
+                if (entidad.DatosEscolares != null)
+                {
+                    entidad.DatosEscolares.academiccontrol_preinscription_academic_originSchool = vm.academiccontrol_preinscription_academic_originSchool;
+                    entidad.DatosEscolares.academiccontrol_preinscription_academic_schoolState = vm.academiccontrol_preinscription_academic_schoolState;
+                    entidad.DatosEscolares.academiccontrol_preinscription_academic_schoolMunicipality = vm.academiccontrol_preinscription_academic_schoolMunicipality;
+                    entidad.DatosEscolares.academiccontrol_preinscription_academic_CCT = vm.academiccontrol_preinscription_academic_CCT;
+                    entidad.DatosEscolares.academiccontrol_preinscription_academic_startDate = vm.academiccontrol_preinscription_academic_startDate;
+                    entidad.DatosEscolares.academiccontrol_preinscription_academic_endDate = vm.academiccontrol_preinscription_academic_endDate;
+                }
 
-                entidad.Salud!.ServicioMedico = vm.ServicioMedico;
-                entidad.Salud.TieneDiscapacidad = vm.TieneDiscapacidad;
-                entidad.Salud.DiscapacidadDescripcion = vm.DiscapacidadDescripcion;
-                entidad.Salud.ComunidadIndigena = vm.ComunidadIndigena;
-                entidad.Salud.ComunidadIndigenaDescripcion = vm.ComunidadIndigenaDescripcion;
-                entidad.Salud.Comentarios = vm.Comentarios;
-                //entidad.Salud.TieneHijos = vm.TieneHijos;
+                if (entidad.Salud != null)
+                {
+                    entidad.Salud.academiccontrol_preinscription_health_medicalService = vm.academiccontrol_preinscription_health_medicalService;
+                    entidad.Salud.academiccontrol_preinscription_health_hasDisability = vm.academiccontrol_preinscription_health_hasDisability;
+                    entidad.Salud.academiccontrol_preinscription_health_disabilityDescription = vm.academiccontrol_preinscription_health_disabilityDescription;
+                    entidad.Salud.academiccontrol_preinscription_health_indigenousCommunity = vm.academiccontrol_preinscription_health_indigenousCommunity;
+                    entidad.Salud.academiccontrol_preinscription_health_indigenousCommunityDescription = vm.academiccontrol_preinscription_health_indigenousCommunityDescription;
+                    entidad.Salud.academiccontrol_preinscription_health_comments = vm.academiccontrol_preinscription_health_comments;
+                    entidad.Salud.academiccontrol_preinscription_health_hasChildren = vm.academiccontrol_preinscription_health_hasChildren;
+                }
 
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
-
             return View(vm);
         }
 
-        // GET: Preinscripciones/Delete/5
-        [Authorize]
-        public async Task<IActionResult> Delete(int? id)
-        {
-            if (id == null) return NotFound();
-
-            var entidad = await _context.Preinscripciones
-                .Include(p => p.DatosPersonales)
-                .FirstOrDefaultAsync(p => p.Id == id);
-
-            if (entidad == null) return NotFound();
-
-            return View(MapToViewModel(entidad));
-        }
-
-        // POST: Preinscripciones/Delete/5
         [HttpPost, ActionName("Delete")]
         [Authorize]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
             var entidad = await _context.Preinscripciones.FindAsync(id);
-            if (entidad != null)
-                _context.Preinscripciones.Remove(entidad);
-
+            if (entidad != null) _context.Preinscripciones.Remove(entidad);
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
 
-    
         private static Preinscripcion MapToViewModel(PreinscripcionEntity e) => new()
         {
-            Id = e.Id,
-            Folio = e.Folio,
-            CarreraSolicitada = e.CarreraSolicitada,
-            Promedio = e.Promedio,
-            MedioDifusion = e.MedioDifusion,
-            FechaPreinscripcion = e.FechaPreinscripcion,
-            EstadoPreinscripcion = Enum.TryParse<EstadoPreinscripcion>(e.EstadoPreinscripcion, out var estado)
-                                   ? estado : EstadoPreinscripcion.Pendiente,
+            academiccontrol_preinscription_ID = e.academiccontrol_preinscription_ID,
+            academiccontrol_preinscription_folio = e.academiccontrol_preinscription_folio,
+            academiccontrol_preinscription_careerRequested = e.academiccontrol_preinscription_careerRequested,
+            academiccontrol_preinscription_average = e.academiccontrol_preinscription_average,
+            academiccontrol_preinscription_diffusionMedia = e.academiccontrol_preinscription_diffusionMedia,
+            academiccontrol_preinscription_registrationDate = e.academiccontrol_preinscription_registrationDate,
 
-            Nombre = e.DatosPersonales?.Nombre ?? string.Empty,
-            ApellidoPaterno = e.DatosPersonales?.ApellidoPaterno ?? string.Empty,
-            ApellidoMaterno = e.DatosPersonales?.ApellidoMaterno,
-            CURP = e.DatosPersonales?.CURP ?? string.Empty,
-            FechaNacimiento = e.DatosPersonales?.FechaNacimiento ?? default,
-            Sexo = e.DatosPersonales?.Sexo ?? string.Empty,
-            EstadoCivil = e.DatosPersonales?.EstadoCivil,
-            Email = e.DatosPersonales?.Email ?? string.Empty,
-            Telefono = e.DatosPersonales?.Telefono,
+            academiccontrol_preinscription_personaldata_name = e.DatosPersonales?.academiccontrol_preinscription_personaldata_name ?? "",
+            academiccontrol_preinscription_personaldata_paternalSurname = e.DatosPersonales?.academiccontrol_preinscription_personaldata_paternalSurname ?? "",
+            academiccontrol_preinscription_personaldata_maternalSurname = e.DatosPersonales?.academiccontrol_preinscription_personaldata_maternalSurname,
+            academiccontrol_preinscription_personaldata_CURP = e.DatosPersonales?.academiccontrol_preinscription_personaldata_CURP ?? "",
+            academiccontrol_preinscription_personaldata_email = e.DatosPersonales?.academiccontrol_preinscription_personaldata_email ?? "",
+            academiccontrol_preinscription_personaldata_phone = e.DatosPersonales?.academiccontrol_preinscription_personaldata_phone,
+            academiccontrol_preinscription_personaldata_birthDate = e.DatosPersonales?.academiccontrol_preinscription_personaldata_birthDate ?? default,
+            academiccontrol_preinscription_personaldata_gender = e.DatosPersonales?.academiccontrol_preinscription_personaldata_gender ?? "",
+            academiccontrol_preinscription_personaldata_maritalStatus = e.DatosPersonales?.academiccontrol_preinscription_personaldata_maritalStatus,
 
-            Estado = e.Domicilio?.Estado ?? string.Empty,
-            Municipio = e.Domicilio?.Municipio ?? string.Empty,
-            CodigoPostal = e.Domicilio?.CodigoPostal,
-            Colonia = e.Domicilio?.Colonia ?? string.Empty,
-            Calle = e.Domicilio?.Calle ?? string.Empty,
-            NumeroExterior = e.Domicilio?.NumeroExterior ?? string.Empty,
+            academiccontrol_preinscription_address_state = e.Domicilio?.academiccontrol_preinscription_address_state ?? "",
+            academiccontrol_preinscription_address_municipality = e.Domicilio?.academiccontrol_preinscription_address_municipality ?? "",
+            academiccontrol_preinscription_address_zipCode = e.Domicilio?.academiccontrol_preinscription_address_zipCode,
+            academiccontrol_preinscription_address_neighborhood = e.Domicilio?.academiccontrol_preinscription_address_neighborhood ?? "",
+            academiccontrol_preinscription_address_street = e.Domicilio?.academiccontrol_preinscription_address_street ?? "",
+            academiccontrol_preinscription_address_exteriorNumber = e.Domicilio?.academiccontrol_preinscription_address_exteriorNumber ?? "",
 
-            TutorNombre = e.Tutor?.TutorNombre,
-            Parentesco = e.Tutor?.Parentesco,
-            TelefonoEmergencia = e.Tutor?.Telefono,
+            academiccontrol_preinscription_tutor_fullName = e.Tutor?.academiccontrol_preinscription_tutor_fullName ?? "",
+            academiccontrol_preinscription_tutor_relationship = e.Tutor?.academiccontrol_preinscription_tutor_relationship ?? "",
+            academiccontrol_preinscription_tutor_phone = e.Tutor?.academiccontrol_preinscription_tutor_phone ?? "",
 
-            EscuelaProcedencia = e.DatosEscolares?.EscuelaProcedencia,
-            EstadoEscuela = e.DatosEscolares?.EstadoEscuela,
-            MunicipioEscuela = e.DatosEscolares?.MunicipioEscuela,
-            CCT = e.DatosEscolares?.CCT,
-            InicioBachillerato = e.DatosEscolares?.InicioBachillerato,
-            FinBachillerato = e.DatosEscolares?.FinBachillerato,
+            academiccontrol_preinscription_academic_originSchool = e.DatosEscolares?.academiccontrol_preinscription_academic_originSchool ?? "",
+            academiccontrol_preinscription_academic_schoolState = e.DatosEscolares?.academiccontrol_preinscription_academic_schoolState,
+            academiccontrol_preinscription_academic_schoolMunicipality = e.DatosEscolares?.academiccontrol_preinscription_academic_schoolMunicipality,
+            academiccontrol_preinscription_academic_CCT = e.DatosEscolares?.academiccontrol_preinscription_academic_CCT,
+            academiccontrol_preinscription_academic_startDate = e.DatosEscolares?.academiccontrol_preinscription_academic_startDate,
+            academiccontrol_preinscription_academic_endDate = e.DatosEscolares?.academiccontrol_preinscription_academic_endDate,
 
-            ServicioMedico = e.Salud?.ServicioMedico,
-            TieneDiscapacidad = e.Salud?.TieneDiscapacidad ?? false,
-            DiscapacidadDescripcion = e.Salud?.DiscapacidadDescripcion,
-            ComunidadIndigena = e.Salud?.ComunidadIndigena ?? false,
-            ComunidadIndigenaDescripcion = e.Salud?.ComunidadIndigenaDescripcion,
-            Comentarios = e.Salud?.Comentarios,
-            //TieneHijos = e.Salud?.TieneHijos ?? false
+            academiccontrol_preinscription_health_medicalService = e.Salud?.academiccontrol_preinscription_health_medicalService,
+            academiccontrol_preinscription_health_hasDisability = e.Salud?.academiccontrol_preinscription_health_hasDisability ?? false,
+            academiccontrol_preinscription_health_disabilityDescription = e.Salud?.academiccontrol_preinscription_health_disabilityDescription,
+            academiccontrol_preinscription_health_indigenousCommunity = e.Salud?.academiccontrol_preinscription_health_indigenousCommunity ?? false,
+            academiccontrol_preinscription_health_indigenousCommunityDescription = e.Salud?.academiccontrol_preinscription_health_indigenousCommunityDescription,
+            academiccontrol_preinscription_health_comments = e.Salud?.academiccontrol_preinscription_health_comments,
+            academiccontrol_preinscription_health_hasChildren = e.Salud?.academiccontrol_preinscription_health_hasChildren ?? false,
+
+            academiccontrol_preinscription_state = e.academiccontrol_preinscription_state
         };
-
-        private bool PreinscripcionExists(int id) =>
-            _context.Preinscripciones.Any(e => e.Id == id);
     }
 }

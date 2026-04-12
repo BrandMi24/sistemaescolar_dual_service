@@ -24,7 +24,7 @@ namespace ControlEscolar.Controllers
         private readonly IWebHostEnvironment _webHostEnvironment;
         private readonly UserManager<IdentityUser> _userManager;
 
-        public TramitesController(ApplicationDbContext context, IWebHostEnvironment webHostEnvironment)
+        public TramitesController(ApplicationDbContext context, IWebHostEnvironment webHostEnvironment, UserManager<IdentityUser> userManager)
         {
             _context = context;
             _webHostEnvironment = webHostEnvironment;
@@ -34,7 +34,7 @@ namespace ControlEscolar.Controllers
         {
             var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
             return int.TryParse(userIdClaim, out int id) ? id : 0;
-            }
+            //}
 
             // NOTA PARA PRUEBAS: Si tu usuario de Identity no existe en la tabla vieja, 
             // cambia este '0' temporalmente por un ID de alumno que SÍ exista en tu BD 
@@ -286,7 +286,7 @@ namespace ControlEscolar.Controllers
                 .FirstOrDefaultAsync(d => d.id_solicitud == idSolicitud && d.id_requisito == idDetalle);
 
             // USAMOS LOS DBSETS REALES AQUÍ TAMBIÉN
-            var detalle = await _context.TramitesDetalleDocumentos.FirstOrDefaultAsync(d => d.id_solicitud == idSolicitud && d.id_requisito == idDetalle);
+            //var detalle = await _context.TramitesDetalleDocumentos.FirstOrDefaultAsync(d => d.id_solicitud == idSolicitud && d.id_requisito == idDetalle);
             var solicitud = await _context.TramitesSolicitudes.FindAsync(idSolicitud);
             var requisito = await _context.TramitesRequisitos.FindAsync(idDetalle);
 
