@@ -25,7 +25,6 @@
   <ItemGroup>
     <Folder Include="Migrations\" />
     <Folder Include="Views\Admin\" />
-    <Folder Include="wwwroot\uploads\tramites\" />
   </ItemGroup>
 
 </Project>

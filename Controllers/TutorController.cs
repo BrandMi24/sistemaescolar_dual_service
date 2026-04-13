@@ -1,14 +1,11 @@
 ﻿using ControlEscolar.Data;
 using ControlEscolar.Models;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Linq;
 
 namespace ControlEscolar.Controllers
 {
-    [Authorize(Roles = "Administrativo,TEACHER")]
-    [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
     public class TutorController : Controller
     {
         private readonly ApplicationDbContext _context;

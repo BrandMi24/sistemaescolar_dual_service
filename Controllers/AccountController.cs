@@ -73,7 +73,6 @@ namespace ControlEscolar.Controllers
             // Claims
             var claims = new List<Claim>
             {
-                new Claim("UserId", user.management_user_ID.ToString()),
                 new Claim(ClaimTypes.NameIdentifier, user.management_user_ID.ToString()),
                 new Claim(ClaimTypes.Name, user.management_user_Email ?? "")
             };
@@ -105,11 +104,7 @@ namespace ControlEscolar.Controllers
         // =========================
         // MÉTODOS AUXILIARES
         // =========================
-        [HttpGet]
-        public IActionResult AccessDenied()
-        {
-            return View();
-        }
+
         private bool VerifyPassword(string password, string hash)
         {
             using var sha = SHA256.Create();
