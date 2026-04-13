@@ -71,7 +71,7 @@
                         </div>
                     </div>
 
-                    <form asp-action="GuardarSolicitud" method="post" enctype="multipart/form-data">
+                    <form id="formSolicitud" asp-controller="Tramites" asp-action="GuardarSolicitud" method="post" enctype="multipart/form-data">
                         <input type="hidden" name="tramites_solicitud_matricula" id="hiddenMatricula" />
 
                         <div class="mb-4">
@@ -122,16 +122,19 @@
                     <div class="bg-white p-0 rounded-4 shadow-sm border border-light overflow-hidden d-flex flex-column">
                         <div class="bg-light p-3 border-bottom d-flex justify-content-between align-items-center">
                             <span class="text-dark fw-bold text-sm"><i class="bi bi-list-stars me-2"></i> Solicitudes Recientes</span>
+                            <div id="containerLength"></div>
+                            <div id="contenedorBusqueda"></div>
                         </div>
 
                         <div class="table-responsive">
                             <table class="table table-borderless align-middle mb-0" id="tablaAlumno" style="min-width: 800px;">
                                 <thead class="border-bottom text-muted">
                                     <tr>
-                                        <th class="py-3 px-4 fw-bold text-xs" width="15%">FOLIO / FECHA</th>
+                <th class="py-3 px-4 fw-bold text-xs" width="10%">FOLIO</th>
+                <th class="py-3 fw-bold text-xs" width="15%">FECHA</th>
                                         <th class="py-3 fw-bold text-xs" width="35%">TIPO DE TRÁMITE</th>
-                                        <th class="py-3 fw-bold text-xs" width="30%">OBSERVACIONES</th>
-                                        <th class="py-3 px-4 text-center fw-bold text-xs" width="20%">ESTATUS</th>
+                <th class="py-3 fw-bold text-xs" width="25%">OBSERVACIONES</th>
+                <th class="py-3 px-4 text-center fw-bold text-xs" width="15%">ESTATUS</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -141,40 +144,43 @@
                                         {
                                             bool tieneRechazos = item.Estatus.Equals("Rechazado", StringComparison.OrdinalIgnoreCase);
                                             <tr class="border-bottom hover-bg-light transition-all">
-                                                <td class="px-4 py-3">
-                                                    <span class="text-primary fw-bold text-sm d-block">#@item.Id</span>
-                                                    <span class="text-muted text-xs">@item.Fecha.ToString("dd/MM/yyyy")</span>
-                                                </td>
-                                                <td>
-                                                    <span class="text-dark fw-bold text-sm d-block">@item.Tipo</span>
-                                                </td>
-                                                <td>
-                                                    <span class="text-muted text-sm d-block text-truncate" style="max-width: 200px;">
-                                                        @(string.IsNullOrEmpty(item.Observaciones) ? "Sin observaciones al momento." : item.Observaciones)
-                                                    </span>
-                                                </td>
-                                                <td class="px-4 text-center">
-                                                    @if (tieneRechazos)
-                                                    {
-                                                        <button type="button" class="btn btn-sm btn-white border shadow-sm px-3 py-2 text-danger fw-bold btn-detalle-alumno"
-                                                                data-id="@item.Id" data-id-tramite="@item.IdTramite" data-tipo="@item.Tipo"
-                                                                data-archivopath="@item.ArchivoPath" data-estatus="@item.Estatus">
-                                                            <i class="bi bi-exclamation-circle-fill me-1" style="font-size: 0.5rem;"></i> Corregir
-                                                        </button>
-                                                    }
-                                                    else
-                                                    {
-                                                        <span class="badge bg-white text-dark border shadow-sm px-3 py-2">
-                                                            <i class="bi bi-circle-fill @(item.Estatus == "Pendiente" ? "text-warning" : "text-success") me-1" style="font-size: 0.5rem; vertical-align: middle;"></i> @item.Estatus
-                                                        </span>
-                                                    }
-                                                </td>
+    <td class="px-4 py-3 text-primary fw-bold text-sm">#@item.Id</td>
+    <td class="text-muted text-xs">@item.Fecha.ToString("dd/MM/yyyy")</td>
+    <td><span class="text-dark fw-bold text-sm d-block">@item.Tipo</span></td>
+
+    <td style="max-width: 200px;">
+        @if (!string.IsNullOrEmpty(item.Observaciones))
+        {
+            <div class="text-truncate-custom" style="cursor: pointer;" 
+                 onclick="mostrarObservacionesCompletras('@item.Observaciones.Replace("'", "\\'")')">
+                <span class="text-muted text-sm">@item.Observaciones</span>
+            </div>
+        }
+        else
+        {
+            <span class="text-muted text-xs">Sin observaciones.</span>
+        }
+    </td>
+
+    <td class="px-4 text-center">
+        @if (tieneRechazos)
+        {
+            <button type="button" class="btn btn-sm btn-white border shadow-sm px-3 py-2 text-danger fw-bold btn-detalle-alumno"
+                    data-id="@item.Id" data-id-tramite="@item.IdTramite" data-tipo="@item.Tipo"
+                    data-archivopath="@item.ArchivoPath" data-estatus="@item.Estatus">
+                <i class="bi bi-exclamation-circle-fill me-1"></i> Corregir
+            </button>
+        }
+        else
+        {
+            <span class="badge bg-white text-dark border shadow-sm px-3 py-2">
+                <i class="bi bi-circle-fill @(item.Estatus == "Pendiente" ? "text-warning" : "text-success") me-1" style="font-size: 0.5rem;"></i> 
+                @item.Estatus
+            </span>
+        }
+    </td>
                                             </tr>
                                         }
-                                    }
-                                    else
-                                    {
-                                        <tr><td colspan="4" class="text-center py-5 text-muted">Aún no has realizado ninguna solicitud.</td></tr>
                                     }
                                 </tbody>
                             </table>
@@ -191,7 +197,7 @@
     <div class="modal-dialog modal-xl modal-dialog-centered">
         <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
             <div class="modal-header bg-dark text-white p-4">
-                <h5 class="modal-title fw-bold" id="modalTitulo">Detalle del Trámite</h5>
+                <h5 class="modal-title fw-bold text-white" id="modalTitulo">Detalle del Trámite</h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body p-0">
@@ -215,11 +221,144 @@
         </div>
     </div>
 </div>
-
+<div class="modal fade" id="modalVerObservaciones" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-4">
+            <div class="modal-header bg-light border-0 py-3">
+                <h6 class="modal-title fw-bold text-dark mb-0">
+                    <i class="bi bi-chat-left-text me-2"></i>Observaciones del Administrador
+                </h6>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+                <p id="textoObservacionCompleto" class="text-muted mb-0" style="white-space: pre-wrap; word-break: break-word; line-height: 1.6;"></p>
+            </div>
+            <div class="modal-footer border-0">
+                <button type="button" class="btn btn-dark rounded-pill px-4 fw-bold shadow-sm" data-bs-dismiss="modal">Entendido</button>
+            </div>
+        </div>
+    </div>
+</div>
 @section Scripts {
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<style>
+    /* Ajuste para que los botones de paginación sean legibles */
+    .dataTables_wrapper .dataTables_paginate .paginate_button {
+        background: transparent !important;
+        border: none !important;
+        padding: 4px 10px !important;
+        margin: 0 2px !important;
+        
+        /* TEXTO OSCURO Y LEGIBLE */
+        font-size: 0.85rem !important;
+        color: #333 !important; /* Gris muy oscuro, casi negro */
+        font-weight: bold !important; /* Un poco de grosor */
+        cursor: pointer !important;
+    }
+
+    /* El número de página actual (se queda negro con texto blanco) */
+    .dataTables_wrapper .dataTables_paginate .paginate_button.current {
+        background: #000 !important;
+        color: #fff !important;
+        border-radius: 6px !important;
+    }
+
+    /* Efecto al pasar el mouse: se pone un poco más oscuro */
+    .dataTables_wrapper .dataTables_paginate .paginate_button:hover {
+        background: #f0f0f0 !important;
+        color: #000 !important;
+    }
+
+    /* Botones cuando no se pueden usar (ej. estás en la página 1 y das Anterior) */
+    .dataTables_wrapper .dataTables_paginate .paginate_button.disabled {
+        color: #000 !important; /* Este sí se queda tenue porque no es clicable */
+        opacity: 0.7;
+        cursor: pointer !important;
+    }
+    .text-truncate-custom {
+        max-width: 100%;
+        display: block;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        padding: 4px 8px;
+        border-radius: 4px;
+        transition: background 0.2s;
+    }
+    .text-truncate-custom:hover {
+        background-color: #f0f2f5; /* Efecto sutil al pasar el mouse */
+    }
+</style>
     <script>
-        document.addEventListener("DOMContentLoaded", function () {
+$(document).ready(function () {
+    // Silenciamos errores visuales
+    $.fn.dataTable.ext.errMode = 'none'; 
+
+    const table = $('#tablaAlumno').DataTable({
+        language: {
+            url: 'https://cdn.datatables.net/plug-ins/1.13.6/i18n/es-ES.json',
+            emptyTable: "Aún no hay solicitudes registradas.",
+            lengthMenu: "Mostrar _MENU_ registros"
+        },
+        pageLength: 10,
+        order: [[0, 'desc']],
+        autoWidth: false,
+        columnDefs: [
+            { targets: "_all", defaultContent: "" }
+        ],
+        // Agregamos 'l' al inicio para que cree el selector de registros
+        dom: 'lfrt<"d-flex justify-content-between align-items-center p-3 border-top"ip>', 
+        initComplete: function() {
+            // 1. Lógica para la BARRA DE BÚSQUEDA (Moverla a #contenedorBusqueda)
+            const searchInput = $('.dataTables_filter').detach();
+            $('#contenedorBusqueda').empty().append(searchInput);
+            
+            $('.dataTables_filter input')
+                .addClass('form-control form-control-sm border shadow-sm px-3')
+                .attr('placeholder', 'Buscar folio o trámite...')
+                .css('width', '250px');
+            
+if ($('.dataTables_filter').length) {
+    $('.dataTables_filter label').contents().filter(function() {
+        return this.nodeType === 3;
+    }).remove();
+}
+
+            // 2. Lógica para MOSTRAR REGISTROS (Moverla a #containerLength)
+            const lengthMenuOriginal = $('.dataTables_length').detach();
+            $('#containerLength').empty().append(lengthMenuOriginal);
+
+            // Ajuste de estilos para que queden en una sola línea (como en el admin)
+            $('.dataTables_length').css({
+                'display': 'flex',
+                'align-items': 'center',
+                'gap': '8px',
+                'margin-bottom': '0'
+            });
+
+            $('.dataTables_length label').css({
+                'display': 'flex',
+                'align-items': 'center',
+                'gap': '8px',
+                'margin-bottom': '0',
+                'font-weight': 'bold'
+            });
+
+$('.dataTables_length select').addClass('form-select form-select-sm border shadow-sm')
+    .css({ 
+        'width': '70px',   
+        'height': '40px',
+        'font-size': '0.85rem' 
+    });
+        }
+    });
+
+    // Escuchar errores de conteo para que no interrumpan al usuario
+    $('#tablaAlumno').on('error.dt', function (e, settings, techNote, message) {
+        console.warn('DataTables count mismatch: ', message);
+    });
         // 1. Timeout de seguridad por si el servidor no responde
         setTimeout(() => {
         const loading = document.getElementById("infoAlumnoCargando");
@@ -287,9 +426,10 @@
         <div class="col-md-6 mb-3">
         <label class="small fw-bold text-dark d-block mb-1">${req.nombre_documento}</label>
         ${esFoto ? `
-        <div class="bg-light border rounded-2 py-2 px-3 text-muted text-xs shadow-sm"><i class="bi bi-camera-fill me-1"></i> Entrega física en Servicios Escolares</div>
+    <div class="bg-light border rounded-2 py-2 px-3 text-muted text-xs shadow-sm"><i class="bi bi-camera-fill me-1"></i> Entrega física</div>
         ` : `
-        <input type="file" name="archivos" class="form-control form-control-sm bg-white shadow-sm" accept=".pdf" required>
+    <input type="file" name="archivos" class="form-control form-control-sm bg-white shadow-sm" 
+           accept=".pdf" required onchange="validarPDF(this)">
         `}
         </div>`;
         });
@@ -303,7 +443,7 @@
         }
 
         // 4. Interceptar el envío del formulario principal
-        const formSolicitud = document.querySelector("form");
+        const formSolicitud = document.getElementById("formSolicitud");;
         if(formSolicitud) {
         formSolicitud.addEventListener("submit", function (e) {
         e.preventDefault();
@@ -325,8 +465,9 @@
         });
         }
 
+        // Revisa esta parte en tu función enviarFormulario:
         function enviarFormulario(formElement) {
-        const btn = document.getElementById("btnEnviar");
+        const btn = document.getElementById("btnEnviar"); // Este es el BOTÓN
         const textBtn = document.getElementById("textBtn");
         const spinnerBtn = document.getElementById("spinnerBtn");
 
@@ -336,20 +477,26 @@
 
         const formData = new FormData(formElement);
 
-        fetch(formElement.action, {
+        // IMPORTANTE: Asegúrate de que la URL sea la correcta
+        fetch('/Tramites/GuardarSolicitud', {
         method: 'POST',
         body: formData
         })
-        .then(response => response.json())
+        .then(response => {
+        // Si el servidor te manda a otra página, el fetch se rompe.
+        // Esta línea ayuda a ver si recibimos JSON o una página HTML de error.
+        if (!response.ok) throw new Error('Error en el servidor');
+        return response.json();
+        })
         .then(data => {
         if (data.success) {
         Swal.fire({
         title: '¡Solicitud Enviada!',
         text: `Tu trámite con Folio #${data.folio} ha sido registrado.`,
         icon: 'success',
-        confirmButtonText: 'Entendido',
-        allowOutsideClick: false
+        confirmButtonText: 'Entendido'
         }).then(() => {
+        // ESTO evita que te quedes en la pantalla negra
         window.location.reload();
         });
         } else {
@@ -358,7 +505,8 @@
         }
         })
         .catch(err => {
-        Swal.fire({ icon: 'error', title: 'Error de conexión', text: 'Fallo al subir archivos.' });
+        console.error(err);
+        Swal.fire({ icon: 'error', title: 'Error', text: 'No se pudo procesar la solicitud.' });
         resetBoton(btn, textBtn, spinnerBtn);
         });
         }
@@ -506,10 +654,33 @@
 
         // 6. Recargar la tabla si el alumno cierra el modal después de corregir algo
         const modalElement = document.getElementById('modalAlumno');
-        if(modalElement) {
+if (modalElement) {
         modalElement.addEventListener('hidden.bs.modal', function () {
         window.location.reload();
         });
+}
+
+// ESTA FUNCIÓN DEBE ESTAR FUERA DEL IF ANTERIOR
+function mostrarObservacionesCompletras(texto) {
+    if (!texto || texto === "null") return;
+    
+    document.getElementById('textoObservacionCompleto').innerText = texto;
+    var myModal = new bootstrap.Modal(document.getElementById('modalVerObservaciones'));
+    myModal.show();
+}
+        function validarPDF(input) {
+    if (input.files && input.files[0]) {
+        const archivo = input.files[0];
+        if (archivo.type !== "application/pdf") {
+            Swal.fire({ 
+                icon: 'error', 
+                title: 'Formato inválido', 
+                text: 'Solo se permiten archivos PDF.',
+                confirmButtonColor: '#000' 
+            });
+            input.value = ""; // Limpia el input para que no se mande el archivo basura
+        }
+    }
         }
     </script>
 }
