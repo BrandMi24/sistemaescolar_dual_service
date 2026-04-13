@@ -61,6 +61,17 @@ namespace ControlEscolar.Controllers
         // ==========================================
         // VISTAS DEL ALUMNO
         // ==========================================
+        [HttpGet]
+        public IActionResult Index()
+        {
+            if (User.IsInRole("Admin") || User.IsInRole("Administrator") || User.IsInRole("Master") || User.IsInRole("Tutor") || User.IsInRole("Teacher") || User.IsInRole("Maestro"))
+            {
+                return RedirectToAction(nameof(Gestion));
+            }
+
+            return RedirectToAction(nameof(MisTramites));
+        }
+
         public IActionResult MisTramites()
         {
             int userIdActual = GetLegacyUserIdAsync().Result;
@@ -70,7 +81,7 @@ namespace ControlEscolar.Controllers
                 .AsEnumerable()
                 .ToList();
 
-            return View(historial);
+            return View("~/Views/Alumno/Tramites.cshtml", historial);
         }
 
         [HttpGet]
@@ -207,7 +218,7 @@ namespace ControlEscolar.Controllers
 
             if (estatus != "Todos") listado = listado.Where(x => x.Estatus == estatus).ToList();
             ViewBag.EstatusActual = estatus;
-            return View(listado);
+            return View("~/Views/Tutor/Tramites.cshtml", listado);
         }
 
         [HttpPost]

@@ -1,22 +1,25 @@
-﻿@{
+﻿@model ControlEscolar.Models.CoordinadorTeacherDetailViewModel
+@{
     ViewData["Title"] = "Detalle de Profesor";
     Layout = "_LayoutCoordinador";
+
+    var statusBadgeClass = Model.IsActive ? "status-aceptado" : "status-rechazado";
 }
 
 <div class="fade-in d-flex flex-column gap-4">
 
     <div class="bg-surface p-4 rounded-4 border-theme shadow-sm d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
         <div>
-            <h3 class="txt-title fw-bold mb-1">Mtra. Ana Martínez Ruiz</h3>
+            <h3 class="txt-title fw-bold mb-1">@Model.FullName</h3>
             <div class="d-flex align-items-center gap-3 mt-2 txt-body text-xs">
-                <span>NO. EMPLEADO: <span class="fw-semibold">20192</span></span>
-                <span>CORREO: <span class="fw-semibold">amartinez@uttn.mx</span></span>
-                <span>TEL: <span class="fw-semibold">899-123-4567</span></span>
+                <span>NO. EMPLEADO: <span class="fw-semibold">@Model.EmployeeNumber</span></span>
+                <span>CORREO: <span class="fw-semibold">@Model.Email</span></span>
+                <span>TEL: <span class="fw-semibold">@Model.Phone</span></span>
             </div>
         </div>
         <div class="text-end d-flex flex-column align-items-md-end gap-2">
-            <span class="badge status-aceptado px-3 py-2 text-sm shadow-sm rounded-pill">
-                ESTADO: ACTIVO
+            <span class="badge @statusBadgeClass px-3 py-2 text-sm shadow-sm rounded-pill">
+                ESTADO: @Model.StatusCode
             </span>
             <a href="@Url.Action("Catalogos", "Coordinador")" class="btn btn-sm btn-ghost-sep border border-theme shadow-sm mt-1 fw-semibold">
                 Volver a Catálogos
@@ -35,27 +38,27 @@
         </h6>
         <div class="row g-0 align-items-center text-center">
             <div class="col-6 col-md-2 border-end border-theme mb-3 mb-md-0">
-                <div class="fs-2 fw-bold text-dark">12</div>
+                <div class="fs-2 fw-bold text-dark">@Model.TotalStudents</div>
                 <div class="txt-body text-xxs tracking-wide fw-bold">ESTUDIANTES</div>
             </div>
             <div class="col-6 col-md-2 border-end border-theme mb-3 mb-md-0">
-                <div class="fs-2 fw-bold text-dark">10</div>
+                <div class="fs-2 fw-bold text-dark">@Model.ActiveStudents</div>
                 <div class="txt-body text-xxs tracking-wide fw-bold">ACTIVOS</div>
             </div>
             <div class="col-6 col-md-2 border-end border-theme">
-                <div class="fs-2 fw-bold txt-error">4</div>
+                <div class="fs-2 fw-bold txt-error">@Model.PendingHours</div>
                 <div class="txt-body text-xxs tracking-wide fw-bold">HRS. PENDIENTES</div>
             </div>
             <div class="col-6 col-md-2 border-end border-theme">
-                <div class="fs-2 fw-bold text-warning">2</div>
+                <div class="fs-2 fw-bold text-warning">@Model.PendingDocuments</div>
                 <div class="txt-body text-xxs tracking-wide fw-bold">DOCS. PENDIENTES</div>
             </div>
             <div class="col-6 col-md-2 border-end border-theme">
-                <div class="fs-2 fw-bold txt-primary-dark">8</div>
+                <div class="fs-2 fw-bold txt-primary-dark">@Model.EvaluationsCount</div>
                 <div class="txt-body text-xxs tracking-wide fw-bold">EVALUACIONES</div>
             </div>
             <div class="col-6 col-md-2">
-                <div class="fs-2 fw-bold text-success">85%</div>
+                <div class="fs-2 fw-bold text-success">@Model.CompletionRate%</div>
                 <div class="txt-body text-xxs tracking-wide fw-bold">COMPLETITUD</div>
             </div>
         </div>
@@ -63,7 +66,7 @@
 
     <div class="admin-card-white p-0 rounded-4 border-theme shadow-sm overflow-hidden mt-2 bg-white">
         <div class="bg-surface p-3 border-bottom border-theme d-flex justify-content-between align-items-center">
-            <h6 class="txt-title fw-bold mb-0">Estudiantes Asignados (2)</h6>
+            <h6 class="txt-title fw-bold mb-0">Estudiantes Asignados (@Model.AssignedStudents.Count)</h6>
             <button type="button" class="btn btn-sm btn-primary-sep bg-primary-900 text-white fw-semibold" data-bs-toggle="modal" data-bs-target="#assignStudentsModal">
                 Asignar Estudiantes
             </button>
@@ -81,42 +84,40 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <tr class="border-bottom border-theme">
-                        <td class="px-4 py-3 fw-bold txt-title">Roberto Carlos Perez Cadena</td>
-                        <td class="txt-body">24001504</td>
-                        <td class="txt-body text-xs">Ing. Desarrollo de Software</td>
-                        <td><span class="badge bg-app border border-theme text-dark text-xxs">ESTADÍAS</span></td>
-                        <td>
-                            <span class="badge status-aceptado text-xxs px-2 py-1 shadow-sm">ACTIVO</span>
-                        </td>
-                        <td class="text-center px-4">
-                            <div class="d-flex justify-content-between mb-1">
-                                <span class="txt-body text-xxs fw-bold"></span>
-                                <span class="text-dark text-xxs fw-bold">80%</span>
-                            </div>
-                            <div class="progress" style="height: 6px; background-color: var(--bg-main);">
-                                <div class="progress-bar bg-success" style="width: 80%"></div>
-                            </div>
-                        </td>
-                    </tr>
-                    <tr class="border-bottom border-theme">
-                        <td class="px-4 py-3 fw-bold txt-title">María Fernanda Salas</td>
-                        <td class="txt-body">23001122</td>
-                        <td class="txt-body text-xs">Mecatrónica</td>
-                        <td><span class="badge bg-app border border-theme text-dark text-xxs">SERVICIO SOCIAL</span></td>
-                        <td>
-                            <span class="badge bg-warning text-dark border border-warning text-xxs px-2 py-1 shadow-sm">EN PROCESO</span>
-                        </td>
-                        <td class="text-center px-4">
-                            <div class="d-flex justify-content-between mb-1">
-                                <span class="txt-body text-xxs fw-bold"></span>
-                                <span class="text-dark text-xxs fw-bold">45%</span>
-                            </div>
-                            <div class="progress" style="height: 6px; background-color: var(--bg-main);">
-                                <div class="progress-bar bg-warning" style="width: 45%"></div>
-                            </div>
-                        </td>
-                    </tr>
+                    @if (Model.AssignedStudents.Count == 0)
+                    {
+                        <tr>
+                            <td colspan="6" class="text-center py-4 txt-body">Este docente no tiene estudiantes asignados.</td>
+                        </tr>
+                    }
+                    else
+                    {
+                        foreach (var item in Model.AssignedStudents)
+                        {
+                            var progressClass = item.ProgressPercent >= 80 ? "bg-success" : item.ProgressPercent >= 50 ? "bg-warning" : "bg-danger";
+                            var stateBadgeClass = item.StatusCode == "COMPLETED" ? "status-aceptado" : "bg-warning text-dark border border-warning";
+                            <tr class="border-bottom border-theme">
+                                <td class="px-4 py-3 fw-bold txt-title">
+                                    <a href="@Url.Action("StudentDetail", "Coordinador", new { id = item.StudentId })" class="text-decoration-none txt-title">@item.StudentName</a>
+                                </td>
+                                <td class="txt-body">@item.Matricula</td>
+                                <td class="txt-body text-xs">@item.ProgramName</td>
+                                <td><span class="badge bg-app border border-theme text-dark text-xxs">@item.ProgramType</span></td>
+                                <td>
+                                    <span class="badge @stateBadgeClass text-xxs px-2 py-1 shadow-sm">@item.StatusCode</span>
+                                </td>
+                                <td class="text-center px-4">
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span class="txt-body text-xxs fw-bold">@item.ApprovedHours/@item.RequiredHours</span>
+                                        <span class="text-dark text-xxs fw-bold">@item.ProgressPercent%</span>
+                                    </div>
+                                    <div class="progress" style="height: 6px; background-color: var(--bg-main);">
+                                        <div class="progress-bar @progressClass" style="width: @item.ProgressPercent%"></div>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    }
                 </tbody>
             </table>
         </div>
@@ -128,7 +129,7 @@
         <div class="modal-content admin-card-white border-theme rounded-4 overflow-hidden shadow">
             
             <div class="modal-header bg-surface border-bottom border-theme p-4">
-                <h5 class="modal-title txt-title fw-bold" id="assignStudentsModalLabel">Asignar Estudiantes a Mtra. Ana Martínez Ruiz</h5>
+                <h5 class="modal-title txt-title fw-bold" id="assignStudentsModalLabel">Asignar Estudiantes a @Model.FullName</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             
@@ -158,9 +159,9 @@
                     </div>
                 </div>
 
-                <form id="assignStudentsForm" action="#" method="post">
+                <form id="assignStudentsForm" action="@Url.Action("AssignStudentsToTeacher", "Coordinador")" method="post">
                     @Html.AntiForgeryToken()
-                    <input type="hidden" name="teacherId" value="1" />
+                    <input type="hidden" name="teacherId" value="@Model.TeacherId" />
 
                     <div class="table-responsive border border-theme rounded-3" style="max-height: 400px; overflow-y: auto;">
                         <table class="table table-hover align-middle text-sm mb-0">
@@ -176,16 +177,7 @@
                                     <th class="py-3">Profesor Actual</th>
                                 </tr>
                             </thead>
-                            <tbody id="assignStudentsTableBody">
-                                <tr class="border-bottom border-theme">
-                                    <td class="text-center"><input type="checkbox" name="enrollmentIds" value="1" class="form-check-input assign-check" /></td>
-                                    <td class="fw-bold txt-title">Luis Ángel García</td>
-                                    <td class="txt-body">ASP-001</td>
-                                    <td class="txt-body text-xs">Mecatrónica</td>
-                                    <td><span class="badge bg-app border border-theme text-dark text-xxs">ESTADÍAS</span></td>
-                                    <td class="text-xs"><span class="text-muted">—</span></td>
-                                </tr>
-                            </tbody>
+                            <tbody id="assignStudentsTableBody"></tbody>
                         </table>
                     </div>
 
@@ -193,7 +185,7 @@
                         <span class="txt-title fw-bold text-sm" id="assignSelectedCount">0 estudiantes seleccionados</span>
                         <div class="d-flex gap-2">
                             <button type="button" class="btn btn-ghost-sep border border-theme text-body fw-semibold px-4" data-bs-dismiss="modal">Cancelar</button>
-                            <button type="button" class="btn btn-primary-sep bg-primary-900 text-white fw-bold px-4" id="assignSubmitBtn" disabled>
+                            <button type="submit" class="btn btn-primary-sep bg-primary-900 text-white fw-bold px-4" id="assignSubmitBtn" disabled>
                                 Confirmar Asignación
                             </button>
                         </div>
@@ -207,6 +199,83 @@
 @section Scripts {
     <script>
         document.addEventListener('DOMContentLoaded', function () {
+            const teacherId = @Model.TeacherId;
+            const assignEndpoint = '@Url.Action("GetAssignableStudents", "Coordinador")';
+            const tableBody = document.getElementById('assignStudentsTableBody');
+            let rowsCache = [];
+
+            function getTeacherLabel(id) {
+                if (!id) {
+                    return '<span class="text-muted">Sin profesor</span>';
+                }
+
+                if (id === teacherId) {
+                    return '<span class="badge status-aceptado text-xxs">Asignado a este docente</span>';
+                }
+
+                return '<span class="badge bg-warning text-dark text-xxs">Asignado a otro docente</span>';
+            }
+
+            function renderRows(items) {
+                if (!items || items.length === 0) {
+                    tableBody.innerHTML = '<tr><td colspan="6" class="text-center py-4 txt-body">No hay asignaciones disponibles.</td></tr>';
+                    updateSelectedCount();
+                    return;
+                }
+
+                tableBody.innerHTML = items.map(function (row) {
+                    const alreadyAssignedHere = row.teacherId === teacherId;
+                    return `<tr class="border-bottom border-theme">
+                        <td class="text-center"><input type="checkbox" name="enrollmentIds" value="${row.id}" class="form-check-input assign-check" ${alreadyAssignedHere ? 'disabled' : ''} /></td>
+                        <td class="fw-bold txt-title">${row.nombre ?? 'Sin nombre'}</td>
+                        <td class="txt-body">${row.matricula ?? 'S/N'}</td>
+                        <td class="txt-body text-xs">${row.estado ?? 'N/A'}</td>
+                        <td><span class="badge bg-app border border-theme text-dark text-xxs">PRACTICAS_PROFESIONALES</span></td>
+                        <td class="text-xs">${getTeacherLabel(row.teacherId)}</td>
+                    </tr>`;
+                }).join('');
+
+                updateSelectedCount();
+            }
+
+            function applyFilters() {
+                const searchText = (document.getElementById('assignSearchInput').value || '').toLowerCase().trim();
+                const statusFilter = document.getElementById('assignStatusFilter').value;
+
+                const filtered = rowsCache.filter(function (row) {
+                    const name = (row.nombre || '').toLowerCase();
+                    const matricula = (row.matricula || '').toLowerCase();
+                    const searchOk = !searchText || name.includes(searchText) || matricula.includes(searchText);
+
+                    let statusOk = true;
+                    if (statusFilter === 'unassigned') {
+                        statusOk = !row.teacherId;
+                    } else if (statusFilter === 'assigned') {
+                        statusOk = !!row.teacherId;
+                    }
+
+                    return searchOk && statusOk;
+                });
+
+                renderRows(filtered);
+            }
+
+            async function loadAssignableStudents() {
+                tableBody.innerHTML = '<tr><td colspan="6" class="text-center py-4 txt-body">Cargando...</td></tr>';
+                try {
+                    const response = await fetch(`${assignEndpoint}?teacherId=${teacherId}`);
+                    if (!response.ok) {
+                        throw new Error('No se pudieron cargar las asignaciones.');
+                    }
+
+                    const payload = await response.json();
+                    rowsCache = payload.data || [];
+                    applyFilters();
+                } catch (error) {
+                    tableBody.innerHTML = `<tr><td colspan="6" class="text-center py-4 txt-error">${error.message}</td></tr>`;
+                }
+            }
+
             // Checkbox "Seleccionar Todos"
             document.getElementById('assignSelectAll').addEventListener('change', function () {
                 var checked = this.checked;
@@ -221,6 +290,20 @@
                 if (e.target.classList.contains('assign-check')) {
                     updateSelectedCount();
                 }
+            });
+
+            document.getElementById('assignSearchInput').addEventListener('input', applyFilters);
+            document.getElementById('assignStatusFilter').addEventListener('change', applyFilters);
+            document.getElementById('assignProgramFilter').addEventListener('change', applyFilters);
+            document.getElementById('assignClearFilters').addEventListener('click', function () {
+                document.getElementById('assignSearchInput').value = '';
+                document.getElementById('assignProgramFilter').value = '';
+                document.getElementById('assignStatusFilter').value = '';
+                applyFilters();
+            });
+
+            document.getElementById('assignStudentsModal').addEventListener('show.bs.modal', function () {
+                loadAssignableStudents();
             });
 
             // Actualizar contador y botón

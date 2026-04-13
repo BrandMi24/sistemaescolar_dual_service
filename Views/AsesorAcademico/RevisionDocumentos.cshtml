@@ -1,24 +1,56 @@
-﻿@{
-    ViewData["Title"] = "Revisión de Documentación";
+﻿@model List<ControlEscolar.ViewModels.OperationalTracking.AsesorDocumentoRowViewModel>
+@{
+    ViewData["Title"] = "Validación de Documentación";
     Layout = "_LayoutTutor";
+    var search = ViewBag.SearchText as string ?? "";
+    var estadoFilter = ViewBag.EstadoFilter as string ?? "";
+    int pendingCount = ViewBag.PendingCount ?? 0;
 }
 
 <div class="d-flex flex-column gap-4 fade-in">
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert bg-success bg-opacity-10 border border-success text-success rounded-3 alert-dismissible fade show shadow-sm" role="alert">
+            <i class="bi bi-check-circle-fill me-2"></i> @TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert bg-danger-100 border border-danger text-danger rounded-3 alert-dismissible fade show shadow-sm" role="alert">
+            <i class="bi bi-exclamation-circle-fill me-2"></i> @TempData["ErrorMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
     <div class="bg-surface p-4 rounded-4 border-theme shadow-sm d-flex flex-column flex-xl-row justify-content-between align-items-xl-center gap-3">
         <form method="get" class="d-flex flex-column flex-md-row gap-3 flex-grow-1 w-100">
             <div class="position-relative search-wrapper flex-grow-1">
                 <i class="bi bi-search position-absolute search-icon-left txt-body"></i>
-                <input type="text" name="search" class="form-control search-input-custom tab-search" placeholder="Buscar por alumno o matrícula...">
+                <input type="text" name="search" class="form-control search-input-custom tab-search" placeholder="Buscar por alumno o matrícula..." value="@search">
             </div>
-            <select class="form-select bg-app border-theme txt-title fw-bold tab-filter" style="width: auto;">
+            <select name="estado" class="form-select bg-app border-theme txt-title fw-bold tab-filter" style="width: auto;">
                 <option value="">Todos los Documentos</option>
-                <option value="PENDIENTE">Solo Pendientes</option>
-                <option value="RECHAZADO">Corregidos</option>
+                <option value="PENDING" selected="@(estadoFilter == "PENDING")">Solo Pendientes</option>
+                <option value="APPROVED" selected="@(estadoFilter == "APPROVED")">Aprobados</option>
+                <option value="REJECTED" selected="@(estadoFilter == "REJECTED")">Rechazados</option>
             </select>
-            <button type="submit" class="btn btn-primary-sep bg-primary-900 text-white shadow-sm">
-                <i class="bi bi-funnel-fill"></i>
-            </button>
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-primary-sep bg-primary-900 text-white shadow-sm">
+                    <i class="bi bi-funnel-fill"></i>
+                </button>
+                <a href="@Url.Action("RevisionDocumentos")" class="btn btn-ghost-sep shadow-sm">
+                    <i class="bi bi-x-lg"></i>
+                </a>
+            </div>
         </form>
+        @if (pendingCount > 0)
+        {
+            <span class="badge bg-danger text-white px-3 py-2 text-xs shadow-sm flex-shrink-0">
+                <i class="bi bi-clock me-1"></i> @pendingCount pendiente(s)
+            </span>
+        }
     </div>
 
     <div class="admin-card-white p-0 rounded-4 border-theme shadow-sm overflow-hidden d-flex flex-column">
@@ -34,49 +66,110 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <tr class="border-bottom border-theme hover-bg-app">
-                        <td class="px-4 py-3">
-                            <div class="txt-title fw-bold text-sm">Luis Ángel García</div>
-                            <div class="txt-body text-xxs">Mat: 24001892</div>
-                        </td>
-                        <td>
-                            <div class="txt-title fw-bold text-sm">Plan de Trabajo Inicial</div>
-                            <a href="#" class="text-primary text-xs text-decoration-none fw-bold"><i class="bi bi-file-earmark-pdf-fill me-1"></i>VER DOCUMENTO</a>
-                        </td>
-                        <td class="txt-body text-xs">25/03/2026</td>
-                        <td class="text-center">
-                            <span class="badge bg-warning text-dark text-xxs px-2 py-1 shadow-sm">PENDIENTE</span>
-                        </td>
-                        <td class="text-end px-4">
-                            <div class="d-flex gap-2 justify-content-end">
-                                <button class="btn btn-sm btn-ghost-sep text-success border border-success border-opacity-25" title="Aprobar"><i class="bi bi-check-lg"></i></button>
-                                <button class="btn btn-sm btn-ghost-sep text-danger border border-danger border-opacity-25" data-bs-toggle="modal" data-bs-target="#modalRechazo"><i class="bi bi-x-lg"></i></button>
-                            </div>
-                        </td>
-                    </tr>
+                    @if (!Model.Any())
+                    {
+                        <tr>
+                            <td colspan="5" class="text-center py-5 txt-body">
+                                <i class="bi bi-file-earmark-check fs-2 d-block mb-2 opacity-50"></i>
+                                <span>No hay documentos para revisar.</span>
+                            </td>
+                        </tr>
+                    }
+                    @foreach (var doc in Model)
+                    {
+                        var statusBadge = doc.StatusCode switch
+                        {
+                            "APPROVED" => ("bg-success text-white", "APROBADO"),
+                            "REJECTED" => ("bg-danger text-white", "RECHAZADO"),
+                            _ => ("bg-warning text-dark", "PENDIENTE")
+                        };
+                        <tr class="border-bottom border-theme hover-bg-app">
+                            <td class="px-4 py-3">
+                                <div class="txt-title fw-bold text-sm">@doc.StudentName</div>
+                                <div class="txt-body text-xxs">Mat: @doc.Matricula</div>
+                            </td>
+                            <td>
+                                <div class="txt-title fw-bold text-sm">@doc.Title</div>
+                                <span class="txt-body text-xxs">@doc.DocumentType</span>
+                                @if (!string.IsNullOrEmpty(doc.FilePath))
+                                {
+                                    <a href="@doc.FilePath" target="_blank" class="text-primary text-xs text-decoration-none fw-bold d-block mt-1">
+                                        <i class="bi bi-file-earmark-pdf-fill me-1"></i>VER DOCUMENTO
+                                    </a>
+                                }
+                            </td>
+                            <td class="txt-body text-xs">@doc.UploadDate.ToString("dd/MM/yyyy")</td>
+                            <td class="text-center">
+                                <span class="badge @statusBadge.Item1 text-xxs px-2 py-1 shadow-sm">@statusBadge.Item2</span>
+                                @if (!string.IsNullOrEmpty(doc.ReviewComments))
+                                {
+                                    <div class="txt-body text-xxs mt-1 text-muted" title="@doc.ReviewComments">
+                                        <i class="bi bi-chat-text me-1"></i>Con comentarios
+                                    </div>
+                                }
+                            </td>
+                            <td class="text-end px-4">
+                                @if (doc.StatusCode == "PENDING")
+                                {
+                                    <div class="d-flex gap-2 justify-content-end">
+                                        <form asp-action="AprobarDocumento" asp-controller="AsesorAcademico" method="post" class="d-inline">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="documentId" value="@doc.DocumentId" />
+                                            <button type="submit" class="btn btn-sm btn-ghost-sep text-success border border-success border-opacity-25" title="Aprobar">
+                                                <i class="bi bi-check-lg"></i>
+                                            </button>
+                                        </form>
+                                        <button type="button" class="btn btn-sm btn-ghost-sep text-danger border border-danger border-opacity-25"
+                                                data-bs-toggle="modal" data-bs-target="#modalRechazo"
+                                                data-doc-id="@doc.DocumentId" title="Rechazar">
+                                            <i class="bi bi-x-lg"></i>
+                                        </button>
+                                    </div>
+                                }
+                                else
+                                {
+                                    <span class="txt-body text-xxs opacity-50">—</span>
+                                }
+                            </td>
+                        </tr>
+                    }
                 </tbody>
             </table>
         </div>
     </div>
 </div>
 
+<!-- Modal Rechazo -->
 <div class="modal fade" id="modalRechazo" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-theme shadow-sm rounded-4 overflow-hidden bg-surface">
-            <div class="modal-header border-bottom border-theme p-4">
-                <h5 class="modal-title txt-title fw-bold">
-                    <i class="bi bi-exclamation-circle me-2 text-danger"></i> Rechazar Documento
-                </h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body p-4">
-                <label class="txt-body text-xs fw-bold tracking-wide mb-2 d-block">MOTIVO DEL RECHAZO / CORRECCIONES</label>
-                <textarea class="form-control bg-app border-theme text-sm" rows="4" placeholder="Describa qué debe cambiar el alumno..."></textarea>
-            </div>
-            <div class="modal-footer border-top border-theme bg-app p-3">
-                <button type="button" class="btn btn-ghost-sep" data-bs-dismiss="modal">Cancelar</button>
-                <button type="submit" class="btn btn-primary-sep bg-primary-900 text-white shadow-sm">Enviar Retroalimentación</button>
-            </div>
+            <form asp-action="RechazarDocumento" asp-controller="AsesorAcademico" method="post">
+                @Html.AntiForgeryToken()
+                <input type="hidden" id="rechazarDocId" name="documentId" value="" />
+                <div class="modal-header border-bottom border-theme p-4">
+                    <h5 class="modal-title txt-title fw-bold">
+                        <i class="bi bi-exclamation-circle me-2 text-danger"></i> Rechazar Documento
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <label class="txt-body text-xs fw-bold tracking-wide mb-2 d-block">MOTIVO DEL RECHAZO / CORRECCIONES</label>
+                    <textarea name="comments" class="form-control bg-app border-theme text-sm" rows="4" placeholder="Describa qué debe cambiar el alumno..." required></textarea>
+                </div>
+                <div class="modal-footer border-top border-theme bg-app p-3">
+                    <button type="button" class="btn btn-ghost-sep" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary-sep bg-primary-900 text-white shadow-sm">Enviar Retroalimentación</button>
+                </div>
+            </form>
         </div>
     </div>
 </div>
+
+@section Scripts {
+    <script>
+        document.getElementById('modalRechazo').addEventListener('show.bs.modal', function (event) {
+            var btn = event.relatedTarget;
+            document.getElementById('rechazarDocId').value = btn.getAttribute('data-doc-id');
+        });
+    </script>
+}

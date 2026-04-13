@@ -1,64 +1,77 @@
-﻿@* Nota: Para esta vista unificada, asegúrate de que tu Controlador envíe un ViewModel Maestro que contenga la información de todos los pasos, o adapta las variables @Model según tu estructura *@
+@model ControlEscolar.ViewModels.StudentPortal.SocialServicePortalViewModel
 @{
     ViewData["Title"] = "Servicio Social Comunitario";
     Layout = "_LayoutAlumno";
     ViewData["ShowBackButton"] = true;
+
+    var progress = Math.Clamp(Model.ProgressPercent, 0m, 100m);
+    var approvedReports = Model.WeeklyReports.Count(x => string.Equals(x.StatusCode, "APPROVED", StringComparison.OrdinalIgnoreCase));
+    var selectedInstitutionId = Model.OrganizationId;
+    var requestedLetter = Model.Documents.FirstOrDefault(x => x.DocumentType == "PRESENTATION_LETTER");
+    var letterStatus = requestedLetter?.StatusCode ?? "NONE";
+    var letterIsPending = string.Equals(letterStatus, "PENDING", StringComparison.OrdinalIgnoreCase);
+    var letterIsApproved = string.Equals(letterStatus, "APPROVED", StringComparison.OrdinalIgnoreCase);
+    var letterIsRejected = string.Equals(letterStatus, "REJECTED", StringComparison.OrdinalIgnoreCase);
+    var showLetterRequestForm = requestedLetter == null || letterIsRejected;
 }
 
 <div class="row g-4 align-items-start mx-auto" style="max-width: 1200px;">
-    
     <div class="col-12 col-lg-4 col-xl-3 position-lg-sticky" style="top: 80px;">
         <div class="bg-white p-4 rounded-4 shadow-sm border border-light d-flex flex-column gap-4">
-            
             <div class="text-center pb-3 border-bottom border-light">
                 <div class="bg-light rounded-circle d-flex align-items-center justify-content-center mx-auto mb-3 border shadow-sm" style="width: 60px; height: 60px;">
                     <i class="bi bi-heart-pulse-fill text-dark fs-3"></i>
                 </div>
                 <h6 class="fw-bold mb-1 txt-title">Servicio Social</h6>
-                <p class="text-muted text-xs mb-0">Gestión y Liberación</p>
-                
+                <p class="text-muted text-xs mb-0">Gestion y Liberacion</p>
+
                 <div class="mt-3">
                     <div class="d-flex justify-content-between mb-1">
                         <span class="text-xs fw-bold text-muted">Avance General</span>
-                        <span class="text-xs fw-bold text-dark">30%</span>
+                        <span class="text-xs fw-bold text-dark">@progress.ToString("0.#")%</span>
                     </div>
                     <div class="progress shadow-sm" style="height: 6px;">
-                        <div class="progress-bar bg-dark" role="progressbar" style="width: 30%;"></div>
+                        <div class="progress-bar bg-dark" role="progressbar" style="width: @progress.ToString(System.Globalization.CultureInfo.InvariantCulture)%"></div>
                     </div>
                 </div>
+                <div class="mt-3 text-xs text-muted">Estado actual: <strong class="text-dark">@Model.AssignmentStatusCode</strong></div>
             </div>
 
             <ul class="nav flex-column nav-pills-custom" id="socialTabs" role="tablist">
                 <li class="nav-item" role="presentation">
                     <button class="nav-link w-100 active d-flex justify-content-between align-items-center" data-bs-toggle="pill" data-bs-target="#paso1" type="button">
                         <span><i class="bi bi-person-badge me-2"></i> 1. Mis Datos</span>
-                        <i class="bi bi-check-circle-fill text-success" style="font-size: 0.8rem;"></i>
+                        <i class="bi bi-check-circle-fill @(string.IsNullOrWhiteSpace(Model.Email) || Model.Email == "Sin correo" ? "text-muted" : "text-success")" style="font-size: 0.8rem;"></i>
                     </button>
                 </li>
                 <li class="nav-item" role="presentation">
                     <button class="nav-link w-100 d-flex justify-content-between align-items-center" data-bs-toggle="pill" data-bs-target="#paso2" type="button">
-                        <span><i class="bi bi-building me-2"></i> 2. Institución</span>
-                        <i class="bi bi-check-circle-fill text-success d-none" style="font-size: 0.8rem;"></i>
+                        <span><i class="bi bi-building me-2"></i> 2. Institucion</span>
+                        <i class="bi bi-check-circle-fill @(Model.OrganizationId > 0 ? "text-success" : "text-muted")" style="font-size: 0.8rem;"></i>
                     </button>
                 </li>
                 <li class="nav-item" role="presentation">
                     <button class="nav-link w-100 d-flex justify-content-between align-items-center" data-bs-toggle="pill" data-bs-target="#paso3" type="button">
                         <span><i class="bi bi-envelope-paper me-2"></i> 3. Carta Solicitud</span>
+                        <i class="bi bi-check-circle-fill @((Model.RequestedLettersCount > 0 || Model.HasAcceptanceLetter) ? "text-success" : "text-muted")" style="font-size: 0.8rem;"></i>
                     </button>
                 </li>
                 <li class="nav-item" role="presentation">
                     <button class="nav-link w-100 d-flex justify-content-between align-items-center" data-bs-toggle="pill" data-bs-target="#paso4" type="button">
                         <span><i class="bi bi-person-workspace me-2"></i> 4. Asesor Asignado</span>
+                        <i class="bi bi-check-circle-fill @(Model.AcademicAdvisorName == "Sin asignar" ? "text-muted" : "text-success")" style="font-size: 0.8rem;"></i>
                     </button>
                 </li>
                 <li class="nav-item" role="presentation">
                     <button class="nav-link w-100 d-flex justify-content-between align-items-center" data-bs-toggle="pill" data-bs-target="#paso5" type="button">
                         <span><i class="bi bi-clock-history me-2"></i> 5. Registro de Horas</span>
+                        <i class="bi bi-check-circle-fill @(Model.WeeklyReports.Any() || Model.HourLogs.Any() ? "text-success" : "text-muted")" style="font-size: 0.8rem;"></i>
                     </button>
                 </li>
                 <li class="nav-item" role="presentation">
                     <button class="nav-link w-100 d-flex justify-content-between align-items-center" data-bs-toggle="pill" data-bs-target="#paso6" type="button">
-                        <span><i class="bi bi-clipboard-check me-2"></i> 6. Evaluación Final</span>
+                        <span><i class="bi bi-clipboard-check me-2"></i> 6. Evaluacion Final</span>
+                        <i class="bi bi-check-circle-fill @(Model.IsReleased || Model.EvaluationScore.HasValue ? "text-success" : "text-muted")" style="font-size: 0.8rem;"></i>
                     </button>
                 </li>
             </ul>
@@ -66,80 +79,93 @@
     </div>
 
     <div class="col-12 col-lg-8 col-xl-9">
+        @if (TempData["SuccessMessage"] != null)
+        {
+            <div class="alert bg-success-100 border border-success-700 text-success-700 rounded-3 shadow-sm"><i class="bi bi-check-circle-fill me-2"></i>@TempData["SuccessMessage"]</div>
+        }
+        @if (TempData["ErrorMessage"] != null)
+        {
+            <div class="alert bg-error-100 border border-danger border-opacity-25 text-danger rounded-3 shadow-sm"><i class="bi bi-exclamation-triangle-fill me-2"></i>@TempData["ErrorMessage"]</div>
+        }
+
         <div class="tab-content bg-white p-4 p-md-5 rounded-4 shadow-sm border border-light">
-            
             <div class="tab-pane fade show active" id="paso1" role="tabpanel">
                 <div class="mb-4 pb-3 border-bottom">
                     <h4 class="fw-bold txt-title mb-1">1. Datos del Estudiante</h4>
-                    <p class="text-muted text-sm mb-0">Información personal y académica para tu expediente de servicio social.</p>
+                    <p class="text-muted text-sm mb-0">Informacion personal y academica para tu expediente de servicio social.</p>
                 </div>
 
                 <form asp-action="StudentInfo" asp-controller="SocialServiceStudent" method="post">
                     @Html.AntiForgeryToken()
-                    
+
                     <div class="bg-light p-3 rounded-3 border border-light mb-4">
                         <h6 class="fw-bold text-dark text-sm mb-3"><i class="bi bi-shield-lock-fill me-2"></i>Datos del Sistema</h6>
                         <div class="row g-3">
                             <div class="col-md-6">
                                 <label class="form-label-custom">Nombre Completo</label>
-                                <input type="text" class="form-control custom-input bg-white text-muted" value="Roberto Carlos Perez Cadena" readonly />
+                                <input type="text" class="form-control custom-input bg-white text-muted" value="@Model.FullName" readonly />
                             </div>
                             <div class="col-md-6">
                                 <label class="form-label-custom">Carrera</label>
-                                <input type="text" class="form-control custom-input bg-white text-muted" value="TSU en Desarrollo de Software" readonly />
+                                <input type="text" class="form-control custom-input bg-white text-muted" value="@Model.CareerName" readonly />
                             </div>
                             <div class="col-md-6">
-                                <label class="form-label-custom">Matrícula</label>
-                                <input type="text" class="form-control custom-input bg-white text-muted" value="26001504" readonly />
+                                <label class="form-label-custom">Matricula</label>
+                                <input type="text" class="form-control custom-input bg-white text-muted" value="@Model.Matricula" readonly />
                             </div>
                             <div class="col-md-6">
                                 <label class="form-label-custom">CURP</label>
-                                <input type="text" class="form-control custom-input bg-white text-muted" value="PECR000000XXXXXX00" readonly />
+                                <input type="text" class="form-control custom-input bg-white text-muted" value="@Model.Curp" readonly />
                             </div>
                         </div>
                     </div>
 
-                    <h6 class="fw-bold text-dark text-sm mb-3"><i class="bi bi-pencil-square me-2"></i>Información a Completar</h6>
+                    <h6 class="fw-bold text-dark text-sm mb-3"><i class="bi bi-pencil-square me-2"></i>Informacion a Completar</h6>
                     <div class="row g-3 mb-4">
                         <div class="col-md-6">
                             <label class="form-label-custom">Correo Institucional *</label>
-                            <input type="email" class="form-control custom-input" name="InstitutionalEmail" placeholder="correo@uttn.mx" required />
+                            <input type="email" class="form-control custom-input" name="InstitutionalEmail" value="@(Model.Email == "Sin correo" ? string.Empty : Model.Email)" placeholder="correo@uttn.mx" />
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label-custom">Teléfono Celular *</label>
-                            <input type="tel" class="form-control custom-input" name="MobilePhone" placeholder="899-000-0000" required />
+                            <label class="form-label-custom">Telefono Celular *</label>
+                            <input type="tel" class="form-control custom-input" name="MobilePhone" value="@(Model.Phone == "Sin telefono" ? string.Empty : Model.Phone)" placeholder="899-000-0000" />
                         </div>
                         <div class="col-md-4">
                             <label class="form-label-custom">Grado *</label>
-                            <select class="form-select custom-input" name="Grade" required>
+                            <select class="form-select custom-input" name="Grade">
                                 <option value="">Selecciona...</option>
-                                <option value="7">7° Cuatrimestre</option>
+                                <option value="7" selected="@(Model.Grade == "7")">7 Cuatrimestre</option>
+                                <option value="8" selected="@(Model.Grade == "8")">8 Cuatrimestre</option>
+                                <option value="9" selected="@(Model.Grade == "9")">9 Cuatrimestre</option>
+                                <option value="10" selected="@(Model.Grade == "10")">10 Cuatrimestre</option>
                             </select>
                         </div>
                         <div class="col-md-4">
                             <label class="form-label-custom">Grupo *</label>
-                            <input type="text" class="form-control custom-input" name="GroupCode" placeholder="Ej. A" required />
+                            <input type="text" class="form-control custom-input" name="GroupCode" value="@(Model.GroupCode == "Sin grupo" ? string.Empty : Model.GroupCode)" placeholder="Ej. A" />
                         </div>
                         <div class="col-md-4">
                             <label class="form-label-custom">Turno *</label>
-                            <select class="form-select custom-input" name="Shift" required>
+                            <select class="form-select custom-input" name="Shift">
                                 <option value="">Selecciona...</option>
-                                <option value="Matutino">Matutino</option>
-                                <option value="Vespertino">Vespertino</option>
+                                <option value="Matutino" selected="@(Model.Shift == "Matutino")">Matutino</option>
+                                <option value="Vespertino" selected="@(Model.Shift == "Vespertino")">Vespertino</option>
                             </select>
                         </div>
                         <div class="col-md-6">
                             <label class="form-label-custom">Periodo de Servicio *</label>
-                            <select class="form-select custom-input" name="ServicePeriod" required>
+                            <select class="form-select custom-input" name="ServicePeriod">
                                 <option value="">Selecciona...</option>
-                                <option value="ENE-JUN">Enero - Junio</option>
-                                <option value="AGO-DIC">Agosto - Diciembre</option>
+                                <option value="ENE-JUN" selected="@(Model.ServicePeriod == "ENE-JUN")">Enero - Junio</option>
+                                <option value="AGO-DIC" selected="@(Model.ServicePeriod == "AGO-DIC")">Agosto - Diciembre</option>
                             </select>
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label-custom">Año *</label>
-                            <select class="form-select custom-input" name="ServiceYear" required>
-                                <option value="2026">2026</option>
+                            <label class="form-label-custom">Ano *</label>
+                            <select class="form-select custom-input" name="ServiceYear">
+                                <option value="">Selecciona...</option>
+                                <option value="2026" selected="@(Model.ServiceYear == 2026)">2026</option>
+                                <option value="2027" selected="@(Model.ServiceYear == 2027)">2027</option>
                             </select>
                         </div>
                     </div>
@@ -153,9 +179,17 @@
 
             <div class="tab-pane fade" id="paso2" role="tabpanel">
                 <div class="mb-4 pb-3 border-bottom">
-                    <h4 class="fw-bold txt-title mb-1">2. Institución de Servicio</h4>
-                    <p class="text-muted text-sm mb-0">Selecciona o registra la institución donde realizarás tu servicio social.</p>
+                    <h4 class="fw-bold txt-title mb-1">2. Institucion de Servicio</h4>
+                    <p class="text-muted text-sm mb-0">Selecciona o registra la institucion donde realizaras tu servicio social.</p>
                 </div>
+
+                @if (Model.OrganizationId > 0)
+                {
+                    <div class="alert alert-light border border-secondary shadow-sm mb-4">
+                        <i class="bi bi-building-check me-2 text-dark"></i>
+                        Institucion actual: <strong>@Model.OrganizationName</strong>. Contacto registrado: <strong>@Model.OrganizationContact</strong>.
+                    </div>
+                }
 
                 <form asp-action="PlacementSupport" asp-controller="SocialServiceStudent" method="post">
                     @Html.AntiForgeryToken()
@@ -166,8 +200,8 @@
                             <div class="card h-100 border-0 shadow-sm custom-radio-card border-dark bg-white" id="card-needs-help" onclick="selectType('NEEDS_HELP')" style="cursor:pointer; border-width: 2px !important;">
                                 <div class="card-body text-center p-4">
                                     <i class="bi bi-search fs-1 text-dark mb-3"></i>
-                                    <h6 class="fw-bold text-dark">Buscar Institución</h6>
-                                    <p class="text-muted text-xs mb-0">Ver catálogo de instituciones disponibles en la universidad.</p>
+                                    <h6 class="fw-bold text-dark">Buscar Institucion</h6>
+                                    <p class="text-muted text-xs mb-0">Ver catalogo de instituciones disponibles en la universidad.</p>
                                 </div>
                             </div>
                         </div>
@@ -175,57 +209,64 @@
                             <div class="card h-100 border-0 shadow-sm custom-radio-card bg-light" id="card-has-institution" onclick="selectType('HAS_INSTITUTION')" style="cursor:pointer; border-width: 2px !important; border-color: transparent;">
                                 <div class="card-body text-center p-4">
                                     <i class="bi bi-building-check fs-1 text-secondary mb-3"></i>
-                                    <h6 class="fw-bold text-dark">Ya tengo Institución</h6>
-                                    <p class="text-muted text-xs mb-0">Registraré los datos manualmente.</p>
+                                    <h6 class="fw-bold text-dark">Ya tengo Institucion</h6>
+                                    <p class="text-muted text-xs mb-0">Registrare los datos manualmente.</p>
                                 </div>
                             </div>
                         </div>
                     </div>
 
                     <div id="section-needs-help" class="bg-light p-4 rounded-4 border border-light mb-4">
-                        <h6 class="fw-bold text-dark text-sm mb-3"><i class="bi bi-geo-alt-fill me-2"></i>Filtrar Instituciones</h6>
-                        <select class="form-select custom-input mb-4" name="SelectedZoneId">
-                            <option value="">-- Todas las zonas --</option>
-                            <option value="1">Zona Centro</option>
-                            <option value="2">Zona Norte</option>
-                        </select>
+                        <h6 class="fw-bold text-dark text-sm mb-3"><i class="bi bi-geo-alt-fill me-2"></i>Instituciones disponibles</h6>
 
-                        <label class="form-label fw-bold text-sm text-dark">Selecciona tu institución:</label>
+                        <label class="form-label fw-bold text-sm text-dark">Selecciona tu institucion:</label>
                         <div class="row g-3">
-                            <div class="col-md-12">
-                                <div class="form-check bg-white border rounded-3 p-3 shadow-sm d-flex align-items-center cursor-pointer">
-                                    <input class="form-check-input ms-0 me-3" type="radio" name="SelectedInstitutionId" value="1" id="inst-1">
-                                    <label class="form-check-label text-sm w-100 cursor-pointer" for="inst-1">
-                                        <strong class="d-block text-dark">Centro de Salud Comunitario Reynosa</strong>
-                                        <span class="text-muted text-xs"><i class="bi bi-geo-alt me-1"></i>Calle Pemex #123, Col. Centro</span>
-                                        <span class="d-block text-muted text-xs mt-1"><i class="bi bi-person me-1"></i>Dra. Elena Silva | <i class="bi bi-telephone ms-2 me-1"></i>899-123-4567</span>
-                                    </label>
+                            @if (!Model.AvailableOrganizations.Any())
+                            {
+                                <div class="col-12">
+                                    <div class="bg-white border rounded-3 p-3 shadow-sm text-muted text-sm">No hay instituciones activas registradas por el momento.</div>
                                 </div>
-                            </div>
+                            }
+                            else
+                            {
+                                foreach (var option in Model.AvailableOrganizations)
+                                {
+                                    <div class="col-md-12">
+                                        <div class="form-check bg-white border rounded-3 p-3 shadow-sm d-flex align-items-center cursor-pointer">
+                                            <input class="form-check-input ms-0 me-3" type="radio" name="SelectedInstitutionId" value="@option.Id" id="inst-@option.Id" checked="@(selectedInstitutionId == option.Id)">
+                                            <label class="form-check-label text-sm w-100 cursor-pointer" for="inst-@option.Id">
+                                                <strong class="d-block text-dark">@option.Name</strong>
+                                                <span class="text-muted text-xs"><i class="bi bi-geo-alt me-1"></i>@option.Address</span>
+                                                <span class="d-block text-muted text-xs mt-1"><i class="bi bi-person me-1"></i>@option.ContactName | <i class="bi bi-telephone ms-2 me-1"></i>@option.Phone</span>
+                                            </label>
+                                        </div>
+                                    </div>
+                                }
+                            }
                         </div>
                     </div>
 
                     <div id="section-has-institution" class="d-none">
-                        <h6 class="fw-bold text-dark border-bottom pb-2 mb-3">Datos de la Institución</h6>
+                        <h6 class="fw-bold text-dark border-bottom pb-2 mb-3">Datos de la Institucion</h6>
                         <div class="row g-3 mb-4">
                             <div class="col-12">
-                                <label class="form-label-custom">Nombre de la Institución *</label>
-                                <input type="text" class="form-control custom-input" name="InstitutionName" placeholder="Ej: DIF Municipal" />
+                                <label class="form-label-custom">Nombre de la Institucion *</label>
+                                <input type="text" class="form-control custom-input" name="InstitutionName" placeholder="Ej: DIF Municipal" value="@(Model.OrganizationId > 0 ? Model.OrganizationName : string.Empty)" />
                             </div>
                             <div class="col-12">
-                                <label class="form-label-custom">Dirección Completa *</label>
-                                <input type="text" class="form-control custom-input" name="Address" placeholder="Calle, número, colonia" />
+                                <label class="form-label-custom">Direccion Completa *</label>
+                                <input type="text" class="form-control custom-input" name="Address" placeholder="Calle, numero, colonia" />
                             </div>
                             <div class="col-md-6">
                                 <label class="form-label-custom">Persona de Contacto *</label>
-                                <input type="text" class="form-control custom-input" name="ContactName" placeholder="Nombre completo" />
+                                <input type="text" class="form-control custom-input" name="ContactName" placeholder="Nombre completo" value="@(Model.OrganizationContact == "Sin contacto" ? string.Empty : Model.OrganizationContact)" />
                             </div>
                             <div class="col-md-6">
-                                <label class="form-label-custom">Teléfono *</label>
+                                <label class="form-label-custom">Telefono *</label>
                                 <input type="tel" class="form-control custom-input" name="Phone" placeholder="899-000-0000" />
                             </div>
                             <div class="col-md-12">
-                                <label class="form-label-custom">Correo Electrónico</label>
+                                <label class="form-label-custom">Correo Electronico</label>
                                 <input type="email" class="form-control custom-input" name="Email" placeholder="correo@institucion.com" />
                             </div>
                         </div>
@@ -245,22 +286,54 @@
 
             <div class="tab-pane fade" id="paso3" role="tabpanel">
                 <div class="mb-4 pb-3 border-bottom">
-                    <h4 class="fw-bold txt-title mb-1">3. Carta de Presentación</h4>
-                    <p class="text-muted text-sm mb-0">Solicita tu carta oficial de asignación de servicio social.</p>
+                    <h4 class="fw-bold txt-title mb-1">3. Carta de Presentacion</h4>
+                    <p class="text-muted text-sm mb-0">Solicita tu carta oficial de asignacion de servicio social.</p>
                 </div>
 
-                <div class="alert alert-light border border-secondary shadow-sm mb-4">
-                    <i class="bi bi-info-circle me-2 text-dark"></i> Rellena los datos faltantes para generar la carta dirigida a tu institución.
+                <div class="rounded-4 p-4 shadow-sm mb-4 border @(letterIsApproved ? "border-success bg-success bg-opacity-10" : letterIsRejected ? "border-danger bg-danger bg-opacity-10" : letterIsPending ? "border-warning bg-warning bg-opacity-10" : "border-secondary bg-light")">
+                    <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3">
+                        <div>
+                            @if (requestedLetter == null)
+                            {
+                                <div class="fw-bold text-dark mb-1"><i class="bi bi-info-circle me-2"></i>Sin solicitud registrada</div>
+                                <div class="text-muted text-sm">Completa los datos para generar tu carta de solicitud.</div>
+                            }
+                            else if (letterIsPending)
+                            {
+                                <div class="fw-bold text-warning mb-1"><i class="bi bi-hourglass-split me-2"></i>Carta en revision</div>
+                                <div class="text-dark text-sm">Tu carta de solicitud esta en espera de revision por el tutor.</div>
+                            }
+                            else if (letterIsApproved)
+                            {
+                                <div class="fw-bold text-success mb-1"><i class="bi bi-check-circle-fill me-2"></i>Carta aprobada</div>
+                                <div class="text-dark text-sm">Tu carta de solicitud ya fue enviada exitosamente a tu correo: <strong>@(Model.Email == "Sin correo" ? "correo no registrado" : Model.Email)</strong>.</div>
+                            }
+                            else if (letterIsRejected)
+                            {
+                                <div class="fw-bold text-danger mb-1"><i class="bi bi-x-circle-fill me-2"></i>Carta rechazada</div>
+                                <div class="text-dark text-sm">Tu carta fue rechazada por el tutor.</div>
+                                @if (!string.IsNullOrWhiteSpace(requestedLetter?.ReviewComments))
+                                {
+                                    <div class="text-danger text-sm mt-1">Comentarios: <strong>@requestedLetter.ReviewComments</strong></div>
+                                }
+                            }
+                        </div>
+                        <span class="badge @(letterIsApproved ? "bg-success text-white" : letterIsRejected ? "bg-danger text-white" : letterIsPending ? "bg-warning text-dark" : "bg-secondary text-white") px-3 py-2">
+                            @(letterIsApproved ? "Aprobada" : letterIsRejected ? "Rechazada" : letterIsPending ? "Pendiente" : "Sin solicitud")
+                        </span>
+                    </div>
                 </div>
 
+                @if (showLetterRequestForm)
+                {
                 <form asp-action="PresentationLetter" asp-controller="SocialServiceStudent" method="post">
                     @Html.AntiForgeryToken()
-                    
+
                     <h6 class="fw-bold text-dark border-bottom pb-2 mb-3">Datos del Destinatario</h6>
                     <div class="row g-3 mb-4">
                         <div class="col-md-12">
-                            <label class="form-label-custom">Nombre de la Institución *</label>
-                            <input type="text" class="form-control custom-input" name="InstitutionName" placeholder="Razón Social Completa" required />
+                            <label class="form-label-custom">Nombre de la Institucion *</label>
+                            <input type="text" class="form-control custom-input" name="InstitutionName" placeholder="Razon Social Completa" value="@(Model.OrganizationId > 0 ? Model.OrganizationName : string.Empty)" required />
                         </div>
                         <div class="col-md-6">
                             <label class="form-label-custom">Dirigida a (Nombre completo) *</label>
@@ -282,12 +355,34 @@
                         </div>
                     </div>
                 </form>
+                }
+
+                <div class="bg-light p-4 rounded-4 border border-light mt-4 shadow-sm">
+                    <h6 class="fw-bold text-dark mb-2"><i class="bi bi-file-earmark-check me-2"></i>Subir Carta de Aceptacion</h6>
+                    <p class="text-muted text-xs mb-3">Adjunta la carta de aceptacion emitida por la institucion para validacion.</p>
+                    @if (Model.HasAcceptanceLetter)
+                    {
+                        <div class="mb-3 text-success text-sm fw-bold"><i class="bi bi-check-circle-fill me-2"></i>Carta de aceptacion cargada correctamente.</div>
+                    }
+                    <form asp-action="AcceptanceLetter" asp-controller="SocialServiceStudent" method="post" enctype="multipart/form-data">
+                        @Html.AntiForgeryToken()
+                        <div class="row g-3 align-items-end">
+                            <div class="col-md-9">
+                                <label class="form-label-custom">Carta de Aceptacion (PDF) *</label>
+                                <input type="file" name="AcceptanceLetterFile" class="form-control custom-input bg-white" accept=".pdf" required>
+                            </div>
+                            <div class="col-md-3 d-grid">
+                                <button type="submit" class="btn btn-dark fw-bold shadow-sm"><i class="bi bi-cloud-upload me-2"></i>Subir</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
             </div>
 
             <div class="tab-pane fade" id="paso4" role="tabpanel">
                 <div class="mb-4 pb-3 border-bottom">
-                    <h4 class="fw-bold txt-title mb-1">4. Asesor Académico</h4>
-                    <p class="text-muted text-sm mb-0">Consulta tu asesor asignado por coordinación.</p>
+                    <h4 class="fw-bold txt-title mb-1">4. Asesor Academico</h4>
+                    <p class="text-muted text-sm mb-0">Consulta tu asesor asignado por coordinacion.</p>
                 </div>
 
                 <div class="bg-light border rounded-4 p-4 mb-4 shadow-sm">
@@ -296,17 +391,17 @@
                             <i class="bi bi-person-fill text-dark fs-1"></i>
                         </div>
                         <div class="w-100 text-center text-md-start">
-                            <h5 class="fw-bold text-dark mb-1">Mtra. Laura Martínez</h5>
-                            <span class="badge bg-white text-dark border px-3 py-1 mb-3 shadow-sm">Asesor Académico</span>
-                            
+                            <h5 class="fw-bold text-dark mb-1">@Model.AcademicAdvisorName</h5>
+                            <span class="badge bg-white text-dark border px-3 py-1 mb-3 shadow-sm">Asesor Academico</span>
+
                             <div class="row g-3 text-start bg-white p-3 rounded-3 border">
                                 <div class="col-md-6">
-                                    <small class="text-muted fw-bold d-block text-xs">Correo Electrónico</small>
-                                    <span class="text-dark fw-bold text-sm"><i class="bi bi-envelope me-1"></i> lmartinez@uttn.mx</span>
+                                    <small class="text-muted fw-bold d-block text-xs">Correo Electronico</small>
+                                    <span class="text-dark fw-bold text-sm"><i class="bi bi-envelope me-1"></i>@Model.AcademicAdvisorEmail</span>
                                 </div>
                                 <div class="col-md-6">
-                                    <small class="text-muted fw-bold d-block text-xs">Teléfono</small>
-                                    <span class="text-dark fw-bold text-sm"><i class="bi bi-telephone me-1"></i> 899-123-4567 Ext. 102</span>
+                                    <small class="text-muted fw-bold d-block text-xs">Telefono</small>
+                                    <span class="text-dark fw-bold text-sm"><i class="bi bi-telephone me-1"></i>@Model.AcademicAdvisorPhone</span>
                                 </div>
                             </div>
                         </div>
@@ -330,29 +425,33 @@
                         <p class="text-muted text-sm mb-0">Registra y consulta tus horas de servicio completadas.</p>
                     </div>
                     <div class="text-start text-sm-end mt-3 mt-sm-0">
-                        <span class="badge bg-light text-dark border px-3 py-2 fs-6 shadow-sm">Total: <strong class="text-success">120</strong> / 480 hrs</span>
+                        <span class="badge bg-light text-dark border px-3 py-2 fs-6 shadow-sm">Total: <strong class="text-success">@Model.TotalHours.ToString("0.##")</strong> / @Model.RequiredHours.ToString("0.##") hrs</span>
                     </div>
                 </div>
 
                 <div class="bg-light p-4 rounded-4 border border-light mb-4 shadow-sm">
-                    <h6 class="fw-bold text-dark text-sm mb-3"><i class="bi bi-plus-circle me-2"></i>Registrar Nuevas Horas</h6>
-                    <form asp-action="HoursLog" asp-controller="SocialServiceStudent" method="post">
+                    <h6 class="fw-bold text-dark text-sm mb-3"><i class="bi bi-plus-circle me-2"></i>Subir Reporte Semanal</h6>
+                    <form asp-action="WeeklyReports" asp-controller="SocialServiceStudent" method="post" enctype="multipart/form-data">
                         @Html.AntiForgeryToken()
                         <div class="row g-3 align-items-end">
-                            <div class="col-md-3">
-                                <label class="form-label-custom">Fecha *</label>
-                                <input type="date" class="form-control custom-input bg-white" name="LogDate" max="@DateTime.Today.ToString("yyyy-MM-dd")" required />
+                            <div class="col-md-2">
+                                <label class="form-label-custom">Semana *</label>
+                                <input type="number" class="form-control custom-input bg-white" name="WeekNumber" min="1" max="24" value="@(Model.WeeklyReports.Any() ? (Model.WeeklyReports.Max(x => x.WeekNumber ?? 0) + 1) : 1)" required />
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label-custom">Titulo / Actividad *</label>
+                                <input type="text" class="form-control custom-input bg-white" name="ReportTitle" placeholder="Ej. Campana de salud" required />
                             </div>
                             <div class="col-md-2">
                                 <label class="form-label-custom">Horas *</label>
-                                <input type="number" class="form-control custom-input bg-white" name="HoursWorked" min="0.5" max="12" step="0.5" placeholder="Ej. 4" required />
+                                <input type="number" class="form-control custom-input bg-white" name="HoursWorked" min="0.5" max="40" step="0.5" placeholder="Ej. 8" required />
                             </div>
-                            <div class="col-md-5">
-                                <label class="form-label-custom">Descripción de Actividad *</label>
-                                <input type="text" class="form-control custom-input bg-white" name="ActivityDescription" placeholder="Ej. Apoyo administrativo" required />
+                            <div class="col-md-4">
+                                <label class="form-label-custom">Archivo (PDF) *</label>
+                                <input type="file" class="form-control custom-input bg-white" name="ReportFile" accept=".pdf" required />
                             </div>
-                            <div class="col-md-2 d-grid">
-                                <button type="submit" class="btn btn-dark fw-bold shadow-sm">Registrar</button>
+                            <div class="col-md-12 d-grid d-md-flex justify-content-md-end">
+                                <button type="submit" class="btn btn-dark fw-bold shadow-sm"><i class="bi bi-cloud-upload me-2"></i>Enviar Reporte</button>
                             </div>
                         </div>
                     </form>
@@ -370,22 +469,37 @@
                             </tr>
                         </thead>
                         <tbody>
-                            <tr class="border-bottom hover-bg-light">
-                                <td class="px-3 fw-bold text-dark">21/03/2026</td>
-                                <td class="text-muted">Organización de expedientes médicos.</td>
-                                <td class="text-center fw-bold">4.0</td>
-                                <td class="text-center px-3">
-                                    <span class="badge bg-white text-dark border px-3 py-2 shadow-sm"><i class="bi bi-circle-fill text-success me-1" style="font-size:0.5rem;"></i> Aprobado</span>
-                                </td>
-                            </tr>
-                            <tr class="border-bottom hover-bg-light">
-                                <td class="px-3 fw-bold text-dark">22/03/2026</td>
-                                <td class="text-muted">Captura de datos en sistema.</td>
-                                <td class="text-center fw-bold">4.0</td>
-                                <td class="text-center px-3">
-                                    <span class="badge bg-white text-dark border px-3 py-2 shadow-sm"><i class="bi bi-circle-fill text-warning me-1" style="font-size:0.5rem;"></i> Pendiente</span>
-                                </td>
-                            </tr>
+                            @if (!Model.WeeklyReports.Any() && !Model.HourLogs.Any())
+                            {
+                                <tr>
+                                    <td colspan="4" class="text-center py-4 text-muted">Aun no hay horas ni reportes registrados.</td>
+                                </tr>
+                            }
+                            else
+                            {
+                                foreach (var item in Model.WeeklyReports.Concat(Model.HourLogs).OrderByDescending(x => x.UploadDate).Take(10))
+                                {
+                                    var statusClass = string.Equals(item.StatusCode, "APPROVED", StringComparison.OrdinalIgnoreCase)
+                                        ? "text-success"
+                                        : string.Equals(item.StatusCode, "REJECTED", StringComparison.OrdinalIgnoreCase)
+                                            ? "text-danger"
+                                            : "text-warning";
+                                    var statusText = string.Equals(item.StatusCode, "APPROVED", StringComparison.OrdinalIgnoreCase)
+                                        ? "Aprobado"
+                                        : string.Equals(item.StatusCode, "REJECTED", StringComparison.OrdinalIgnoreCase)
+                                            ? "Rechazado"
+                                            : "Pendiente";
+
+                                    <tr class="border-bottom hover-bg-light">
+                                        <td class="px-3 fw-bold text-dark">@item.UploadDate.ToString("dd/MM/yyyy")</td>
+                                        <td class="text-muted">@item.Title</td>
+                                        <td class="text-center fw-bold">@((item.HoursWorked ?? 0m).ToString("0.##"))</td>
+                                        <td class="text-center px-3">
+                                            <span class="badge bg-white text-dark border px-3 py-2 shadow-sm"><i class="bi bi-circle-fill @statusClass me-1" style="font-size:0.5rem;"></i> @statusText</span>
+                                        </td>
+                                    </tr>
+                                }
+                            }
                         </tbody>
                     </table>
                 </div>
@@ -395,43 +509,43 @@
                         <i class="bi bi-arrow-left me-2"></i> Anterior
                     </button>
                     <button type="button" class="btn btn-dark px-4 fw-bold shadow-sm" onclick="$('#socialTabs button[data-bs-target=\'#paso6\']').tab('show'); window.scrollTo(0,0);">
-                        Evaluación Final <i class="bi bi-arrow-right ms-2"></i>
+                        Evaluacion Final <i class="bi bi-arrow-right ms-2"></i>
                     </button>
                 </div>
             </div>
 
             <div class="tab-pane fade" id="paso6" role="tabpanel">
                 <div class="mb-4 pb-3 border-bottom">
-                    <h4 class="fw-bold txt-title mb-1">6. Evaluación y Liberación</h4>
-                    <p class="text-muted text-sm mb-0">Consulta tus evaluaciones y estado final de liberación.</p>
+                    <h4 class="fw-bold txt-title mb-1">6. Evaluacion y Liberacion</h4>
+                    <p class="text-muted text-sm mb-0">Consulta tus evaluaciones y estado final de liberacion.</p>
                 </div>
 
-                <div class="alert alert-light border border-dark rounded-4 shadow-sm mb-4 d-flex align-items-center p-4">
+                <div class="alert alert-light border @(Model.IsReleased ? "border-dark" : "border-secondary") rounded-4 shadow-sm mb-4 d-flex align-items-center p-4">
                     <div class="bg-dark rounded-circle d-flex align-items-center justify-content-center text-white me-4 flex-shrink-0" style="width: 60px; height: 60px;">
-                        <i class="bi bi-trophy-fill fs-2"></i>
+                        <i class="bi @(Model.IsReleased ? "bi-trophy-fill" : "bi-hourglass-split") fs-2"></i>
                     </div>
                     <div>
-                        <h5 class="fw-bold text-dark mb-1">¡Servicio Social Liberado!</h5>
-                        <p class="text-muted mb-0 text-sm">Felicidades, has completado satisfactoriamente tus 480 horas y evaluaciones.</p>
+                        <h5 class="fw-bold text-dark mb-1">@(Model.IsReleased ? "Servicio Social Liberado" : "Servicio Social en Proceso")</h5>
+                        <p class="text-muted mb-0 text-sm">@(Model.IsReleased ? "Felicidades, has completado satisfactoriamente tus horas y evaluaciones." : "Tu proceso sigue activo. Revisa horas, carta y evaluacion final.")</p>
                     </div>
                 </div>
 
                 <h6 class="fw-bold text-dark mb-3"><i class="bi bi-clipboard-check me-2"></i>Evaluaciones Recibidas</h6>
-                
+
                 <div class="card border border-light shadow-sm rounded-4 mb-3">
                     <div class="card-body p-4">
                         <div class="d-flex justify-content-between align-items-start mb-3">
                             <div>
-                                <h6 class="fw-bold text-dark mb-1">Evaluación Final</h6>
-                                <small class="text-muted"><i class="bi bi-calendar me-1"></i> 20/03/2026</small>
+                                <h6 class="fw-bold text-dark mb-1">Evaluacion Final</h6>
+                                <small class="text-muted"><i class="bi bi-calendar me-1"></i>@(Model.Documents.OrderByDescending(x => x.UploadDate).FirstOrDefault()?.UploadDate.ToString("dd/MM/yyyy") ?? "Sin fecha")</small>
                             </div>
-                            <span class="badge bg-white text-dark border px-3 py-2 shadow-sm"><i class="bi bi-check-circle-fill text-success me-1"></i> Liberado</span>
+                            <span class="badge bg-white text-dark border px-3 py-2 shadow-sm"><i class="bi @(Model.IsReleased ? "bi-check-circle-fill text-success" : "bi-clock-fill text-warning") me-1"></i> @(Model.IsReleased ? "Liberado" : "En revision")</span>
                         </div>
                         <div class="bg-light p-3 rounded-3 border">
-                            <p class="mb-0 text-muted text-sm"><i class="bi bi-quote fs-5 text-secondary me-1"></i>El alumno demostró gran compromiso y responsabilidad en todas las actividades asignadas.</p>
+                            <p class="mb-0 text-muted text-sm"><i class="bi bi-quote fs-5 text-secondary me-1"></i>@(string.IsNullOrWhiteSpace(Model.EvaluationNotes) ? "Aun no hay observaciones finales registradas." : Model.EvaluationNotes)</p>
                         </div>
                         <div class="mt-3 text-end">
-                            <span class="badge bg-dark text-white px-3 py-2 fs-6 shadow-sm">Calificación: 9.5</span>
+                            <span class="badge bg-dark text-white px-3 py-2 fs-6 shadow-sm">Calificacion: @(Model.EvaluationScore?.ToString("0.0") ?? "Sin evaluar")</span>
                         </div>
                     </div>
                 </div>
@@ -442,24 +556,18 @@
                     </button>
                 </div>
             </div>
-
         </div>
     </div>
 </div>
 
-
-
 @section Scripts {
     <script>
-        // Lógica visual para la selección de tipo de institución en el Paso 2
         function selectType(type) {
             document.getElementById('placementTypeInput').value = type;
-            
-            // Reiniciar estilos
-            $('.custom-radio-card').removeClass('border-dark bg-white').addClass('bg-light').css({'border-color': 'transparent'});
+
+            $('.custom-radio-card').removeClass('border-dark bg-white').addClass('bg-light').css({ 'border-color': 'transparent' });
             $('#section-needs-help, #section-has-institution').addClass('d-none');
-            
-            // Aplicar selección
+
             if (type === 'NEEDS_HELP') {
                 $('#card-needs-help').removeClass('bg-light').addClass('border-dark bg-white');
                 $('#section-needs-help').removeClass('d-none').hide().fadeIn(300);
@@ -468,5 +576,10 @@
                 $('#section-has-institution').removeClass('d-none').hide().fadeIn(300);
             }
         }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            selectType('NEEDS_HELP');
+            setTimeout(function () { $('.alert').fadeOut('slow'); }, 4000);
+        });
     </script>
 }

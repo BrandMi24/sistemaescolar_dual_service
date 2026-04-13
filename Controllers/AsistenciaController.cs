@@ -1,7 +1,9 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 
 namespace ControlEscolar.Controllers
 {
+    [Authorize(Roles = "Tutor,Teacher,Maestro,Coordinador,Admin,Administrator,Master")]
     public class AsistenciaController : Controller
     {
         public IActionResult Index()

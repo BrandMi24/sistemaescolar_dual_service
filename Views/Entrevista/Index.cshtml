@@ -1,0 +1,17 @@
+@{
+    ViewData["Title"] = "Entrevista y Asignacion";
+    Layout = "_LayoutAdmin";
+}
+
+<div class="container-fluid py-4">
+    <div class="card shadow-sm border-0">
+        <div class="card-body">
+            <h4 class="mb-2">Entrevista y Asignacion</h4>
+            <p class="text-muted mb-3">Se habilito esta vista para evitar el error por plantilla faltante.</p>
+            <div class="d-flex gap-2 flex-wrap">
+                <a class="btn btn-primary" href="@Url.Action("Entrevista", "Tutor")">Entrevista del Tutor</a>
+                <a class="btn btn-outline-primary" href="@Url.Action("Entrevista", "Alumno")">Entrevista del Alumno</a>
+            </div>
+        </div>
+    </div>
+</div>

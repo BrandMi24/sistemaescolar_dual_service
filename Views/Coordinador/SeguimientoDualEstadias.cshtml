@@ -1,9 +1,22 @@
-﻿@{
+﻿@model List<ControlEscolar.ViewModels.OperationalTracking.CoordinatorAssignmentRowViewModel>
+@{
     ViewData["Title"] = "Gestión de Asignaciones";
     Layout = "_LayoutCoordinador";
-    
-    // Captura de variables por URL para mantener el estado de los filtros (opcional)
-    var search = Context.Request.Query["search"].ToString();
+    var search = ViewBag.Search as string ?? string.Empty;
+    var selectedStatus = ViewBag.Status as string ?? string.Empty;
+    int? selectedTeacher = ViewBag.Teacher as int?;
+    var createdFrom = ViewBag.CreatedFrom as string ?? string.Empty;
+    var createdTo = ViewBag.CreatedTo as string ?? string.Empty;
+    var sort = ViewBag.Sort as string ?? "created";
+    var order = ViewBag.Order as string ?? "desc";
+    var currentPage = (int)(ViewBag.Page ?? 1);
+    var pageSize = (int)(ViewBag.PageSize ?? 10);
+    var totalPages = (int)(ViewBag.TotalPages ?? 1);
+    var totalItems = (int)(ViewBag.TotalItems ?? Model.Count);
+    var prevPage = currentPage > 1 ? currentPage - 1 : 1;
+    var nextPage = currentPage < totalPages ? currentPage + 1 : totalPages;
+    string ToggleOrder(string key) => sort == key && order == "asc" ? "desc" : "asc";
+    var teachers = ViewBag.Teachers as IEnumerable<dynamic>;
 }
 
 <div class="d-flex flex-column gap-4 fade-in">
@@ -26,6 +39,10 @@
 
     <div class="bg-surface p-4 rounded-4 border-theme shadow-sm d-flex flex-column flex-xl-row justify-content-between align-items-xl-center gap-3">
         <form method="get" class="d-flex flex-column flex-md-row gap-3 flex-grow-1 w-100" style="max-width: 1000px;">
+            <input type="hidden" name="sort" value="@sort" />
+            <input type="hidden" name="order" value="@order" />
+            <input type="hidden" name="page" value="1" />
+            <input type="hidden" name="pageSize" value="@pageSize" />
             
             <div class="position-relative search-wrapper flex-grow-1">
                 <i class="bi bi-search position-absolute search-icon-left txt-body"></i>
@@ -34,16 +51,26 @@
             
             <select name="status" class="form-select bg-app border-theme txt-title fw-bold tab-filter" style="width: auto; min-width: 160px;">
                 <option value="">Estado</option>
-                <option value="ASSIGNED">Asignado</option>
-                <option value="IN_PROGRESS">En Progreso</option>
-                <option value="COMPLETED">Completado</option>
+                <option value="ASSIGNED" selected="@(selectedStatus == "ASSIGNED")">Asignado</option>
+                <option value="IN_PROGRESS" selected="@(selectedStatus == "IN_PROGRESS")">En Progreso</option>
+                <option value="COMPLETED" selected="@(selectedStatus == "COMPLETED")">Completado</option>
+                <option value="FINALIZED" selected="@(selectedStatus == "FINALIZED")">Finalizado</option>
+                <option value="RELEASED" selected="@(selectedStatus == "RELEASED")">Liberado</option>
             </select>
             
             <select name="teacher" class="form-select bg-app border-theme txt-title fw-bold tab-filter" style="width: auto; min-width: 200px;">
                 <option value="">Todos los Profesores</option>
-                <option value="1">Dr. Gabriel López</option>
-                <option value="2">Ing. Juan Pérez Martínez</option>
+                @if (teachers != null)
+                {
+                    foreach (var t in teachers)
+                    {
+                        <option value="@t.Id" selected="@(selectedTeacher != null && selectedTeacher == (int)t.Id)">@t.Name</option>
+                    }
+                }
             </select>
+
+            <input type="date" name="createdFrom" class="form-control bg-app border-theme txt-title fw-bold tab-filter" style="width: auto; min-width: 170px;" value="@createdFrom" title="Desde" />
+            <input type="date" name="createdTo" class="form-control bg-app border-theme txt-title fw-bold tab-filter" style="width: auto; min-width: 170px;" value="@createdTo" title="Hasta" />
 
             <div class="d-flex gap-2 flex-shrink-0">
                 <button type="submit" class="btn btn-primary-sep d-flex align-items-center gap-2 shadow-sm bg-primary-900">
@@ -61,88 +88,79 @@
             <table class="table table-borderless align-middle mb-0" style="min-width: 1100px;">
                 <thead class="admin-table-header">
                     <tr>
-                        <th class="py-3 px-4" width="25%">Estudiante</th>
-                        <th class="py-3" width="20%">Programa / Org.</th>
+                        <th class="py-3 px-4" width="25%">
+                            <a class="text-reset text-decoration-none" href="@Url.Action("SeguimientoDualEstadias", new { search, status = selectedStatus, teacher = selectedTeacher, createdFrom, createdTo, sort = "student", order = ToggleOrder("student"), page = 1, pageSize })">Estudiante</a>
+                        </th>
+                        <th class="py-3" width="20%">
+                            <a class="text-reset text-decoration-none" href="@Url.Action("SeguimientoDualEstadias", new { search, status = selectedStatus, teacher = selectedTeacher, createdFrom, createdTo, sort = "program", order = ToggleOrder("program"), page = 1, pageSize })">Programa / Org.</a>
+                        </th>
                         <th class="py-3" width="20%">Supervisor</th>
-                        <th class="py-3 text-center" width="10%">Estado</th>
-                        <th class="py-3 text-center" width="15%">Horas</th>
+                        <th class="py-3 text-center" width="10%">
+                            <a class="text-reset text-decoration-none" href="@Url.Action("SeguimientoDualEstadias", new { search, status = selectedStatus, teacher = selectedTeacher, createdFrom, createdTo, sort = "status", order = ToggleOrder("status"), page = 1, pageSize })">Estado</a>
+                        </th>
+                        <th class="py-3 text-center" width="15%">
+                            <a class="text-reset text-decoration-none" href="@Url.Action("SeguimientoDualEstadias", new { search, status = selectedStatus, teacher = selectedTeacher, createdFrom, createdTo, sort = "hours", order = ToggleOrder("hours"), page = 1, pageSize })">Horas</a>
+                        </th>
                         <th class="py-3 text-end px-4" width="10%">Acciones</th>
                     </tr>
                 </thead>
                 <tbody>
-                    
-                    <tr class="border-bottom border-theme hover-bg-app data-row">
-                        <td class="px-4 py-3 search-target">
-                            <div class="d-flex align-items-center gap-3">
-                                <div class="avatar-md avatar-sm bg-accent-light txt-primary-dark fw-bold flex-shrink-0">RC</div>
-                                <div>
-                                    <div class="txt-title fw-bold text-sm mb-1">Roberto Carlos Perez Cadena</div>
-                                    <div class="txt-body text-xs">Mat: 24001504</div>
-                                </div>
-                            </div>
-                        </td>
-                        <td>
-                            <div class="txt-title fw-bold text-sm mb-1">Estadías Profesionales</div>
-                            <span class="badge bg-app border border-theme txt-title text-xxs px-2 py-1">CORNING OPTICAL</span>
-                        </td>
-                        <td>
-                            <div class="txt-title fw-bold text-sm">Ing. Juan Pérez Martínez</div>
-                            <div class="txt-body text-xs">Asignado</div>
-                        </td>
-                        <td class="text-center">
-                            <span class="badge status-aceptado text-xxs px-2 py-1 shadow-sm">EN PROGRESO</span>
-                        </td>
-                        <td class="text-center">
-                            <div class="txt-title fw-bold text-sm mb-1">320 / 600 hrs</div>
-                            <div class="progress" style="height: 6px; width: 100px; margin: 0 auto; background-color: var(--bg-main);">
-                                <div class="progress-bar bg-primary-900" style="width: 53%"></div>
-                            </div>
-                        </td>
-                        <td class="text-end px-4">
-                            <button class="btn btn-sm btn-ghost-sep px-2 py-1 text-primary" data-bs-toggle="modal" data-bs-target="#modalReasignar">
-                                <i class="bi bi-arrow-repeat"></i>
-                            </button>
-                            <button class="btn btn-sm btn-ghost-sep px-2 py-1 text-body">
-                                <i class="bi bi-eye"></i>
-                            </button>
-                        </td>
-                    </tr>
-
-                    <tr class="border-bottom border-theme hover-bg-app data-row">
-                        <td class="px-4 py-3 search-target">
-                            <div class="d-flex align-items-center gap-3">
-                                <div class="avatar-md avatar-sm bg-app border border-theme txt-title fw-bold flex-shrink-0">LA</div>
-                                <div>
-                                    <div class="txt-title fw-bold text-sm mb-1">Luis Ángel García</div>
-                                    <div class="txt-body text-xs">Mat: 24001892</div>
-                                </div>
-                            </div>
-                        </td>
-                        <td>
-                            <div class="txt-title fw-bold text-sm mb-1">Educación Dual</div>
-                            <span class="badge bg-app border border-theme txt-title text-xxs px-2 py-1">NIDEC MOTORS</span>
-                        </td>
-                        <td>
-                            <span class="badge bg-error-100 txt-error border border-error border-opacity-25 text-xxs px-2 py-1">SIN ASIGNAR</span>
-                        </td>
-                        <td class="text-center">
-                            <span class="badge bg-app txt-body border border-theme text-xxs px-2 py-1 shadow-sm">REGISTRADO</span>
-                        </td>
-                        <td class="text-center">
-                            <div class="txt-title fw-bold text-sm mb-1">0 / 480 hrs</div>
-                            <div class="progress" style="height: 6px; width: 100px; margin: 0 auto; background-color: var(--bg-main);">
-                                <div class="progress-bar bg-primary-900" style="width: 0%"></div>
-                            </div>
-                        </td>
-                        <td class="text-end px-4">
-                            <button class="btn btn-sm btn-ghost-sep px-2 py-1 text-primary" data-bs-toggle="modal" data-bs-target="#modalReasignar">
-                                <i class="bi bi-person-plus-fill"></i>
-                            </button>
-                            <button class="btn btn-sm btn-ghost-sep px-2 py-1 text-body">
-                                <i class="bi bi-eye"></i>
-                            </button>
-                        </td>
-                    </tr>
+                    @if (Model.Count == 0)
+                    {
+                        <tr>
+                            <td colspan="6" class="text-center py-5 txt-body">No hay asignaciones con los filtros seleccionados.</td>
+                        </tr>
+                    }
+                    else
+                    {
+                        foreach (var row in Model)
+                        {
+                            var initials = string.Join("", row.StudentName.Split(' ', StringSplitOptions.RemoveEmptyEntries).Take(2).Select(s => s[0])).ToUpper();
+                            <tr class="border-bottom border-theme hover-bg-app data-row">
+                                <td class="px-4 py-3 search-target">
+                                    <div class="d-flex align-items-center gap-3">
+                                        <div class="avatar-md avatar-sm bg-accent-light txt-primary-dark fw-bold flex-shrink-0">@initials</div>
+                                        <div>
+                                            <div class="txt-title fw-bold text-sm mb-1">@row.StudentName</div>
+                                            <div class="txt-body text-xs">Mat: @(row.Matricula ?? "N/A")</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="txt-title fw-bold text-sm mb-1">@row.ProgramName</div>
+                                    <span class="badge bg-app border border-theme txt-title text-xxs px-2 py-1">@row.OrganizationName</span>
+                                </td>
+                                <td>
+                                    @if (row.TeacherId.HasValue)
+                                    {
+                                        <div class="txt-title fw-bold text-sm">@row.TeacherName</div>
+                                        <div class="txt-body text-xs">Asignado</div>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-error-100 txt-error border border-error border-opacity-25 text-xxs px-2 py-1">SIN ASIGNAR</span>
+                                    }
+                                </td>
+                                <td class="text-center">
+                                    <span class="badge bg-app txt-body border border-theme text-xxs px-2 py-1 shadow-sm">@row.StatusCode</span>
+                                </td>
+                                <td class="text-center">
+                                    <div class="txt-title fw-bold text-sm mb-1">@row.ApprovedHours / @row.RequiredHours hrs</div>
+                                    <div class="progress" style="height: 6px; width: 100px; margin: 0 auto; background-color: var(--bg-main);">
+                                        <div class="progress-bar bg-primary-900" style="width: @row.ProgressPercent%"></div>
+                                    </div>
+                                </td>
+                                <td class="text-end px-4">
+                                    <button class="btn btn-sm btn-ghost-sep px-2 py-1 text-primary"
+                                            data-bs-toggle="modal"
+                                            data-bs-target="#modalReasignar"
+                                            data-enrollment-id="@row.AssignmentId">
+                                        <i class="bi bi-arrow-repeat"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                        }
+                    }
 
                 </tbody>
             </table>
@@ -151,23 +169,37 @@
         <div class="bg-surface p-3 border-top border-theme d-flex flex-column flex-md-row justify-content-between align-items-center gap-3">
             <div class="d-flex align-items-center gap-3">
                 <span class="txt-body text-xs fw-bold">Mostrar:</span>
-                <select class="form-select form-select-sm bg-app border-theme txt-title fw-bold rows-per-page" style="width: 70px; cursor: pointer;">
-                    <option value="5">5</option>
-                    <option value="10" selected>10</option>
-                    <option value="20">20</option>
+                <select id="rowsPerPage" class="form-select form-select-sm bg-app border-theme txt-title fw-bold rows-per-page" style="width: 70px; cursor: pointer;">
+                    <option value="5" selected="@(pageSize == 5)">5</option>
+                    <option value="10" selected="@(pageSize == 10)">10</option>
+                    <option value="20" selected="@(pageSize == 20)">20</option>
                 </select>
-                <div class="txt-body text-xs fw-bold tracking-wide table-info">Mostrando 1 a 2 de 2 registros...</div>
+                <div class="txt-body text-xs fw-bold tracking-wide table-info">Página @currentPage de @totalPages • Total @totalItems registro(s).</div>
             </div>
             <nav aria-label="Navegación de tabla">
                 <ul class="pagination pagination-sm mb-0">
-                    <li class="page-item disabled">
-                        <a class="page-link page-link-custom" href="#"><i class="bi bi-chevron-left"></i></a>
+                    <li class="page-item @(currentPage <= 1 ? "disabled" : "")">
+                        <a class="page-link page-link-custom" href="@Url.Action("SeguimientoDualEstadias", new { search, status = selectedStatus, teacher = selectedTeacher, createdFrom, createdTo, sort, order, page = prevPage, pageSize })"><i class="bi bi-chevron-left"></i></a>
                     </li>
-                    <li class="page-item active">
-                        <a class="page-link page-link-custom" href="#">1</a>
-                    </li>
-                    <li class="page-item disabled">
-                        <a class="page-link page-link-custom" href="#"><i class="bi bi-chevron-right"></i></a>
+
+                    @{
+                        var startPage = Math.Max(1, currentPage - 2);
+                        var endPage = Math.Min(totalPages, startPage + 4);
+                        if (endPage - startPage < 4)
+                        {
+                            startPage = Math.Max(1, endPage - 4);
+                        }
+                    }
+
+                    @for (var p = startPage; p <= endPage; p++)
+                    {
+                        <li class="page-item @(p == currentPage ? "active" : "")">
+                            <a class="page-link page-link-custom" href="@Url.Action("SeguimientoDualEstadias", new { search, status = selectedStatus, teacher = selectedTeacher, createdFrom, createdTo, sort, order, page = p, pageSize })">@p</a>
+                        </li>
+                    }
+
+                    <li class="page-item @(currentPage >= totalPages ? "disabled" : "")">
+                        <a class="page-link page-link-custom" href="@Url.Action("SeguimientoDualEstadias", new { search, status = selectedStatus, teacher = selectedTeacher, createdFrom, createdTo, sort, order, page = nextPage, pageSize })"><i class="bi bi-chevron-right"></i></a>
                     </li>
                 </ul>
             </nav>
@@ -180,7 +212,7 @@
         <div class="modal-content border-theme shadow-sm rounded-4 overflow-hidden bg-surface">
             <form action="@Url.Action("ReassignSupervisor", "Coordinador")" method="post">
                 @Html.AntiForgeryToken()
-                <input type="hidden" name="enrollmentId" id="inputEnrollmentId" value="1" />
+                <input type="hidden" name="enrollmentId" id="inputEnrollmentId" value="0" />
                 
                 <div class="modal-header border-bottom border-theme p-4">
                     <h5 class="modal-title txt-title fw-bold">
@@ -196,9 +228,13 @@
                         <label class="txt-body text-xs fw-bold tracking-wide mb-2 d-block">DOCENTE DISPONIBLE</label>
                         <select name="newTeacherId" class="form-select bg-app border-theme txt-title fw-bold py-2" required>
                             <option value="">-- Seleccionar Docente --</option>
-                            <option value="1">Dr. Gabriel López</option>
-                            <option value="2">Ing. Juan Pérez Martínez</option>
-                            <option value="3">Mtra. Ana Martínez Ruiz</option>
+                            @if (teachers != null)
+                            {
+                                foreach (var t in teachers)
+                                {
+                                    <option value="@t.Id">@t.Name</option>
+                                }
+                            }
                         </select>
                     </div>
                 </div>
@@ -251,8 +287,14 @@
             // Ejemplo para pasar el ID al modal si los generas dinámicamente con un foreach en el futuro
             $('#modalReasignar').on('show.bs.modal', function (event) {
                 var button = $(event.relatedTarget);
-                // var id = button.data('id'); 
-                // $(this).find('#inputEnrollmentId').val(id);
+                var id = button.data('enrollment-id');
+                $(this).find('#inputEnrollmentId').val(id || 0);
+            });
+
+            $('#rowsPerPage').on('change', function () {
+                const size = $(this).val();
+                const url = '@Url.Action("SeguimientoDualEstadias", new { search, status = selectedStatus, teacher = selectedTeacher, createdFrom, createdTo, sort, order, page = 1, pageSize = "__SIZE__" })';
+                window.location.href = url.replace('__SIZE__', size);
             });
         });
     </script>

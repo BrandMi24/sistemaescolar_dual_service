@@ -10,6 +10,10 @@
     <link rel="stylesheet" href="~/css/tutor-styles.css" asp-append-version="true" />
 </head>
 <body>
+    @{
+        bool canTutorSection = User.IsInRole("Tutor") || User.IsInRole("Teacher") || User.IsInRole("Maestro") || User.IsInRole("Admin") || User.IsInRole("Administrator") || User.IsInRole("Master");
+        bool canAdvisorSection = User.IsInRole("AsesorAcademico") || User.IsInRole("Asesor") || User.IsInRole("AcademicSupervisor") || User.IsInRole("Tutor") || User.IsInRole("Teacher") || User.IsInRole("Maestro") || User.IsInRole("Admin") || User.IsInRole("Administrator") || User.IsInRole("Master");
+    }
     <div class="admin-layout">
 
         <div class="bg-primary-dark p-3 d-flex d-lg-none justify-content-between align-items-center flex-shrink-0 z-3">
@@ -40,36 +44,41 @@
             </div>
 
             <nav class="sidebar-nav mt-1">
-                <div class="nav-group-label">Mi Grupo</div>
-                <a class="nav-link" href="@Url.Action("Index", "Tutor")">
-                    <i class="bi bi-people-fill"></i> Lista de Alumnos
-                </a>
-                <a class="nav-link" href="@Url.Action("Asistencia", "Tutor")">
-                    <i class="bi bi-calendar2-check"></i> Control de Asistencia
-                </a>
+                @if (canTutorSection)
+                {
+                    <div class="nav-group-label">Mi Grupo</div>
+                    <a class="nav-link" href="@Url.Action("Index", "Tutor")">
+                        <i class="bi bi-people-fill"></i> Lista de Alumnos
+                    </a>
+                    <a class="nav-link" href="@Url.Action("Asistencia", "Tutor")">
+                        <i class="bi bi-calendar2-check"></i> Control de Asistencia
+                    </a>
 
-                <div class="nav-group-label">Expedientes</div>
-                <a class="nav-link" href="@Url.Action("Entrevista", "Tutor")">
-                    <i class="bi bi-clipboard-data"></i> Entrevista Inicial
-                </a>
-                <a class="nav-link" href="@Url.Action("Seguimiento", "Tutor")">
-                    <i class="bi bi-journal-text"></i> Bitácora de Seguimiento
-                </a>
-                <a class="nav-link" href="@Url.Action("Tramites", "Tutor")">
-                    <i class="bi bi-folder2-open"></i> Trámites de Alumnos
-                </a>
+                    <div class="nav-group-label">Expedientes</div>
+                    <a class="nav-link" href="@Url.Action("Entrevista", "Tutor")">
+                        <i class="bi bi-clipboard-data"></i> Entrevista Inicial
+                    </a>
+                    <a class="nav-link" href="@Url.Action("Seguimiento", "Tutor")">
+                        <i class="bi bi-journal-text"></i> Bitácora de Seguimiento
+                    </a>
+                    <a class="nav-link" href="@Url.Action("Tramites", "Tutor")">
+                        <i class="bi bi-folder2-open"></i> Trámites de Alumnos
+                    </a>
+                }
 
-                <div class="nav-group-label">Asesoría Académica</div>
-                <a class="nav-link" href="@Url.Action("AlumnosAsignados", "AsesorAcademico")">
-                    <i class="bi bi-person-video3"></i> Mis Estudiantes
-                </a>
-                <a class="nav-link" href="@Url.Action("RevisionDocumentos", "AsesorAcademico")">
-                    <i class="bi bi-file-earmark-check"></i> Revisión de Docs
-                    <span class="badge bg-danger ms-auto text-xxs px-1 shadow-sm">2</span>
-                </a>
-                <a class="nav-link" href="@Url.Action("Evaluaciones", "AsesorAcademico")">
-                    <i class="bi bi-graph-up-arrow"></i> Estado de Evaluación
-                </a>
+                @if (canAdvisorSection)
+                {
+                    <div class="nav-group-label">Asesoría Académica</div>
+                    <a class="nav-link" href="@Url.Action("AlumnosAsignados", "AsesorAcademico")">
+                        <i class="bi bi-person-video3"></i> Mis Estudiantes
+                    </a>
+                    <a class="nav-link" href="@Url.Action("RevisionDocumentos", "AsesorAcademico")">
+                        <i class="bi bi-file-earmark-check"></i> Revisión de Docs
+                    </a>
+                    <a class="nav-link" href="@Url.Action("Evaluaciones", "AsesorAcademico")">
+                        <i class="bi bi-graph-up-arrow"></i> Estado de Evaluación
+                    </a>
+                }
             </nav>
 
             <div class="sidebar-footer">

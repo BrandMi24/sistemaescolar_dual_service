@@ -1,9 +1,9 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 
 namespace ControlEscolar.Controllers
 {
-    // Solo los administradores deberían entrar aquí
-    // [Authorize(Roles = "ADMIN")] 
+    [Authorize(Roles = "Director,Admin,Administrator,Master")]
     public class DashboardController : Controller
     {
         // 1. Visión Rectoría

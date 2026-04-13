@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace ControlEscolar.Controllers
 {
-    // [Authorize] // Descomenta esto si ya tienes implementado el login de usuarios
+    [Authorize(Roles = "Tutor,Teacher,Maestro,AsesorAcademico,Asesor,Coordinador,Director,Admin,Administrator,Master")]
     public class EntrevistaController : Controller
     {
         // Este método carga la vista principal de la Entrevista y Asignación

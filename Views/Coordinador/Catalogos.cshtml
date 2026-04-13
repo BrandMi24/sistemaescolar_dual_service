@@ -255,19 +255,26 @@
     <div class="bg-surface p-4 rounded-4 border-theme shadow-sm mb-4">
         <div class="d-flex flex-column flex-xl-row justify-content-between align-items-xl-center gap-3">
             <div style="max-width: 700px;">
-                <h5 class="txt-title fw-bold mb-1">Bitácora del Sistema</h5>
+                <h5 class="txt-title fw-bold mb-1">Bitácora Operativa</h5>
                 <p class="txt-body text-xs mb-3">
-                    Registro histórico de todas las acciones realizadas en el sistema (altas, bajas, modificaciones).
+                    Registro de acciones de módulos Dual y Servicio Social con filtros por fecha, módulo, acción y usuario.
                 </p>
                 <div class="position-relative search-wrapper" style="max-width: 350px;">
                     <i class="bi bi-search position-absolute search-icon-left txt-body"></i>
                     <input type="text" id="dtSearchBitacora" class="form-control search-input-custom tab-search" placeholder="Buscar en bitácora...">
                 </div>
             </div>
-            <div class="flex-shrink-0">
-                <button class="btn btn-ghost-sep border border-theme d-flex align-items-center gap-2 shadow-sm">
-                    Exportar Reporte
-                </button>
+            <div class="d-flex flex-column flex-lg-row gap-2 align-items-stretch align-items-lg-center">
+                <input type="date" id="auditFrom" class="form-control bg-app border-theme txt-title fw-bold" style="min-width: 150px;" />
+                <input type="date" id="auditTo" class="form-control bg-app border-theme txt-title fw-bold" style="min-width: 150px;" />
+                <select id="auditModule" class="form-select bg-app border-theme txt-title fw-bold" style="min-width: 150px;">
+                    <option value="">Módulo</option>
+                    <option value="DUAL">DUAL</option>
+                    <option value="DUAL_SS">DUAL_SS</option>
+                </select>
+                <input type="text" id="auditAction" class="form-control bg-app border-theme txt-title fw-bold" style="min-width: 170px;" placeholder="Acción" />
+                <input type="text" id="auditUser" class="form-control bg-app border-theme txt-title fw-bold" style="min-width: 170px;" placeholder="Usuario" />
+                <button id="auditApplyFilters" class="btn btn-primary-sep bg-primary-900 shadow-sm">Filtrar</button>
             </div>
         </div>
     </div>
@@ -278,9 +285,12 @@
                 <thead class="admin-table-header border-bottom border-theme">
                     <tr>
                         <th class="py-3 px-4">Fecha</th>
+                        <th class="py-3">Módulo</th>
+                        <th class="py-3">Acción</th>
+                        <th class="py-3">Entidad</th>
                         <th class="py-3">Usuario</th>
-                        <th class="py-3">Nombre Completo</th>
-                        <th class="py-3 text-center">Acción</th>
+                        <th class="py-3">Rol</th>
+                        <th class="py-3">Detalle</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -535,25 +545,31 @@
                 language: { url: dtLang },
                 buttons: [{ extend: 'excel', text: 'Excel' }, { extend: 'pdf', text: 'PDF' }],
                 order: [[0, 'desc']],
-    
-                // DESCOMENTAR ESTA LÍNEA PARA HACERLA FUNCIONAL:
-                ajax: { url: '@Url.Action("GetHistorial", "Coordinador")', type: 'GET', dataSrc: 'data' },
+                ajax: {
+                    url: '@Url.Action("GetHistorial", "Coordinador")',
+                    type: 'GET',
+                    dataSrc: 'data',
+                    data: function (d) {
+                        d.from = $('#auditFrom').val();
+                        d.to = $('#auditTo').val();
+                        d.module = $('#auditModule').val();
+                        d.action = $('#auditAction').val();
+                        d.user = $('#auditUser').val();
+                    }
+                },
     
                 columns: [
                     { data: 'fechaFormateada', className: 'text-center px-4 txt-body text-xs' },
+                    { data: 'modulo', className: 'txt-title fw-bold text-sm' },
+                    { data: 'accion', className: 'txt-body text-xs' },
+                    { data: 'entidad', className: 'txt-body text-xs' },
                     { data: 'usuario', className: 'txt-title fw-bold text-sm' },
-                    { data: 'nombreCompleto', className: 'txt-body text-xs' },
-                    { 
-                        data: 'esActivo', className: 'text-center',
-                        render: function(data) { 
-                            const clase = data ? 'status-aceptado' : 'status-rechazado';
-                            const texto = data ? 'Alta/Activo' : 'Baja/Inactivo';
-                            return `<span class="badge ${clase} text-xxs px-2 py-1 shadow-sm">${texto}</span>`; 
-                        }
-                    }
+                    { data: 'rol', className: 'txt-body text-xs' },
+                    { data: 'detalle', className: 'txt-body text-xs' }
                 ]
             });
             $('#dtSearchBitacora').on('keyup', function () { dtBitacora.search(this.value).draw(); });
+            $('#auditApplyFilters').on('click', function () { dtBitacora.ajax.reload(); });
 
             // ==========================================
             // FUNCIÓN GLOBAL DE ELIMINACIÓN (AJAX FETCH)

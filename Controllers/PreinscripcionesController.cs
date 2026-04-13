@@ -8,6 +8,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace ControlEscolar.Controllers
 {
+    [Authorize(Roles = "Preinscripciones,Admisiones,Administrativo,Coordinador,Director,Admin,Administrator,Master")]
     public class PreinscripcionesController : Controller
     {
         private readonly ApplicationDbContext _context;

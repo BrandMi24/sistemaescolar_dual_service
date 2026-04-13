@@ -1,21 +1,40 @@
-﻿@{
+﻿@model List<ControlEscolar.ViewModels.OperationalTracking.AsesorAlumnoRowViewModel>
+@{
     ViewData["Title"] = "Mis Estudiantes Asignados";
     Layout = "_LayoutTutor";
-    var search = Context.Request.Query["search"].ToString();
+    var search = ViewBag.SearchText as string ?? "";
+    var programaFilter = ViewBag.ProgramaFilter as string ?? "";
 }
 
 <div class="d-flex flex-column gap-4 fade-in">
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert bg-success bg-opacity-10 border border-success text-success rounded-3 alert-dismissible fade show shadow-sm" role="alert">
+            <i class="bi bi-check-circle-fill me-2"></i> @TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert bg-danger-100 border border-danger text-danger rounded-3 alert-dismissible fade show shadow-sm" role="alert">
+            <i class="bi bi-exclamation-circle-fill me-2"></i> @TempData["ErrorMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
     <div class="bg-surface p-4 rounded-4 border-theme shadow-sm d-flex flex-column flex-xl-row justify-content-between align-items-xl-center gap-3">
         <form method="get" class="d-flex flex-column flex-md-row gap-3 flex-grow-1 w-100" style="max-width: 1000px;">
             <div class="position-relative search-wrapper flex-grow-1">
                 <i class="bi bi-search position-absolute search-icon-left txt-body"></i>
                 <input type="text" name="search" class="form-control search-input-custom tab-search" placeholder="Buscar por alumno o matrícula..." value="@search">
             </div>
-            
+
             <select name="programa" class="form-select bg-app border-theme txt-title fw-bold tab-filter" style="width: auto; min-width: 180px;">
                 <option value="">Todos los Programas</option>
-                <option value="ESTADIAS">Estadías Profesionales</option>
-                <option value="DUAL">Educación Dual</option>
+                <option value="SERVICIO_SOCIAL" selected="@(programaFilter == "SERVICIO_SOCIAL")">Servicio Social</option>
+                <option value="PRACTICAS_PROFESIONALES" selected="@(programaFilter == "PRACTICAS_PROFESIONALES")">Estadías Profesionales</option>
+                <option value="DUAL" selected="@(programaFilter == "DUAL")">Educación Dual</option>
             </select>
 
             <div class="d-flex gap-2 flex-shrink-0">
@@ -42,37 +61,76 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <tr class="border-bottom border-theme hover-bg-app data-row">
-                        <td class="px-4 py-3">
-                            <div class="d-flex align-items-center gap-3">
-                                <div class="avatar-md avatar-sm bg-accent-light txt-primary-dark fw-bold flex-shrink-0">RC</div>
-                                <div>
-                                    <div class="txt-title fw-bold text-sm mb-1">Roberto Carlos Perez Cadena</div>
-                                    <div class="txt-body text-xs">Mat: 24001504</div>
+                    @if (!Model.Any())
+                    {
+                        <tr>
+                            <td colspan="5" class="text-center py-5 txt-body">
+                                <i class="bi bi-people fs-2 d-block mb-2 opacity-50"></i>
+                                @if (string.IsNullOrEmpty(search) && string.IsNullOrEmpty(programaFilter))
+                                {
+                                    <span>No tienes estudiantes asignados aún.</span>
+                                }
+                                else
+                                {
+                                    <span>No se encontraron estudiantes con ese filtro.</span>
+                                }
+                            </td>
+                        </tr>
+                    }
+                    @foreach (var row in Model)
+                    {
+                        var statusBadge = row.StatusCode switch
+                        {
+                            "COMPLETED" or "FINALIZED" => ("status-completado", "COMPLETADO"),
+                            "IN_PROGRESS" => ("status-aceptado", "EN PROGRESO"),
+                            "REGISTERED" => ("status-pendiente", "REGISTRADO"),
+                            _ => ("bg-secondary", row.StatusCode)
+                        };
+                        var programLabel = row.ProgramType switch
+                        {
+                            "SERVICIO_SOCIAL" => "Servicio Social",
+                            "PRACTICAS_PROFESIONALES" => "Estadías Profesionales",
+                            "DUAL" => "Educación Dual",
+                            _ => row.ProgramType
+                        };
+                        <tr class="border-bottom border-theme hover-bg-app data-row">
+                            <td class="px-4 py-3">
+                                <div class="d-flex align-items-center gap-3">
+                                    <div class="avatar-md avatar-sm bg-accent-light txt-primary-dark fw-bold flex-shrink-0">@row.Initials</div>
+                                    <div>
+                                        <div class="txt-title fw-bold text-sm mb-1">@row.StudentName</div>
+                                        <div class="txt-body text-xs">Mat: @row.Matricula</div>
+                                    </div>
                                 </div>
-                            </div>
-                        </td>
-                        <td>
-                            <div class="txt-title fw-bold text-sm mb-1">Estadías Profesionales</div>
-                            <span class="badge bg-app border border-theme txt-title text-xxs px-2 py-1">CORNING OPTICAL</span>
-                        </td>
-                        <td class="text-center">
-                            <span class="badge status-aceptado text-xxs px-2 py-1 shadow-sm">EN PROGRESO</span>
-                        </td>
-                        <td class="text-center">
-                            <div class="txt-title fw-bold text-sm mb-1">320 / 600 hrs</div>
-                            <div class="progress" style="height: 6px; width: 100px; margin: 0 auto; background-color: var(--bg-main);">
-                                <div class="progress-bar bg-primary-900" style="width: 53%"></div>
-                            </div>
-                        </td>
-                        <td class="text-end px-4">
-                            <a href="@Url.Action("StudentDetail", "Coordinador", new { id = 1 })" class="btn btn-sm btn-ghost-sep px-2 py-1 text-body">
-                                <i class="bi bi-eye"></i>
-                            </a>
-                        </td>
-                    </tr>
+                            </td>
+                            <td>
+                                <div class="txt-title fw-bold text-sm mb-1">@programLabel</div>
+                                <span class="badge bg-app border border-theme txt-title text-xxs px-2 py-1">@row.OrganizationName.ToUpper()</span>
+                            </td>
+                            <td class="text-center">
+                                <span class="badge @statusBadge.Item1 text-xxs px-2 py-1 shadow-sm">@statusBadge.Item2</span>
+                            </td>
+                            <td class="text-center">
+                                <div class="txt-title fw-bold text-sm mb-1">@row.ApprovedHours / @row.RequiredHours hrs</div>
+                                <div class="progress" style="height: 6px; width: 100px; margin: 0 auto; background-color: var(--bg-main);">
+                                    <div class="progress-bar bg-primary-900" style="width: @row.ProgressPercent%"></div>
+                                </div>
+                            </td>
+                            <td class="text-end px-4">
+                                <a href="@Url.Action("Seguimiento", "Tutor", new { assignmentId = row.AssignmentId })" class="btn btn-sm btn-ghost-sep px-2 py-1 text-body" title="Ver seguimiento">
+                                    <i class="bi bi-eye"></i>
+                                </a>
+                            </td>
+                        </tr>
+                    }
                 </tbody>
             </table>
         </div>
+        @if (Model.Any())
+        {
+            <div class="p-3 border-top border-theme bg-app d-flex justify-content-between align-items-center">
+                <span class="txt-body text-xs">@Model.Count estudiante(s) encontrado(s)</span>
+            </div>
+        }
     </div>
 </div>

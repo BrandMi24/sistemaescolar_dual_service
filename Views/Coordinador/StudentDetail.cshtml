@@ -1,21 +1,24 @@
-﻿@{
+﻿@model ControlEscolar.Models.CoordinadorStudentDetailViewModel
+@{
     ViewData["Title"] = "Expediente del Estudiante";
     Layout = "_LayoutCoordinador";
+
+    var statusBadgeClass = Model.IsActive ? "status-aceptado" : "status-rechazado";
 }
 
 <div class="fade-in d-flex flex-column gap-4">
 
     <div class="bg-surface p-4 rounded-4 border-theme shadow-sm d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
         <div>
-            <h3 class="txt-title fw-bold mb-1">Luis Ángel García</h3>
+            <h3 class="txt-title fw-bold mb-1">@Model.FullName</h3>
             <div class="d-flex align-items-center gap-3 mt-2 txt-body text-xs">
-                <span><i class="bi bi-hash me-1 text-primary"></i>24001892</span>
-                <span><i class="bi bi-envelope me-1 text-primary"></i>lgarcia@alumnos.uttn.mx</span>
-                <span><i class="bi bi-telephone me-1 text-primary"></i>899-123-4567</span>
+                <span><i class="bi bi-hash me-1 text-primary"></i>@Model.Matricula</span>
+                <span><i class="bi bi-envelope me-1 text-primary"></i>@Model.Email</span>
+                <span><i class="bi bi-telephone me-1 text-primary"></i>@Model.Phone</span>
             </div>
         </div>
         <div class="text-end d-flex flex-column align-items-md-end gap-2">
-            <span class="badge status-aceptado px-3 py-2 text-sm shadow-sm rounded-pill">ESTADO: INSCRITO</span>
+            <span class="badge @statusBadgeClass px-3 py-2 text-sm shadow-sm rounded-pill">ESTADO: @Model.StatusCode</span>
             <a href="@Url.Action("Catalogos", "Coordinador")" class="btn btn-sm btn-ghost-sep border border-theme shadow-sm mt-1">
                 <i class="bi bi-arrow-left me-1"></i> Volver a Catálogos
             </a>
@@ -36,18 +39,18 @@
                 <div class="d-flex flex-column gap-3 flex-grow-1">
                     <div>
                         <div class="txt-body text-xs fw-bold tracking-wide mb-1">CURP</div>
-                        <div class="txt-title text-sm text-uppercase">GAML000101XYZ12345</div>
+                        <div class="txt-title text-sm text-uppercase">@Model.Curp</div>
                     </div>
                     <div>
                         <div class="txt-body text-xs fw-bold tracking-wide mb-1">CARRERA</div>
-                        <div class="txt-title text-sm fw-semibold">Ingeniería Mecatrónica</div>
+                        <div class="txt-title text-sm fw-semibold">@Model.CareerName</div>
                     </div>
                     <div>
-                        <div class="txt-body text-xs fw-bold tracking-wide mb-1">FECHA DE REGISTRO</div>
-                        <div class="txt-title text-sm">15/08/2024</div>
+                        <div class="txt-body text-xs fw-bold tracking-wide mb-1">GRUPO</div>
+                        <div class="txt-title text-sm">@Model.GroupName</div>
                     </div>
                     <div class="mt-auto pt-3 border-top border-theme">
-                        <span class="badge bg-app border border-theme text-dark px-2 py-1">Cuenta Activa</span>
+                        <span class="badge bg-app border border-theme text-dark px-2 py-1">@(Model.IsActive ? "Cuenta Activa" : "Cuenta Inactiva")</span>
                     </div>
                 </div>
             </div>
@@ -60,11 +63,11 @@
                 </h6>
                 <div class="row g-0 flex-grow-1 align-items-center">
                     <div class="col-6 border-end border-theme">
-                        <div class="fs-1 fw-bold txt-primary-dark">320</div>
+                        <div class="fs-1 fw-bold txt-primary-dark">@Model.ApprovedHours</div>
                         <div class="txt-body text-xs fw-bold tracking-wide">APROBADAS</div>
                     </div>
                     <div class="col-6">
-                        <div class="fs-1 fw-bold text-muted">160</div>
+                        <div class="fs-1 fw-bold text-muted">@Model.PendingHours</div>
                         <div class="txt-body text-xs fw-bold tracking-wide">PENDIENTES</div>
                     </div>
                 </div>
@@ -78,15 +81,15 @@
                 </h6>
                 <div class="row g-0 flex-grow-1 align-items-center">
                     <div class="col-4 border-end border-theme">
-                        <div class="fs-2 fw-bold text-dark">2</div>
-                        <div class="txt-body text-xxs tracking-wide fw-bold">TRÁMITES</div>
+                        <div class="fs-2 fw-bold text-dark">@Model.Assignments.Count</div>
+                        <div class="txt-body text-xxs tracking-wide fw-bold">INSCRIPCIONES</div>
                     </div>
                     <div class="col-4 border-end border-theme">
-                        <div class="fs-2 fw-bold text-dark">5</div>
+                        <div class="fs-2 fw-bold text-dark">@Model.DocumentsCount</div>
                         <div class="txt-body text-xxs tracking-wide fw-bold">DOCS.</div>
                     </div>
                     <div class="col-4">
-                        <div class="fs-2 fw-bold text-dark">3</div>
+                        <div class="fs-2 fw-bold text-dark">@Model.EvaluationsCount</div>
                         <div class="txt-body text-xxs tracking-wide fw-bold">EVALS.</div>
                     </div>
                 </div>
@@ -112,21 +115,32 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <tr class="border-bottom border-theme">
-                        <td class="px-4 py-3 txt-title fw-bold text-sm">Corning Optical Comm.</td>
-                        <td><span class="badge bg-app border border-theme text-dark text-xxs px-2 py-1">ESTADÍAS</span></td>
-                        <td class="txt-body text-xs">Ing. Juan Pérez</td>
-                        <td class="text-center">
-                            <span class="badge bg-warning text-dark text-xxs px-2 py-1 shadow-sm">EN PROGRESO</span>
-                        </td>
-                        <td class="text-center txt-title fw-bold text-xs">320 / 600</td>
-                        <td class="txt-body text-xs">10/01/2026</td>
-                        <td class="text-center px-4">
-                            <button type="button" class="btn btn-sm btn-ghost-sep text-body border border-theme" title="Ver Detalle">
-                                <i class="bi bi-eye"></i>
-                            </button>
-                        </td>
-                    </tr>
+                    @if (Model.Assignments.Count == 0)
+                    {
+                        <tr>
+                            <td colspan="7" class="text-center py-4 txt-body">No hay historial de inscripciones para este alumno.</td>
+                        </tr>
+                    }
+                    else
+                    {
+                        foreach (var item in Model.Assignments)
+                        {
+                            var itemBadgeClass = item.StatusCode == "COMPLETED" ? "status-aceptado" : "bg-warning text-dark";
+                            <tr class="border-bottom border-theme">
+                                <td class="px-4 py-3 txt-title fw-bold text-sm">@item.ProgramName</td>
+                                <td><span class="badge bg-app border border-theme text-dark text-xxs px-2 py-1">@item.ProgramType</span></td>
+                                <td class="txt-body text-xs">@item.TeacherName</td>
+                                <td class="text-center">
+                                    <span class="badge @itemBadgeClass text-xxs px-2 py-1 shadow-sm">@item.StatusCode</span>
+                                </td>
+                                <td class="text-center txt-title fw-bold text-xs">@item.ApprovedHours / @item.RequiredHours</td>
+                                <td class="txt-body text-xs">@item.CreatedDate.ToString("dd/MM/yyyy")</td>
+                                <td class="text-center px-4">
+                                    <span class="txt-body text-xs fw-semibold">@item.ProgressPercent%</span>
+                                </td>
+                            </tr>
+                        }
+                    }
                 </tbody>
             </table>
         </div>
@@ -138,7 +152,7 @@
             <div class="admin-card-white p-0 rounded-4 border-theme shadow-sm overflow-hidden h-100 bg-white">
                 <div class="bg-surface p-3 border-bottom border-theme d-flex justify-content-between align-items-center">
                     <h6 class="txt-title fw-bold mb-0"><i class="bi bi-file-earmark-text me-2 text-primary"></i>Documentos Subidos</h6>
-                    <span class="badge bg-primary-900 text-white rounded-pill">2</span>
+                    <span class="badge bg-primary-900 text-white rounded-pill">@Model.DocumentsCount</span>
                 </div>
                 <div class="table-responsive">
                     <table class="table align-middle mb-0 text-sm">
@@ -151,18 +165,25 @@
                             </tr>
                         </thead>
                         <tbody>
-                            <tr class="border-bottom border-theme">
-                                <td class="px-3 fw-semibold txt-title text-xs">Carta de Aceptación</td>
-                                <td><span class="badge bg-app border border-theme text-dark text-xxs">CARTA</span></td>
-                                <td class="text-center"><span class="badge status-aceptado text-xxs px-2 py-1 shadow-sm">APROBADO</span></td>
-                                <td class="txt-body text-xs">15/01/26</td>
-                            </tr>
-                            <tr class="border-bottom border-theme">
-                                <td class="px-3 fw-semibold txt-title text-xs">Reporte Mensual 1</td>
-                                <td><span class="badge bg-app border border-theme text-dark text-xxs">REPORTE</span></td>
-                                <td class="text-center"><span class="badge bg-warning text-dark text-xxs px-2 py-1 shadow-sm">PENDIENTE</span></td>
-                                <td class="txt-body text-xs">15/02/26</td>
-                            </tr>
+                            @if (Model.Documents.Count == 0)
+                            {
+                                <tr>
+                                    <td colspan="4" class="text-center py-4 txt-body">No hay documentos registrados.</td>
+                                </tr>
+                            }
+                            else
+                            {
+                                foreach (var item in Model.Documents)
+                                {
+                                    var docBadgeClass = item.StatusCode == "APPROVED" ? "status-aceptado" : item.StatusCode == "REJECTED" ? "status-rechazado" : "bg-warning text-dark";
+                                    <tr class="border-bottom border-theme">
+                                        <td class="px-3 fw-semibold txt-title text-xs">@item.Title</td>
+                                        <td><span class="badge bg-app border border-theme text-dark text-xxs">@item.DocumentType</span></td>
+                                        <td class="text-center"><span class="badge @docBadgeClass text-xxs px-2 py-1 shadow-sm">@item.StatusCode</span></td>
+                                        <td class="txt-body text-xs">@item.UploadDate.ToString("dd/MM/yy")</td>
+                                    </tr>
+                                }
+                            }
                         </tbody>
                     </table>
                 </div>
@@ -173,7 +194,7 @@
             <div class="admin-card-white p-0 rounded-4 border-theme shadow-sm overflow-hidden h-100 bg-white">
                 <div class="bg-surface p-3 border-bottom border-theme d-flex justify-content-between align-items-center">
                     <h6 class="txt-title fw-bold mb-0"><i class="bi bi-star me-2 text-primary"></i>Calificaciones</h6>
-                    <span class="badge bg-primary-900 text-white rounded-pill">1</span>
+                    <span class="badge bg-primary-900 text-white rounded-pill">@Model.EvaluationsCount</span>
                 </div>
                 <div class="table-responsive">
                     <table class="table align-middle mb-0 text-sm">
@@ -186,12 +207,24 @@
                             </tr>
                         </thead>
                         <tbody>
-                            <tr class="border-bottom border-theme">
-                                <td class="px-3"><span class="badge bg-app border border-theme text-dark text-xxs">PRIMER PARCIAL</span></td>
-                                <td class="txt-body text-xs fw-bold">Ene-Abr 2026</td>
-                                <td class="text-center txt-title fw-bold">9.5 <span class="text-muted fw-normal text-xs">/ 10</span></td>
-                                <td class="txt-body text-xs">10/02/26</td>
-                            </tr>
+                            @if (Model.EvaluationsCount == 0)
+                            {
+                                <tr>
+                                    <td colspan="4" class="text-center py-4 txt-body">No hay evaluaciones registradas.</td>
+                                </tr>
+                            }
+                            else
+                            {
+                                foreach (var item in Model.Assignments.Where(x => x.EvaluationScore.HasValue).Take(10))
+                                {
+                                    <tr class="border-bottom border-theme">
+                                        <td class="px-3"><span class="badge bg-app border border-theme text-dark text-xxs">EVALUACIÓN</span></td>
+                                        <td class="txt-body text-xs fw-bold">@item.ProgramType</td>
+                                        <td class="text-center txt-title fw-bold">@item.EvaluationScore <span class="text-muted fw-normal text-xs">/ 10</span></td>
+                                        <td class="txt-body text-xs">@item.CreatedDate.ToString("dd/MM/yy")</td>
+                                    </tr>
+                                }
+                            }
                         </tbody>
                     </table>
                 </div>

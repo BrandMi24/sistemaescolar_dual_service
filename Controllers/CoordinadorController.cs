@@ -1,28 +1,42 @@
 using ControlEscolar.Data;
 using ControlEscolar.Models;
+using ControlEscolar.Models.ModuleCommon;
+using ControlEscolar.Services;
+using ControlEscolar.ViewModels.OperationalTracking;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Data.SqlClient;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Data.Common;
 using System.Linq;
+using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace ControlEscolar.Controllers
 {
+    [Authorize(Roles = "Coordinador,ServiceLearningCoordinator,Director,Admin,Administrator,Master")]
     public class CoordinadorController : Controller
     {
         private readonly ApplicationDbContext _context;
         private readonly Management _repo;
         private readonly ILogger<CoordinadorController> _logger;
+        private readonly IOperationalAuditService _auditService;
 
-        public CoordinadorController(ApplicationDbContext context, ILogger<CoordinadorController> logger)
+        public CoordinadorController(
+            ApplicationDbContext context,
+            ILogger<CoordinadorController> logger,
+            IOperationalAuditService auditService)
         {
             _context = context;
             _repo = new Management(context);
             _logger = logger;
+            _auditService = auditService;
         }
         // ==========================================
         // 1. DASHBOARD Y NAVEGACIÓN PRINCIPAL
@@ -607,10 +621,79 @@ namespace ControlEscolar.Controllers
         }
 
         [HttpGet]
-        public IActionResult StudentDetail(int id)
+        public async Task<IActionResult> StudentDetail(int id)
         {
-            // Lógica para obtener el estudiante por su id
-            return View();
+            var student = await _context.StudentsOperational
+                .AsNoTracking()
+                .Include(x => x.Person)
+                .Include(x => x.Career)
+                .Include(x => x.Group)
+                .FirstOrDefaultAsync(x => x.Id == id);
+
+            if (student == null)
+                return NotFound();
+
+            var assignments = await _context.OperationalStudentAssignments
+                .AsNoTracking()
+                .Include(x => x.Program)
+                .Include(x => x.Teacher)
+                    .ThenInclude(t => t!.Person)
+                .Where(x => x.Status && x.StudentId == id)
+                .OrderByDescending(x => x.CreatedDate)
+                .ToListAsync();
+
+            var documents = await _context.OperationalDocuments
+                .AsNoTracking()
+                .Include(x => x.Assignment)
+                .Where(x => x.Status && x.Assignment.StudentId == id)
+                .OrderByDescending(x => x.UploadDate)
+                .ToListAsync();
+
+            var approvedHours = assignments.Sum(x => x.ApprovedHours);
+            var requiredHours = assignments.Sum(x => (decimal)x.Program.RequiredHours);
+            var pendingHours = Math.Max(0m, requiredHours - approvedHours);
+
+            var vm = new CoordinadorStudentDetailViewModel
+            {
+                StudentId = student.Id,
+                FullName = student.Person.FullName,
+                Matricula = string.IsNullOrWhiteSpace(student.Matricula) ? "S/N" : student.Matricula,
+                Email = string.IsNullOrWhiteSpace(student.Person.Email) ? "Sin correo" : student.Person.Email,
+                Phone = string.IsNullOrWhiteSpace(student.Person.Phone) ? "Sin telefono" : student.Person.Phone,
+                StatusCode = string.IsNullOrWhiteSpace(student.StatusCode) ? "N/A" : student.StatusCode,
+                IsActive = student.Status,
+                Curp = string.IsNullOrWhiteSpace(student.Person.CURP) ? "N/D" : student.Person.CURP,
+                CareerName = student.Career?.Name ?? "Sin carrera",
+                GroupName = string.IsNullOrWhiteSpace(student.Group?.Code) ? "Sin grupo" : student.Group.Code,
+                ApprovedHours = approvedHours,
+                PendingHours = pendingHours,
+                DocumentsCount = documents.Count,
+                EvaluationsCount = assignments.Count(x => x.EvaluationScore.HasValue),
+                Assignments = assignments.Select(x => new CoordinadorStudentAssignmentRowViewModel
+                {
+                    AssignmentId = x.Id,
+                    ProgramName = x.Program.Name,
+                    ProgramType = x.Program.Type,
+                    TeacherName = x.Teacher?.Person?.FullName ?? "Sin asignar",
+                    StatusCode = x.StatusCode,
+                    ApprovedHours = x.ApprovedHours,
+                    RequiredHours = x.Program.RequiredHours,
+                    ProgressPercent = x.Program.RequiredHours > 0
+                        ? Math.Round((x.ApprovedHours / x.Program.RequiredHours) * 100m, 1)
+                        : 0m,
+                    EvaluationScore = x.EvaluationScore,
+                    CreatedDate = x.CreatedDate
+                }).ToList(),
+                Documents = documents.Take(20).Select(x => new CoordinadorStudentDocumentRowViewModel
+                {
+                    Title = x.Title,
+                    DocumentType = x.DocumentType,
+                    StatusCode = x.StatusCode,
+                    UploadDate = x.UploadDate
+                }).ToList()
+            };
+
+            return View(vm);
         }
 
         [HttpGet]
@@ -954,27 +1037,177 @@ namespace ControlEscolar.Controllers
         }
 
         [HttpGet]
-        public IActionResult TeacherDetail(int id)
+        public async Task<IActionResult> TeacherDetail(int id)
         {
-            return View();
+            var teacher = await _context.TeachersOperational
+                .AsNoTracking()
+                .Include(x => x.Person)
+                .FirstOrDefaultAsync(x => x.Id == id);
+
+            if (teacher == null)
+                return NotFound();
+
+            var assignments = await _context.OperationalStudentAssignments
+                .AsNoTracking()
+                .Include(x => x.Student)
+                    .ThenInclude(s => s.Person)
+                .Include(x => x.Student)
+                    .ThenInclude(s => s.Career)
+                .Include(x => x.Program)
+                .Where(x => x.Status && x.TeacherId == id)
+                .OrderByDescending(x => x.CreatedDate)
+                .ToListAsync();
+
+            var assignmentIds = assignments.Select(x => x.Id).ToList();
+
+            var pendingDocs = await _context.OperationalDocuments
+                .AsNoTracking()
+                .CountAsync(x => x.Status
+                    && assignmentIds.Contains(x.AssignmentId)
+                    && x.StatusCode == DocumentStatusCodes.PENDING);
+
+            var totalStudents = assignments.Count;
+            var activeStudents = assignments.Count(x => !string.Equals(x.StatusCode, "COMPLETED", StringComparison.OrdinalIgnoreCase));
+            var completedStudents = assignments.Count(x => x.Program.RequiredHours > 0 && x.ApprovedHours >= x.Program.RequiredHours);
+            var completionRate = totalStudents > 0 ? Math.Round((decimal)completedStudents / totalStudents * 100m, 1) : 0m;
+            var pendingHours = assignments.Sum(x => Math.Max(0m, x.Program.RequiredHours - x.ApprovedHours));
+
+            var vm = new CoordinadorTeacherDetailViewModel
+            {
+                TeacherId = teacher.Id,
+                FullName = teacher.Person.FullName,
+                EmployeeNumber = string.IsNullOrWhiteSpace(teacher.EmployeeNumber) ? "N/D" : teacher.EmployeeNumber,
+                Email = string.IsNullOrWhiteSpace(teacher.Person.Email) ? "Sin correo" : teacher.Person.Email,
+                Phone = string.IsNullOrWhiteSpace(teacher.Person.Phone) ? "Sin telefono" : teacher.Person.Phone,
+                StatusCode = string.IsNullOrWhiteSpace(teacher.StatusCode) ? "N/A" : teacher.StatusCode,
+                IsActive = teacher.Status,
+                TotalStudents = totalStudents,
+                ActiveStudents = activeStudents,
+                PendingHours = pendingHours,
+                PendingDocuments = pendingDocs,
+                EvaluationsCount = assignments.Count(x => x.EvaluationScore.HasValue),
+                CompletionRate = completionRate,
+                AssignedStudents = assignments.Select(x => new CoordinadorTeacherStudentRowViewModel
+                {
+                    AssignmentId = x.Id,
+                    StudentId = x.StudentId,
+                    StudentName = x.Student.Person.FullName,
+                    Matricula = string.IsNullOrWhiteSpace(x.Student.Matricula) ? "S/N" : x.Student.Matricula,
+                    CareerName = x.Student.Career?.Name ?? "Sin carrera",
+                    ProgramName = x.Program.Name,
+                    ProgramType = x.Program.Type,
+                    StatusCode = x.StatusCode,
+                    ApprovedHours = x.ApprovedHours,
+                    RequiredHours = x.Program.RequiredHours,
+                    ProgressPercent = x.Program.RequiredHours > 0
+                        ? Math.Round((x.ApprovedHours / x.Program.RequiredHours) * 100m, 1)
+                        : 0m,
+                }).ToList()
+            };
+
+            return View(vm);
         }
 
         // --- Endpoints para el Modal de Asignación en TeacherDetail ---
         [HttpGet]
-        public IActionResult GetAssignableStudents(int teacherId)
+        [Authorize(Roles = "Coordinador,ServiceLearningCoordinator,Admin,Administrator")]
+        public async Task<IActionResult> GetAssignableStudents(int teacherId)
         {
-            // Lógica para devolver JSON con los alumnos disponibles
-            // Ejemplo: return Json(listaDeEstudiantes);
-            return Json(new List<object>());
+            var assignments = await _context.OperationalStudentAssignments
+                .Include(x => x.Student)
+                    .ThenInclude(x => x.Person)
+                .Include(x => x.Program)
+                .Where(x => x.Status
+                    && x.Program.Type == ProgramTypes.PRACTICAS_PROFESIONALES
+                    && (x.TeacherId == null || x.TeacherId == teacherId))
+                .OrderByDescending(x => x.CreatedDate)
+                .Take(200)
+                .ToListAsync();
+
+            var data = assignments.Select(x => new
+            {
+                id = x.Id,
+                nombre = x.Student.Person != null ? x.Student.Person.FullName : "Sin nombre",
+                matricula = x.Student.Matricula,
+                teacherId = x.TeacherId,
+                estado = x.StatusCode
+            });
+
+            return Json(new { data });
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult AssignStudentsToTeacher(int teacherId, List<int> enrollmentIds)
+        [Authorize(Roles = "Coordinador,ServiceLearningCoordinator,Admin,Administrator")]
+        public async Task<IActionResult> AssignStudentsToTeacher(int teacherId, List<int> enrollmentIds)
         {
-            // Lógica para asignar los alumnos seleccionados al profesor
+            if (teacherId <= 0 || enrollmentIds == null || enrollmentIds.Count == 0)
+            {
+                TempData["ErrorMessage"] = "Debes seleccionar docente y al menos una asignacion.";
+                return RedirectToAction("TeacherDetail", new { id = teacherId });
+            }
+
+            var assignments = await _context.OperationalStudentAssignments
+                .Where(x => enrollmentIds.Contains(x.Id))
+                .ToListAsync();
+
+            foreach (var assignment in assignments)
+            {
+                assignment.TeacherId = teacherId;
+                if (assignment.StatusCode == DualStatusCodes.LETTER_REQUESTED || assignment.StatusCode == DualStatusCodes.PLACEMENT)
+                {
+                    assignment.StatusCode = DualStatusCodes.ADVISORS_ASSIGNED;
+                }
+            }
+
+            await _context.SaveChangesAsync();
+            _logger.LogInformation("CoordinatorAction AssignStudentsToTeacher TeacherId={TeacherId} AssignmentCount={AssignmentCount}", teacherId, assignments.Count);
+            await _auditService.LogAsync(
+                module: "DUAL",
+                action: "AssignStudentsToTeacher",
+                entityName: "OperationalStudentAssignment",
+                entityId: null,
+                details: $"TeacherId={teacherId};AssignmentCount={assignments.Count}");
             TempData["SuccessMessage"] = "Estudiantes asignados correctamente.";
             return RedirectToAction("TeacherDetail", new { id = teacherId });
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Coordinador,ServiceLearningCoordinator,Admin,Administrator")]
+        public async Task<IActionResult> ReassignSupervisor(int enrollmentId, int newTeacherId)
+        {
+            if (enrollmentId <= 0 || newTeacherId <= 0)
+            {
+                TempData["ErrorMessage"] = "Parametros de reasignacion invalidos.";
+                return RedirectToAction(nameof(SeguimientoDualEstadias));
+            }
+
+            var assignment = await _context.OperationalStudentAssignments
+                .FirstOrDefaultAsync(x => x.Id == enrollmentId && x.Status);
+
+            if (assignment == null)
+            {
+                TempData["ErrorMessage"] = "No se encontro la asignacion indicada.";
+                return RedirectToAction(nameof(SeguimientoDualEstadias));
+            }
+
+            assignment.TeacherId = newTeacherId;
+            if (assignment.StatusCode == DualStatusCodes.LETTER_REQUESTED || assignment.StatusCode == DualStatusCodes.PLACEMENT)
+            {
+                assignment.StatusCode = DualStatusCodes.ADVISORS_ASSIGNED;
+            }
+
+            await _context.SaveChangesAsync();
+            _logger.LogInformation("CoordinatorAction ReassignSupervisor AssignmentId={AssignmentId} NewTeacherId={TeacherId}", enrollmentId, newTeacherId);
+            await _auditService.LogAsync(
+                module: "DUAL",
+                action: "ReassignSupervisor",
+                entityName: "OperationalStudentAssignment",
+                entityId: enrollmentId,
+                details: $"NewTeacherId={newTeacherId}");
+            TempData["SuccessMessage"] = "Supervisor reasignado correctamente.";
+            return RedirectToAction(nameof(SeguimientoDualEstadias));
         }
 
         // ==========================================
@@ -1228,19 +1461,79 @@ namespace ControlEscolar.Controllers
         // 7. BITÁCORA DEL SISTEMA (AJAX para DataTable)
         // ==========================================
         [HttpGet]
-        public async Task<IActionResult> GetHistorial()
+        [Authorize(Roles = "Coordinador,ServiceLearningCoordinator,Admin,Administrator")]
+        public async Task<IActionResult> GetHistorial(DateTime? from, DateTime? to, string? module, string? action, string? user)
         {
             try
             {
-                var lista = await _repo.GetBitacoraAsync();
+                var conn = _context.Database.GetDbConnection();
+                await using var cmd = conn.CreateCommand();
+                cmd.CommandText = @"
+IF OBJECT_ID(N'dbo.operational_audit_table', N'U') IS NULL
+BEGIN
+    SELECT
+        CAST(NULL AS DATETIME) AS Fecha,
+        CAST(NULL AS NVARCHAR(50)) AS Modulo,
+        CAST(NULL AS NVARCHAR(80)) AS Accion,
+        CAST(NULL AS NVARCHAR(80)) AS Entidad,
+        CAST(NULL AS NVARCHAR(100)) AS Usuario,
+        CAST(NULL AS NVARCHAR(80)) AS Rol,
+        CAST(NULL AS NVARCHAR(500)) AS Detalle
+    WHERE 1 = 0;
+END
+ELSE
+BEGIN
+    SELECT TOP 2000
+        a.operational_audit_CreatedDate AS Fecha,
+        a.operational_audit_Module AS Modulo,
+        a.operational_audit_Action AS Accion,
+        a.operational_audit_Entity AS Entidad,
+        ISNULL(a.operational_audit_Username, CONCAT('USER#', ISNULL(CONVERT(varchar(20), a.operational_audit_UserID), 'N/A'))) AS Usuario,
+        a.operational_audit_Role AS Rol,
+        a.operational_audit_Details AS Detalle
+    FROM dbo.operational_audit_table a
+    WHERE a.operational_audit_status = 1
+      AND (@From IS NULL OR a.operational_audit_CreatedDate >= @From)
+      AND (@ToExclusive IS NULL OR a.operational_audit_CreatedDate < @ToExclusive)
+      AND (@Module IS NULL OR a.operational_audit_Module = @Module)
+      AND (@Action IS NULL OR a.operational_audit_Action = @Action)
+      AND (@UserSearch IS NULL OR ISNULL(a.operational_audit_Username, '') LIKE '%' + @UserSearch + '%')
+      AND (@IsAdmin = 1 OR a.operational_audit_Module IN ('DUAL', 'DUAL_SS'))
+    ORDER BY a.operational_audit_CreatedDate DESC;
+END";
 
-                var data = lista.Select(x => new
+                var toExclusive = to?.Date.AddDays(1);
+                var isAdmin = User.IsInRole("Admin") || User.IsInRole("Administrator");
+
+                cmd.Parameters.Add(new SqlParameter("@From", (object?)from?.Date ?? DBNull.Value));
+                cmd.Parameters.Add(new SqlParameter("@ToExclusive", (object?)toExclusive ?? DBNull.Value));
+                cmd.Parameters.Add(new SqlParameter("@Module", string.IsNullOrWhiteSpace(module) ? DBNull.Value : module.Trim()));
+                cmd.Parameters.Add(new SqlParameter("@Action", string.IsNullOrWhiteSpace(action) ? DBNull.Value : action.Trim()));
+                cmd.Parameters.Add(new SqlParameter("@UserSearch", string.IsNullOrWhiteSpace(user) ? DBNull.Value : user.Trim()));
+                cmd.Parameters.Add(new SqlParameter("@IsAdmin", isAdmin));
+
+                if (conn.State != ConnectionState.Open)
                 {
-                    fechaFormateada = x.Fecha.ToString("dd/MM/yyyy HH:mm"),
-                    usuario = x.Usuario,
-                    nombreCompleto = x.NombreCompleto,
-                    esActivo = x.Accion == "ALTA"
-                });
+                    await conn.OpenAsync();
+                }
+
+                var data = new List<object>();
+                await using var reader = await cmd.ExecuteReaderAsync();
+                while (await reader.ReadAsync())
+                {
+                    data.Add(new
+                    {
+                        fechaFormateada = reader.GetDateTime(reader.GetOrdinal("Fecha")).ToString("dd/MM/yyyy HH:mm"),
+                        modulo = reader.GetString(reader.GetOrdinal("Modulo")),
+                        accion = reader.GetString(reader.GetOrdinal("Accion")),
+                        entidad = reader.GetString(reader.GetOrdinal("Entidad")),
+                        usuario = reader.GetString(reader.GetOrdinal("Usuario")),
+                        rol = reader.IsDBNull(reader.GetOrdinal("Rol")) ? string.Empty : reader.GetString(reader.GetOrdinal("Rol")),
+                        detalle = reader.IsDBNull(reader.GetOrdinal("Detalle")) ? string.Empty : reader.GetString(reader.GetOrdinal("Detalle"))
+                    });
+                }
+
+                await conn.CloseAsync();
 
                 return Json(new { data });
             }
@@ -1254,9 +1547,126 @@ namespace ControlEscolar.Controllers
         // ==========================================
         // 8. GESTIÓN OPERATIVA
         // ==========================================
-        public IActionResult Asignaciones()
+        public async Task<IActionResult> Asignaciones(
+            string? search,
+            string? status,
+            int? teacher,
+            DateTime? createdFrom,
+            DateTime? createdTo,
+            string? sort = "created",
+            string? order = "desc",
+            int page = 1,
+            int pageSize = 10)
         {
-            return View();
+            page = page <= 0 ? 1 : page;
+            pageSize = pageSize is 5 or 10 or 20 ? pageSize : 10;
+            var isAsc = string.Equals(order, "asc", StringComparison.OrdinalIgnoreCase);
+
+            var query = _context.OperationalStudentAssignments
+                .AsNoTracking()
+                .Include(x => x.Student)
+                    .ThenInclude(x => x.Person)
+                .Include(x => x.Program)
+                .Include(x => x.Organization)
+                .Include(x => x.Teacher)
+                    .ThenInclude(x => x.Person)
+                .Where(x => x.Status);
+
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                var term = search.Trim().ToUpper();
+                query = query.Where(x =>
+                    (x.Student.Matricula != null && x.Student.Matricula.ToUpper().Contains(term)) ||
+                    (x.Student.Person != null &&
+                     ((x.Student.Person.FirstName ?? "") + " " + (x.Student.Person.LastNamePaternal ?? "") + " " + (x.Student.Person.LastNameMaternal ?? "")).ToUpper().Contains(term)));
+            }
+
+            if (!string.IsNullOrWhiteSpace(status))
+            {
+                query = query.Where(x => x.StatusCode == status);
+            }
+
+            if (teacher.HasValue)
+            {
+                query = query.Where(x => x.TeacherId == teacher.Value);
+            }
+
+            if (createdFrom.HasValue)
+            {
+                var from = createdFrom.Value.Date;
+                query = query.Where(x => x.CreatedDate >= from);
+            }
+
+            if (createdTo.HasValue)
+            {
+                var toExclusive = createdTo.Value.Date.AddDays(1);
+                query = query.Where(x => x.CreatedDate < toExclusive);
+            }
+
+            query = (sort ?? "created").ToLowerInvariant() switch
+            {
+                "student" => isAsc
+                    ? query.OrderBy(x => x.Student.Person.FirstName).ThenBy(x => x.Student.Person.LastNamePaternal)
+                    : query.OrderByDescending(x => x.Student.Person.FirstName).ThenByDescending(x => x.Student.Person.LastNamePaternal),
+                "status" => isAsc
+                    ? query.OrderBy(x => x.StatusCode)
+                    : query.OrderByDescending(x => x.StatusCode),
+                "hours" => isAsc
+                    ? query.OrderBy(x => x.ApprovedHours)
+                    : query.OrderByDescending(x => x.ApprovedHours),
+                "program" => isAsc
+                    ? query.OrderBy(x => x.Program.Name)
+                    : query.OrderByDescending(x => x.Program.Name),
+                _ => isAsc
+                    ? query.OrderBy(x => x.CreatedDate)
+                    : query.OrderByDescending(x => x.CreatedDate)
+            };
+
+            var totalItems = await query.CountAsync();
+            var totalPages = Math.Max(1, (int)Math.Ceiling(totalItems / (double)pageSize));
+            if (page > totalPages)
+            {
+                page = totalPages;
+            }
+
+            var items = await query
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .Select(x => new CoordinatorAssignmentRowViewModel
+                {
+                    AssignmentId = x.Id,
+                    StudentName = x.Student.Person != null ? x.Student.Person.FullName : "Sin nombre",
+                    Matricula = x.Student.Matricula,
+                    ProgramName = x.Program.Name,
+                    OrganizationName = x.Organization != null ? x.Organization.Name : "Sin organizacion",
+                    TeacherId = x.TeacherId,
+                    TeacherName = x.Teacher != null ? x.Teacher.Person.FullName : "SIN ASIGNAR",
+                    StatusCode = x.StatusCode,
+                    ApprovedHours = x.ApprovedHours,
+                    RequiredHours = x.Program.RequiredHours
+                })
+                .ToListAsync();
+
+            ViewBag.Search = search;
+            ViewBag.Status = status;
+            ViewBag.Teacher = teacher;
+            ViewBag.CreatedFrom = createdFrom?.ToString("yyyy-MM-dd");
+            ViewBag.CreatedTo = createdTo?.ToString("yyyy-MM-dd");
+            ViewBag.Sort = sort;
+            ViewBag.Order = isAsc ? "asc" : "desc";
+            ViewBag.Page = page;
+            ViewBag.PageSize = pageSize;
+            ViewBag.TotalItems = totalItems;
+            ViewBag.TotalPages = totalPages;
+            ViewBag.Teachers = await _context.TeachersOperational
+                .AsNoTracking()
+                .Include(x => x.Person)
+                .Where(x => x.Status)
+                .OrderBy(x => x.Person.FirstName)
+                .Select(x => new { x.Id, Name = x.Person.FullName })
+                .ToListAsync();
+
+            return View(items);
         }
 
         public IActionResult Grupos()
@@ -1264,9 +1674,18 @@ namespace ControlEscolar.Controllers
             return View();
         }
 
-        public IActionResult SeguimientoDualEstadias()
+        public async Task<IActionResult> SeguimientoDualEstadias(
+            string? search,
+            string? status,
+            int? teacher,
+            DateTime? createdFrom,
+            DateTime? createdTo,
+            string? sort = "created",
+            string? order = "desc",
+            int page = 1,
+            int pageSize = 10)
         {
-            return View();
+            return await Asignaciones(search, status, teacher, createdFrom, createdTo, sort, order, page, pageSize);
         }
 
         // ==========================================
