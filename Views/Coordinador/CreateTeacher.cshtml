@@ -1,63 +1,118 @@
-﻿@{
+﻿@model CreateTeacherViewModel
+@{
     ViewData["Title"] = "Nuevo Profesor";
     Layout = "_LayoutCoordinador";
+
+    var isEdit = ViewBag.IsEdit as bool? ?? false;
+    var returnTab = ViewBag.ReturnTab as string ?? Context.Request.Query["tab"].ToString();
+
+    if (string.IsNullOrWhiteSpace(returnTab))
+    {
+        returnTab = "tab-docentes";
+    }
 }
 
 <div class="fade-in d-flex flex-column gap-4">
 
     <div class="bg-surface p-4 rounded-4 border-theme shadow-sm d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
         <div>
-            <h3 class="txt-title fw-bold mb-1">Registrar Nuevo Profesor</h3>
+            <h3 class="txt-title fw-bold mb-1">@(isEdit ? "Editar Profesor" : "Registrar Nuevo Profesor")</h3>
             <div class="d-flex align-items-center gap-3 mt-2 txt-body text-xs">
-                <span>Ingrese los datos para integrar al profesor al sistema y generar su cuenta de acceso.</span>
+                <span>
+                    @(isEdit
+                                        ? "Actualice la información del docente sin mostrar registros inactivos en los catálogos editables."
+                                        : "Ingrese los datos para integrar al profesor al sistema y generar su cuenta de acceso.")
+                </span>
             </div>
         </div>
         <div class="text-end d-flex flex-column align-items-md-end gap-2">
-            <a href="@Url.Action("Catalogos", "Coordinador")" class="btn btn-sm btn-ghost-sep border border-theme shadow-sm mt-1 fw-semibold">
+            <a href="@Url.Action("Catalogos", "Coordinador", new { tab = returnTab })" class="btn btn-sm btn-ghost-sep border border-theme shadow-sm mt-1 fw-semibold">
                 Volver a Catálogos
             </a>
         </div>
     </div>
 
-    <div class="alert bg-error-100 border border-error border-opacity-25 txt-error rounded-3 mb-4 shadow-sm" style="display: none;">
-        <span class="text-sm fw-bold">Por favor, verifique los datos ingresados e intente nuevamente.</span>
-    </div>
-    @{
-        var isEdit = ViewBag.IsEdit as bool? ?? false;
+    @if (!ViewData.ModelState.IsValid)
+    {
+        <div class="alert bg-error-100 border border-error border-opacity-25 txt-error rounded-3 mb-4 shadow-sm">
+            <span class="text-sm fw-bold">Por favor, verifique los datos ingresados e intente nuevamente.</span>
+        </div>
     }
+
     <form asp-action="@(isEdit ? "EditTeacher" : "CreateTeacher")"
-      asp-controller="Coordinador" method="post" class="needs-validation">
+          asp-controller="Coordinador"
+          method="post"
+          class="needs-validation"
+          novalidate>
         @Html.AntiForgeryToken()
 
+        <input type="hidden" name="returnTab" value="@returnTab" />
+        <input type="hidden" name="TeacherId" value="@Model?.TeacherId" />
+        <input type="hidden" name="PersonId" value="@Model?.PersonId" />
+
         <div class="row g-4">
-            <input type="hidden" name="TeacherId" value="@Model?.TeacherId" />
-            <input type="hidden" name="PersonId" value="@Model?.PersonId" />
             <div class="col-lg-8 d-flex flex-column gap-4">
-                
+
                 <div class="admin-card-white p-4 p-md-5 rounded-4 border-theme shadow-sm bg-white">
                     <h6 class="txt-title fw-bold mb-4 border-bottom border-theme pb-2">
                         DATOS PERSONALES
                     </h6>
+
+                    <div asp-validation-summary="ModelOnly" class="alert alert-danger mb-4" style="display:@(!ViewData.ModelState.IsValid ? "block" : "none")"></div>
+
                     <div class="row g-4">
                         <div class="col-md-4">
-                            <label class="txt-body text-xs fw-bold tracking-wide mb-2">NOMBRE(S) <span class="text-danger">*</span></label>
-                            <input name="FirstName" type="text" class="form-control search-input-custom ps-3" placeholder="Ej. Carlos" required value="@Model?.FirstName" />
+                            <label asp-for="FirstName" class="txt-body text-xs fw-bold tracking-wide mb-2">
+                                NOMBRE(S) <span class="text-danger">*</span>
+                            </label>
+                            <input asp-for="FirstName"
+                                   class="form-control search-input-custom ps-3"
+                                   placeholder="Ej. Carlos"
+                                   required />
+                            <span asp-validation-for="FirstName" class="text-danger text-xs"></span>
                         </div>
+
                         <div class="col-md-4">
-                            <label class="txt-body text-xs fw-bold tracking-wide mb-2">APELLIDO PATERNO <span class="text-danger">*</span></label>
-                            <input name="LastNamePaternal" type="text" class="form-control search-input-custom ps-3" placeholder="Ej. García" required value="@Model?.LastNamePaternal" />
+                            <label asp-for="LastNamePaternal" class="txt-body text-xs fw-bold tracking-wide mb-2">
+                                APELLIDO PATERNO <span class="text-danger">*</span>
+                            </label>
+                            <input asp-for="LastNamePaternal"
+                                   class="form-control search-input-custom ps-3"
+                                   placeholder="Ej. García"
+                                   required />
+                            <span asp-validation-for="LastNamePaternal" class="text-danger text-xs"></span>
                         </div>
+
                         <div class="col-md-4">
-                            <label class="txt-body text-xs fw-bold tracking-wide mb-2">APELLIDO MATERNO</label>
-                            <input name="LastNameMaternal" type="text" class="form-control search-input-custom ps-3" placeholder="Opcional" value="@Model?.LastNameMaternal" />
+                            <label asp-for="LastNameMaternal" class="txt-body text-xs fw-bold tracking-wide mb-2">
+                                APELLIDO MATERNO
+                            </label>
+                            <input asp-for="LastNameMaternal"
+                                   class="form-control search-input-custom ps-3"
+                                   placeholder="Opcional" />
+                            <span asp-validation-for="LastNameMaternal" class="text-danger text-xs"></span>
                         </div>
+
                         <div class="col-md-6">
-                            <label class="txt-body text-xs fw-bold tracking-wide mb-2">CORREO ELECTRÓNICO</label>
-                            <input name="Email" type="email" class="form-control search-input-custom ps-3" placeholder="correo@institucion.edu.mx" value="@Model?.Email" />
+                            <label asp-for="Email" class="txt-body text-xs fw-bold tracking-wide mb-2">
+                                CORREO ELECTRÓNICO
+                            </label>
+                            <input asp-for="Email"
+                                   type="email"
+                                   class="form-control search-input-custom ps-3"
+                                   placeholder="correo@institucion.edu.mx" />
+                            <span asp-validation-for="Email" class="text-danger text-xs"></span>
                         </div>
+
                         <div class="col-md-6">
-                            <label class="txt-body text-xs fw-bold tracking-wide mb-2">TELÉFONO</label>
-                            <input name="Phone" type="text" class="form-control search-input-custom ps-3" placeholder="10 dígitos (opcional)" maxlength="30" value="@Model?.Phone" />
+                            <label asp-for="Phone" class="txt-body text-xs fw-bold tracking-wide mb-2">
+                                TELÉFONO
+                            </label>
+                            <input asp-for="Phone"
+                                   class="form-control search-input-custom ps-3"
+                                   placeholder="10 dígitos (opcional)"
+                                   maxlength="30" />
+                            <span asp-validation-for="Phone" class="text-danger text-xs"></span>
                         </div>
                     </div>
                 </div>
@@ -66,18 +121,29 @@
                     <h6 class="txt-title fw-bold mb-4 border-bottom border-theme pb-2">
                         DATOS LABORALES
                     </h6>
+
                     <div class="row g-4">
                         <div class="col-md-6">
-                            <label class="txt-body text-xs fw-bold tracking-wide mb-2">NÚMERO DE EMPLEADO</label>
-                            <input name="EmployeeNumber" type="text" class="form-control search-input-custom ps-3" placeholder="Ej. EMP-001 (opcional)" maxlength="30" value="@Model?.EmployeeNumber" />
+                            <label asp-for="EmployeeNumber" class="txt-body text-xs fw-bold tracking-wide mb-2">
+                                NÚMERO DE EMPLEADO
+                            </label>
+                            <input asp-for="EmployeeNumber"
+                                   class="form-control search-input-custom ps-3"
+                                   placeholder="Ej. EMP-001 (opcional)"
+                                   maxlength="30" />
+                            <span asp-validation-for="EmployeeNumber" class="text-danger text-xs"></span>
                         </div>
+
                         <div class="col-md-6">
-                            <label class="txt-body text-xs fw-bold tracking-wide mb-2">ESTADO INICIAL</label>
-                            <select name="StatusCode" class="form-select bg-app border-theme txt-title fw-semibold py-2" value="@Model?.StatusCode">
-                                <option value="ACTIVO" selected>Activo</option>
+                            <label asp-for="StatusCode" class="txt-body text-xs fw-bold tracking-wide mb-2">
+                                ESTADO INICIAL
+                            </label>
+                            <select asp-for="StatusCode" class="form-select bg-app border-theme txt-title fw-semibold py-2">
+                                <option value="ACTIVO">Activo</option>
                                 <option value="INACTIVO">Inactivo</option>
                                 <option value="LICENCIA">Licencia</option>
                             </select>
+                            <span asp-validation-for="StatusCode" class="text-danger text-xs"></span>
                         </div>
                     </div>
                 </div>
@@ -88,27 +154,49 @@
                     <h6 class="txt-title fw-bold mb-4 border-bottom border-theme pb-2">
                         CUENTA DE SISTEMA
                     </h6>
-                    @if (!(ViewBag.IsEdit as bool? ?? false))
-                        {
-                            <div class="alert bg-surface border border-theme txt-body text-xs mb-4 lh-base shadow-sm">
-                                Si proporciona credenciales, el profesor tendrá acceso al sistema con roles de <strong>Profesor / Asesor</strong> y <strong>Supervisor Académico</strong>.
-                            </div>
 
-                            <div class="mb-4">
-                                <label class="txt-body text-xs fw-bold tracking-wide mb-2">USUARIO DE ACCESO</label>
-                                <input name="Username" type="text" class="form-control search-input-custom ps-3" placeholder="Ej. jgarcia" maxlength="80" autocomplete="off" value="@Model?.Username" />
-                            </div>
+                    @if (!isEdit)
+                    {
+                        <div class="alert bg-surface border border-theme txt-body text-xs mb-4 lh-base shadow-sm">
+                            Si proporciona credenciales, el profesor tendrá acceso al sistema con roles de <strong>Profesor / Asesor</strong> y <strong>Supervisor Académico</strong>.
+                        </div>
 
-                            <div class="mb-5">
-                                <label class="txt-body text-xs fw-bold tracking-wide mb-2">CONTRASEÑA</label>
-                                <input name="Password" type="password" class="form-control search-input-custom ps-3" placeholder="Mínimo 8 caracteres" autocomplete="new-password" value="@Model?.Password" />
-                            </div>
-                        }
-                        <div class="mt-auto pt-4 border-top border-theme d-flex flex-column gap-3">
+                        <div class="mb-4">
+                            <label asp-for="Username" class="txt-body text-xs fw-bold tracking-wide mb-2">
+                                USUARIO DE ACCESO
+                            </label>
+                            <input asp-for="Username"
+                                   class="form-control search-input-custom ps-3"
+                                   placeholder="Ej. jgarcia"
+                                   maxlength="80"
+                                   autocomplete="off" />
+                            <span asp-validation-for="Username" class="text-danger text-xs"></span>
+                        </div>
+
+                        <div class="mb-5">
+                            <label asp-for="Password" class="txt-body text-xs fw-bold tracking-wide mb-2">
+                                CONTRASEÑA
+                            </label>
+                            <input asp-for="Password"
+                                   type="password"
+                                   class="form-control search-input-custom ps-3"
+                                   placeholder="Mínimo 8 caracteres"
+                                   autocomplete="new-password" />
+                            <span asp-validation-for="Password" class="text-danger text-xs"></span>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="alert bg-surface border border-theme txt-body text-xs mb-4 lh-base shadow-sm">
+                            La edición desde esta vista modifica datos personales y laborales. Las credenciales del usuario no se exponen aquí.
+                        </div>
+                    }
+
+                    <div class="mt-auto pt-4 border-top border-theme d-flex flex-column gap-3">
                         <button type="submit" class="btn btn-primary-sep bg-primary-900 w-100 fw-bold py-3 shadow-sm text-white">
-                            @(isEdit ? "Editar Profesor" : "Registrar Nuevo Profesor")
+                            @(isEdit ? "Guardar Cambios" : "Registrar Nuevo Profesor")
                         </button>
-                        <a href="@Url.Action("Catalogos", "Coordinador")" class="btn btn-ghost-sep border border-theme w-100 py-2 shadow-sm text-body fw-semibold">
+                        <a href="@Url.Action("Catalogos", "Coordinador", new { tab = returnTab })" class="btn btn-ghost-sep border border-theme w-100 py-2 shadow-sm text-body fw-semibold">
                             Cancelar
                         </a>
                     </div>
@@ -118,3 +206,7 @@
         </div>
     </form>
 </div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

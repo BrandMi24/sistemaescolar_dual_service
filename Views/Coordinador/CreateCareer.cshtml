@@ -1,64 +1,92 @@
+@model CreateCareerViewModel
 @{
     ViewData["Title"] = "Registrar Carrera";
     Layout = "_LayoutCoordinador";
+
+    var isEdit = ViewBag.IsEdit as bool? ?? false;
+    var returnTab = ViewBag.ReturnTab as string ?? Context.Request.Query["tab"].ToString();
+
+    if (string.IsNullOrWhiteSpace(returnTab))
+    {
+        returnTab = "tab-career";
+    }
 }
 
 <div class="fade-in d-flex flex-column gap-4">
 
     <div class="bg-surface p-4 rounded-4 border-theme shadow-sm d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
         <div>
-            <h3 class="txt-title fw-bold mb-1">Registrar Nueva Carrera</h3>
+            <h3 class="txt-title fw-bold mb-1">@(isEdit ? "Editar Carrera" : "Registrar Nueva Carrera")</h3>
             <div class="d-flex align-items-center gap-3 mt-2 txt-body text-xs">
-                <span>Ingrese la información de la carrera.</span>
+                <span>
+                    @(isEdit
+                                        ? "Actualice la información de la carrera seleccionada utilizando únicamente registros activos."
+                                        : "Ingrese la información de la carrera.")
+                </span>
             </div>
         </div>
         <div class="text-end d-flex flex-column align-items-md-end gap-2">
-            <a href="@Url.Action("Catalogos", "Coordinador")" class="btn btn-sm btn-ghost-sep border border-theme shadow-sm mt-1 fw-semibold">
+            <a href="@Url.Action("Catalogos", "Coordinador", new { tab = returnTab })"
+               class="btn btn-sm btn-ghost-sep border border-theme shadow-sm mt-1 fw-semibold">
                 <i class="bi bi-arrow-left me-1"></i> Volver a Catálogos
             </a>
         </div>
     </div>
 
-    @{
-        var isEdit = ViewBag.IsEdit as bool? ?? false;
-    }
     <form asp-action="@(isEdit ? "EditCareer" : "CreateCareer")"
-      asp-controller="Coordinador" method="post" class="needs-validation">
+          asp-controller="Coordinador"
+          method="post"
+          class="needs-validation"
+          novalidate>
         @Html.AntiForgeryToken()
+
+        <input type="hidden" name="id" value="@ViewBag.CareerId" />
+        <input type="hidden" name="returnTab" value="@returnTab" />
 
         <div class="row justify-content-center">
             <div class="col-lg-8">
-                <input type="hidden" name="id" value="@ViewBag.CareerId" />
                 <div class="admin-card-white p-4 p-md-5 rounded-4 border-theme shadow-sm bg-white">
                     <h6 class="txt-title fw-bold mb-4 border-bottom border-theme pb-2">
                         INFORMACIÓN DE LA CARRERA
                     </h6>
-                    
+
+                    <div asp-validation-summary="ModelOnly"
+                         class="alert alert-danger mb-4"
+                         style="display:@(!ViewData.ModelState.IsValid ? "block" : "none")"></div>
+
                     <div class="row g-4">
                         <div class="col-md-6">
-                            <label class="txt-body text-xs fw-bold tracking-wide mb-2">CÓDIGO DE CARRERA <span class="text-danger">*</span></label>
-                            <input name="Code" type="text" value="@Model?.Code" class="form-control search-input-custom ps-3 text-uppercase" placeholder="Ej. ISC" required />
+                            <label asp-for="Code" class="txt-body text-xs fw-bold tracking-wide mb-2">
+                                CÓDIGO DE CARRERA <span class="text-danger">*</span>
+                            </label>
+                            <input asp-for="Code"
+                                   class="form-control search-input-custom ps-3 text-uppercase"
+                                   placeholder="Ej. ISC"
+                                   required />
+                            <span asp-validation-for="Code" class="text-danger text-xs"></span>
                         </div>
+
                         <div class="col-md-6">
-                            <label class="txt-body text-xs fw-bold tracking-wide mb-2">NOMBRE DE LA CARRERA <span class="text-danger">*</span></label>
-                            <input name="Name" type="text" value="@Model?.Name" class="form-control search-input-custom ps-3" placeholder="Ej. Ingeniería en Sistemas Computacionales" required />
-                        </div>
-                        
-                        <div class="col-md-6">
-                            <label class="txt-body text-xs fw-bold tracking-wide mb-2">ESTADO</label>
-                            <select name="IsActive" class="form-select bg-app border-theme txt-title fw-semibold py-2">
-                                <option value="true" selected>Activo</option>
-                                <option value="false">Inactivo</option>
-                            </select>
+                            <label asp-for="Name" class="txt-body text-xs fw-bold tracking-wide mb-2">
+                                NOMBRE DE LA CARRERA <span class="text-danger">*</span>
+                            </label>
+                            <input asp-for="Name"
+                                   class="form-control search-input-custom ps-3"
+                                   placeholder="Ej. Ingeniería en Sistemas Computacionales"
+                                   required />
+                            <span asp-validation-for="Name" class="text-danger text-xs"></span>
                         </div>
                     </div>
 
                     <div class="mt-5 border-top border-theme pt-4 d-flex justify-content-end gap-3">
-                        <a href="@Url.Action("Catalogos", "Coordinador")" class="btn btn-ghost-sep border border-theme px-4 py-2 shadow-sm text-body fw-semibold">
+                        <a href="@Url.Action("Catalogos", "Coordinador", new { tab = returnTab })"
+                           class="btn btn-ghost-sep border border-theme px-4 py-2 shadow-sm text-body fw-semibold">
                             Cancelar
                         </a>
-                        <button type="submit" class="btn btn-primary-sep bg-primary-900 px-5 py-2 shadow-sm text-white fw-bold">
-                            @(isEdit ? "Editar Carrera" : "Guardar Carrera")
+
+                        <button type="submit"
+                                class="btn btn-primary-sep bg-primary-900 px-5 py-2 shadow-sm text-white fw-bold">
+                            @(isEdit ? "Guardar Cambios" : "Guardar Carrera")
                         </button>
                     </div>
                 </div>
@@ -66,3 +94,7 @@
         </div>
     </form>
 </div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
