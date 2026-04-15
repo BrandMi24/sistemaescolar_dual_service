@@ -10,154 +10,55 @@
         <div class="d-flex flex-column flex-md-row gap-3 flex-grow-1" style="max-width: 650px;">
             <div class="position-relative search-wrapper flex-grow-1">
                 <i class="bi bi-search position-absolute search-icon-left txt-body"></i>
-                <input type="text" id="searchInput" class="form-control search-input-custom" placeholder="Buscar ciclo por nombre o año...">
+                <input type="text" id="searchInput" class="form-control search-input-custom" placeholder="Buscar ciclo...">
             </div>
 
             <select id="statusFilter" class="form-select bg-app border-theme txt-title fw-bold" style="width: auto; min-width: 180px;">
-                <option value="todos">Todos los estados</option>
-                <option value="activo">Solo Activos</option>
-                <option value="finalizado">Finalizados</option>
+                <option value="">Todos</option>
+                <option value="ACTIVO">Activos</option>
+                <option value="FINALIZADO">Finalizados</option>
+                <option value="PROGRAMADO">Programados</option>
             </select>
         </div>
 
-        <button class="btn btn-primary-sep d-flex align-items-center gap-2 shadow-sm flex-shrink-0">
+        <!-- BOTÓN CORREGIDO -->
+        <a href="@Url.Action("CreateCycle", "Coordinador")"
+               class="btn btn-primary-sep d-flex align-items-center gap-2 shadow-sm">
             <i class="bi bi-plus-lg"></i> Crear Nuevo Ciclo
-        </button>
+        </a>
     </div>
 
-    <div class="admin-card-white p-0 rounded-4 border-theme shadow-sm overflow-hidden d-flex flex-column">
-        <div class="table-responsive bg-surface" style="min-height: 400px;">
-            <table class="table table-borderless align-middle mb-0" id="ciclosTable" style="min-width: 800px;">
+    <div class="admin-card-white p-0 rounded-4 border-theme shadow-sm overflow-hidden">
+
+        <div class="table-responsive bg-surface">
+            <table class="table table-borderless align-middle mb-0" id="ciclosTable">
                 <thead class="admin-table-header">
                     <tr>
-                        <th class="py-3 px-4" width="30%">Nombre del Ciclo</th>
-                        <th class="py-3 text-center" width="20%">Fecha de Inicio</th>
-                        <th class="py-3 text-center" width="20%">Fecha de Fin</th>
-                        <th class="py-3 text-center" width="15%">Estado</th>
-                        <th class="py-3 text-end px-4" width="15%">Acciones</th>
+                        <th class="py-3 px-4">Nombre del Ciclo</th>
+                        <th class="py-3 text-center">Fecha Inicio</th>
+                        <th class="py-3 text-center">Fecha Fin</th>
+                        <th class="py-3 text-center">Estado</th>
+                        <th class="py-3 text-end px-4">Acciones</th>
                     </tr>
                 </thead>
-                <tbody>
-                    <tr class="border-bottom border-theme hover-bg-app border-start border-4 data-row" data-estado="activo" style="border-left-color: var(--success-700) !important;">
-                        <td class="px-4 py-3 search-target">
-                            <div class="txt-title fw-bold">Enero - Abril 2026</div>
-                            <div class="txt-body text-xs mt-1">Cuatrimestre en curso</div>
-                        </td>
-                        <td class="text-center txt-title fw-bold">12 Ene 2026</td>
-                        <td class="text-center txt-title fw-bold">24 Abr 2026</td>
-                        <td class="text-center">
-                            <span class="badge status-aceptado text-xxs px-2 py-1 shadow-sm">ACTIVO</span>
-                        </td>
-                        <td class="text-end px-4">
-                            <button class="btn btn-sm btn-ghost-sep px-2 py-1 me-1 text-primary"><i class="bi bi-pencil"></i></button>
-                            <button class="btn btn-sm btn-ghost-sep px-2 py-1 txt-body"><i class="bi bi-gear"></i></button>
-                        </td>
-                    </tr>
-
-                    <tr class="border-bottom border-theme hover-bg-app data-row" data-estado="finalizado">
-                        <td class="px-4 py-3 search-target">
-                            <div class="txt-title fw-bold">Septiembre - Diciembre 2025</div>
-                            <div class="txt-body text-xs mt-1">Cuatrimestre anterior</div>
-                        </td>
-                        <td class="text-center txt-title fw-bold">04 Sep 2025</td>
-                        <td class="text-center txt-title fw-bold">15 Dic 2025</td>
-                        <td class="text-center">
-                            <span class="badge bg-app txt-body border border-theme text-xxs px-2 py-1">FINALIZADO</span>
-                        </td>
-                        <td class="text-end px-4">
-                            <button class="btn btn-sm btn-ghost-sep px-2 py-1 me-1 text-primary"><i class="bi bi-eye"></i></button>
-                            <button class="btn btn-sm btn-ghost-sep px-2 py-1 txt-body"><i class="bi bi-archive"></i></button>
-                        </td>
-                    </tr>
-
-                    <tr class="border-bottom border-theme hover-bg-app data-row" data-estado="finalizado">
-                        <td class="px-4 py-3 search-target">
-                            <div class="txt-title fw-bold">Mayo - Agosto 2025</div>
-                            <div class="txt-body text-xs mt-1">Histórico</div>
-                        </td>
-                        <td class="text-center txt-title fw-bold">05 May 2025</td>
-                        <td class="text-center txt-title fw-bold">18 Ago 2025</td>
-                        <td class="text-center">
-                            <span class="badge bg-app txt-body border border-theme text-xxs px-2 py-1">FINALIZADO</span>
-                        </td>
-                        <td class="text-end px-4">
-                            <button class="btn btn-sm btn-ghost-sep px-2 py-1 me-1 text-primary"><i class="bi bi-eye"></i></button>
-                            <button class="btn btn-sm btn-ghost-sep px-2 py-1 txt-body"><i class="bi bi-archive"></i></button>
-                        </td>
-                    </tr>
-
-                    <tr class="border-bottom border-theme hover-bg-app data-row" data-estado="finalizado">
-                        <td class="px-4 py-3 search-target">
-                            <div class="txt-title fw-bold">Enero - Abril 2025</div>
-                            <div class="txt-body text-xs mt-1">Histórico</div>
-                        </td>
-                        <td class="text-center txt-title fw-bold">09 Ene 2025</td>
-                        <td class="text-center txt-title fw-bold">25 Abr 2025</td>
-                        <td class="text-center">
-                            <span class="badge bg-app txt-body border border-theme text-xxs px-2 py-1">FINALIZADO</span>
-                        </td>
-                        <td class="text-end px-4">
-                            <button class="btn btn-sm btn-ghost-sep px-2 py-1 me-1 text-primary"><i class="bi bi-eye"></i></button>
-                            <button class="btn btn-sm btn-ghost-sep px-2 py-1 txt-body"><i class="bi bi-archive"></i></button>
-                        </td>
-                    </tr>
-
-                    <tr class="border-bottom border-theme hover-bg-app data-row" data-estado="finalizado">
-                        <td class="px-4 py-3 search-target">
-                            <div class="txt-title fw-bold">Septiembre - Diciembre 2024</div>
-                            <div class="txt-body text-xs mt-1">Histórico</div>
-                        </td>
-                        <td class="text-center txt-title fw-bold">02 Sep 2024</td>
-                        <td class="text-center txt-title fw-bold">14 Dic 2024</td>
-                        <td class="text-center">
-                            <span class="badge bg-app txt-body border border-theme text-xxs px-2 py-1">FINALIZADO</span>
-                        </td>
-                        <td class="text-end px-4">
-                            <button class="btn btn-sm btn-ghost-sep px-2 py-1 me-1 text-primary"><i class="bi bi-eye"></i></button>
-                            <button class="btn btn-sm btn-ghost-sep px-2 py-1 txt-body"><i class="bi bi-archive"></i></button>
-                        </td>
-                    </tr>
-
-                    <tr class="border-bottom border-theme hover-bg-app data-row" data-estado="finalizado">
-                        <td class="px-4 py-3 search-target">
-                            <div class="txt-title fw-bold">Mayo - Agosto 2024</div>
-                            <div class="txt-body text-xs mt-1">Histórico</div>
-                        </td>
-                        <td class="text-center txt-title fw-bold">06 May 2024</td>
-                        <td class="text-center txt-title fw-bold">20 Ago 2024</td>
-                        <td class="text-center">
-                            <span class="badge bg-app txt-body border border-theme text-xxs px-2 py-1">FINALIZADO</span>
-                        </td>
-                        <td class="text-end px-4">
-                            <button class="btn btn-sm btn-ghost-sep px-2 py-1 me-1 text-primary"><i class="bi bi-eye"></i></button>
-                            <button class="btn btn-sm btn-ghost-sep px-2 py-1 txt-body"><i class="bi bi-archive"></i></button>
-                        </td>
-                    </tr>
-                </tbody>
+                <tbody id="ciclosBody"></tbody>
             </table>
         </div>
-
         <div class="bg-surface p-3 border-top border-theme d-flex flex-column flex-md-row justify-content-between align-items-center gap-3">
-
+        
             <div class="d-flex align-items-center gap-3">
                 <span class="txt-body text-xs fw-bold">Mostrar:</span>
-                <select id="rowsPerPage" class="form-select form-select-sm bg-app border-theme txt-title fw-bold" style="width: 70px; cursor: pointer;">
-                    <option value="5" selected>5</option>
-                    <option value="10">10</option>
+
+                <select id="rowsPerPage"
+                        class="form-select form-select-sm bg-app border-theme txt-title fw-bold"
+                        style="width: 70px;">
+                    <option value="5">5</option>
+                    <option value="10" selected>10</option>
                     <option value="20">20</option>
-                    <option value="50">50</option>
                 </select>
-                <div class="txt-body text-xs fw-bold tracking-wide" id="tableInfo">
-                    Mostrando 1 a 5 de 6 registros
-                </div>
-            </div>
 
-            <nav aria-label="Navegación de tabla">
-                <ul class="pagination pagination-sm mb-0" id="paginationControls">
-                </ul>
-            </nav>
-
-        </div>
+                <div id="tableInfo" class="txt-body text-xs fw-bold"></div>
+            </div> 
     </div>
 </div>
 
@@ -191,112 +92,198 @@
 </style>
 
 @section Scripts {
-    <script>
-        $(document).ready(function () {
-            let currentPage = 1;
+        <script>
+                $(document).ready(function () {
 
-            function updateTable() {
-                let searchTerm = $('#searchInput').val().toLowerCase();
-                let statusFilter = $('#statusFilter').val();
-                let rowsPerPage = parseInt($('#rowsPerPage').val());
+                    let allData = [];
+                    let currentPage = 1;
 
-                let filteredRows = [];
-
-                // 1. Filtrar los datos
-                $('.data-row').each(function () {
-                    let text = $(this).find('.search-target').text().toLowerCase();
-                    let status = $(this).data('estado');
-
-                    let matchesSearch = text.indexOf(searchTerm) > -1;
-                    let matchesStatus = (statusFilter === 'todos') || (status === statusFilter);
-
-                    if (matchesSearch && matchesStatus) {
-                        filteredRows.push($(this));
+                    // =========================
+                    // CARGAR DATOS
+                    // =========================
+                    function loadData() {
+                        $.get('@Url.Action("GetCyclesJson", "Coordinador")', function (response) {
+                            allData = response.data ? response.data : response;
+                            updateTable();
+                        });
                     }
-                    $(this).hide(); // Ocultamos todo inicialmente
-                });
 
-                let totalRecords = filteredRows.length;
-                let totalPages = Math.ceil(totalRecords / rowsPerPage) || 1;
+                    // =========================
+                    // RENDER FILAS
+                    // =========================
+                    function renderRows(data) {
+                        let html = '';
 
-                // Prevenir que la página actual sea mayor al total de páginas posibles
-                if (currentPage > totalPages) {
-                    currentPage = totalPages;
-                }
+                        data.forEach(item => {
 
-                // 2. Mostrar solo la porción de la página actual
-                let startIndex = (currentPage - 1) * rowsPerPage;
-                let endIndex = Math.min(startIndex + rowsPerPage, totalRecords);
+                            let estadoClass = item.estado === 'ACTIVO'
+                                ? 'status-aceptado'
+                                : 'bg-app txt-body border border-theme';
 
-                for (let i = startIndex; i < endIndex; i++) {
-                    filteredRows[i].show();
-                }
+                            html += `
+                            <tr class="border-bottom border-theme hover-bg-app data-row">
 
-                // 3. Actualizar texto de información
-                if (totalRecords === 0) {
-                    $('#tableInfo').text('No se encontraron registros');
-                } else {
-                    $('#tableInfo').text(`Mostrando ${startIndex + 1} a ${endIndex} de ${totalRecords} registros`);
-                }
+                                <td class="px-4 py-3">
+                                    <div class="fw-bold">${item.nombre}</div>
+                                    <div class="text-xs">Ciclo escolar</div>
+                                </td>
 
-                // 4. Renderizar Botones de Paginación
-                renderPagination(totalPages);
-            }
+                                <td class="text-center">${item.inicio}</td>
+                                <td class="text-center">${item.fin}</td>
 
-            function renderPagination(totalPages) {
-                let paginationHtml = '';
+                                <td class="text-center">
+                                    <span class="badge ${estadoClass}">
+                                        ${item.estado}
+                                    </span>
+                                </td>
 
-                // Botón Anterior
-                paginationHtml += `
-                    <li class="page-item ${currentPage === 1 ? 'disabled' : ''}">
-                        <a class="page-link page-link-custom" href="#" data-page="${currentPage - 1}">
-                            <i class="bi bi-chevron-left"></i>
-                        </a>
-                    </li>`;
+                                <td class="text-end px-4">
 
-                // Números de Página
-                for (let i = 1; i <= totalPages; i++) {
-                    paginationHtml += `
-                        <li class="page-item ${i === currentPage ? 'active' : ''}">
-                            <a class="page-link page-link-custom" href="#" data-page="${i}">${i}</a>
+                                    <!-- EDIT -->
+                                    <a href="/Coordinador/EditCycle?id=${item.id}"
+                                       class="btn btn-sm btn-primary me-1">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
+
+                                    <!-- DELETE -->
+                                    <button class="btn btn-sm btn-danger delete-cycle me-1"
+                                            data-id="${item.id}">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+
+                                </td>
+                            </tr>`;
+                        });
+
+                        $('#ciclosBody').html(html);
+                    }
+
+                    // =========================
+                    // FILTRO + PAGINACIÓN
+                    // =========================
+                    function updateTable() {
+
+                        let searchTerm = $('#searchInput').val().toLowerCase();
+                        let statusFilter = $('#statusFilter').val();
+                        let rowsPerPage = parseInt($('#rowsPerPage').val());
+
+                        let filteredData = allData.filter(item => {
+
+                            let matchesSearch = item.nombre.toLowerCase().includes(searchTerm);
+                            let matchesStatus = (!statusFilter) || (item.estado === statusFilter);
+
+                            return matchesSearch && matchesStatus;
+                        });
+
+                        let totalRecords = filteredData.length;
+                        let totalPages = Math.ceil(totalRecords / rowsPerPage) || 1;
+
+                        if (currentPage > totalPages) currentPage = totalPages;
+
+                        let startIndex = (currentPage - 1) * rowsPerPage;
+                        let endIndex = Math.min(startIndex + rowsPerPage, totalRecords);
+
+                        let pageData = filteredData.slice(startIndex, endIndex);
+
+                        renderRows(pageData);
+
+                        if (totalRecords === 0) {
+                            $('#tableInfo').text('No se encontraron registros');
+                        } else {
+                            $('#tableInfo').text(`Mostrando ${startIndex + 1} a ${endIndex} de ${totalRecords} registros`);
+                        }
+
+                        renderPagination(totalPages);
+                    }
+
+                    // =========================
+                    // PAGINACIÓN
+                    // =========================
+                    function renderPagination(totalPages) {
+
+                        let html = '';
+
+                        html += `
+                        <li class="page-item ${currentPage === 1 ? 'disabled' : ''}">
+                            <a class="page-link page-link-custom" href="#" data-page="${currentPage - 1}">
+                                <i class="bi bi-chevron-left"></i>
+                            </a>
                         </li>`;
-                }
 
-                // Botón Siguiente
-                paginationHtml += `
-                    <li class="page-item ${currentPage === totalPages || totalPages === 0 ? 'disabled' : ''}">
-                        <a class="page-link page-link-custom" href="#" data-page="${currentPage + 1}">
-                            <i class="bi bi-chevron-right"></i>
-                        </a>
-                    </li>`;
+                        for (let i = 1; i <= totalPages; i++) {
+                            html += `
+                            <li class="page-item ${i === currentPage ? 'active' : ''}">
+                                <a class="page-link page-link-custom" href="#" data-page="${i}">${i}</a>
+                            </li>`;
+                        }
 
-                $('#paginationControls').html(paginationHtml);
-            }
+                        html += `
+                        <li class="page-item ${currentPage === totalPages ? 'disabled' : ''}">
+                            <a class="page-link page-link-custom" href="#" data-page="${currentPage + 1}">
+                                <i class="bi bi-chevron-right"></i>
+                            </a>
+                        </li>`;
 
-            // Event Listeners
-            $('#searchInput, #statusFilter').on('input change', function() {
-                currentPage = 1; // Volver a la página 1 al filtrar
-                updateTable();
-            });
+                        $('#paginationControls').html(html);
+                    }
 
-            $('#rowsPerPage').on('change', function() {
-                currentPage = 1; // Volver a la página 1 al cambiar registros por página
-                updateTable();
-            });
+                    // =========================
+                    // EVENTOS
+                    // =========================
 
-            // Delegación de eventos para los botones de paginación (generados dinámicamente)
-            $('#paginationControls').on('click', '.page-link', function(e) {
-                e.preventDefault();
-                let $parent = $(this).parent();
+                    $('#searchInput').on('input', function () {
+                        currentPage = 1;
+                        updateTable();
+                    });
 
-                if (!$parent.hasClass('disabled') && !$parent.hasClass('active')) {
-                    currentPage = parseInt($(this).data('page'));
-                    updateTable();
-                }
-            });
+                    $('#statusFilter').on('change', function () {
+                        currentPage = 1;
+                        updateTable();
+                    });
 
-            // Inicializar tabla al cargar
-            updateTable();
-        });
-    </script>
+                    $('#rowsPerPage').on('change', function () {
+                        currentPage = 1;
+                        updateTable();
+                    });
+
+                    $('#paginationControls').on('click', '.page-link', function (e) {
+                        e.preventDefault();
+
+                        let parent = $(this).parent();
+
+                        if (!parent.hasClass('disabled') && !parent.hasClass('active')) {
+                            currentPage = parseInt($(this).data('page'));
+                            updateTable();
+                        }
+                    });
+
+                    // =========================
+                    // DELETE
+                    // =========================
+                    $('#ciclosBody').on('click', '.delete-cycle', function () {
+
+                        const id = $(this).data('id');
+
+                        if (!confirm('¿Seguro que deseas eliminar este ciclo?')) return;
+
+                        $.post('/Coordinador/DeleteCycle', {
+                            id: id,
+                            __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
+                        })
+                        .done(function () {
+                            loadData();
+                        })
+                        .fail(function (err) {
+                            console.error(err);
+                            alert('Error al eliminar');
+                        });
+                    });
+
+                    // =========================
+                    // INIT
+                    // =========================
+                    loadData();
+
+                });
+        </script>
 }

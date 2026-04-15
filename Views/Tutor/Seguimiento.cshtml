@@ -1,5 +1,4 @@
-﻿@model ControlEscolar.ViewModels.OperationalTracking.TutorSeguimientoViewModel
-@{
+﻿@{
     ViewData["Title"] = "Bitácora de Seguimiento";
     Layout = "_LayoutTutor";
 }
@@ -9,28 +8,24 @@
     <aside class="tutor-sticky-nav">
         <div class="admin-card-white p-4 rounded-4 border-theme shadow-sm text-center">
             <div class="avatar-container mb-3 position-relative">
-                <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=@(Model.StudentName.Replace(" ", ""))" class="avatar-xl-img rounded-circle shadow-sm" style="width: 120px; height: 120px;">
+                <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Roberto" class="avatar-xl-img rounded-circle shadow-sm" style="width: 120px; height: 120px;">
                 <div class="status-indicator bg-success"></div>
             </div>
-            <h5 class="txt-title fw-bold mb-1">@Model.StudentName</h5>
-            <p class="txt-body text-xs mb-3 fw-bold">Matrícula: @Model.Matricula</p>
+            <h5 class="txt-title fw-bold mb-1">Roberto Carlos Perez Cadena</h5>
+            <p class="txt-body text-xs mb-3 fw-bold">Matrícula: 26001504</p>
 
             <div class="d-flex flex-column gap-2 border-top border-theme pt-3">
                 <div class="d-flex justify-content-between text-xxs fw-bold tracking-wide">
                     <span class="txt-body">CARRERA:</span>
-                    <span class="txt-title">@Model.CareerCode</span>
+                    <span class="txt-title">IDGS</span>
                 </div>
                 <div class="d-flex justify-content-between text-xxs fw-bold tracking-wide">
                     <span class="txt-body">GRUPO:</span>
-                    <span class="txt-title">@Model.GroupCode</span>
+                    <span class="txt-title">7º A</span>
                 </div>
                 <div class="d-flex justify-content-between text-xxs fw-bold tracking-wide">
-                    <span class="txt-body">HORAS:</span>
-                    <span class="txt-success-700">@Model.ApprovedHours / @Model.RequiredHours</span>
-                </div>
-                <div class="d-flex justify-content-between text-xxs fw-bold tracking-wide">
-                    <span class="txt-body">ESTADO:</span>
-                    <span class="txt-title">@Model.StatusCode</span>
+                    <span class="txt-body">PROMEDIO:</span>
+                    <span class="txt-success-700">9.2</span>
                 </div>
             </div>
 
@@ -55,93 +50,42 @@
         </div>
 
         <div class="tutor-timeline pt-3">
-            @if (TempData["SuccessMessage"] != null)
-            {
-                <div class="alert bg-success-100 border border-success-700 text-success-700 rounded-3 alert-dismissible fade show shadow-sm">
-                    <i class="bi bi-check-circle-fill me-2"></i> @TempData["SuccessMessage"]
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                </div>
-            }
 
-            @if (TempData["ErrorMessage"] != null)
-            {
-                <div class="alert bg-error-100 border border-error border-opacity-25 txt-error rounded-3 alert-dismissible fade show shadow-sm">
-                    <i class="bi bi-exclamation-triangle-fill me-2"></i> @TempData["ErrorMessage"]
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                </div>
-            }
-
-            @if (!Model.AssignmentId.HasValue)
-            {
-                <div class="admin-card-white p-4 rounded-4 border-theme shadow-sm">
-                    <p class="txt-body mb-0">No hay estudiantes asignados a tu perfil de tutor/docente.</p>
-                </div>
-            }
-            else if (Model.TimelineDocuments.Count == 0)
-            {
-                <div class="admin-card-white p-4 rounded-4 border-theme shadow-sm">
-                    <p class="txt-body mb-0">No hay documentos registrados en esta asignación.</p>
-                </div>
-            }
-            else
-            {
-                foreach (var doc in Model.TimelineDocuments)
-                {
-                    var isRejected = doc.StatusCode == "REJECTED";
-                    <div class="tutor-timeline-item">
-                        <div class="tutor-timeline-dot" style="border-color: @(isRejected ? "var(--error-700)" : "var(--primary-900)");"></div>
-                        <div class="admin-card-white p-4 rounded-4 border-theme shadow-sm hover-shadow-md transition-all">
-                            <div class="d-flex justify-content-between align-items-start mb-2">
-                                <div>
-                                    <span class="badge @(isRejected ? "bg-error-100 txt-error border border-error border-opacity-25" : "status-aceptado") text-xxs px-2 py-1 mb-2">@doc.StatusCode</span>
-                                    <h6 class="txt-title fw-bold mb-0">@doc.Title</h6>
-                                </div>
-                                <span class="txt-body text-xxs fw-bold tracking-wide">@doc.UploadDate.ToString("dd MMMM, yyyy")</span>
-                            </div>
-                            <p class="txt-body text-sm">@(string.IsNullOrWhiteSpace(doc.Notes) ? "Sin observaciones del alumno." : doc.Notes)</p>
-                            <div class="border-top border-theme pt-2 mt-2 d-flex align-items-center justify-content-between gap-2 flex-wrap">
-                                <span class="txt-body text-xxs">Tipo: <strong>@doc.DocumentType</strong></span>
-                                <div class="d-flex gap-2">
-                                    @if (!string.IsNullOrWhiteSpace(doc.FilePath))
-                                    {
-                                        <a href="@Url.Action("DownloadOperationalDocument", "Tutor", new { documentId = doc.Id })" class="btn btn-sm btn-ghost-sep">Descargar</a>
-                                    }
-                                    <form method="post" action="@Url.Action("ApproveDocument", "Tutor")">
-                                        @Html.AntiForgeryToken()
-                                        <input type="hidden" name="documentId" value="@doc.Id" />
-                                        <button type="submit" class="btn btn-sm btn-primary-sep">Aprobar</button>
-                                    </form>
-                                    <form method="post" action="@Url.Action("RejectDocument", "Tutor")">
-                                        @Html.AntiForgeryToken()
-                                        <input type="hidden" name="documentId" value="@doc.Id" />
-                                        <input type="hidden" name="comments" value="Requiere correcciones" />
-                                        <button type="submit" class="btn btn-sm btn-ghost-sep">Rechazar</button>
-                                    </form>
-                                </div>
-                            </div>
+            <div class="tutor-timeline-item">
+                <div class="tutor-timeline-dot"></div>
+                <div class="admin-card-white p-4 rounded-4 border-theme shadow-sm hover-shadow-md transition-all">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <div>
+                            <span class="badge status-aceptado text-xxs px-2 py-1 mb-2">ACADÉMICO</span>
+                            <h6 class="txt-title fw-bold mb-0">Solicitud de Asesoría</h6>
                         </div>
+                        <span class="txt-body text-xxs fw-bold tracking-wide">15 MARZO, 2026</span>
                     </div>
-                }
-
-                <div class="admin-card-white p-4 rounded-4 border-theme shadow-sm mt-3">
-                    <div class="d-flex flex-column flex-md-row gap-2 align-items-md-center justify-content-between">
-                        <div class="txt-body text-sm">Aprobación de horas y cierre de proceso</div>
-                        <div class="d-flex gap-2 flex-wrap">
-                            <form method="post" action="@Url.Action("ApproveHours", "Tutor")" class="d-flex gap-2">
-                                @Html.AntiForgeryToken()
-                                <input type="hidden" name="assignmentId" value="@Model.AssignmentId" />
-                                <input type="number" name="approvedHours" class="form-control form-control-sm" step="0.5" min="0" placeholder="Horas aprobadas" required style="max-width: 150px;" />
-                                <button type="submit" class="btn btn-sm btn-primary-sep">Guardar Horas</button>
-                            </form>
-                            <form method="post" action="@Url.Action("FinalApproval", "Tutor")">
-                                @Html.AntiForgeryToken()
-                                <input type="hidden" name="assignmentId" value="@Model.AssignmentId" />
-                                <button type="submit" class="btn btn-sm btn-ghost-sep">Aprobación Final</button>
-                            </form>
-                        </div>
+                    <p class="txt-body text-sm">El alumno solicita apoyo extra en la materia de Integración de Seguridad. Se le canaliza con el Ing. García para sesiones los jueves.</p>
+                    <div class="border-top border-theme pt-2 mt-2 d-flex align-items-center gap-2">
+                        <div class="avatar-sm bg-app border border-theme txt-title text-xxs fw-bold rounded-circle d-flex align-items-center justify-content-center" style="width: 25px; height: 25px;">JP</div>
+                        <span class="txt-body text-xxs">Registrado por: <strong>Ing. Juan Pérez (Tutor)</strong></span>
                     </div>
                 </div>
-            }
+            </div>
+
+            <div class="tutor-timeline-item">
+                <div class="tutor-timeline-dot" style="border-color: var(--error-700);"></div>
+                <div class="admin-card-white p-4 rounded-4 border-theme shadow-sm hover-shadow-md transition-all">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <div>
+                            <span class="badge bg-error-100 txt-error text-xxs px-2 py-1 mb-2 border border-error border-opacity-25">INCIDENCIA</span>
+                            <h6 class="txt-title fw-bold mb-0">Inasistencia Injustificada</h6>
+                        </div>
+                        <span class="txt-body text-xxs fw-bold tracking-wide">10 MARZO, 2026</span>
+                    </div>
+                    <p class="txt-body text-sm">Se detectaron 3 faltas consecutivas sin previo aviso. Se realizó llamada telefónica al padre de familia para seguimiento.</p>
+                    <div class="border-top border-theme pt-2 mt-2 d-flex align-items-center gap-2">
+                        <div class="avatar-sm bg-app border border-theme txt-title text-xxs fw-bold rounded-circle d-flex align-items-center justify-content-center" style="width: 25px; height: 25px;">JP</div>
+                        <span class="txt-body text-xxs">Registrado por: <strong>Ing. Juan Pérez (Tutor)</strong></span>
+                    </div>
+                </div>
+            </div>
 
         </div>
 
