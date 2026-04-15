@@ -174,5 +174,17 @@ namespace ControlEscolar.Models
 
             return user;
 		}
-	}
+
+        public static CycleViewModel MapToCycle(DbDataReader reader)
+        {
+            return new CycleViewModel
+            {
+                Id = Management.GetValue<int>(reader, "management_cycle_ID"),
+                Name = Management.GetValue<string>(reader, "management_cycle_Name"),
+                StartDate = Management.GetValue<DateTime>(reader, "management_cycle_StartDate"),
+                EndDate = Management.GetValue<DateTime>(reader, "management_cycle_EndDate"),
+                StatusCode = Management.GetValue<string>(reader, "management_cycle_StatusCode")
+            };
+        }
+    }
 }

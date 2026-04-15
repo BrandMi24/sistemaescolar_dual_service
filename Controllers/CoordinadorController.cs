@@ -1252,6 +1252,89 @@ namespace ControlEscolar.Controllers
         }
 
         // ==========================================
+        // CICLOS - TABLE
+        // ==========================================
+
+        [HttpGet]
+        public async Task<IActionResult> GetCyclesJson()
+        {
+            var lista = await _repo.ExecuteStoredProcedureAsync(
+                "management_cycle_get",
+                null,
+                ModelMappers.MapToCycle
+            );
+
+            var data = lista.Select(c => new
+            {
+                id = c.Id,
+                nombre = c.Name,
+                inicio = c.StartDate.ToString("dd MMM yyyy"),
+                fin = c.EndDate.ToString("dd MMM yyyy"),
+                estado = c.StatusCode
+            });
+
+            return Json(new { data });
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> CreateCycle(CycleViewModel model)
+        {
+            // ==========================================
+            // VALIDACIÓN 1: FECHAS
+            // ==========================================
+            if (model.StartDate >= model.EndDate)
+            {
+                ModelState.AddModelError("", "La fecha de inicio debe ser menor a la fecha de fin.");
+            }
+
+            // ==========================================
+            // VALIDACIÓN 2: SOLO UN ACTIVO
+            // ==========================================
+            if (model.StatusCode == "ACTIVO")
+            {
+                var ciclos = await _repo.ExecuteStoredProcedureAsync(
+                    "management_cycle_get",
+                    null,
+                    ModelMappers.MapToCycle
+                );
+
+                bool existeActivo = ciclos.Any(c => c.StatusCode == "ACTIVO");
+
+                if (existeActivo)
+                {
+                    ModelState.AddModelError("", "Ya existe un ciclo ACTIVO. Debe finalizarlo antes de crear otro.");
+                }
+            }
+
+            // ==========================================
+            // VALIDACIÓN FINAL
+            // ==========================================
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
+
+            try
+            {
+                await _repo.CreateCycleAsync(new Dictionary<string, object>
+        {
+            { "@CycleName", model.Name },
+            { "@StartDate", model.StartDate },
+            { "@EndDate", model.EndDate },
+            { "@StatusCode", model.StatusCode }
+        });
+
+                return RedirectToAction("Ciclos");
+            }
+            catch (Exception ex)
+            {
+                ModelState.AddModelError("", "Error: " + ex.Message);
+                return View(model);
+            }
+        }
+
+        // ==========================================
         // 8. GESTIÓN OPERATIVA
         // ==========================================
         public IActionResult Asignaciones()
@@ -1266,6 +1349,13 @@ namespace ControlEscolar.Controllers
 
         public IActionResult SeguimientoDualEstadias()
         {
+            return View();
+        }
+
+        [HttpGet]
+        public IActionResult CreateCycle()
+        {
+            ViewBag.IsEdit = false;
             return View();
         }
 

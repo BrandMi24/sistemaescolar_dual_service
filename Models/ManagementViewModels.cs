@@ -160,4 +160,13 @@ namespace ControlEscolar.Models
         public string Shift { get; set; } = "MATUTINO";
         public bool IsActive { get; set; } = true;
     }
+
+    public class CycleViewModel
+    {
+        public int Id { get; set; }
+        public string Name { get; set; }
+        public DateTime StartDate { get; set; }
+        public DateTime EndDate { get; set; }
+        public string StatusCode { get; set; }
+    }
 }

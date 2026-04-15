@@ -1,4 +1,5 @@
 using ControlEscolar.Data;
+using ControlEscolar.Helpers;
 using ControlEscolar.Models;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
@@ -90,7 +91,14 @@ namespace ControlEscolar.Controllers
                 CookieAuthenticationDefaults.AuthenticationScheme,
                 new ClaimsPrincipal(identity));
 
-            return LocalRedirect(returnUrl ?? Url.Action("Index", "Admin")!);
+            // PRIORIDAD: returnUrl
+            if (!string.IsNullOrEmpty(returnUrl))
+                return LocalRedirect(returnUrl);
+
+            // REDIRECCIÓN DINÁMICA
+            var (controller, action) = RoleRedirectHelper.GetRedirect(roles);
+
+            return RedirectToAction(action, controller);
         }
 
         [HttpPost]

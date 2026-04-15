@@ -375,6 +375,15 @@ namespace ControlEscolar.Data
             );
         }
 
+        public async Task CreateCycleAsync(Dictionary<string, object> parameters)
+        {
+            await ExecuteStoredProcedureAsync(
+                "management_cycle_insert",
+                parameters,
+                reader => 0
+            );
+        }
+
         public async Task<Dictionary<int, string>> GetRolesAsync()
         {
             var roles = await ExecuteQueryAsync(GetRolesQuery, null, reader => new { 
