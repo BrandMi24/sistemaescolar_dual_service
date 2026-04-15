@@ -1,44 +1,51 @@
-﻿@{
+﻿@model CycleViewModel
+@{
     ViewData["Title"] = "Nuevo Ciclo";
     Layout = "_LayoutCoordinador";
+
+    var isEdit = ViewBag.IsEdit as bool? ?? false;
 }
 
 <div class="fade-in d-flex flex-column gap-4">
 
     <!-- HEADER -->
-    <div class="bg-surface p-4 rounded-4 border-theme shadow-sm d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+    <div class="bg-surface p-4 rounded-4 border-theme shadow-sm d-flex justify-content-between align-items-center">
         <div>
-            <h3 class="txt-title fw-bold mb-1">Registrar Nuevo Ciclo</h3>
-            <div class="d-flex align-items-center gap-3 mt-2 txt-body text-xs">
-                <span>Ingrese la información del ciclo escolar.</span>
-            </div>
+            <h3 class="fw-bold mb-1">
+                @(isEdit ? "Editar Ciclo" : "Registrar Nuevo Ciclo")
+            </h3>
+            <span>
+                @(isEdit ? "Modifique la información del ciclo." : "Ingrese la información del ciclo escolar.")
+            </span>
         </div>
-        <div class="text-end">
-            <a href="@Url.Action("Ciclos", "Coordinador")"
-                   class="btn btn-sm btn-ghost-sep border border-theme shadow-sm fw-semibold">
-                Volver a Ciclos
-            </a>
-        </div>
-    </div>
 
-    @{
-        var isEdit = ViewBag.IsEdit as bool? ?? false;
-    }
+        <a href="@Url.Action("Ciclos", "Coordinador")"
+               class="btn btn-sm btn-ghost-sep border border-theme shadow-sm fw-semibold">
+            Volver a Ciclos
+        </a>
+    </div>
 
     <!-- FORM -->
     <form asp-action="@(isEdit ? "EditCycle" : "CreateCycle")"
           asp-controller="Coordinador"
           method="post"
-          class="needs-validation">
+          class="needs-validation"
+          novalidate>
 
         @Html.AntiForgeryToken()
 
+        @if (isEdit)
+        {
+            <input type="hidden" name="Id" value="@Model?.Id" />
+        }
+
+        <!-- ERRORES -->
         @if (!ViewData.ModelState.IsValid)
         {
-            <div class="alert bg-error-100 border border-error border-opacity-25 txt-error rounded-3 mb-4 shadow-sm">
+            <div class="alert alert-danger">
                 @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
                 {
-                    <div class="text-sm fw-bold">@error.ErrorMessage</div>
+                    <div>@error.ErrorMessage</div>
                 }
             </div>
         }
@@ -46,90 +53,62 @@
         <div class="row g-4">
 
             <!-- MAIN -->
-            <div class="col-lg-8 d-flex flex-column gap-4">
+            <div class="col-lg-8">
 
-                <div class="admin-card-white p-4 p-md-5 rounded-4 border-theme shadow-sm bg-white">
-                    <h6 class="txt-title fw-bold mb-4 border-bottom border-theme pb-2">
-                        DATOS DEL CICLO
-                    </h6>
+                <div class="p-4 border rounded shadow-sm bg-white">
 
-                    <div class="row g-4">
+                    <h5 class="mb-4">Datos del Ciclo</h5>
 
-                        <!-- NOMBRE -->
-                        <div class="col-md-12">
-                            <label class="txt-body text-xs fw-bold mb-2">
-                                NOMBRE DEL CICLO <span class="text-danger">*</span>
-                            </label>
-                            <input name="Name"
-                                   type="text"
-                                   class="form-control search-input-custom ps-3"
-                                   placeholder="Ej. Enero - Abril 2026"
-                                   required
-                                   value="@Model?.Name" />
-                        </div>
-
-                        <!-- FECHA INICIO -->
-                        <div class="col-md-6">
-                            <label class="txt-body text-xs fw-bold mb-2">
-                                FECHA DE INICIO <span class="text-danger">*</span>
-                            </label>
-                            <input name="StartDate"
-                                   type="date"
-                                   class="form-control search-input-custom ps-3"
-                                   required
-                                   value="@(Model?.StartDate.ToString("yyyy-MM-dd"))" />
-                        </div>
-
-                        <!-- FECHA FIN -->
-                        <div class="col-md-6">
-                            <label class="txt-body text-xs fw-bold mb-2">
-                                FECHA DE FIN <span class="text-danger">*</span>
-                            </label>
-                            <input name="EndDate"
-                                   type="date"
-                                   class="form-control search-input-custom ps-3"
-                                   required
-                                   value="@(Model?.EndDate.ToString("yyyy-MM-dd"))" />
-                        </div>
-
-                        <!-- ESTADO -->
-                        <div class="col-md-6">
-                            <label class="txt-body text-xs fw-bold mb-2">
-                                ESTADO
-                            </label>
-                            <select name="StatusCode"
-                                    class="form-select bg-app border-theme txt-title fw-semibold py-2">
-                                <option value="ACTIVO" selected>Activo</option>
-                                <option value="FINALIZADO">Finalizado</option>
-                                <option value="PROGRAMADO">Programado</option>
-                            </select>
-                        </div>
-
+                    <div class="mb-3">
+                        <label>Nombre</label>
+                        <input name="Name"
+                               class="form-control"
+                               value="@Model?.Name" />
                     </div>
+
+                    <div class="mb-3">
+                        <label>Fecha Inicio</label>
+                        <input name="StartDate"
+                               type="date"
+                               class="form-control"
+                               value="@(Model != null ? Model.StartDate.ToString("yyyy-MM-dd") : "")" />
+                    </div>
+
+                    <div class="mb-3">
+                        <label>Fecha Fin</label>
+                        <input name="EndDate"
+                               type="date"
+                               class="form-control"
+                               value="@(Model != null ? Model.EndDate.ToString("yyyy-MM-dd") : "")" />
+                    </div>
+
+                    <div class="mb-3">
+                        <label>Estado</label>
+                        <select name="StatusCode" class="form-select">
+                            <option value="ACTIVO" selected="@(Model?.StatusCode == "ACTIVO")">Activo</option>
+                            <option value="FINALIZADO" selected="@(Model?.StatusCode == "FINALIZADO")">Finalizado</option>
+                            <option value="PROGRAMADO" selected="@(Model?.StatusCode == "PROGRAMADO")">Programado</option>
+                        </select>
+                    </div>
+
                 </div>
             </div>
 
             <!-- SIDEBAR -->
             <div class="col-lg-4">
-                <div class="admin-card-white p-4 p-md-5 rounded-4 shadow-sm h-100 d-flex flex-column bg-white border-theme">
+                <div class="p-4 border rounded shadow-sm bg-white h-100 d-flex flex-column">
 
-                    <h6 class="txt-title fw-bold mb-4 border-bottom border-theme pb-2">
-                        ACCIONES
-                    </h6>
-
-                    <div class="mt-auto pt-4 border-top border-theme d-flex flex-column gap-3">
-
-                        <button type="submit"
-                                class="btn btn-primary-sep bg-primary-900 w-100 fw-bold py-3 shadow-sm text-white">
-                            @(isEdit ? "Editar Ciclo" : "Registrar Ciclo")
+                    <div class="mt-auto">
+                        <button type="submit" class="btn btn-primary w-100 mb-2">
+                            @(isEdit ? "Guardar Cambios" : "Registrar Ciclo")
                         </button>
 
                         <a href="@Url.Action("Ciclos", "Coordinador")"
-                               class="btn btn-ghost-sep border border-theme w-100 py-2 shadow-sm text-body fw-semibold">
+                               class="btn btn-secondary w-100">
                             Cancelar
                         </a>
-
                     </div>
+
                 </div>
             </div>
 

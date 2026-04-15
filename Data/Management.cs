@@ -546,15 +546,6 @@ namespace ControlEscolar.Data
             }
         }
 
-        public async Task CreateCycleAsync(Dictionary<string, object> parameters)
-        {
-            await ExecuteStoredProcedureAsync(
-                "management_cycle_insert",
-                parameters,
-                reader => 0
-            );
-        }
-
         private static object GetParameterValue(Dictionary<string, object>? parameters, string key)
         {
             if (parameters != null && parameters.TryGetValue(key, out var value) && value != null)

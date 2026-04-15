@@ -21,6 +21,7 @@
         <a href="#" class="nav-tab-item text-decoration-none @(activeTab == "tab-grupos" ? "active" : "")" data-target="#tab-grupos">Grupos</a>
         <a href="#" class="nav-tab-item text-decoration-none @(activeTab == "tab-career" ? "active" : "")" data-target="#tab-career">Carreras</a>
         <a href="#" class="nav-tab-item text-decoration-none @(activeTab == "tab-bajas" ? "active" : "")" data-target="#tab-bajas">Histórico de Bajas</a>
+        <a href="#" class="nav-tab-item text-decoration-none @(activeTab == "tab-roles" ? "active" : "")" data-target="#tab-roles">Roles</a>
         <a href="#" class="nav-tab-item text-decoration-none @(activeTab == "tab-cuentas" ? "active" : "")" data-target="#tab-cuentas">Creación y Gestión de cuentas</a>
     </div>
 
@@ -450,6 +451,51 @@
             </div>
         </div>
     </div>
+
+    <div id="tab-roles" class="tab-content-pane" style="display:@(activeTab == "tab-roles" ? "block" : "none");">
+
+        <div class="bg-surface p-4 rounded-4 border-theme shadow-sm mb-4">
+            <div class="d-flex flex-column gap-3">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h5 class="txt-title fw-bold mb-1">Roles</h5>
+                        <p class="txt-body text-xs mb-3">Gestión de roles del sistema.</p>
+                    </div>
+
+                    <a href="@Url.Action("CreateRole", "Coordinador", new { tab = "tab-roles" })"
+                           class="btn btn-primary-sep shadow-sm d-flex align-items-center gap-2">
+                        Crear Rol
+                    </a>
+                </div>
+
+                <div class="row g-3">
+                    <div class="col-lg-6">
+                        <label class="txt-body text-xs fw-bold mb-2">BUSCAR</label>
+                        <div class="position-relative search-wrapper">
+                            <i class="bi bi-search position-absolute search-icon-left txt-body"></i>
+                            <input type="text" id="dtSearchRoles" class="form-control search-input-custom" placeholder="Buscar rol...">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="admin-card-white p-0 rounded-4 border-theme shadow-sm overflow-hidden d-flex flex-column">
+            <div class="table-responsive bg-surface">
+                <table id="tablaRoles" class="table table-borderless align-middle mb-0 w-100">
+                    <thead class="admin-table-header border-bottom border-theme">
+                        <tr>
+                            <th class="py-3 px-4">Nombre</th>
+                            <th class="py-3">Descripción</th>
+                            <th class="py-3 text-end px-4">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
 </div>
 
 <style>
@@ -562,7 +608,7 @@
             const dtLang = "https://cdn.datatables.net/plug-ins/2.1.0/i18n/es-ES.json";
             const csrfToken = '@token';
 
-            let dtPersonas, dtAlumnos, dtDocentes, dtGrupos, dtCarreras, dtBajas, dtCuentas;
+        let dtPersonas, dtAlumnos, dtDocentes, dtGrupos, dtCarreras, dtBajas, dtCuentas,dtRoles;
 
             function setActiveTab(tabId) {
                 $('.nav-tab-item').removeClass('active');
@@ -935,6 +981,41 @@
                 ]
             });
 
+            dtRoles = $('#tablaRoles').DataTable({
+                responsive: true,
+                dom: 'rtip',
+                language: { url: dtLang },
+                pageLength: 10,
+                lengthChange: false,
+                pagingType: 'simple_numbers',
+                ajax: {
+                url: '@Url.Action("GetRolesJson", "Coordinador")',
+                type: 'GET',
+                dataSrc: 'data'
+                },
+                columns: [
+                    { data: 'nombre', className: 'px-4 fw-bold text-sm' },
+                    { data: 'descripcion', className: 'text-xs' },
+                    {
+                        data: 'id',
+                        orderable: false,
+                        className: 'text-end px-4',
+                        render: function (d) {
+                            return `
+                                <button onclick="window.location.href='@Url.Action("EditRole", "Coordinador")/${d}?tab=tab-roles'"
+                                class="btn btn-sm btn-ghost-sep text-primary px-2">
+                                <i class="bi bi-pencil"></i>
+                                </button>
+
+                                <button onclick="eliminarRol(${d})"
+                                class="btn btn-sm btn-ghost-sep text-danger px-2">
+                                <i class="bi bi-trash"></i>
+                                </button>`;
+                        }
+                    }
+                ]
+            });
+
             dtCuentas = $('#tablaCuentas').DataTable({
                 responsive: true,
                 dom: '<"d-flex justify-content-end pt-3"B>rtip',
@@ -979,6 +1060,8 @@
                 ]
             });
 
+
+
             $('#dtSearchPersonas').on('keyup', function () { dtPersonas.search(this.value).draw(); });
             $('#filterRolPersonas, #filterEstadoPersonas, #filterTipoPersonas').on('change', function () { dtPersonas.draw(); });
 
@@ -996,6 +1079,8 @@
 
             $('#dtSearchBajas').on('keyup', function () { dtBajas.search(this.value).draw(); });
             $('#filterTipoBajas, #filterEstadoBajas').on('change', function () { dtBajas.draw(); });
+
+            $('#dtSearchRoles').on('keyup', function () { dtRoles.search(this.value).draw();});
 
             $('#dtSearchCuentas').on('keyup', function () { dtCuentas.search(this.value).draw(); });
             $('#filterRolCuentas, #filterEstadoCuentas').on('change', function () { dtCuentas.draw(); });
@@ -1040,6 +1125,20 @@
                 .catch(err => alert(err.message));
             };
 
+            window.eliminarRol = function (id) {
+                if (!confirm('¿Deseas eliminar este rol?')) return;
+
+                fetch(`/Coordinador/DeleteRole/${id}`, {
+                    method: 'POST',
+                    headers: { 'RequestVerificationToken': csrfToken }
+                })
+                .then(r => {
+                    if (!r.ok) throw new Error('Error al eliminar');
+                    dtRoles.ajax.reload(null, false);
+                })
+                .catch(err => alert(err.message));
+            };
+
             window.eliminarDefinitivo = function (tipoUsuario, id, userId) {
                 if (!confirm('¿Deseas eliminar definitivamente este registro inactivo?')) return;
 
@@ -1069,6 +1168,7 @@
                 dtCarreras.ajax.reload(null, false);
                 dtBajas.ajax.reload(null, false);
                 dtCuentas.ajax.reload(null, false);
+        dtRoles.ajax.reload(null, false);
             }
         });
     </script>

@@ -6,7 +6,8 @@
     var isEdit = ViewBag.IsEdit as bool? ?? false;
     var returnTab = ViewBag.ReturnTab as string ?? "tab-cuentas";
     var roles = ViewBag.Roles as Dictionary<int, string> ?? new Dictionary<int, string>();
-    var availableStudents = ViewBag.AvailableStudents as Dictionary<int, string> ?? new Dictionary<int, string>();
+    var availableStudents = ViewBag.AvailableStudents as Dictionary<int, StudentOption>
+    ?? new Dictionary<int, StudentOption>();
 }
 
 <div class="fade-in d-flex flex-column gap-4">
@@ -51,7 +52,7 @@
                             <label asp-for="FirstName" class="txt-body text-xs fw-bold tracking-wide mb-2">
                                 NOMBRE(S) <span class="text-danger">*</span>
                             </label>
-                            <input asp-for="FirstName" class="form-control search-input-custom ps-3" required />
+                            <input asp-for="FirstName" class="form-control search-input-custom ps-3"  />
                             <span asp-validation-for="FirstName" class="text-danger text-xs"></span>
                         </div>
 
@@ -59,7 +60,7 @@
                             <label asp-for="LastNamePaternal" class="txt-body text-xs fw-bold tracking-wide mb-2">
                                 APELLIDO PATERNO <span class="text-danger">*</span>
                             </label>
-                            <input asp-for="LastNamePaternal" class="form-control search-input-custom ps-3" required />
+                            <input asp-for="LastNamePaternal" class="form-control search-input-custom ps-3"  />
                             <span asp-validation-for="LastNamePaternal" class="text-danger text-xs"></span>
                         </div>
 
@@ -75,7 +76,7 @@
                             <label asp-for="Email" class="txt-body text-xs fw-bold tracking-wide mb-2">
                                 CORREO INSTITUCIONAL <span class="text-danger">*</span>
                             </label>
-                            <input asp-for="Email" type="email" class="form-control search-input-custom ps-3" required />
+                            <input asp-for="Email" type="email" class="form-control search-input-custom ps-3"  />
                             <span asp-validation-for="Email" class="text-danger text-xs"></span>
                         </div>
 
@@ -83,7 +84,7 @@
                             <label asp-for="Role" class="txt-body text-xs fw-bold tracking-wide mb-2">
                                 ROL EN EL SISTEMA <span class="text-danger">*</span>
                             </label>
-                            <select asp-for="Role" id="roleSelect" class="form-select bg-app border-theme txt-title fw-semibold py-2" required>
+                            <select asp-for="Role" id="roleSelect" class="form-select bg-app border-theme txt-title fw-semibold py-2" >
                                 <option value="">-- Seleccionar Rol --</option>
                                 @foreach (var role in roles)
                                 {
@@ -101,7 +102,13 @@
                                 <option value="">-- Ninguno --</option>
                                 @foreach (var s in availableStudents)
                                 {
-                                    <option value="@s.Key">@s.Value</option>
+                                    <option value="@s.Key"
+                                            data-first="@s.Value.FirstName"
+                                            data-lastp="@s.Value.LastNamePaternal"
+                                            data-lastm="@s.Value.LastNameMaternal"
+                                            data-email="@s.Value.Email">
+                                        @s.Value.Display
+                                    </option>
                                 }
                             </select>
                             <div class="txt-body text-xs mt-2">
@@ -122,7 +129,7 @@
                         <label asp-for="Username" class="txt-body text-xs fw-bold tracking-wide mb-2">
                             USUARIO DE ACCESO <span class="text-danger">*</span>
                         </label>
-                        <input asp-for="Username" class="form-control search-input-custom ps-3" autocomplete="off" required />
+                        <input asp-for="Username" class="form-control search-input-custom ps-3" autocomplete="off"  />
                         <span asp-validation-for="Username" class="text-danger text-xs"></span>
                     </div>
 
@@ -151,7 +158,7 @@
                                    class="form-control search-input-custom ps-3"
                                    placeholder="Mínimo 6 caracteres"
                                    autocomplete="new-password"
-                                   required />
+                                    />
                         }
 
                         <span asp-validation-for="Password" class="text-danger text-xs"></span>
@@ -176,14 +183,17 @@
     <partial name="_ValidationScriptsPartial" />
     <script>
         document.addEventListener('DOMContentLoaded', function () {
+
             const roleSelect = document.getElementById('roleSelect');
             const studentLinkBlock = document.getElementById('studentLinkBlock');
+            const studentSelect = document.querySelector('[name="ExistingStudentId"]');
 
             function toggleStudentLink() {
                 if (!roleSelect || !studentLinkBlock) return;
 
                 const selected = roleSelect.options[roleSelect.selectedIndex];
                 const text = selected ? selected.text.toUpperCase() : '';
+
                 const isStudent =
                     text.includes('STUDENT') ||
                     text.includes('ALUMNO') ||
@@ -191,16 +201,51 @@
 
                 studentLinkBlock.style.display = isStudent ? 'block' : 'none';
 
-                if (!isStudent) {
-                    const select = document.querySelector('select[name="ExistingStudentId"]');
-                    if (select) select.value = '';
+                if (!isStudent && studentSelect) {
+                    studentSelect.value = '';
+
+                    // limpiar inputs
+                    setValues('', '', '', '');
                 }
             }
 
+            function setValues(first, lastp, lastm, email) {
+                const firstInput = document.querySelector('[name="FirstName"]');
+                const lastpInput = document.querySelector('[name="LastNamePaternal"]');
+                const lastmInput = document.querySelector('[name="LastNameMaternal"]');
+                const emailInput = document.querySelector('[name="Email"]');
+
+                if (firstInput) firstInput.value = first;
+                if (lastpInput) lastpInput.value = lastp;
+                if (lastmInput) lastmInput.value = lastm;
+                if (emailInput) emailInput.value = email;
+            }
+
+            // EVENTO: cambio de alumno
+            if (studentSelect) {
+                studentSelect.addEventListener('change', function () {
+                    const selected = this.options[this.selectedIndex];
+
+                    if (!selected || !selected.value) {
+                        setValues('', '', '', '');
+                        return;
+                    }
+
+                    const first = selected.getAttribute('data-first');
+                    const lastp = selected.getAttribute('data-lastp');
+                    const lastm = selected.getAttribute('data-lastm');
+                    const email = selected.getAttribute('data-email');
+
+                    setValues(first, lastp, lastm, email);
+                });
+            }
+
+            // EVENTO: cambio de rol
             if (roleSelect) {
                 roleSelect.addEventListener('change', toggleStudentLink);
                 toggleStudentLink();
             }
+
         });
     </script>
 }

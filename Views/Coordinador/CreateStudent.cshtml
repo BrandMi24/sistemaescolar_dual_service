@@ -46,19 +46,19 @@
                     <div class="row g-4">
                         <div class="col-md-6">
                             <label asp-for="FirstName" class="txt-body text-xs fw-bold tracking-wide mb-2">NOMBRE(S) <span class="text-danger">*</span></label>
-                            <input asp-for="FirstName" class="form-control search-input-custom ps-3" placeholder="Ej. Carlos" required />
+                            <input asp-for="FirstName" class="form-control search-input-custom ps-3" placeholder="Ej. Carlos"  />
                             <span asp-validation-for="FirstName" class="text-danger text-xs"></span>
                         </div>
 
                         <div class="col-md-6">
                             <label asp-for="Email" class="txt-body text-xs fw-bold tracking-wide mb-2">CORREO INSTITUCIONAL <span class="text-danger">*</span></label>
-                            <input asp-for="Email" type="email" class="form-control search-input-custom ps-3" placeholder="correo@alumnos.uttn.mx" required />
+                            <input asp-for="Email" type="email" class="form-control search-input-custom ps-3" placeholder="correo@alumnos.uttn.mx"  />
                             <span asp-validation-for="Email" class="text-danger text-xs"></span>
                         </div>
 
                         <div class="col-md-4">
                             <label asp-for="LastNamePaternal" class="txt-body text-xs fw-bold tracking-wide mb-2">APELLIDO PATERNO <span class="text-danger">*</span></label>
-                            <input asp-for="LastNamePaternal" class="form-control search-input-custom ps-3" placeholder="Ej. Pérez" required />
+                            <input asp-for="LastNamePaternal" class="form-control search-input-custom ps-3" placeholder="Ej. Pérez"  />
                             <span asp-validation-for="LastNamePaternal" class="text-danger text-xs"></span>
                         </div>
 
@@ -89,7 +89,7 @@
                             }
                             else
                             {
-                                <input asp-for="CURP" class="form-control search-input-custom ps-3 text-uppercase" placeholder="18 caracteres alfanuméricos" maxlength="18" required />
+                                <input asp-for="CURP" class="form-control search-input-custom ps-3 text-uppercase" placeholder="18 caracteres alfanuméricos" maxlength="18"  />
                             }
 
                             <span asp-validation-for="CURP" class="text-danger text-xs"></span>
@@ -111,7 +111,7 @@
 
                         <div class="col-md-6">
                             <label asp-for="CareerId" class="txt-body text-xs fw-bold tracking-wide mb-2">CARRERA <span class="text-danger">*</span></label>
-                            <select asp-for="CareerId" class="form-select bg-app border-theme txt-title fw-semibold py-2" id="careerSelect" required>
+                            <select asp-for="CareerId" class="form-select bg-app border-theme txt-title fw-semibold py-2" id="careerSelect" >
                                 <option value="">-- Seleccionar carrera --</option>
                                 @if (ViewBag.Careers != null)
                                 {

@@ -42,7 +42,7 @@ namespace ControlEscolar.Models
         public int Id { get; set; }
         public string Usuario { get; set; } = string.Empty;
 
-        [Required, EmailAddress]
+        [ EmailAddress]
         public string Email { get; set; } = string.Empty;
 
         public string NombreCompleto { get; set; } = string.Empty;
@@ -56,7 +56,7 @@ namespace ControlEscolar.Models
         public int PersonId { get; set; }
         public int UserId { get; set; }
 
-        [Required, EmailAddress]
+        [ EmailAddress]
         public string Email { get; set; } = string.Empty;
 
         public string Nombre { get; set; } = string.Empty;
@@ -97,10 +97,10 @@ namespace ControlEscolar.Models
 
     public class CreateCareerViewModel
     {
-        [Required]
+        
         public string Code { get; set; } = string.Empty;
 
-        [Required]
+        
         public string Name { get; set; } = string.Empty;
     }
 
@@ -109,23 +109,23 @@ namespace ControlEscolar.Models
         public int? UserId { get; set; }
         public int? PersonId { get; set; }
 
-        [Required]
+        
         public string FirstName { get; set; } = string.Empty;
 
-        [Required]
+        
         public string LastNamePaternal { get; set; } = string.Empty;
 
         public string? LastNameMaternal { get; set; }
 
-        [Required, EmailAddress]
+        [ EmailAddress]
         public string Email { get; set; } = string.Empty;
 
         public string? Department { get; set; }
 
-        [Required]
+        
         public string Role { get; set; } = string.Empty;
 
-        [Required]
+        
         public string Username { get; set; } = string.Empty;
 
         public string? Password { get; set; }
@@ -139,10 +139,10 @@ namespace ControlEscolar.Models
         public int? StudentId { get; set; }
         public int? PersonId { get; set; }
 
-        [Required]
+        
         public string FirstName { get; set; } = string.Empty;
 
-        [Required, EmailAddress]
+        [ EmailAddress]
         public string Email { get; set; } = string.Empty;
 
         public string LastNamePaternal { get; set; } = string.Empty;
@@ -153,7 +153,7 @@ namespace ControlEscolar.Models
         public string? Matricula { get; set; }
         public string StatusCode { get; set; } = "INSCRITO";
 
-        [Required]
+        
         public int CareerId { get; set; }
 
         public int? GroupId { get; set; }
@@ -170,10 +170,10 @@ namespace ControlEscolar.Models
         public int? TeacherId { get; set; }
         public int? PersonId { get; set; }
 
-        [Required]
+        
         public string FirstName { get; set; } = string.Empty;
 
-        [Required]
+        
         public string LastNamePaternal { get; set; } = string.Empty;
 
         public string? LastNameMaternal { get; set; }
@@ -188,17 +188,14 @@ namespace ControlEscolar.Models
     public class CreateGroupViewModel
     {
         public int? Id { get; set; }
-
-        [Required]
+        
         public string GroupCode { get; set; } = string.Empty;
 
-        [Required]
         public string GroupName { get; set; } = string.Empty;
 
-        [Required(ErrorMessage = "Debe seleccionar una carrera")]
         public int? CareerId { get; set; }
 
-        [Required]
+        
         public string Shift { get; set; } = "MATUTINO";
 
         public bool IsActive { get; set; } = true;
@@ -208,16 +205,40 @@ namespace ControlEscolar.Models
     {
         public int Id { get; set; }
 
-        [Required]
+        
         public string Name { get; set; } = string.Empty;
 
-        [Required]
+        
         public DateTime StartDate { get; set; }
 
-        [Required]
+        
         public DateTime EndDate { get; set; }
 
-        [Required]
+        
         public string StatusCode { get; set; } = "ACTIVO";
+    }
+
+    public class ToggleCycleStatusRequest
+    {
+        public int Id { get; set; }
+        public bool Activar { get; set; }
+    }
+
+    public class CreateRoleViewModel
+    {
+        public int? RoleId { get; set; }
+
+        public string RoleName { get; set; } = string.Empty;
+
+        public string? RoleDescription { get; set; }
+    }
+
+    public class StudentOption
+    {
+        public string Display { get; set; } = string.Empty;
+        public string FirstName { get; set; } = string.Empty;
+        public string LastNamePaternal { get; set; } = string.Empty;
+        public string? LastNameMaternal { get; set; }
+        public string? Email { get; set; }
     }
 }

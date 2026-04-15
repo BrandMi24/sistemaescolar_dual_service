@@ -63,7 +63,7 @@
                             <input asp-for="GroupCode"
                                    class="form-control search-input-custom ps-3 text-uppercase"
                                    placeholder="Ej. G-7A-SW"
-                                   required />
+                                    />
                             <span asp-validation-for="GroupCode" class="text-danger text-xs"></span>
                         </div>
 
@@ -74,7 +74,7 @@
                             <input asp-for="GroupName"
                                    class="form-control search-input-custom ps-3"
                                    placeholder="Ej. 7º A Matutino"
-                                   required />
+                                    />
                             <span asp-validation-for="GroupName" class="text-danger text-xs"></span>
                         </div>
 
@@ -84,7 +84,7 @@
                             </label>
                             <select asp-for="CareerId"
                                     class="form-select bg-app border-theme txt-title fw-semibold py-2"
-                                    required>
+                                    >
                                 <option value="">-- Seleccionar carrera --</option>
                                 @if (ViewBag.Careers != null)
                                 {
@@ -101,7 +101,7 @@
                             <label asp-for="Shift" class="txt-body text-xs fw-bold tracking-wide mb-2">
                                 TURNO <span class="text-danger">*</span>
                             </label>
-                            <select asp-for="Shift" class="form-select bg-app border-theme txt-title fw-semibold py-2" required>
+                            <select asp-for="Shift" class="form-select bg-app border-theme txt-title fw-semibold py-2" >
                                 <option value="MATUTINO">Matutino</option>
                                 <option value="VESPERTINO">Vespertino</option>
                             </select>

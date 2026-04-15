@@ -95,7 +95,7 @@ namespace ControlEscolar.Controllers
             }
         }
 
-        private async Task<Dictionary<int, string>> GetAvailableStudentsForAccountAsync(int? currentPersonId = null)
+        private async Task<Dictionary<int, StudentOption>> GetAvailableStudentsForAccountAsync(int? currentPersonId = null)
         {
             var students = await _repo.ExecuteStoredProcedureAsync(
                 "getview_student_full",
@@ -129,9 +129,21 @@ namespace ControlEscolar.Controllers
                     g =>
                     {
                         var x = g.First();
-                        var identificador = !string.IsNullOrWhiteSpace(x.Matricula) ? x.Matricula : x.Folio ?? "S/N";
+
+                        var identificador = !string.IsNullOrWhiteSpace(x.Matricula)
+                            ? x.Matricula
+                            : x.Folio ?? "S/N";
+
                         var nombre = $"{x.ApellidoPaterno} {x.ApellidoMaterno}, {x.Nombres}".Trim();
-                        return $"{identificador} - {nombre}";
+
+                        return new StudentOption
+                        {
+                            Display = $"{identificador} - {nombre}",
+                            FirstName = x.Nombres,
+                            LastNamePaternal = x.ApellidoPaterno,
+                            LastNameMaternal = x.ApellidoMaterno,
+                            Email = x.Email
+                        };
                     }
                 );
         }
@@ -1805,7 +1817,10 @@ namespace ControlEscolar.Controllers
         {
             var lista = await _repo.ExecuteStoredProcedureAsync(
                 "management_cycle_get",
-                null,
+                new Dictionary<string, object>
+                {
+            { "@Status", DBNull.Value }
+                },
                 ModelMappers.MapToCycle
             );
 
@@ -1815,7 +1830,7 @@ namespace ControlEscolar.Controllers
                 nombre = c.Name,
                 inicio = c.StartDate.ToString("dd MMM yyyy"),
                 fin = c.EndDate.ToString("dd MMM yyyy"),
-                estado = c.StatusCode
+                estado = c.StatusCode,
             });
 
             return Json(new { data });
@@ -1877,6 +1892,224 @@ namespace ControlEscolar.Controllers
             }
         }
 
+        [HttpGet]
+        public async Task<IActionResult> EditCycle(int id)
+        {
+            var result = await _repo.ExecuteStoredProcedureAsync(
+                "management_cycle_get",
+                new Dictionary<string, object>
+                {
+            { "@ID", id }
+                },
+                ModelMappers.MapToCycle
+            );
+
+            var cycle = result.FirstOrDefault();
+
+            if (cycle == null)
+                return NotFound();
+
+            ViewBag.IsEdit = true;
+
+            return View("CreateCycle", cycle);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> EditCycle(CycleViewModel model)
+        {
+            if (!ModelState.IsValid)
+            {
+                ViewBag.IsEdit = true;
+                return View("CreateCycle", model);
+            }
+
+            try
+            {
+                await _repo.ExecuteNonQueryAsync(
+                    "management_cycle_update",
+                    new Dictionary<string, object>
+                    {
+                { "@ID", model.Id },
+                { "@CycleName", (object?)model.Name ?? DBNull.Value },
+                { "@StartDate", model.StartDate },
+                { "@EndDate", model.EndDate },
+                { "@StatusCode", (object?)model.StatusCode ?? DBNull.Value }
+                    });
+
+                return RedirectToAction("Ciclos");
+            }
+            catch (Exception ex)
+            {
+                ModelState.AddModelError("", ex.Message);
+                ViewBag.IsEdit = true;
+                return View("CreateCycle", model);
+            }
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteCycle(int id)
+        {
+            try
+            {
+                var ciclos = await _repo.ExecuteStoredProcedureAsync(
+                    "management_cycle_get",
+                    new Dictionary<string, object> { { "@ID", id } },
+                    ModelMappers.MapToCycle
+                );
+
+                var ciclo = ciclos.FirstOrDefault();
+
+                if (ciclo == null)
+                    return NotFound();
+
+                // SOFT DELETE
+                await _repo.ExecuteNonQueryAsync(
+                    "management_cycle_softdelete",
+                    new Dictionary<string, object> { { "@ID", id } }
+                );
+
+                return Ok(new { mode = "softdelete" });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error deleting cycle");
+                return StatusCode(500, new { error = ex.Message });
+            }
+        }
+
+        [HttpGet]
+        public IActionResult CreateRole(string? tab = null)
+        {
+            ViewBag.IsEdit = false;
+            ViewBag.ReturnTab = string.IsNullOrWhiteSpace(tab) ? "tab-roles" : tab;
+            return View();
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> CreateRole(CreateRoleViewModel model, string? returnTab = null)
+        {
+            returnTab = string.IsNullOrWhiteSpace(returnTab) ? "tab-roles" : returnTab;
+
+            if (ModelState.IsValid)
+            {
+                try
+                {
+                    await _repo.ExecuteNonQueryAsync("management_role_insert", new Dictionary<string, object>
+            {
+                { "@RoleName", model.RoleName },
+                { "@RoleDescription", (object?)model.RoleDescription ?? DBNull.Value }
+            });
+
+                    return RedirectToAction("Catalogos", new { tab = returnTab });
+                }
+                catch (Exception ex)
+                {
+                    ModelState.AddModelError("", ex.Message);
+                }
+            }
+
+            ViewBag.IsEdit = false;
+            ViewBag.ReturnTab = returnTab;
+            return View(model);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> EditRole(int id, string? tab = null)
+        {
+            var result = await _repo.ExecuteStoredProcedureAsync(
+                "management_role_getbyid",
+                new Dictionary<string, object> { { "@ID", id } },
+                r => new CreateRoleViewModel
+                {
+                    RoleId = Management.GetValue<int>(r, "management_role_ID"),
+                    RoleName = Management.GetValue<string>(r, "management_role_Name") ?? "",
+                    RoleDescription = Management.GetValue<string>(r, "management_role_Description")
+                });
+
+            var model = result.FirstOrDefault();
+            if (model == null) return NotFound();
+
+            ViewBag.IsEdit = true;
+            ViewBag.ReturnTab = string.IsNullOrWhiteSpace(tab) ? "tab-roles" : tab;
+
+            return View("CreateRole", model);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> EditRole(CreateRoleViewModel model, string? returnTab = null)
+        {
+            returnTab = string.IsNullOrWhiteSpace(returnTab) ? "tab-roles" : returnTab;
+
+            if (!ModelState.IsValid)
+            {
+                ViewBag.IsEdit = true;
+                ViewBag.ReturnTab = returnTab;
+                return View("CreateRole", model);
+            }
+
+            try
+            {
+                await _repo.ExecuteNonQueryAsync("management_role_update", new Dictionary<string, object>
+        {
+            { "@ID", model.RoleId },
+            { "@RoleName", model.RoleName },
+            { "@RoleDescription", (object?)model.RoleDescription ?? DBNull.Value }
+        });
+
+                return RedirectToAction("Catalogos", new { tab = returnTab });
+            }
+            catch (Exception ex)
+            {
+                ModelState.AddModelError("", ex.Message);
+            }
+
+            ViewBag.IsEdit = true;
+            ViewBag.ReturnTab = returnTab;
+            return View("CreateRole", model);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteRole(int id)
+        {
+            try
+            {
+                await _repo.ExecuteNonQueryAsync(
+                    "management_role_softdelete",
+                    new Dictionary<string, object>
+                    {
+                { "@ID", id }
+                    });
+
+                return Ok(new { success = true });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error deleting role");
+                return StatusCode(500, new { error = ex.Message });
+            }
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetRolesJson()
+        {
+            var roles = await _repo.ExecuteStoredProcedureAsync(
+                "management_role_get",
+                null,
+                r => new
+                {
+                    id = Management.GetValue<int>(r, "management_role_ID"),
+                    nombre = Management.GetValue<string>(r, "management_role_Name"),
+                    descripcion = Management.GetValue<string>(r, "management_role_Description")
+                });
+
+            return Json(new { data = roles });
+        }
+
         public IActionResult Asignaciones()
         {
             return View();
@@ -1892,13 +2125,6 @@ namespace ControlEscolar.Controllers
             return View();
         }
 
-        [HttpGet]
-        public IActionResult CreateCycle()
-        {
-            ViewBag.IsEdit = false;
-            return View();
-        }
-
         public IActionResult Reportes()
         {
             return View();
@@ -1911,7 +2137,6 @@ namespace ControlEscolar.Controllers
             return Convert.ToBase64String(bytes);
         }
     }
-
 
     public class ToggleUserStatusRequest
     {

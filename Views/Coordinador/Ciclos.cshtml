@@ -99,16 +99,11 @@
                     let currentPage = 1;
 
                     // =========================
-                    // CARGAR DATOS DESDE BACKEND
+                    // CARGAR DATOS
                     // =========================
                     function loadData() {
                         $.get('@Url.Action("GetCyclesJson", "Coordinador")', function (response) {
-
-                            console.log("Response:", response); // DEBUG
-
-                            // 🔴 SOPORTA AMBOS FORMATOS
                             allData = response.data ? response.data : response;
-
                             updateTable();
                         });
                     }
@@ -127,20 +122,35 @@
 
                             html += `
                             <tr class="border-bottom border-theme hover-bg-app data-row">
-                                <td class="px-4 py-3 search-target">
-                                    <div class="txt-title fw-bold">${item.nombre}</div>
-                                    <div class="txt-body text-xs mt-1">Ciclo escolar</div>
+
+                                <td class="px-4 py-3">
+                                    <div class="fw-bold">${item.nombre}</div>
+                                    <div class="text-xs">Ciclo escolar</div>
                                 </td>
-                                <td class="text-center txt-title fw-bold">${item.inicio}</td>
-                                <td class="text-center txt-title fw-bold">${item.fin}</td>
+
+                                <td class="text-center">${item.inicio}</td>
+                                <td class="text-center">${item.fin}</td>
+
                                 <td class="text-center">
-                                    <span class="badge ${estadoClass} text-xxs px-2 py-1 shadow-sm">${item.estado}</span>
+                                    <span class="badge ${estadoClass}">
+                                        ${item.estado}
+                                    </span>
                                 </td>
+
                                 <td class="text-end px-4">
-                                    <a href="/Coordinador/EditCycle/${item.id}"
-                                       class="btn btn-sm btn-ghost-sep px-2 py-1 me-1 text-primary">
+
+                                    <!-- EDIT -->
+                                    <a href="/Coordinador/EditCycle?id=${item.id}"
+                                       class="btn btn-sm btn-primary me-1">
                                         <i class="bi bi-pencil"></i>
                                     </a>
+
+                                    <!-- DELETE -->
+                                    <button class="btn btn-sm btn-danger delete-cycle me-1"
+                                            data-id="${item.id}">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+
                                 </td>
                             </tr>`;
                         });
@@ -149,7 +159,7 @@
                     }
 
                     // =========================
-                    // LÓGICA TABLA
+                    // FILTRO + PAGINACIÓN
                     // =========================
                     function updateTable() {
 
@@ -160,7 +170,6 @@
                         let filteredData = allData.filter(item => {
 
                             let matchesSearch = item.nombre.toLowerCase().includes(searchTerm);
-
                             let matchesStatus = (!statusFilter) || (item.estado === statusFilter);
 
                             return matchesSearch && matchesStatus;
@@ -169,9 +178,7 @@
                         let totalRecords = filteredData.length;
                         let totalPages = Math.ceil(totalRecords / rowsPerPage) || 1;
 
-                        if (currentPage > totalPages) {
-                            currentPage = totalPages;
-                        }
+                        if (currentPage > totalPages) currentPage = totalPages;
 
                         let startIndex = (currentPage - 1) * rowsPerPage;
                         let endIndex = Math.min(startIndex + rowsPerPage, totalRecords);
@@ -180,7 +187,6 @@
 
                         renderRows(pageData);
 
-                        // INFO
                         if (totalRecords === 0) {
                             $('#tableInfo').text('No se encontraron registros');
                         } else {
@@ -249,6 +255,28 @@
                             currentPage = parseInt($(this).data('page'));
                             updateTable();
                         }
+                    });
+
+                    // =========================
+                    // DELETE
+                    // =========================
+                    $('#ciclosBody').on('click', '.delete-cycle', function () {
+
+                        const id = $(this).data('id');
+
+                        if (!confirm('¿Seguro que deseas eliminar este ciclo?')) return;
+
+                        $.post('/Coordinador/DeleteCycle', {
+                            id: id,
+                            __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
+                        })
+                        .done(function () {
+                            loadData();
+                        })
+                        .fail(function (err) {
+                            console.error(err);
+                            alert('Error al eliminar');
+                        });
                     });
 
                     // =========================
