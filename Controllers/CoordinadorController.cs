@@ -24,9 +24,7 @@ namespace ControlEscolar.Controllers
             _repo = new Management(context);
             _logger = logger;
         }
-        // ==========================================
-        // 1. DASHBOARD Y NAVEGACIÓN PRINCIPAL
-        // ==========================================
+
         public IActionResult Index()
         {
             return View();
@@ -37,14 +35,12 @@ namespace ControlEscolar.Controllers
             return View();
         }
 
-        public IActionResult Catalogos()
+        public IActionResult Catalogos(string? tab = null)
         {
+            ViewBag.ActiveTab = string.IsNullOrWhiteSpace(tab) ? "tab-personas" : tab;
             return View();
         }
 
-        // ==========================================
-        // 2. MÓDULO DE USUARIOS GENERALES
-        // ==========================================
         [HttpGet]
         public async Task<IActionResult> GetUsersJson()
         {
@@ -56,16 +52,39 @@ namespace ControlEscolar.Controllers
                     ModelMappers.MapToUsuario
                 );
 
-                var data = lista.Select(u => new
-                {
-                    id = u.Id,
-                    identificador = u.Identificador,
-                    nombreCompleto = $"{u.LastNamePaternal} {u.LastNameMaternal}, {u.FirstName}".Trim(),
-                    roles = u.Roles,
-                    carrera = u.Carrera,
-                    correo = u.Correo,
-                    estado = u.Estado
-                });
+                var data = lista
+                    .Where(u =>
+                        u.PersonId > 0 &&
+                        (
+                            u.Id > 0 ||
+                            (u.IdentificadorTipo == "ALUMNO" && u.RelatedEntityId.HasValue && u.RelatedEntityId.Value > 0) ||
+                            (u.IdentificadorTipo == "DOCENTE" && u.RelatedEntityId.HasValue && u.RelatedEntityId.Value > 0)
+                        )
+                    )
+                    .Select(u => new
+                    {
+                        id = u.Id,
+                        username = string.IsNullOrWhiteSpace(u.Username) ? "-" : u.Username,
+                        identificador = string.IsNullOrWhiteSpace(u.Identificador) ? "-" : u.Identificador,
+                        personId = u.PersonId,
+                        studentId = u.IdentificadorTipo == "ALUMNO" ? u.RelatedEntityId : (int?)null,
+                        teacherId = u.IdentificadorTipo == "DOCENTE" ? u.RelatedEntityId : (int?)null,
+                        nombreCompleto = $"{u.LastNamePaternal} {u.LastNameMaternal}, {u.FirstName}".Replace("  ", " ").Trim().Trim(','),
+                        roles = string.IsNullOrWhiteSpace(u.Roles) ? "Sin Rol" : u.Roles,
+                        tipoUsuario = string.IsNullOrWhiteSpace(u.TipoUsuario) ? "ADMIN" : u.TipoUsuario,
+                        carrera = string.IsNullOrWhiteSpace(u.Carrera) ? "-" : u.Carrera,
+                        correo = string.IsNullOrWhiteSpace(u.Correo) ? "-" : u.Correo,
+                        estado = string.IsNullOrWhiteSpace(u.Estado) ? "INACTIVO" : u.Estado
+                    })
+                    .GroupBy(x => new
+                    {
+                        x.personId,
+                        x.tipoUsuario,
+                        x.identificador,
+                        x.username
+                    })
+                    .Select(g => g.First())
+                    .ToList();
 
                 return Json(new { data });
             }
@@ -76,183 +95,167 @@ namespace ControlEscolar.Controllers
             }
         }
 
+        private async Task<Dictionary<int, string>> GetAvailableStudentsForAccountAsync(int? currentPersonId = null)
+        {
+            var students = await _repo.ExecuteStoredProcedureAsync(
+                "getview_student_full",
+                new Dictionary<string, object>
+                {
+            { "@Status", DBNull.Value },
+            { "@Student_IsFolio", DBNull.Value }
+                },
+                ModelMappers.MapToStudent
+            );
+
+            var users = await _repo.ExecuteStoredProcedureAsync(
+                "getview_user_full",
+                null,
+                ModelMappers.MapToUsuario
+            );
+
+            var occupiedPersonIds = users
+                .Where(u => u.Id > 0 && u.PersonId > 0)
+                .Select(u => u.PersonId)
+                .Distinct()
+                .ToHashSet();
+
+            return students
+                .Where(s =>
+                    s.PersonId > 0 &&
+                    (!occupiedPersonIds.Contains(s.PersonId) || s.PersonId == currentPersonId))
+                .GroupBy(s => s.Id)
+                .ToDictionary(
+                    g => g.Key,
+                    g =>
+                    {
+                        var x = g.First();
+                        var identificador = !string.IsNullOrWhiteSpace(x.Matricula) ? x.Matricula : x.Folio ?? "S/N";
+                        var nombre = $"{x.ApellidoPaterno} {x.ApellidoMaterno}, {x.Nombres}".Trim();
+                        return $"{identificador} - {nombre}";
+                    }
+                );
+        }
+
         [HttpGet]
-        public async Task<IActionResult> CreateUser()
+        public async Task<IActionResult> CreateUser(string? tab = null)
         {
             ViewBag.Roles = await _repo.GetRolesAsync();
+            ViewBag.AvailableStudents = await GetAvailableStudentsForAccountAsync();
             ViewBag.IsEdit = false;
+            ViewBag.ReturnTab = string.IsNullOrWhiteSpace(tab) ? "tab-cuentas" : tab;
             return View();
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteUser(int id)
+        public async Task<IActionResult> CreateUser(CreateUserViewModel model, string? returnTab = null)
         {
-            // 1. Eliminar roles del usuario
-            var roles = await _repo.ExecuteStoredProcedureAsync(
-                "management_userrole_get",
-                null,
-                r => new
-                {
-                    Id = Management.GetValue<int>(r, "management_userrole_ID"),
-                    UserId = Management.GetValue<int>(r, "management_userrole_UserID")
-                }
-            );
+            returnTab = string.IsNullOrWhiteSpace(returnTab) ? "tab-cuentas" : returnTab;
 
-            foreach (var r in roles.Where(x => x.UserId == id))
-            {
-                await _repo.ExecuteNonQueryAsync("management_userrole_softdelete",
-                    new Dictionary<string, object> { { "@ID", r.Id } });
-            }
-
-            // 2. Soft delete usuario
-            await _repo.ExecuteNonQueryAsync("management_user_softdelete",
-                new Dictionary<string, object> { { "@ID", id } });
-
-            return Ok();
-        }
-
-        [HttpPost]
-        public async Task<IActionResult> DeleteStudent(int id)
-        {
-            // 1. Obtener el estudiante con joins
-            var student = await _repo.ExecuteStoredProcedureAsync(
-            "getview_user_full",
-            new Dictionary<string, object> { { "@ID", id } },
-                r => new {
-                    StudentId = Management.GetValue<int>(r, "management_student_ID"),
-                    UserId = Management.GetValue<int?>(r, "management_user_ID")
-                }
-            );
-
-            var data = student.FirstOrDefault(s => s.StudentId == id);
-
-            int? userId = data?.UserId;
-
-            // 2. Soft delete student
-            await _repo.ExecuteNonQueryAsync("management_student_softdelete",
-                new Dictionary<string, object> { { "@ID", id } });
-
-            // 3. Soft delete user relacionado
-            if (data.UserId.HasValue)
-            {
-                // 🔥 ELIMINAR ROLES PRIMERO
-                var roles = await _repo.ExecuteStoredProcedureAsync(
-                    "management_userrole_get",
-                    null,
-                    r => new {
-                        Id = Management.GetValue<int>(r, "management_userrole_ID"),
-                        UserId = Management.GetValue<int>(r, "management_userrole_UserID")
-                    }
-                );
-
-                foreach (var r in roles.Where(x => x.UserId == data.UserId))
-                {
-                    await _repo.ExecuteNonQueryAsync("management_userrole_softdelete",
-                        new Dictionary<string, object> { { "@ID", r.Id } });
-                }
-
-                // Luego borrar usuario
-                await _repo.ExecuteNonQueryAsync("management_user_softdelete",
-                    new Dictionary<string, object> { { "@ID", data.UserId } });
-            }
-
-            return Ok();
-        }
-
-        [HttpPost]
-        public async Task<IActionResult> DeleteTeacher(int id)
-        {
-            // 1. Obtener docente correcto
-            var teacher = await _repo.ExecuteStoredProcedureAsync(
-                "getview_user_full",
-                new Dictionary<string, object> { { "@ID", id } },
-                r => new {
-                    TeacherId = Management.GetValue<int?>(r, "teacher_ID"),
-                    UserId = Management.GetValue<int?>(r, "management_user_ID")
-                }
-            );
-
-            var data = teacher.FirstOrDefault(t => t.TeacherId == id);
-
-            if (data == null)
-                return NotFound();
-
-            // 2. Soft delete teacher
-            await _repo.ExecuteNonQueryAsync("management_teacher_softdelete",
-                new Dictionary<string, object> { { "@ID", id } });
-
-            // 3. Soft delete user relacionado
-            if (data.UserId.HasValue)
-            {
-                await _repo.ExecuteNonQueryAsync("management_user_softdelete",
-                    new Dictionary<string, object> { { "@ID", data.UserId } });
-            }
-
-            return Ok();
-        }
-
-        [HttpPost]
-        public async Task<IActionResult> DeleteGroup(int id)
-        {
-            await _repo.ExecuteNonQueryAsync("management_group_softdelete",
-                new Dictionary<string, object> { { "@ID", id } });
-            return Ok();
-        }
-
-        [HttpPost]
-        public async Task<IActionResult> DeleteCareer(int id)
-        {
-            await _repo.ExecuteNonQueryAsync("management_career_softdelete",
-                new Dictionary<string, object> { { "@ID", id } });
-
-            return Ok();
-        }
-
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> CreateUser(CreateUserViewModel model)
-        {
             if (ModelState.IsValid)
             {
                 try
                 {
-                    // 1. Crear Persona
-                    var personId = await _repo.CreatePersonAsync(new Dictionary<string, object>
-                    {
-                        { "@FirstName", model.FirstName },
-                        { "@LastNamePaternal", model.LastNamePaternal },
-                        { "@LastNameMaternal", (object?)model.LastNameMaternal ?? DBNull.Value },
-                        { "@Email", model.Email },
-                        { "@Phone", DBNull.Value },
-                        { "@CURP", DBNull.Value }
-                    });
-
-                    // 2. Crear Usuario
                     var roles = await _repo.GetRolesAsync();
+
                     if (!int.TryParse(model.Role, out int roleId))
                     {
-                        ModelState.AddModelError("Role", "Rol inválido");
+                        ModelState.AddModelError("Role", "Rol inválido.");
+                        ViewBag.Roles = roles;
+                        ViewBag.AvailableStudents = await GetAvailableStudentsForAccountAsync();
+                        ViewBag.IsEdit = false;
+                        ViewBag.ReturnTab = returnTab;
                         return View(model);
                     }
 
+                    var roleName = roles.ContainsKey(roleId) ? roles[roleId].ToUpperInvariant() : string.Empty;
+                    var isStudentRole =
+                        roleName.Contains("STUDENT") ||
+                        roleName.Contains("ALUMNO") ||
+                        roleName.Contains("ESTUDIANTE");
+
+                    int personId;
+
+                    if (isStudentRole && model.ExistingStudentId.HasValue && model.ExistingStudentId.Value > 0)
+                    {
+                        var studentData = await _repo.ExecuteStoredProcedureAsync(
+                            "getview_student_full",
+                            new Dictionary<string, object>
+                            {
+                        { "@ID", model.ExistingStudentId.Value },
+                        { "@Status", DBNull.Value },
+                        { "@Student_IsFolio", DBNull.Value }
+                            },
+                            ModelMappers.MapToStudent
+                        );
+
+                        var student = studentData.FirstOrDefault();
+                        if (student == null)
+                        {
+                            ModelState.AddModelError("", "No se encontró el alumno seleccionado.");
+                            ViewBag.Roles = roles;
+                            ViewBag.AvailableStudents = await GetAvailableStudentsForAccountAsync();
+                            ViewBag.IsEdit = false;
+                            ViewBag.ReturnTab = returnTab;
+                            return View(model);
+                        }
+
+                        personId = student.PersonId;
+
+                        var linkedUsers = await _repo.ExecuteStoredProcedureAsync(
+                            "getview_user_full",
+                            null,
+                            ModelMappers.MapToUsuario
+                        );
+
+                        if (linkedUsers.Any(u => u.PersonId == personId && u.Id > 0))
+                        {
+                            ModelState.AddModelError("", "Ese alumno ya tiene una cuenta vinculada.");
+                            ViewBag.Roles = roles;
+                            ViewBag.AvailableStudents = await GetAvailableStudentsForAccountAsync();
+                            ViewBag.IsEdit = false;
+                            ViewBag.ReturnTab = returnTab;
+                            return View(model);
+                        }
+
+                        await _repo.ExecuteNonQueryAsync("management_person_update", new Dictionary<string, object>
+                {
+                    { "@ID", personId },
+                    { "@FirstName", model.FirstName },
+                    { "@LastNamePaternal", model.LastNamePaternal },
+                    { "@LastNameMaternal", (object?)model.LastNameMaternal ?? DBNull.Value },
+                    { "@Email", model.Email }
+                });
+                    }
+                    else
+                    {
+                        personId = await _repo.CreatePersonAsync(new Dictionary<string, object>
+                {
+                    { "@FirstName", model.FirstName },
+                    { "@LastNamePaternal", model.LastNamePaternal },
+                    { "@LastNameMaternal", (object?)model.LastNameMaternal ?? DBNull.Value },
+                    { "@Email", model.Email },
+                    { "@Phone", DBNull.Value },
+                    { "@CURP", DBNull.Value }
+                });
+                    }
+
                     var userId = await _repo.CreateUserAsync(new Dictionary<string, object>
-                    {
-                        { "@UserPersonID", personId },
-                        { "@Username", model.Username },
-                        { "@UserEmail", model.Email },
-                        { "@PasswordHash", HashPassword(model.Password) }
-                    });
+            {
+                { "@UserPersonID", personId },
+                { "@Username", model.Username },
+                { "@UserEmail", model.Email },
+                { "@PasswordHash", HashPassword(model.Password ?? string.Empty) }
+            });
 
-                    // 3. Asignar Rol
                     await _repo.CreateUserRoleAsync(new Dictionary<string, object>
-                    {
-                        { "@UserRole_UserID", userId },
-                        { "@UserRole_RoleID", roleId }
-                    });
+            {
+                { "@UserRole_UserID", userId },
+                { "@UserRole_RoleID", roleId }
+            });
 
-                    TempData["SuccessMessage"] = "Usuario creado correctamente.";
-                    return RedirectToAction("Catalogos");
+                    TempData["SuccessMessage"] = "Cuenta creada correctamente.";
+                    return RedirectToAction("Catalogos", new { tab = returnTab });
                 }
                 catch (Exception ex)
                 {
@@ -262,12 +265,14 @@ namespace ControlEscolar.Controllers
             }
 
             ViewBag.Roles = await _repo.GetRolesAsync();
-            TempData["ErrorMessage"] = "Error al crear el usuario. Verifique los datos.";
+            ViewBag.AvailableStudents = await GetAvailableStudentsForAccountAsync();
+            ViewBag.IsEdit = false;
+            ViewBag.ReturnTab = returnTab;
             return View(model);
         }
 
         [HttpGet]
-        public async Task<IActionResult> EditUser(int id)
+        public async Task<IActionResult> EditUser(int id, string? tab = null)
         {
             var result = await _repo.ExecuteStoredProcedureAsync(
                 "getview_user_full",
@@ -275,103 +280,198 @@ namespace ControlEscolar.Controllers
                 ModelMappers.MapToUsuario
             );
 
-            var user = result.FirstOrDefault();
+            var user = result.FirstOrDefault(u => u.Id == id);
 
             if (user == null)
                 return NotFound();
 
-            // Obtener roles
             var roles = await _repo.GetRolesAsync();
+            var roleId = roles.FirstOrDefault(r =>
+                (user.Roles ?? string.Empty).Contains(r.Value, StringComparison.OrdinalIgnoreCase)).Key;
 
-            // Convertir nombre → ID
-            var roleId = roles.FirstOrDefault(r => user.Roles.Contains(r.Value)).Key;
+            int? linkedStudentId = null;
+
+            var students = await _repo.ExecuteStoredProcedureAsync(
+                "getview_student_full",
+                new Dictionary<string, object>
+                {
+            { "@Status", DBNull.Value },
+            { "@Student_IsFolio", DBNull.Value }
+                },
+                ModelMappers.MapToStudent
+            );
+
+            var linkedStudent = students.FirstOrDefault(s => s.PersonId == user.PersonId);
+            if (linkedStudent != null)
+            {
+                linkedStudentId = linkedStudent.Id;
+            }
 
             var model = new CreateUserViewModel
             {
                 UserId = user.Id,
                 PersonId = user.PersonId,
-                FirstName = user.FirstName,
-                LastNamePaternal = user.LastNamePaternal,
+                FirstName = user.FirstName ?? string.Empty,
+                LastNamePaternal = user.LastNamePaternal ?? string.Empty,
                 LastNameMaternal = user.LastNameMaternal,
                 Email = user.Correo,
-                Username = user.Username,
-                Role = roleId.ToString()
+                Username = user.Username ?? string.Empty,
+                Role = roleId > 0 ? roleId.ToString() : string.Empty,
+                Password = string.Empty,
+                ExistingStudentId = linkedStudentId
             };
 
             ViewBag.Roles = roles;
+            ViewBag.AvailableStudents = await GetAvailableStudentsForAccountAsync(user.PersonId);
             ViewBag.IsEdit = true;
+            ViewBag.ReturnTab = string.IsNullOrWhiteSpace(tab) ? "tab-cuentas" : tab;
 
             return View("CreateUser", model);
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> EditUser(CreateUserViewModel model)
+        public async Task<IActionResult> EditUser(CreateUserViewModel model, string? returnTab = null)
         {
+            returnTab = string.IsNullOrWhiteSpace(returnTab) ? "tab-cuentas" : returnTab;
+
             if (model.UserId == null || model.PersonId == null)
             {
-                throw new Exception("IDs no recibidos correctamente");
+                ModelState.AddModelError("", "IDs no recibidos correctamente.");
             }
 
             if (!ModelState.IsValid)
             {
                 ViewBag.Roles = await _repo.GetRolesAsync();
+                ViewBag.AvailableStudents = await GetAvailableStudentsForAccountAsync(model.PersonId);
                 ViewBag.IsEdit = true;
+                ViewBag.ReturnTab = returnTab;
                 return View("CreateUser", model);
             }
 
             try
             {
-                // 1. PERSON
-                await _repo.ExecuteNonQueryAsync("management_person_update", new Dictionary<string, object>
-                {
-                    { "@ID", model.PersonId },
-                    { "@FirstName", model.FirstName },
-                    { "@LastNamePaternal", model.LastNamePaternal },
-                    { "@LastNameMaternal", (object?)model.LastNameMaternal ?? DBNull.Value },
-                    { "@Email", model.Email }
-                });
+                var roles = await _repo.GetRolesAsync();
 
-                // 2. USER + PASSWORD
-                await _repo.ExecuteNonQueryAsync("management_user_update", new Dictionary<string, object>
-                {
-                    { "@ID", model.UserId },
-                    { "@Username", model.Username },
-                    { "@UserEmail", model.Email },
-                    { "@PasswordHash", string.IsNullOrWhiteSpace(model.Password)
-                        ? DBNull.Value
-                        : HashPassword(model.Password) }
-                });
+                int targetPersonId = model.PersonId.Value;
 
-                // 4. ROLE
                 if (int.TryParse(model.Role, out int roleId))
                 {
-                    // 1. Eliminar todos los roles actuales del usuario
+                    var roleName = roles.ContainsKey(roleId) ? roles[roleId].ToUpperInvariant() : string.Empty;
+                    var isStudentRole =
+                        roleName.Contains("STUDENT") ||
+                        roleName.Contains("ALUMNO") ||
+                        roleName.Contains("ESTUDIANTE");
+
+                    if (isStudentRole && model.ExistingStudentId.HasValue && model.ExistingStudentId.Value > 0)
+                    {
+                        var studentData = await _repo.ExecuteStoredProcedureAsync(
+                            "getview_student_full",
+                            new Dictionary<string, object>
+                            {
+                        { "@ID", model.ExistingStudentId.Value },
+                        { "@Status", DBNull.Value },
+                        { "@Student_IsFolio", DBNull.Value }
+                            },
+                            ModelMappers.MapToStudent
+                        );
+
+                        var student = studentData.FirstOrDefault();
+                        if (student == null)
+                        {
+                            ModelState.AddModelError("", "No se encontró el alumno seleccionado.");
+                            ViewBag.Roles = roles;
+                            ViewBag.AvailableStudents = await GetAvailableStudentsForAccountAsync(model.PersonId);
+                            ViewBag.IsEdit = true;
+                            ViewBag.ReturnTab = returnTab;
+                            return View("CreateUser", model);
+                        }
+
+                        var linkedUsers = await _repo.ExecuteStoredProcedureAsync(
+                            "getview_user_full",
+                            null,
+                            ModelMappers.MapToUsuario
+                        );
+
+                        bool alumnoOcupadoPorOtroUsuario = linkedUsers.Any(u =>
+                            u.PersonId == student.PersonId &&
+                            u.Id > 0 &&
+                            u.Id != model.UserId.Value);
+
+                        if (alumnoOcupadoPorOtroUsuario)
+                        {
+                            ModelState.AddModelError("", "Ese alumno ya está vinculado a otra cuenta.");
+                            ViewBag.Roles = roles;
+                            ViewBag.AvailableStudents = await GetAvailableStudentsForAccountAsync(model.PersonId);
+                            ViewBag.IsEdit = true;
+                            ViewBag.ReturnTab = returnTab;
+                            return View("CreateUser", model);
+                        }
+
+                        targetPersonId = student.PersonId;
+                    }
+
+                    await _repo.ExecuteNonQueryAsync("management_person_update", new Dictionary<string, object>
+            {
+                { "@ID", targetPersonId },
+                { "@FirstName", model.FirstName },
+                { "@LastNamePaternal", model.LastNamePaternal },
+                { "@LastNameMaternal", (object?)model.LastNameMaternal ?? DBNull.Value },
+                { "@Email", model.Email }
+            });
+
+                    await _repo.ExecuteCommandAsync(
+                        @"UPDATE dbo.management_user_table
+                  SET management_user_PersonID = @PersonId,
+                      management_user_Username = @Username,
+                      management_user_Email = @UserEmail,
+                      management_user_PasswordHash = CASE
+                          WHEN @PasswordHash IS NULL THEN management_user_PasswordHash
+                          ELSE @PasswordHash
+                      END
+                  WHERE management_user_ID = @ID;",
+                        new Dictionary<string, object>
+                        {
+                    { "@ID", model.UserId.Value },
+                    { "@PersonId", targetPersonId },
+                    { "@Username", model.Username },
+                    { "@UserEmail", model.Email },
+                    { "@PasswordHash", string.IsNullOrWhiteSpace(model.Password) ? DBNull.Value : HashPassword(model.Password) }
+                        });
+
                     var rolesActuales = await _repo.ExecuteStoredProcedureAsync(
                         "management_userrole_get",
                         null,
                         r => new
                         {
                             Id = Management.GetValue<int>(r, "management_userrole_ID"),
-                            UserId = Management.GetValue<int>(r, "management_userrole_UserID")
+                            UserId = Management.GetValue<int>(r, "management_userrole_UserID"),
+                            RoleId = Management.GetValue<int>(r, "management_userrole_RoleID")
                         }
                     );
 
-                    foreach (var r in rolesActuales.Where(x => x.UserId == model.UserId))
+                    var rolesUsuario = rolesActuales.Where(x => x.UserId == model.UserId.Value).ToList();
+
+                    foreach (var rol in rolesUsuario.Where(x => x.RoleId != roleId))
                     {
                         await _repo.ExecuteNonQueryAsync("management_userrole_softdelete",
-                            new Dictionary<string, object> { { "@ID", r.Id } });
+                            new Dictionary<string, object> { { "@ID", rol.Id } });
                     }
 
-                    // 2. Insertar nuevo rol
-                    await _repo.CreateUserRoleAsync(new Dictionary<string, object>
+                    var yaTieneEseRol = rolesUsuario.Any(x => x.RoleId == roleId);
+
+                    if (!yaTieneEseRol)
                     {
-                        { "@UserRole_UserID", model.UserId },
-                        { "@UserRole_RoleID", roleId }
-                    });
+                        await _repo.CreateUserRoleAsync(new Dictionary<string, object>
+                {
+                    { "@UserRole_UserID", model.UserId.Value },
+                    { "@UserRole_RoleID", roleId }
+                });
+                    }
                 }
 
-                return RedirectToAction("Catalogos");
+                TempData["SuccessMessage"] = "Cuenta actualizada correctamente.";
+                return RedirectToAction("Catalogos", new { tab = returnTab });
             }
             catch (Exception ex)
             {
@@ -380,15 +480,181 @@ namespace ControlEscolar.Controllers
             }
 
             ViewBag.Roles = await _repo.GetRolesAsync();
+            ViewBag.AvailableStudents = await GetAvailableStudentsForAccountAsync(model.PersonId);
             ViewBag.IsEdit = true;
+            ViewBag.ReturnTab = returnTab;
             return View("CreateUser", model);
         }
 
-        // ==========================================
-        // 3. MÓDULO DE ALUMNOS
-        // ==========================================
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteUser(int id)
+        {
+            try
+            {
+                var users = await _repo.ExecuteStoredProcedureAsync(
+                    "getview_user_full",
+                    new Dictionary<string, object> { { "@ID", id } },
+                    ModelMappers.MapToUsuario
+                );
 
-        /// <summary>Alumnos activos con matrícula asignada (tablaAlumnos).</summary>
+                var user = users.FirstOrDefault(u => u.Id == id);
+                if (user == null)
+                    return NotFound();
+
+                var estado = (user.Estado ?? "").ToUpperInvariant();
+
+                // Primer nivel: baja lógica
+                if (estado == "ACTIVO" || estado == "INSCRITO" || estado == "PREINSCRITO")
+                {
+                    await _repo.ExecuteNonQueryAsync(
+                        "management_user_softdelete",
+                        new Dictionary<string, object> { { "@ID", id } }
+                    );
+
+                    return Ok(new { mode = "softdelete" });
+                }
+
+                // Segundo nivel: borrar cuenta definitivamente
+                await _repo.ExecuteCommandAsync(
+                    @"DELETE FROM dbo.management_userrole_table
+              WHERE management_userrole_UserID = @ID;
+
+              DELETE FROM dbo.management_usercareer_table
+              WHERE management_usercareer_UserID = @ID;
+
+              DELETE FROM dbo.management_user_table
+              WHERE management_user_ID = @ID
+                AND management_user_status = 0;",
+                    new Dictionary<string, object>
+                    {
+                { "@ID", id }
+                    });
+
+                // Si la persona ya no está ligada a nada, bórrala también
+                if (user.PersonId > 0)
+                {
+                    await _repo.ExecuteCommandAsync(
+                        @"IF NOT EXISTS (
+                        SELECT 1
+                        FROM dbo.management_user_table
+                        WHERE management_user_PersonID = @PersonId
+                   )
+                   AND NOT EXISTS (
+                        SELECT 1
+                        FROM dbo.management_student_table
+                        WHERE management_student_PersonID = @PersonId
+                   )
+                   AND NOT EXISTS (
+                        SELECT 1
+                        FROM dbo.management_teacher_table
+                        WHERE management_teacher_PersonID = @PersonId
+                   )
+                   BEGIN
+                        DELETE FROM dbo.management_person_table
+                        WHERE management_person_ID = @PersonId;
+                   END",
+                        new Dictionary<string, object>
+                        {
+                    { "@PersonId", user.PersonId }
+                        });
+                }
+
+                return Ok(new { mode = "harddelete" });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error deleting user");
+                return StatusCode(500, new { error = ex.Message });
+            }
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ToggleUserStatus([FromBody] ToggleUserStatusRequest request)
+        {
+            try
+            {
+                var users = await _repo.ExecuteStoredProcedureAsync(
+                    "getview_user_full",
+                    new Dictionary<string, object> { { "@ID", request.Id } },
+                    ModelMappers.MapToUsuario
+                );
+
+                var user = users.FirstOrDefault(u => u.Id == request.Id);
+                if (user == null)
+                    return NotFound();
+
+                var status = request.Activar ? 1 : 0;
+
+                await _repo.ExecuteCommandAsync(
+                    @"UPDATE dbo.management_user_table
+              SET management_user_status = @Status
+              WHERE management_user_ID = @ID;",
+                    new Dictionary<string, object>
+                    {
+                { "@Status", status },
+                { "@ID", request.Id }
+                    });
+
+                await _repo.ExecuteCommandAsync(
+                    @"UPDATE dbo.management_userrole_table
+              SET management_userrole_status = @Status
+              WHERE management_userrole_UserID = @ID;",
+                    new Dictionary<string, object>
+                    {
+                { "@Status", status },
+                { "@ID", request.Id }
+                    });
+
+                await _repo.ExecuteCommandAsync(
+                    @"UPDATE dbo.management_usercareer_table
+              SET management_usercareer_status = @Status
+              WHERE management_usercareer_UserID = @ID;",
+                    new Dictionary<string, object>
+                    {
+                { "@Status", status },
+                { "@ID", request.Id }
+                    });
+
+                if (user.PersonId > 0)
+                {
+                    await _repo.ExecuteCommandAsync(
+                        @"UPDATE dbo.management_teacher_table
+                  SET management_teacher_status = @Status,
+                      management_teacher_StatusCode = CASE WHEN @Status = 1 THEN 'ACTIVO' ELSE 'INACTIVO' END
+                  WHERE management_teacher_PersonID = @PersonId;",
+                        new Dictionary<string, object>
+                        {
+                    { "@Status", status },
+                    { "@PersonId", user.PersonId }
+                        });
+
+                    await _repo.ExecuteCommandAsync(
+                        @"UPDATE dbo.management_student_table
+                  SET management_student_status = @Status,
+                      management_student_StatusCode = CASE
+                        WHEN @Status = 1 AND management_student_Matricula IS NULL THEN 'PREINSCRITO'
+                        WHEN @Status = 1 AND management_student_Matricula IS NOT NULL THEN 'INSCRITO'
+                        ELSE 'BAJA'
+                      END
+                  WHERE management_student_PersonID = @PersonId;",
+                        new Dictionary<string, object>
+                        {
+                    { "@Status", status },
+                    { "@PersonId", user.PersonId }
+                        });
+                }
+
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error toggling user status");
+                return StatusCode(500, new { error = ex.Message });
+            }
+        }
+
         [HttpGet]
         public async Task<IActionResult> GetAlumnosJson()
         {
@@ -398,10 +664,11 @@ namespace ControlEscolar.Controllers
                     "getview_student_full",
                     new Dictionary<string, object>
                     {
-                        { "@Status", 1 },
-                        { "@Student_IsFolio", 0 }
+                { "@Status", 1 },
+                { "@Student_IsFolio", DBNull.Value }
                     },
-                    ModelMappers.MapToStudent);
+                    ModelMappers.MapToStudent
+                );
 
                 var data = lista.Select(s => new
                 {
@@ -413,11 +680,12 @@ namespace ControlEscolar.Controllers
                     semestre = s.Semestre,
                     estadoCodigo = s.EstadoCodigo,
                     esActivo = s.EsActivo,
-                    estadoBadgeClass = s.EstadoCodigo == "INSCRITO" ? "status-aceptado"
-                     : s.EstadoCodigo == "BAJA" ? "status-rechazado"
-                     : "badge bg-secondary"
+                    estadoBadgeClass = s.EstadoCodigo == "INSCRITO"
+                        ? "status-aceptado"
+                        : s.EstadoCodigo == "PREINSCRITO"
+                            ? "bg-app border border-theme text-dark"
+                            : "status-rechazado"
                 });
-
 
                 return Json(new { data });
             }
@@ -429,7 +697,175 @@ namespace ControlEscolar.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> EditStudent(int id)
+        public async Task<IActionResult> CreateStudent(string? tab = null)
+        {
+            ViewBag.Careers = await _repo.GetCareersAsync();
+            ViewBag.Groups = await _repo.ExecuteStoredProcedureAsync("management_group_get", null, ModelMappers.MapToGroup);
+            ViewBag.IsEdit = false;
+            ViewBag.ReturnTab = string.IsNullOrWhiteSpace(tab) ? "tab-alumnos" : tab;
+
+            var availableAccountsList = await _repo.ExecuteStoredProcedureAsync(
+                "getview_user_full",
+                null,
+                ModelMappers.MapToUsuario
+            );
+
+            ViewBag.AvailableAccounts = availableAccountsList
+                .Where(x => x.Id > 0 && x.PersonId > 0 && x.TipoUsuario == "ADMIN")
+                .GroupBy(x => x.Id)
+                .ToDictionary(
+                    g => g.Key,
+                    g => $"{g.First().Username} - {g.First().Correo}"
+                );
+
+            return View();
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> CreateStudent(CreateStudentViewModel model, string? returnTab = null)
+        {
+            returnTab = string.IsNullOrWhiteSpace(returnTab) ? "tab-alumnos" : returnTab;
+
+            if (string.IsNullOrWhiteSpace(model.StatusCode))
+                model.StatusCode = "INSCRITO";
+
+            if (ModelState.IsValid)
+            {
+                try
+                {
+                    var personId = await _repo.CreatePersonAsync(new Dictionary<string, object>
+            {
+                { "@FirstName", model.FirstName },
+                { "@LastNamePaternal", model.LastNamePaternal },
+                { "@LastNameMaternal", (object?)model.LastNameMaternal ?? DBNull.Value },
+                { "@Email", model.Email },
+                { "@Phone", (object?)model.Phone ?? DBNull.Value },
+                { "@CURP", string.IsNullOrWhiteSpace(model.CURP) ? DBNull.Value : model.CURP }
+            });
+
+                    var isFolio = model.StatusCode == "PREINSCRITO" ? 1 : 0;
+
+                    var studentId = await _repo.CreateStudentAsync(new Dictionary<string, object>
+            {
+                { "@StudentPersonID", personId },
+                { "@StudentCareerID", model.CareerId },
+                { "@StudentGroupID", model.GroupId ?? (object)DBNull.Value },
+                { "@Student_StatusCode", model.StatusCode },
+                { "@Student_IsFolio", isFolio },
+                { "@Student_Matricula", DBNull.Value }
+            });
+
+                    await _repo.ExecuteNonQueryAsync("management_studentcareer_history_insert",
+                        new Dictionary<string, object>
+                        {
+                    { "@StudentCareerHistory_StudentID", studentId },
+                    { "@StudentCareerHistory_CareerID", model.CareerId },
+                    { "@StudentCareerHistory_StartDate", DateTime.Now },
+                    { "@StudentCareerHistory_EndDate", DBNull.Value },
+                    { "@StudentCareerHistory_Reason", "Ingreso inicial" }
+                        });
+
+                    if (model.GroupId.HasValue && model.GroupId > 0)
+                    {
+                        await _repo.ExecuteNonQueryAsync("management_studentgroup_history_insert",
+                            new Dictionary<string, object>
+                            {
+                        { "@StudentGroupHistory_StudentID", studentId },
+                        { "@StudentGroupHistory_GroupID", model.GroupId },
+                        { "@StudentGroupHistory_StartDate", DateTime.Now },
+                        { "@StudentGroupHistory_EndDate", DBNull.Value },
+                        { "@StudentGroupHistory_Reason", "Asignación inicial" }
+                            });
+                    }
+
+                    if (model.StatusCode == "INSCRITO")
+                    {
+                        var roles = await _repo.GetRolesAsync();
+                        var studentRoleId = roles.FirstOrDefault(r =>
+                            r.Value.Contains("STUDENT", StringComparison.OrdinalIgnoreCase) ||
+                            r.Value.Contains("ALUMNO", StringComparison.OrdinalIgnoreCase) ||
+                            r.Value.Contains("ESTUDIANTE", StringComparison.OrdinalIgnoreCase)).Key;
+
+                        if (model.ExistingUserId.HasValue && model.ExistingUserId.Value > 0)
+                        {
+                            await _repo.ExecuteCommandAsync(
+                                @"UPDATE dbo.management_user_table
+                          SET management_user_PersonID = @PersonId,
+                              management_user_Email = @Email,
+                              management_user_status = 1
+                          WHERE management_user_ID = @UserId;",
+                                new Dictionary<string, object>
+                                {
+                            { "@PersonId", personId },
+                            { "@Email", model.Email },
+                            { "@UserId", model.ExistingUserId.Value }
+                                });
+
+                            if (studentRoleId > 0)
+                            {
+                                await _repo.CreateUserRoleAsync(new Dictionary<string, object>
+                        {
+                            { "@UserRole_UserID", model.ExistingUserId.Value },
+                            { "@UserRole_RoleID", studentRoleId }
+                        });
+                            }
+                        }
+                        else if (!string.IsNullOrWhiteSpace(model.Username) && !string.IsNullOrWhiteSpace(model.Password))
+                        {
+                            var userId = await _repo.CreateUserAsync(new Dictionary<string, object>
+                    {
+                        { "@UserPersonID", personId },
+                        { "@Username", model.Username },
+                        { "@UserEmail", model.Email },
+                        { "@PasswordHash", HashPassword(model.Password) }
+                    });
+
+                            if (studentRoleId > 0)
+                            {
+                                await _repo.CreateUserRoleAsync(new Dictionary<string, object>
+                        {
+                            { "@UserRole_UserID", userId },
+                            { "@UserRole_RoleID", studentRoleId }
+                        });
+                            }
+                        }
+                    }
+
+                    TempData["SuccessMessage"] = "Estudiante registrado correctamente.";
+                    return RedirectToAction("Catalogos", new { tab = returnTab });
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Error creating student");
+                    ModelState.AddModelError("", "Error: " + ex.Message);
+                }
+            }
+
+            ViewBag.Careers = await _repo.GetCareersAsync();
+            ViewBag.Groups = await _repo.ExecuteStoredProcedureAsync("management_group_get", null, ModelMappers.MapToGroup);
+            ViewBag.IsEdit = false;
+            ViewBag.ReturnTab = returnTab;
+
+            var availableAccountsList = await _repo.ExecuteStoredProcedureAsync(
+                "getview_user_full",
+                null,
+                ModelMappers.MapToUsuario
+            );
+
+            ViewBag.AvailableAccounts = availableAccountsList
+                .Where(x => x.Id > 0 && x.PersonId > 0 && x.TipoUsuario == "ADMIN")
+                .GroupBy(x => x.Id)
+                .ToDictionary(
+                    g => g.Key,
+                    g => $"{g.First().Username} - {g.First().Correo}"
+                );
+
+            return View(model);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> EditStudent(int id, string? tab = null)
         {
             var result = await _repo.ExecuteStoredProcedureAsync(
                 "getview_student_full",
@@ -449,43 +885,43 @@ namespace ControlEscolar.Controllers
                 FirstName = student.Nombres,
                 LastNamePaternal = student.ApellidoPaterno,
                 LastNameMaternal = student.ApellidoMaterno,
-                Email = student.Email,
+                Email = student.Email ?? string.Empty,
                 CURP = student.CURP,
                 Phone = student.Phone,
                 CareerId = student.CareerId,
                 GroupId = student.GroupId,
-                StatusCode = student.EstadoCodigo
+                StatusCode = string.IsNullOrWhiteSpace(student.EstadoCodigo) ? "INSCRITO" : student.EstadoCodigo,
+                Matricula = student.Matricula
             };
 
             ViewBag.Careers = await _repo.GetCareersAsync();
             ViewBag.Groups = await _repo.ExecuteStoredProcedureAsync("management_group_get", null, ModelMappers.MapToGroup);
-
-            ViewBag.StudentId = student.Id;
             ViewBag.IsEdit = true;
+            ViewBag.ReturnTab = string.IsNullOrWhiteSpace(tab) ? "tab-alumnos" : tab;
 
             return View("CreateStudent", model);
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> EditStudent(CreateStudentViewModel model)
+        public async Task<IActionResult> EditStudent(CreateStudentViewModel model, string? returnTab = null)
         {
+            returnTab = string.IsNullOrWhiteSpace(returnTab) ? "tab-alumnos" : returnTab;
+
+            if (string.IsNullOrWhiteSpace(model.StatusCode))
+                model.StatusCode = "INSCRITO";
+
             if (!ModelState.IsValid)
             {
                 ViewBag.Careers = await _repo.GetCareersAsync();
-                ViewBag.Groups = await _repo.ExecuteStoredProcedureAsync(
-                    "management_group_get", null, ModelMappers.MapToGroup
-                );
+                ViewBag.Groups = await _repo.ExecuteStoredProcedureAsync("management_group_get", null, ModelMappers.MapToGroup);
                 ViewBag.IsEdit = true;
-
+                ViewBag.ReturnTab = returnTab;
                 return View("CreateStudent", model);
             }
 
             try
             {
-                // ==========================================
-                // 1. OBTENER DATOS ANTERIORES
-                // ==========================================
                 var oldStudentResult = await _repo.ExecuteStoredProcedureAsync(
                     "getview_student_full",
                     new Dictionary<string, object> { { "@ID", model.StudentId } },
@@ -494,15 +930,10 @@ namespace ControlEscolar.Controllers
 
                 var old = oldStudentResult.FirstOrDefault();
 
-                // ==========================================
-                // 2. DETECTAR CAMBIOS
-                // ==========================================
                 bool cambioCarrera = old != null && old.CareerId != model.CareerId;
                 bool cambioGrupo = old != null && old.GroupId != model.GroupId;
+                bool pasaAInscrito = old != null && old.EstadoCodigo == "PREINSCRITO" && model.StatusCode == "INSCRITO" && string.IsNullOrWhiteSpace(old.Matricula);
 
-                // ==========================================
-                // 3. GUARDAR HISTORIAL
-                // ==========================================
                 if (cambioCarrera)
                 {
                     await _repo.ExecuteNonQueryAsync("management_studentcareer_history_insert",
@@ -529,48 +960,124 @@ namespace ControlEscolar.Controllers
                         });
                 }
 
-                // ==========================================
-                // 4. ACTUALIZAR PERSONA
-                // ==========================================
                 await _repo.ExecuteNonQueryAsync("management_person_update", new Dictionary<string, object>
-        {
-            { "@ID", model.PersonId },
-            { "@FirstName", model.FirstName },
-            { "@LastNamePaternal", model.LastNamePaternal },
-            { "@LastNameMaternal", (object?)model.LastNameMaternal ?? DBNull.Value },
-            { "@Email", model.Email },
-            { "@Phone", (object?)model.Phone ?? DBNull.Value },
-            { "@CURP", model.CURP }
-        });
+                {
+                    { "@ID", model.PersonId },
+                    { "@FirstName", model.FirstName },
+                    { "@LastNamePaternal", model.LastNamePaternal },
+                    { "@LastNameMaternal", (object?)model.LastNameMaternal ?? DBNull.Value },
+                    { "@Email", model.Email },
+                    { "@Phone", (object?)model.Phone ?? DBNull.Value },
+                    { "@CURP", string.IsNullOrWhiteSpace(model.CURP) ? DBNull.Value : model.CURP }
+                });
 
-                // ==========================================
-                // 5. ACTUALIZAR STUDENT
-                // ==========================================
                 await _repo.ExecuteNonQueryAsync("management_student_update", new Dictionary<string, object>
-        {
-            { "@ID", model.StudentId },
-            { "@StudentCareerID", model.CareerId },
-            { "@StudentGroupID", model.GroupId ?? (object)DBNull.Value },
-            { "@Student_StatusCode", model.StatusCode }
-        });
+                {
+                    { "@ID", model.StudentId },
+                    { "@StudentCareerID", model.CareerId },
+                    { "@StudentGroupID", model.GroupId ?? (object)DBNull.Value },
+                    { "@Student_StatusCode", model.StatusCode }
+                });
 
-                return RedirectToAction("Catalogos");
+                if (pasaAInscrito && model.StudentId.HasValue)
+                {
+                    await _repo.ExecuteStoredProcedureAsync(
+                        "management_student_assign_matricula",
+                        new Dictionary<string, object>
+                        {
+                            { "@ID", model.StudentId.Value },
+                            { "@Student_StatusCode", "INSCRITO" }
+                        },
+                        r => 0
+                    );
+                }
+
+                TempData["SuccessMessage"] = "Alumno actualizado correctamente.";
+                return RedirectToAction("Catalogos", new { tab = returnTab });
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, "Error updating student");
                 ModelState.AddModelError("", ex.Message);
             }
 
             ViewBag.Careers = await _repo.GetCareersAsync();
-            ViewBag.Groups = await _repo.ExecuteStoredProcedureAsync(
-                "management_group_get", null, ModelMappers.MapToGroup
-            );
+            ViewBag.Groups = await _repo.ExecuteStoredProcedureAsync("management_group_get", null, ModelMappers.MapToGroup);
             ViewBag.IsEdit = true;
-
+            ViewBag.ReturnTab = returnTab;
             return View("CreateStudent", model);
         }
 
-        /// <summary>Histórico de bajas: alumnos inactivos (tablaBajas).</summary>
+
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteStudent(int id)
+        {
+            try
+            {
+                var info = await _repo.ExecuteStoredProcedureAsync(
+                    "getview_user_full",
+                    null,
+                    ModelMappers.MapToUsuario
+                );
+
+                var data = info.FirstOrDefault(x => x.IdentificadorTipo == "ALUMNO" && x.RelatedEntityId == id);
+
+                var studentData = await _repo.ExecuteStoredProcedureAsync(
+                    "getview_student_full",
+                    new Dictionary<string, object> { { "@ID", id }, { "@Status", DBNull.Value }, { "@Student_IsFolio", DBNull.Value } },
+                    ModelMappers.MapToStudent
+                );
+
+                var student = studentData.FirstOrDefault();
+                if (student == null)
+                    return NotFound();
+
+                if (student.EsActivo)
+                {
+                    await _repo.ExecuteNonQueryAsync("management_student_softdelete",
+                        new Dictionary<string, object> { { "@ID", id } });
+
+                    if (data != null && data.Id > 0)
+                    {
+                        await _repo.ExecuteNonQueryAsync("management_user_softdelete",
+                            new Dictionary<string, object> { { "@ID", data.Id } });
+                    }
+
+                    return Ok(new { mode = "softdelete" });
+                }
+
+                if (data != null && data.Id > 0)
+                {
+                    await _repo.ExecuteCommandAsync(
+                        @"DELETE FROM dbo.management_userrole_table WHERE management_userrole_UserID = @UserId;
+                  DELETE FROM dbo.management_usercareer_table WHERE management_usercareer_UserID = @UserId;
+                  DELETE FROM dbo.management_user_table WHERE management_user_ID = @UserId AND management_user_status = 0;",
+                        new Dictionary<string, object> { { "@UserId", data.Id } });
+                }
+
+                await _repo.ExecuteCommandAsync(
+                    @"DELETE FROM dbo.management_studentgroup_history_table WHERE management_studentgroup_history_StudentID = @ID;
+              DELETE FROM dbo.management_studentcareer_history_table WHERE management_studentcareer_history_StudentID = @ID;
+              DELETE FROM dbo.management_student_table WHERE management_student_ID = @ID AND management_student_status = 0;",
+                    new Dictionary<string, object> { { "@ID", id } });
+
+                return Ok(new { mode = "harddelete" });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error deleting student");
+                return StatusCode(500, new { error = ex.Message });
+            }
+        }
+
+        [HttpGet]
+        public IActionResult StudentDetail(int id)
+        {
+            return View();
+        }
+
         [HttpGet]
         public async Task<IActionResult> GetBajasJson()
         {
@@ -578,24 +1085,27 @@ namespace ControlEscolar.Controllers
             {
                 var lista = await _repo.ExecuteStoredProcedureAsync(
                     "getview_user_full",
-                    new Dictionary<string, object>
-                    {
-                        { "@Status", 0 }
-                    },
+                    null,
                     ModelMappers.MapToUsuario
                 );
 
-                var data = lista.Select(u => new
-                {
-                    id = u.Id,
-                    identificador = u.Identificador,
-                    nombreCompleto = $"{u.LastNamePaternal} {u.LastNameMaternal}, {u.FirstName}".Trim(),
-                    carrera = u.Carrera,
-                    email = u.Correo,
-                    estadoCodigo = u.Estado,
-                    esActivo = false,
-                    estadoBadgeClass = "status-rechazado"
-                });
+                var data = lista
+                    .Where(u =>
+                        string.Equals(u.Estado, "BAJA", StringComparison.OrdinalIgnoreCase) ||
+                        string.Equals(u.Estado, "INACTIVO", StringComparison.OrdinalIgnoreCase) ||
+                        string.Equals(u.Estado, "LICENCIA", StringComparison.OrdinalIgnoreCase))
+                    .Select(u => new
+                    {
+                        id = u.RelatedEntityId > 0 ? u.RelatedEntityId : u.Id,
+                        userId = u.Id,
+                        identificador = string.IsNullOrWhiteSpace(u.Identificador) ? "-" : u.Identificador,
+                        nombreCompleto = $"{u.LastNamePaternal} {u.LastNameMaternal}, {u.FirstName}".Trim(),
+                        tipoUsuario = string.IsNullOrWhiteSpace(u.TipoUsuario) ? "ADMIN" : u.TipoUsuario.ToUpperInvariant(),
+                        email = string.IsNullOrWhiteSpace(u.Correo) ? "-" : u.Correo,
+                        estadoCodigo = string.IsNullOrWhiteSpace(u.Estado) ? "INACTIVO" : u.Estado.ToUpperInvariant(),
+                        estadoBadgeClass = "status-rechazado"
+                    })
+                    .ToList();
 
                 return Json(new { data });
             }
@@ -606,131 +1116,74 @@ namespace ControlEscolar.Controllers
             }
         }
 
-        [HttpGet]
-        public IActionResult StudentDetail(int id)
-        {
-            // Lógica para obtener el estudiante por su id
-            return View();
-        }
-
-        [HttpGet]
-        public async Task<IActionResult> CreateStudent()
-        {
-            ViewBag.Careers = await _repo.GetCareersAsync();
-            var grupos = await _repo.ExecuteStoredProcedureAsync("management_group_get", null, ModelMappers.MapToGroup);
-            ViewBag.Groups = grupos;
-            ViewBag.IsEdit = false;
-
-            return View();
-        }
-
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> CreateStudent(CreateStudentViewModel model)
+        public async Task<IActionResult> DeleteInactiveRecord([FromBody] DeleteInactiveRecordRequest request)
         {
-            if (ModelState.IsValid)
+            try
             {
-                try
+                var tipo = (request.Tipo ?? string.Empty).ToUpperInvariant();
+
+                if (tipo == "ALUMNO")
                 {
-                    // 1. Crear Persona
-                    var personId = await _repo.CreatePersonAsync(new Dictionary<string, object>
+                    if (request.UserId > 0)
                     {
-                        { "@FirstName", model.FirstName },
-                        { "@LastNamePaternal", model.LastNamePaternal },
-                        { "@LastNameMaternal", (object?)model.LastNameMaternal ?? DBNull.Value },
-                        { "@Email", model.Email },
-                        { "@Phone", (object?)model.Phone ?? DBNull.Value },
-                        { "@CURP", model.CURP }
-                    });
-
-                    // 2. Crear Estudiante
-                    var isFolio = model.StatusCode == "PREINSCRITO" ? 1 : 0;
-
-                    var studentId = await _repo.CreateStudentAsync(new Dictionary<string, object>
-                    {
-                        { "@StudentPersonID", personId },
-                        { "@StudentCareerID", model.CareerId },
-                        { "@StudentGroupID", model.GroupId > 0 ? model.GroupId : DBNull.Value },
-                        { "@Student_StatusCode", model.StatusCode },
-                        { "@Student_Matricula", (object?)model.Matricula ?? DBNull.Value },
-                        { "@Student_IsFolio", isFolio }
-                    });
-
-                    // ==========================================
-                    // HISTORIAL INICIAL
-                    // ==========================================
-
-                    // Historial de carrera
-                    await _repo.ExecuteNonQueryAsync("management_studentcareer_history_insert",
-                        new Dictionary<string, object>
-                        {
-                            { "@StudentCareerHistory_StudentID", studentId },
-                            { "@StudentCareerHistory_CareerID", model.CareerId },
-                            { "@StudentCareerHistory_StartDate", DateTime.Now },
-                            { "@StudentCareerHistory_EndDate", DBNull.Value },
-                            { "@StudentCareerHistory_Reason", "Ingreso inicial" }
-                        });
-
-                    // Historial de grupo (solo si tiene)
-                    if (model.GroupId != null && model.GroupId > 0)
-                    {
-                        await _repo.ExecuteNonQueryAsync("management_studentgroup_history_insert",
-                            new Dictionary<string, object>
-                            {
-                                { "@StudentGroupHistory_StudentID", studentId },
-                                { "@StudentGroupHistory_GroupID", model.GroupId },
-                                { "@StudentGroupHistory_StartDate", DateTime.Now },
-                                { "@StudentGroupHistory_EndDate", DBNull.Value },
-                                { "@StudentGroupHistory_Reason", "Asignación inicial" }
-                            });
+                        await _repo.ExecuteCommandAsync(
+                            @"DELETE FROM dbo.management_userrole_table WHERE management_userrole_UserID = @UserId;
+                      DELETE FROM dbo.management_usercareer_table WHERE management_usercareer_UserID = @UserId;
+                      DELETE FROM dbo.management_user_table WHERE management_user_ID = @UserId AND management_user_status = 0;",
+                            new Dictionary<string, object> { { "@UserId", request.UserId } });
                     }
 
-                    // 3. Crear Usuario
+                    await _repo.ExecuteCommandAsync(
+                        @"DELETE FROM dbo.management_studentgroup_history_table WHERE management_studentgroup_history_StudentID = @ID;
+                  DELETE FROM dbo.management_studentcareer_history_table WHERE management_studentcareer_history_StudentID = @ID;
+                  DELETE FROM dbo.management_student_table WHERE management_student_ID = @ID AND management_student_status = 0;",
+                        new Dictionary<string, object> { { "@ID", request.Id } });
+
+                    return Ok();
+                }
+
+                if (tipo == "DOCENTE")
+                {
+                    if (request.UserId > 0)
                     {
-                        // VALIDACIÓN
-                        if (!string.IsNullOrWhiteSpace(model.Username) &&
-                        !string.IsNullOrWhiteSpace(model.Password))
-                        {
-                            var userId = await _repo.CreateUserAsync(new Dictionary<string, object>
-                            {
-                                { "@UserPersonID", personId },
-                                { "@Username", model.Username },
-                                { "@UserEmail", model.Email },
-                                { "@PasswordHash", HashPassword(model.Password) }
-                            });
-
-                            var studentRoleId = 2;
-
-                            await _repo.CreateUserRoleAsync(new Dictionary<string, object>
-                            {
-                                { "@UserRole_UserID", userId },
-                                { "@UserRole_RoleID", studentRoleId }
-                            });
-                        }
+                        await _repo.ExecuteCommandAsync(
+                            @"DELETE FROM dbo.management_userrole_table WHERE management_userrole_UserID = @UserId;
+                      DELETE FROM dbo.management_usercareer_table WHERE management_usercareer_UserID = @UserId;
+                      DELETE FROM dbo.management_user_table WHERE management_user_ID = @UserId AND management_user_status = 0;",
+                            new Dictionary<string, object> { { "@UserId", request.UserId } });
                     }
 
-                    TempData["SuccessMessage"] = "Estudiante registrado correctamente.";
-                    return RedirectToAction("Catalogos");
+                    await _repo.ExecuteCommandAsync(
+                        @"DELETE FROM dbo.management_teacher_table
+                  WHERE management_teacher_ID = @ID
+                    AND management_teacher_status = 0;",
+                        new Dictionary<string, object> { { "@ID", request.Id } });
+
+                    return Ok();
                 }
-                catch (Exception ex)
+
+                if (tipo == "ADMIN")
                 {
-                    _logger.LogError(ex, "Error creating student");
-                    ModelState.AddModelError("", "Error: " + ex.Message);
+                    await _repo.ExecuteCommandAsync(
+                        @"DELETE FROM dbo.management_userrole_table WHERE management_userrole_UserID = @ID;
+                  DELETE FROM dbo.management_usercareer_table WHERE management_usercareer_UserID = @ID;
+                  DELETE FROM dbo.management_user_table WHERE management_user_ID = @ID AND management_user_status = 0;",
+                        new Dictionary<string, object> { { "@ID", request.Id } });
+
+                    return Ok();
                 }
+
+                return BadRequest(new { error = "Tipo no soportado." });
             }
-
-            ViewBag.Careers = await _repo.GetCareersAsync();
-            var gruposReload = await _repo.ExecuteStoredProcedureAsync("management_group_get", null, ModelMappers.MapToGroup);
-            ViewBag.Groups = gruposReload;
-            TempData["ErrorMessage"] = "Hubo un error al registrar el estudiante.";
-            return View(model);
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error deleting inactive record");
+                return StatusCode(500, new { error = ex.Message });
+            }
         }
 
-        // ==========================================
-        // 4. MÓDULO DE PROFESORES
-        // ==========================================
-
-        /// <summary>Docentes activos (tablaDocentes).</summary>
         [HttpGet]
         public async Task<IActionResult> GetDocentesJson()
         {
@@ -739,22 +1192,27 @@ namespace ControlEscolar.Controllers
                 var lista = await _repo.ExecuteStoredProcedureAsync(
                     "getview_user_full",
                     null,
-                    ModelMappers.MapToDocente);
+                    ModelMappers.MapToDocente
+                );
 
-                // Solo filas cuyo teacher_ID esté presente (son docentes)
                 var data = lista
                     .Where(d => d.TeacherId.HasValue)
-                    .Select(d => new
+                    .Select(d =>
                     {
-                        teacherId = d.TeacherId,
-                        userId         = d.UserId,
-                        nombreCompleto = $"{d.ApellidoPaterno} {d.ApellidoMaterno}, {d.Nombre}".Trim(),
-                        numeroEmpleado = d.NumeroEmpleado,
-                        email          = d.Email,
-                        telefono       = d.Telefono,
-                        estado         = string.IsNullOrWhiteSpace(d.Estado) ? "ACTIVO" : d.Estado,
-                        badgeClass     = (d.Estado == "ACTIVO" || string.IsNullOrWhiteSpace(d.Estado))
-                                            ? "status-aceptado" : "status-rechazado"
+                        var estado = string.IsNullOrWhiteSpace(d.Estado) ? "ACTIVO" : d.Estado.ToUpperInvariant();
+                        var badgeClass = estado == "ACTIVO" ? "status-aceptado" : "status-rechazado";
+
+                        return new
+                        {
+                            teacherId = d.TeacherId,
+                            userId = d.UserId,
+                            nombreCompleto = $"{d.ApellidoPaterno} {d.ApellidoMaterno}, {d.Nombre}".Trim(),
+                            numeroEmpleado = d.NumeroEmpleado,
+                            email = d.Email,
+                            telefono = d.Telefono,
+                            estado,
+                            badgeClass
+                        };
                     });
 
                 return Json(new { data });
@@ -767,69 +1225,67 @@ namespace ControlEscolar.Controllers
         }
 
         [HttpGet]
-        public IActionResult CreateTeacher()
+        public IActionResult CreateTeacher(string? tab = null)
         {
             ViewBag.IsEdit = false;
+            ViewBag.ReturnTab = string.IsNullOrWhiteSpace(tab) ? "tab-docentes" : tab;
             return View();
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> CreateTeacher(CreateTeacherViewModel model)
+        public async Task<IActionResult> CreateTeacher(CreateTeacherViewModel model, string? returnTab = null)
         {
+            returnTab = string.IsNullOrWhiteSpace(returnTab) ? "tab-docentes" : returnTab;
+
             if (ModelState.IsValid)
             {
                 try
                 {
-                    // 1. Crear Persona
                     var personId = await _repo.CreatePersonAsync(new Dictionary<string, object>
-            {
-                { "@FirstName", model.FirstName },
-                { "@LastNamePaternal", model.LastNamePaternal },
-                { "@LastNameMaternal", (object?)model.LastNameMaternal ?? DBNull.Value },
-                { "@Email", (object?)model.Email ?? DBNull.Value },
-                { "@Phone", (object?)model.Phone ?? DBNull.Value },
-                { "@CURP", DBNull.Value }
-            });
+                    {
+                        { "@FirstName", model.FirstName },
+                        { "@LastNamePaternal", model.LastNamePaternal },
+                        { "@LastNameMaternal", (object?)model.LastNameMaternal ?? DBNull.Value },
+                        { "@Email", (object?)model.Email ?? DBNull.Value },
+                        { "@Phone", (object?)model.Phone ?? DBNull.Value },
+                        { "@CURP", DBNull.Value }
+                    });
 
-                    // 2. Crear Profesor
                     await _repo.CreateTeacherAsync(new Dictionary<string, object>
-            {
-                { "@TeacherPersonID", personId },
-                { "@EmployeeNumber", (object?)model.EmployeeNumber ?? DBNull.Value },
-                { "@Teacher_StatusCode", string.IsNullOrWhiteSpace(model.StatusCode) ? "ACTIVO" : model.StatusCode }
-            });
+                    {
+                        { "@TeacherPersonID", personId },
+                        { "@EmployeeNumber", (object?)model.EmployeeNumber ?? DBNull.Value },
+                        { "@Teacher_StatusCode", string.IsNullOrWhiteSpace(model.StatusCode) ? "ACTIVO" : model.StatusCode }
+                    });
 
-                    // 3. Crear Usuario
-                    if (!string.IsNullOrWhiteSpace(model.Username) &&
-                        !string.IsNullOrWhiteSpace(model.Password))
+                    if (!string.IsNullOrWhiteSpace(model.Username) && !string.IsNullOrWhiteSpace(model.Password))
                     {
                         var userId = await _repo.CreateUserAsync(new Dictionary<string, object>
-                {
-                    { "@UserPersonID", personId },
-                    { "@Username", model.Username },
-                    { "@UserEmail", (object?)model.Email ?? DBNull.Value },
-                    { "@PasswordHash", HashPassword(model.Password) }
-                });
+                        {
+                            { "@UserPersonID", personId },
+                            { "@Username", model.Username },
+                            { "@UserEmail", (object?)model.Email ?? DBNull.Value },
+                            { "@PasswordHash", HashPassword(model.Password) }
+                        });
 
                         var roles = await _repo.GetRolesAsync();
                         var teacherRoleId = roles.FirstOrDefault(r =>
                             r.Value.Contains("TEACHER", StringComparison.OrdinalIgnoreCase) ||
-                            r.Value.Contains("DOCENTE", StringComparison.OrdinalIgnoreCase)
-                        ).Key;
+                            r.Value.Contains("DOCENTE", StringComparison.OrdinalIgnoreCase)).Key;
 
                         if (teacherRoleId > 0)
                         {
                             await _repo.CreateUserRoleAsync(new Dictionary<string, object>
-                    {
-                        { "@UserRole_UserID", userId },
-                        { "@UserRole_RoleID", teacherRoleId }
-                    });
+                            {
+                                { "@UserRole_UserID", userId },
+                                { "@UserRole_RoleID", teacherRoleId }
+                            });
                         }
                     }
 
                     TempData["SuccessMessage"] = "Profesor registrado correctamente.";
-                    return RedirectToAction("Catalogos");
+                    return RedirectToAction("Catalogos", new { tab = returnTab });
                 }
                 catch (Exception ex)
                 {
@@ -838,12 +1294,13 @@ namespace ControlEscolar.Controllers
                 }
             }
 
-            TempData["ErrorMessage"] = "Hubo un error al registrar el profesor. Verifique los datos.";
+            ViewBag.IsEdit = false;
+            ViewBag.ReturnTab = returnTab;
             return View(model);
         }
 
         [HttpGet]
-        public async Task<IActionResult> EditTeacher(int id)
+        public async Task<IActionResult> EditTeacher(int id, string? tab = null)
         {
             var result = await _repo.ExecuteStoredProcedureAsync(
                 "getview_user_full",
@@ -851,7 +1308,7 @@ namespace ControlEscolar.Controllers
                 ModelMappers.MapToDocente
             );
 
-            var docente = result.FirstOrDefault(d => d.TeacherId.HasValue);
+            var docente = result.FirstOrDefault(d => d.TeacherId == id);
 
             if (docente == null)
                 return NotFound();
@@ -866,27 +1323,30 @@ namespace ControlEscolar.Controllers
                 Email = docente.Email,
                 Phone = docente.Telefono,
                 EmployeeNumber = docente.NumeroEmpleado,
-                StatusCode = docente.Estado
+                StatusCode = string.IsNullOrWhiteSpace(docente.Estado) ? "ACTIVO" : docente.Estado
             };
 
             ViewBag.IsEdit = true;
+            ViewBag.ReturnTab = string.IsNullOrWhiteSpace(tab) ? "tab-docentes" : tab;
 
             return View("CreateTeacher", model);
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> EditTeacher(CreateTeacherViewModel model)
+        public async Task<IActionResult> EditTeacher(CreateTeacherViewModel model, string? returnTab = null)
         {
+            returnTab = string.IsNullOrWhiteSpace(returnTab) ? "tab-docentes" : returnTab;
+
             if (!ModelState.IsValid)
             {
                 ViewBag.IsEdit = true;
+                ViewBag.ReturnTab = returnTab;
                 return View("CreateTeacher", model);
             }
 
             try
             {
-                // 1. Actualizar PERSONA
                 await _repo.ExecuteNonQueryAsync("management_person_update", new Dictionary<string, object>
                 {
                     { "@ID", model.PersonId },
@@ -897,16 +1357,15 @@ namespace ControlEscolar.Controllers
                     { "@Phone", (object?)model.Phone ?? DBNull.Value }
                 });
 
-                // 2. Actualizar TEACHER
                 await _repo.ExecuteNonQueryAsync("management_teacher_update", new Dictionary<string, object>
                 {
                     { "@ID", model.TeacherId },
                     { "@EmployeeNumber", (object?)model.EmployeeNumber ?? DBNull.Value },
-                    { "@Teacher_StatusCode", model.StatusCode }
+                    { "@Teacher_StatusCode", string.IsNullOrWhiteSpace(model.StatusCode) ? "ACTIVO" : model.StatusCode }
                 });
 
                 TempData["SuccessMessage"] = "Profesor actualizado correctamente.";
-                return RedirectToAction("Catalogos");
+                return RedirectToAction("Catalogos", new { tab = returnTab });
             }
             catch (Exception ex)
             {
@@ -915,14 +1374,95 @@ namespace ControlEscolar.Controllers
             }
 
             ViewBag.IsEdit = true;
+            ViewBag.ReturnTab = returnTab;
             return View("CreateTeacher", model);
         }
 
-        // ==========================================
-        // 5. MÓDULO DE GRUPOS
-        // ==========================================
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteTeacher(int id)
+        {
+            try
+            {
+                var info = await _repo.ExecuteStoredProcedureAsync(
+                    "getview_user_full",
+                    null,
+                    ModelMappers.MapToUsuario
+                );
 
-        /// <summary>Todos los grupos (tablaGrupos).</summary>
+                var data = info.FirstOrDefault(x => x.IdentificadorTipo == "DOCENTE" && x.RelatedEntityId == id);
+
+                var docentes = await _repo.ExecuteStoredProcedureAsync(
+                    "getview_user_full",
+                    null,
+                    ModelMappers.MapToDocente
+                );
+
+                var docente = docentes.FirstOrDefault(x => x.TeacherId == id);
+                if (docente == null)
+                    return NotFound();
+
+                var estado = (docente.Estado ?? "").ToUpperInvariant();
+
+                if (estado == "ACTIVO")
+                {
+                    await _repo.ExecuteNonQueryAsync("management_teacher_softdelete",
+                        new Dictionary<string, object> { { "@ID", id } });
+
+                    if (data != null && data.Id > 0)
+                    {
+                        await _repo.ExecuteNonQueryAsync("management_user_softdelete",
+                            new Dictionary<string, object> { { "@ID", data.Id } });
+                    }
+
+                    return Ok(new { mode = "softdelete" });
+                }
+
+                if (data != null && data.Id > 0)
+                {
+                    await _repo.ExecuteCommandAsync(
+                        @"DELETE FROM dbo.management_userrole_table WHERE management_userrole_UserID = @UserId;
+                  DELETE FROM dbo.management_usercareer_table WHERE management_usercareer_UserID = @UserId;
+                  DELETE FROM dbo.management_user_table WHERE management_user_ID = @UserId AND management_user_status = 0;",
+                        new Dictionary<string, object> { { "@UserId", data.Id } });
+                }
+
+                await _repo.ExecuteCommandAsync(
+                    @"DELETE FROM dbo.management_teacher_table
+              WHERE management_teacher_ID = @ID
+                AND management_teacher_status = 0;",
+                    new Dictionary<string, object> { { "@ID", id } });
+
+                return Ok(new { mode = "harddelete" });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error deleting teacher");
+                return StatusCode(500, new { error = ex.Message });
+            }
+        }
+
+
+        [HttpGet]
+        public IActionResult TeacherDetail(int id)
+        {
+            return View();
+        }
+
+        [HttpGet]
+        public IActionResult GetAssignableStudents(int teacherId)
+        {
+            return Json(new List<object>());
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult AssignStudentsToTeacher(int teacherId, List<int> enrollmentIds)
+        {
+            TempData["SuccessMessage"] = "Estudiantes asignados correctamente.";
+            return RedirectToAction("TeacherDetail", new { id = teacherId });
+        }
+
         [HttpGet]
         public async Task<IActionResult> GetGruposJson()
         {
@@ -931,17 +1471,16 @@ namespace ControlEscolar.Controllers
                 var lista = await _repo.ExecuteStoredProcedureAsync(
                     "management_group_get",
                     null,
-                    ModelMappers.MapToGroup);
+                    ModelMappers.MapToGroup
+                );
 
                 var data = lista.Select(g => new
                 {
-                    id          = g.Id,
-                    nombre      = string.IsNullOrWhiteSpace(g.Nombre)
-                                    ? g.Codigo
-                                    : $"{g.Codigo} - {g.Nombre}",
+                    id = g.Id,
+                    nombre = string.IsNullOrWhiteSpace(g.Nombre) ? g.Codigo : $"{g.Codigo} - {g.Nombre}",
                     carrera = g.Carrera,
-                    turno       = g.Turno,
-                    esActivo    = g.EsActivo
+                    turno = g.Turno,
+                    esActivo = g.EsActivo
                 });
 
                 return Json(new { data });
@@ -954,66 +1493,34 @@ namespace ControlEscolar.Controllers
         }
 
         [HttpGet]
-        public IActionResult TeacherDetail(int id)
-        {
-            return View();
-        }
-
-        // --- Endpoints para el Modal de Asignación en TeacherDetail ---
-        [HttpGet]
-        public IActionResult GetAssignableStudents(int teacherId)
-        {
-            // Lógica para devolver JSON con los alumnos disponibles
-            // Ejemplo: return Json(listaDeEstudiantes);
-            return Json(new List<object>());
-        }
-
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public IActionResult AssignStudentsToTeacher(int teacherId, List<int> enrollmentIds)
-        {
-            // Lógica para asignar los alumnos seleccionados al profesor
-            TempData["SuccessMessage"] = "Estudiantes asignados correctamente.";
-            return RedirectToAction("TeacherDetail", new { id = teacherId });
-        }
-
-        // ==========================================
-        // 5. MÓDULO DE GRUPOS
-        // ==========================================
-        [HttpGet]
-        public async Task<IActionResult> CreateGroup()
+        public async Task<IActionResult> CreateGroup(string? tab = null)
         {
             ViewBag.Careers = await _repo.GetCareersAsync();
             ViewBag.IsEdit = false;
+            ViewBag.ReturnTab = string.IsNullOrWhiteSpace(tab) ? "tab-grupos" : tab;
             return View();
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> CreateGroup(CreateGroupViewModel model)
+        public async Task<IActionResult> CreateGroup(CreateGroupViewModel model, string? returnTab = null)
         {
+            returnTab = string.IsNullOrWhiteSpace(returnTab) ? "tab-grupos" : returnTab;
+
             if (ModelState.IsValid)
             {
                 try
                 {
-                    if (!model.CareerId.HasValue || model.CareerId <= 0)
-                    {
-                        ModelState.AddModelError("", "Debe seleccionar una carrera válida.");
-                        ViewBag.Careers = await _repo.GetCareersAsync();
-                        ViewBag.IsEdit = false;
-                        return View(model);
-                    }
-
                     await _repo.CreateGroupAsync(new Dictionary<string, object>
-            {
-                { "@GroupCareerID", model.CareerId ?? (object)DBNull.Value },
-                { "@GroupCode", model.GroupCode },
-                { "@GroupName", model.GroupName },
-                { "@GroupShift", model.Shift }
-            });
+                    {
+                        { "@GroupCareerID", model.CareerId ?? (object)DBNull.Value },
+                        { "@GroupCode", model.GroupCode },
+                        { "@GroupName", model.GroupName },
+                        { "@GroupShift", model.Shift }
+                    });
 
                     TempData["SuccessMessage"] = "Grupo creado exitosamente.";
-                    return RedirectToAction("Catalogos");
+                    return RedirectToAction("Catalogos", new { tab = returnTab });
                 }
                 catch (Exception ex)
                 {
@@ -1024,13 +1531,12 @@ namespace ControlEscolar.Controllers
 
             ViewBag.Careers = await _repo.GetCareersAsync();
             ViewBag.IsEdit = false;
-
-            TempData["ErrorMessage"] = "Error al crear el grupo.";
+            ViewBag.ReturnTab = returnTab;
             return View(model);
         }
 
         [HttpGet]
-        public async Task<IActionResult> EditGroup(int id)
+        public async Task<IActionResult> EditGroup(int id, string? tab = null)
         {
             var result = await _repo.ExecuteStoredProcedureAsync(
                 "management_group_get",
@@ -1048,25 +1554,28 @@ namespace ControlEscolar.Controllers
                 Id = group.Id,
                 GroupCode = group.Codigo,
                 GroupName = group.Nombre,
-                CareerId = group.CareerId.GetValueOrDefault(),
+                CareerId = group.CareerId,
                 Shift = group.Turno
             };
 
             ViewBag.Careers = await _repo.GetCareersAsync();
-            ViewBag.GroupId = group.Id;
             ViewBag.IsEdit = true;
+            ViewBag.ReturnTab = string.IsNullOrWhiteSpace(tab) ? "tab-grupos" : tab;
 
             return View("CreateGroup", model);
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> EditGroup(CreateGroupViewModel model)
+        public async Task<IActionResult> EditGroup(CreateGroupViewModel model, string? returnTab = null)
         {
+            returnTab = string.IsNullOrWhiteSpace(returnTab) ? "tab-grupos" : returnTab;
+
             if (!ModelState.IsValid)
             {
                 ViewBag.Careers = await _repo.GetCareersAsync();
                 ViewBag.IsEdit = true;
+                ViewBag.ReturnTab = returnTab;
                 return View("CreateGroup", model);
             }
 
@@ -1081,29 +1590,38 @@ namespace ControlEscolar.Controllers
                     { "@GroupShift", model.Shift }
                 });
 
-                return RedirectToAction("Catalogos");
+                TempData["SuccessMessage"] = "Grupo actualizado correctamente.";
+                return RedirectToAction("Catalogos", new { tab = returnTab });
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, "Error updating group");
                 ModelState.AddModelError("", ex.Message);
             }
 
             ViewBag.Careers = await _repo.GetCareersAsync();
             ViewBag.IsEdit = true;
+            ViewBag.ReturnTab = returnTab;
             return View("CreateGroup", model);
         }
 
-        // --- Helper de Hashing ---
-        private string HashPassword(string password)
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteGroup(int id)
         {
-            using var sha = SHA256.Create();
-            var bytes = sha.ComputeHash(Encoding.UTF8.GetBytes(password));
-            return Convert.ToBase64String(bytes);
-        }
+            try
+            {
+                await _repo.ExecuteNonQueryAsync("management_group_softdelete",
+                    new Dictionary<string, object> { { "@ID", id } });
 
-        // ==========================================
-        // 6. Carreas (AJAX para DataTable)
-        // ==========================================
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error deleting group");
+                return StatusCode(500, new { error = ex.Message });
+            }
+        }
 
         [HttpGet]
         public async Task<IActionResult> GetCareersJson()
@@ -1138,27 +1656,31 @@ namespace ControlEscolar.Controllers
         }
 
         [HttpGet]
-        public IActionResult CreateCareer()
+        public IActionResult CreateCareer(string? tab = null)
         {
             ViewBag.IsEdit = false;
+            ViewBag.ReturnTab = string.IsNullOrWhiteSpace(tab) ? "tab-career" : tab;
             return View();
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> CreateCareer(CreateCareerViewModel model)
+        public async Task<IActionResult> CreateCareer(CreateCareerViewModel model, string? returnTab = null)
         {
+            returnTab = string.IsNullOrWhiteSpace(returnTab) ? "tab-career" : returnTab;
+
             if (ModelState.IsValid)
             {
                 try
                 {
                     await _repo.CreateCareerAsync(new Dictionary<string, object>
-            {
-                { "@CareerCode", model.Code },
-                { "@CareerName", model.Name }
-            });
+                    {
+                        { "@CareerCode", model.Code },
+                        { "@CareerName", model.Name }
+                    });
 
-                    return RedirectToAction("Catalogos");
+                    TempData["SuccessMessage"] = "Carrera creada correctamente.";
+                    return RedirectToAction("Catalogos", new { tab = returnTab });
                 }
                 catch (Exception ex)
                 {
@@ -1167,19 +1689,21 @@ namespace ControlEscolar.Controllers
                 }
             }
 
+            ViewBag.IsEdit = false;
+            ViewBag.ReturnTab = returnTab;
             return View(model);
         }
 
         [HttpGet]
-        public async Task<IActionResult> EditCareer(int id)
+        public async Task<IActionResult> EditCareer(int id, string? tab = null)
         {
             var result = await _repo.ExecuteStoredProcedureAsync(
                 "management_career_get",
                 new Dictionary<string, object> { { "@ID", id } },
                 r => new CreateCareerViewModel
                 {
-                    Code = Management.GetValue<string>(r, "management_career_Code"),
-                    Name = Management.GetValue<string>(r, "management_career_Name")
+                    Code = Management.GetValue<string>(r, "management_career_Code") ?? string.Empty,
+                    Name = Management.GetValue<string>(r, "management_career_Name") ?? string.Empty
                 }
             );
 
@@ -1190,43 +1714,67 @@ namespace ControlEscolar.Controllers
 
             ViewBag.CareerId = id;
             ViewBag.IsEdit = true;
+            ViewBag.ReturnTab = string.IsNullOrWhiteSpace(tab) ? "tab-career" : tab;
 
             return View("CreateCareer", career);
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> EditCareer(CreateCareerViewModel model, int id)
+        public async Task<IActionResult> EditCareer(CreateCareerViewModel model, int id, string? returnTab = null)
         {
+            returnTab = string.IsNullOrWhiteSpace(returnTab) ? "tab-career" : returnTab;
+
             if (!ModelState.IsValid)
             {
                 ViewBag.IsEdit = true;
+                ViewBag.CareerId = id;
+                ViewBag.ReturnTab = returnTab;
                 return View("CreateCareer", model);
             }
 
             try
             {
                 await _repo.ExecuteNonQueryAsync("management_career_update", new Dictionary<string, object>
-        {
-            { "@ID", id },
-            { "@CareerCode", model.Code },
-            { "@CareerName", model.Name }
-        });
+                {
+                    { "@ID", id },
+                    { "@CareerCode", model.Code },
+                    { "@CareerName", model.Name }
+                });
 
-                return RedirectToAction("Catalogos");
+                TempData["SuccessMessage"] = "Carrera actualizada correctamente.";
+                return RedirectToAction("Catalogos", new { tab = returnTab });
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, "Error actualizando carrera");
                 ModelState.AddModelError("", ex.Message);
             }
 
             ViewBag.IsEdit = true;
+            ViewBag.CareerId = id;
+            ViewBag.ReturnTab = returnTab;
             return View("CreateCareer", model);
         }
 
-        // ==========================================
-        // 7. BITÁCORA DEL SISTEMA (AJAX para DataTable)
-        // ==========================================
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteCareer(int id)
+        {
+            try
+            {
+                await _repo.ExecuteNonQueryAsync("management_career_softdelete",
+                    new Dictionary<string, object> { { "@ID", id } });
+
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error deleting career");
+                return StatusCode(500, new { error = ex.Message });
+            }
+        }
+
         [HttpGet]
         public async Task<IActionResult> GetHistorial()
         {
@@ -1239,6 +1787,7 @@ namespace ControlEscolar.Controllers
                     fechaFormateada = x.Fecha.ToString("dd/MM/yyyy HH:mm"),
                     usuario = x.Usuario,
                     nombreCompleto = x.NombreCompleto,
+                    accion = x.Accion,
                     esActivo = x.Accion == "ALTA"
                 });
 
@@ -1250,10 +1799,6 @@ namespace ControlEscolar.Controllers
                 return StatusCode(500, new { error = ex.Message });
             }
         }
-
-        // ==========================================
-        // CICLOS - TABLE
-        // ==========================================
 
         [HttpGet]
         public async Task<IActionResult> GetCyclesJson()
@@ -1276,21 +1821,22 @@ namespace ControlEscolar.Controllers
             return Json(new { data });
         }
 
+        [HttpGet]
+        public IActionResult CreateCycle()
+        {
+            ViewBag.IsEdit = false;
+            return View();
+        }
+
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> CreateCycle(CycleViewModel model)
         {
-            // ==========================================
-            // VALIDACIÓN 1: FECHAS
-            // ==========================================
             if (model.StartDate >= model.EndDate)
             {
                 ModelState.AddModelError("", "La fecha de inicio debe ser menor a la fecha de fin.");
             }
 
-            // ==========================================
-            // VALIDACIÓN 2: SOLO UN ACTIVO
-            // ==========================================
             if (model.StatusCode == "ACTIVO")
             {
                 var ciclos = await _repo.ExecuteStoredProcedureAsync(
@@ -1307,9 +1853,6 @@ namespace ControlEscolar.Controllers
                 }
             }
 
-            // ==========================================
-            // VALIDACIÓN FINAL
-            // ==========================================
             if (!ModelState.IsValid)
             {
                 return View(model);
@@ -1318,12 +1861,12 @@ namespace ControlEscolar.Controllers
             try
             {
                 await _repo.CreateCycleAsync(new Dictionary<string, object>
-        {
-            { "@CycleName", model.Name },
-            { "@StartDate", model.StartDate },
-            { "@EndDate", model.EndDate },
-            { "@StatusCode", model.StatusCode }
-        });
+                {
+                    { "@CycleName", model.Name },
+                    { "@StartDate", model.StartDate },
+                    { "@EndDate", model.EndDate },
+                    { "@StatusCode", model.StatusCode }
+                });
 
                 return RedirectToAction("Ciclos");
             }
@@ -1334,9 +1877,6 @@ namespace ControlEscolar.Controllers
             }
         }
 
-        // ==========================================
-        // 8. GESTIÓN OPERATIVA
-        // ==========================================
         public IActionResult Asignaciones()
         {
             return View();
@@ -1359,12 +1899,30 @@ namespace ControlEscolar.Controllers
             return View();
         }
 
-        // ==========================================
-        // 9. ANALÍTICA
-        // ==========================================
         public IActionResult Reportes()
         {
             return View();
         }
+
+        private string HashPassword(string password)
+        {
+            using var sha = SHA256.Create();
+            var bytes = sha.ComputeHash(Encoding.UTF8.GetBytes(password));
+            return Convert.ToBase64String(bytes);
+        }
+    }
+
+
+    public class ToggleUserStatusRequest
+    {
+        public int Id { get; set; }
+        public bool Activar { get; set; }
+    }
+
+    public class DeleteInactiveRecordRequest
+    {
+        public int Id { get; set; }
+        public int UserId { get; set; }
+        public string Tipo { get; set; } = string.Empty;
     }
 }
