@@ -147,7 +147,6 @@
                             <th class="py-3">Nombre Completo</th>
                             <th class="py-3">Carrera</th>
                             <th class="py-3">Grupo</th>
-                            <th class="py-3 text-center">Semestre</th>
                             <th class="py-3 text-center">Estado</th>
                             <th class="py-3 text-end px-4">Acciones</th>
                         </tr>
@@ -830,13 +829,6 @@
                     { data: 'nombreCompleto', className: 'txt-title fw-bold text-sm' },
                     { data: 'carrera', className: 'txt-body text-xs' },
                     { data: 'grupo', className: 'txt-body text-xs' },
-                    {
-                        data: 'semestre',
-                        className: 'text-center',
-                        render: function (d) {
-                            return d ? `<span class="badge bg-app border border-theme text-dark text-xxs px-2">${d}° Sem</span>` : '<span class="badge bg-secondary text-xxs px-2">N/A</span>';
-                        }
-                    },
                     {
                         data: 'estadoCodigo',
                         className: 'text-center',
