@@ -57,3 +57,12 @@ appsettings.Development.json
 
 # Si appsettings.json tiene secretos reales, descomenta esta línea:
 # appsettings.json
+
+# =========================
+# Carpetas locales no versionables
+# =========================
+artifacts/
+Docs/
+docs/
+Scripts/
+scripts/

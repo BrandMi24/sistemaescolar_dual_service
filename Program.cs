@@ -25,11 +25,7 @@ builder.Services.AddScoped<IPdfService, PdfService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<IDualEducationService, DualEducationService>();
 builder.Services.AddScoped<ISocialServiceService, SocialServiceService>();
-builder.Services.AddScoped<OperationalSeedService>();
-builder.Services.AddScoped<OperationalDemoDataSeedService>();
-builder.Services.AddScoped<IdentityDemoSeedService>();
 builder.Services.AddScoped<IOperationalAuditService, OperationalAuditService>();
-builder.Services.AddScoped<OperationalAuditBootstrapService>();
 builder.Services.AddHttpContextAccessor();
 
 // Configurar Entity Framework
@@ -67,8 +63,6 @@ builder.Services.AddRateLimiter(options =>
     options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
 });
 var app = builder.Build();
-var runOperationalDemoSeed = args.Any(a => a.Equals("--seed-operational-demo", StringComparison.OrdinalIgnoreCase));
-var runIdentityDemoSeed = args.Any(a => a.Equals("--seed-identity-demo", StringComparison.OrdinalIgnoreCase));
 var aspNetCoreUrls = Environment.GetEnvironmentVariable("ASPNETCORE_URLS");
 var launchProfile = Environment.GetEnvironmentVariable("DOTNET_LAUNCH_PROFILE");
 var shouldUseHttpsRedirection =
@@ -115,51 +109,5 @@ app.UseAuthorization();
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
-
-// Migración automática y seed del admin (solo en desarrollo)
-using (var scope = app.Services.CreateScope())
-{
-    var services = scope.ServiceProvider;
-    try
-    {
-        var context = services.GetRequiredService<ApplicationDbContext>();
-        var operationalSeed = services.GetRequiredService<OperationalSeedService>();
-        var auditBootstrap = services.GetRequiredService<OperationalAuditBootstrapService>();
-        var demoSeeder = services.GetRequiredService<OperationalDemoDataSeedService>();
-        var identitySeeder = services.GetRequiredService<IdentityDemoSeedService>();
-
-        //if (app.Environment.IsDevelopment())
-        //{
-        //    context.Database.Migrate();
-        //}
-
-        await auditBootstrap.EnsureTableAsync();
-        await operationalSeed.SeedAsync();
-
-        if (runIdentityDemoSeed)
-        {
-            await identitySeeder.SeedAsync();
-            var logger = services.GetRequiredService<ILogger<Program>>();
-            logger.LogInformation("Seeder de identidad ejecutado por comando: --seed-identity-demo");
-        }
-
-        if (runOperationalDemoSeed)
-        {
-            await demoSeeder.SeedAsync();
-            var logger = services.GetRequiredService<ILogger<Program>>();
-            logger.LogInformation("Seeder temporal ejecutado por comando: --seed-operational-demo");
-        }
-    }
-    catch (Exception ex)
-    {
-        var logger = services.GetRequiredService<ILogger<Program>>();
-        logger.LogError(ex, "Ocurrió un error al inicializar la base de datos");
-    }
-}
-
-if (runIdentityDemoSeed || runOperationalDemoSeed)
-{
-    return;
-}
 
 app.Run();
