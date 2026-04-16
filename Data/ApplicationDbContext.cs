@@ -328,6 +328,17 @@ namespace ControlEscolar.Data
                       .WithMany()
                       .HasForeignKey(e => e.academiccontrol_inscription_preinscriptionID)
                       .OnDelete(DeleteBehavior.Restrict);
+                entity.Property(e => e.academiccontrol_inscription_actaValidada)
+                      .HasColumnName("academiccontrol_inscription_actaValidada")
+                      .HasDefaultValue(false);
+
+                entity.Property(e => e.academiccontrol_inscription_curpValidado)
+                      .HasColumnName("academiccontrol_inscription_curpValidado")
+                      .HasDefaultValue(false);
+
+                entity.Property(e => e.academiccontrol_inscription_boletaValidada)
+                      .HasColumnName("academiccontrol_inscription_boletaValidada")
+                      .HasDefaultValue(false);
             });
 
             //  CONFIGURACION FICHAS 

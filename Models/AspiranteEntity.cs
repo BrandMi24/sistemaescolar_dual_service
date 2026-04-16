@@ -17,6 +17,9 @@ public class InscripcionEntity
     public string academiccontrol_inscription_state { get; set; } = "Pendiente";
     public bool academiccontrol_inscription_status { get; set; } = true;
     public DateTime academiccontrol_inscription_createdDate { get; set; }
+    public bool academiccontrol_inscription_actaValidada { get; set; }
+    public bool academiccontrol_inscription_curpValidado { get; set; }
+    public bool academiccontrol_inscription_boletaValidada { get; set; }
 
     public PreinscripcionEntity Preinscripcion { get; set; } = null!;
 }

@@ -176,39 +176,78 @@ namespace ControlEscolar.Controllers
             return RedirectToAction(nameof(Index), new { tab = "preinscripciones" });
         }
 
+        // VALIDAR ACTA DE NACIMIENTO
         [HttpPost]
-        public async Task<IActionResult> ValidarDocumentos(int id)
+        public async Task<IActionResult> ValidarActa(int id)
         {
             var entidad = await _context.Inscripciones
-                .Include(i => i.Preinscripcion)
-                    .ThenInclude(p => p.DatosPersonales)
                 .FirstOrDefaultAsync(i => i.academiccontrol_inscription_ID == id);
 
             if (entidad == null) return NotFound();
 
-            entidad.academiccontrol_inscription_state = EstadoInscripcion.DocumentosValidados.ToString();
-
-            //_context.AuditLogs.Add(new AuditLogEntity
-            //{
-            //    academiccontrol_audit_action = "Validar Documentos",
-            //    academiccontrol_audit_entityName = "Inscripcion",
-            //    academiccontrol_audit_entityID = entidad.academiccontrol_inscription_ID,
-            //    academiccontrol_audit_user = User.Identity?.Name ?? "Sistema"
-            //});
-
+            entidad.academiccontrol_inscription_actaValidada = true;
             await _context.SaveChangesAsync();
 
-            if (entidad.Preinscripcion?.DatosPersonales?.academiccontrol_preinscription_personaldata_email != null)
+            TempData["SuccessMessage"] = "Acta de nacimiento validada.";
+            return RedirectToAction(nameof(Index), new { tab = "inscripciones" });
+        }
+
+        // VALIDAR CURP
+        [HttpPost]
+        public async Task<IActionResult> ValidarCurp(int id)
+        {
+            var entidad = await _context.Inscripciones
+                .FirstOrDefaultAsync(i => i.academiccontrol_inscription_ID == id);
+
+            if (entidad == null) return NotFound();
+
+            entidad.academiccontrol_inscription_curpValidado = true;
+            await _context.SaveChangesAsync();
+
+            TempData["SuccessMessage"] = "CURP validado.";
+            return RedirectToAction(nameof(Index), new { tab = "inscripciones" });
+        }
+
+        // VALIDAR BOLETA
+        [HttpPost]
+        public async Task<IActionResult> ValidarBoleta(int id)
+        {
+            var entidad = await _context.Inscripciones
+                .FirstOrDefaultAsync(i => i.academiccontrol_inscription_ID == id);
+
+            if (entidad == null) return NotFound();
+
+            entidad.academiccontrol_inscription_boletaValidada = true;
+
+            // Si los 3 documentos están validados, cambiar estado automáticamente
+            if (entidad.academiccontrol_inscription_actaValidada &&
+                entidad.academiccontrol_inscription_curpValidado &&
+                entidad.academiccontrol_inscription_boletaValidada)
             {
-                await _emailService.EnviarAsync(
-                    entidad.Preinscripcion.DatosPersonales.academiccontrol_preinscription_personaldata_email,
-                    "Documentos Validados",
-                    $"Estimado(a) {entidad.Preinscripcion.DatosPersonales.academiccontrol_preinscription_personaldata_name}, " +
-                    $"sus documentos han sido validados correctamente."
-                );
+                entidad.academiccontrol_inscription_state = EstadoInscripcion.DocumentosValidados.ToString();
+
+                var preinscripcion = await _context.Preinscripciones
+                    .Include(p => p.DatosPersonales)
+                    .FirstOrDefaultAsync(p => p.academiccontrol_preinscription_ID == entidad.academiccontrol_inscription_preinscriptionID);
+
+                if (preinscripcion?.DatosPersonales?.academiccontrol_preinscription_personaldata_email != null)
+                {
+                    await _emailService.EnviarAsync(
+                        preinscripcion.DatosPersonales.academiccontrol_preinscription_personaldata_email,
+                        "Documentos Validados",
+                        $"Estimado(a) {preinscripcion.DatosPersonales.academiccontrol_preinscription_personaldata_name}, " +
+                        $"todos sus documentos han sido validados correctamente."
+                    );
+                }
+
+                TempData["SuccessMessage"] = "Boleta validada. Todos los documentos han sido validados.";
+            }
+            else
+            {
+                TempData["SuccessMessage"] = "Boleta validada.";
             }
 
-            TempData["SuccessMessage"] = "Documentos validados correctamente.";
+            await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index), new { tab = "inscripciones" });
         }
 
