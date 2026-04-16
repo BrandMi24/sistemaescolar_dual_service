@@ -47,7 +47,37 @@ namespace ControlEscolar.Controllers
             return View(MapToViewModel(entidad));
         }
 
-        public IActionResult Create() => View();
+        public async Task<IActionResult> Create()
+        {
+            var hoy = DateTime.Today;
+
+            var configuraciones = await _context.ConfiguracionFichas
+                .Where(c => c.academiccontrol_inscription_ticketconfig_status
+                         && c.academiccontrol_inscription_ticketconfig_startDate <= hoy
+                         && c.academiccontrol_inscription_ticketconfig_endDate >= hoy)
+                .ToListAsync();
+
+            var carrerasDisponibles = new List<string>();
+
+            foreach (var config in configuraciones)
+            {
+                var fichasUsadas = await _context.Preinscripciones
+                    .CountAsync(p => p.academiccontrol_preinscription_careerRequested ==
+                                     config.academiccontrol_inscription_ticketconfig_career
+                                  && p.academiccontrol_preinscription_registrationDate >=
+                                     config.academiccontrol_inscription_ticketconfig_startDate
+                                  && p.academiccontrol_preinscription_registrationDate <=
+                                     config.academiccontrol_inscription_ticketconfig_endDate);
+
+                if (fichasUsadas < config.academiccontrol_inscription_ticketconfig_limit)
+                {
+                    carrerasDisponibles.Add(config.academiccontrol_inscription_ticketconfig_career);
+                }
+            }
+
+            ViewBag.CarrerasDisponibles = carrerasDisponibles;
+            return View();
+        }
 
         [HttpPost]
         [ValidateAntiForgeryToken]

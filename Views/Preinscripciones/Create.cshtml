@@ -282,13 +282,25 @@
                     <div class="row g-4 mb-4">
                         <div class="col-md-6">
                             <label class="form-label txt-body text-xs fw-bold tracking-wide">ESPECIALIDAD SOLICITADA *</label>
-                            <select name="academiccontrol_preinscription_careerRequested" class="form-select bg-app border-theme txt-title fw-bold" required>
+                            @{
+                                var carrerasDisponibles = ViewBag.CarrerasDisponibles as List<string> ?? new List<string>();
+                            }
+                            <select name="academiccontrol_preinscription_careerRequested"
+                                    class="form-select bg-app border-theme txt-title fw-bold" required>
                                 <option value="">Selecciona una opción</option>
-                                @foreach (var c in CatalogosHelper.Carreras)
+                                @if (!carrerasDisponibles.Any())
                                 {
-                                    <option value="@c">@c</option>
+                                    <option disabled value="">No hay carreras disponibles en este momento</option>
+                                }
+                                else
+                                {
+                                    foreach (var c in carrerasDisponibles)
+                                    {
+                                        <option value="@c">@c</option>
+                                    }
                                 }
                             </select>
+                           
                         </div>
                         <div class="col-md-3">
                             <label class="form-label txt-body text-xs fw-bold tracking-wide">PROMEDIO FINAL *</label>

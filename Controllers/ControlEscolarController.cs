@@ -376,9 +376,50 @@ namespace ControlEscolar.Controllers
             return RedirectToAction(nameof(ConfigurarFichas));
         }
 
+        //[HttpPost]
+        //public async Task<IActionResult> GuardarConfiguracionFichas(ConfiguracionFichasEntity config)
+        //{
+        //    if (config.academiccontrol_inscription_ticketconfig_ID == 0)
+        //    {
+        //        config.academiccontrol_inscription_ticketconfig_createdDate = DateTime.Now;
+        //        config.academiccontrol_inscription_ticketconfig_updatedDate = DateTime.Now;
+        //        _context.ConfiguracionFichas.Add(config);
+        //    }
+        //    else
+        //    {
+        //        var existing = await _context.ConfiguracionFichas.FindAsync(config.academiccontrol_inscription_ticketconfig_ID);
+        //        if (existing == null) return NotFound();
+
+        //        existing.academiccontrol_inscription_ticketconfig_career = config.academiccontrol_inscription_ticketconfig_career;
+        //        existing.academiccontrol_inscription_ticketconfig_limit = config.academiccontrol_inscription_ticketconfig_limit;
+        //        existing.academiccontrol_inscription_ticketconfig_startDate = config.academiccontrol_inscription_ticketconfig_startDate;
+        //        existing.academiccontrol_inscription_ticketconfig_endDate = config.academiccontrol_inscription_ticketconfig_endDate;
+        //        existing.academiccontrol_inscription_ticketconfig_status = config.academiccontrol_inscription_ticketconfig_status;
+        //        existing.academiccontrol_inscription_ticketconfig_updatedDate = DateTime.Now;
+        //    }
+
+        //    await _context.SaveChangesAsync();
+        //    TempData["SuccessMessage"] = "Configuración guardada correctamente.";
+        //    return RedirectToAction(nameof(ConfigurarFichas));
+        //}
+
         [HttpPost]
         public async Task<IActionResult> GuardarConfiguracionFichas(ConfiguracionFichasEntity config)
         {
+            // Validar que no exista otra configuración para la misma carrera
+            if (config.academiccontrol_inscription_ticketconfig_ID == 0)
+            {
+                var existe = await _context.ConfiguracionFichas
+                    .AnyAsync(c => c.academiccontrol_inscription_ticketconfig_career ==
+                                   config.academiccontrol_inscription_ticketconfig_career);
+
+                if (existe)
+                {
+                    TempData["ErrorMessage"] = $"Ya existe una configuración para la carrera '{config.academiccontrol_inscription_ticketconfig_career}'.";
+                    return RedirectToAction(nameof(ConfigurarFichas));
+                }
+            }
+
             if (config.academiccontrol_inscription_ticketconfig_ID == 0)
             {
                 config.academiccontrol_inscription_ticketconfig_createdDate = DateTime.Now;
@@ -387,7 +428,9 @@ namespace ControlEscolar.Controllers
             }
             else
             {
-                var existing = await _context.ConfiguracionFichas.FindAsync(config.academiccontrol_inscription_ticketconfig_ID);
+                var existing = await _context.ConfiguracionFichas
+                    .FindAsync(config.academiccontrol_inscription_ticketconfig_ID);
+
                 if (existing == null) return NotFound();
 
                 existing.academiccontrol_inscription_ticketconfig_career = config.academiccontrol_inscription_ticketconfig_career;
