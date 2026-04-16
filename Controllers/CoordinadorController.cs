@@ -2122,7 +2122,7 @@ namespace ControlEscolar.Controllers
 
         public IActionResult SeguimientoDualEstadias()
         {
-            return View();
+            return View(new List<ControlEscolar.ViewModels.OperationalTracking.CoordinatorAssignmentRowViewModel>());
         }
 
         public IActionResult Reportes()

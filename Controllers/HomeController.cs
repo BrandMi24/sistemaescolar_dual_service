@@ -21,6 +21,11 @@ namespace ControlEscolar.Controllers
             return View();
         }
 
+        public IActionResult Error()
+        {
+            return View();
+        }
+
         public IActionResult AccessDenied()
         {
             return View();

@@ -2,6 +2,7 @@
 @{
     ViewData["Title"] = "Gestión de Asignaciones";
     Layout = "_LayoutCoordinador";
+    var rows = Model ?? new List<ControlEscolar.ViewModels.OperationalTracking.CoordinatorAssignmentRowViewModel>();
     var search = ViewBag.Search as string ?? string.Empty;
     var selectedStatus = ViewBag.Status as string ?? string.Empty;
     int? selectedTeacher = ViewBag.Teacher as int?;
@@ -12,7 +13,7 @@
     var currentPage = (int)(ViewBag.Page ?? 1);
     var pageSize = (int)(ViewBag.PageSize ?? 10);
     var totalPages = (int)(ViewBag.TotalPages ?? 1);
-    var totalItems = (int)(ViewBag.TotalItems ?? Model.Count);
+    var totalItems = (int)(ViewBag.TotalItems ?? rows.Count);
     var prevPage = currentPage > 1 ? currentPage - 1 : 1;
     var nextPage = currentPage < totalPages ? currentPage + 1 : totalPages;
     string ToggleOrder(string key) => sort == key && order == "asc" ? "desc" : "asc";
@@ -105,7 +106,7 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @if (Model.Count == 0)
+                    @if (rows.Count == 0)
                     {
                         <tr>
                             <td colspan="6" class="text-center py-5 txt-body">No hay asignaciones con los filtros seleccionados.</td>
@@ -113,15 +114,16 @@
                     }
                     else
                     {
-                        foreach (var row in Model)
+                        foreach (var row in rows)
                         {
-                            var initials = string.Join("", row.StudentName.Split(' ', StringSplitOptions.RemoveEmptyEntries).Take(2).Select(s => s[0])).ToUpper();
+                            var studentName = string.IsNullOrWhiteSpace(row.StudentName) ? "Sin nombre" : row.StudentName;
+                            var initials = string.Join("", studentName.Split(' ', StringSplitOptions.RemoveEmptyEntries).Take(2).Select(s => s[0])).ToUpper();
                             <tr class="border-bottom border-theme hover-bg-app data-row">
                                 <td class="px-4 py-3 search-target">
                                     <div class="d-flex align-items-center gap-3">
                                         <div class="avatar-md avatar-sm bg-accent-light txt-primary-dark fw-bold flex-shrink-0">@initials</div>
                                         <div>
-                                            <div class="txt-title fw-bold text-sm mb-1">@row.StudentName</div>
+                                            <div class="txt-title fw-bold text-sm mb-1">@studentName</div>
                                             <div class="txt-body text-xs">Mat: @(row.Matricula ?? "N/A")</div>
                                         </div>
                                     </div>
