@@ -44,6 +44,33 @@
 
         // ── Charts ──
         public List<MonthlyStatItem> MonthlyPreinscripciones { get; set; } = new();
+
+        // ══════════════════════════════════════════
+        // NEW — Enrollment trend by cuatrimestre
+        // ══════════════════════════════════════════
+        public List<EnrollmentTrendItem> EnrollmentTrend { get; set; } = new();
+
+        // ══════════════════════════════════════════
+        // NEW — Alerts / attention bar
+        // ══════════════════════════════════════════
+        public int OldestTramiteDays { get; set; }
+        public int TramitesRetrasados { get; set; }
+        public int VinculacionPendingDocs { get; set; }
+        public int SaludCasosUrgentes { get; set; }
+        public int BajasRecientes { get; set; }
+    }
+
+    // ═══════════════════════════════════════
+    // NEW — Enrollment trend item
+    // ═══════════════════════════════════════
+    public class EnrollmentTrendItem
+    {
+        public string Period { get; set; } = string.Empty;   // e.g. "2025-C1", "2025-C2"
+        public int Year { get; set; }
+        public int Cuatrimestre { get; set; }
+        public int Inscritos { get; set; }
+        public int Preinscritos { get; set; }
+        public int Bajas { get; set; }
     }
 
     // ═══════════════════════════════════════

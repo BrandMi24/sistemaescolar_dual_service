@@ -1,25 +1,25 @@
 ﻿@model ControlEscolar.Models.Dashboard.TramitesViewModel
 @{
-    ViewData["Title"] = "Control de Trámites y Ventanilla";
+    ViewData["Title"] = "Trámites Operativos — Control de Ventanilla";
     Layout = "_LayoutDashboard";
-    
     var totalDocs = Model.DocsAprobados + Model.DocsPendientes + Model.DocsRechazados;
     var cuatNames = new Dictionary<int, string> { { 0, "Todo el año" }, { 1, "Ene — Abr" }, { 2, "May — Ago" }, { 3, "Sep — Dic" } };
 }
 
 @if (ViewBag.Error != null)
 {
-    <div class="alert alert-danger shadow-sm border-0 d-flex align-items-center mb-4 text-sm">
-        <i class="bi bi-exclamation-triangle-fill fs-5 me-3"></i>
-        <div><strong>Error:</strong> @ViewBag.Error</div>
+    <div class="alert-box-sep mb-4 shadow-sm border-theme">
+        <i class="bi bi-exclamation-octagon-fill txt-error fs-5"></i>
+        <div class="txt-title text-sm"><strong>Error de Sistema:</strong> @ViewBag.Error</div>
     </div>
 }
 
-<div class="admin-card-white p-3 mb-4 shadow-sm border-0">
+@* ═══════════ FILTER BAR ═══════════ *@
+<div class="admin-card-white p-4 mb-4 shadow-sm">
     <form method="get" class="row g-3 align-items-end">
         <div class="col-md-3">
-            <label class="form-label text-xs fw-bold text-muted mb-1">AÑO</label>
-            <select name="year" class="form-select bg-app border-0 text-sm fw-bold">
+            <label class="section-label text-muted mb-2 d-block">Año Académico</label>
+            <select name="year" class="form-select text-sm fw-semibold">
                 @foreach (var y in Model.AvailableYears)
                 {
                     if (y == Model.SelectedYear)
@@ -34,8 +34,8 @@
             </select>
         </div>
         <div class="col-md-3">
-            <label class="form-label text-xs fw-bold text-muted mb-1">CUATRIMESTRE</label>
-            <select name="cuatrimestre" class="form-select bg-app border-0 text-sm fw-bold">
+            <label class="section-label text-muted mb-2 d-block">Periodo (Cuatrimestre)</label>
+            <select name="cuatrimestre" class="form-select text-sm fw-semibold">
                 @{
                     var cuatOptions = new Dictionary<int, string> { { 0, "Todo el año" }, { 1, "Ene — Abr" }, { 2, "May — Ago" }, { 3, "Sep — Dic" } };
                 }
@@ -53,104 +53,168 @@
             </select>
         </div>
         <div class="col-md-6 d-flex gap-2">
-            <button type="submit" class="btn btn-dark text-xs px-4 fw-bold shadow-sm">
-                <i class="bi bi-funnel-fill me-2"></i> APLICAR
-            </button>
-            <a href="@Url.Action("Tramites", "Dashboard")" class="btn btn-light border text-xs px-4 fw-bold">
-                LIMPIAR
-            </a>
+            <button type="submit" class="btn-primary-sep text-xs px-4"><i class="bi bi-funnel me-2"></i> FILTRAR DATOS</button>
+            <a href="@Url.Action("Tramites", "Dashboard")" class="btn-ghost-sep text-xs px-4 bg-surface">LIMPIAR</a>
         </div>
     </form>
 </div>
 
 @if (Model.SelectedCuatrimestre > 0)
 {
-    <div class="badge bg-dark mb-4 px-3 py-2 fw-normal text-xs shadow-sm">
-        <i class="bi bi-filter-circle me-1"></i> Filtro activo: Año @Model.SelectedYear, @cuatNames[Model.SelectedCuatrimestre]
+    <div class="mb-4 d-inline-flex align-items-center bg-primary-dark txt-white text-xxs fw-bold tracking-wide px-3 py-2 rounded-pill shadow-sm">
+        <i class="bi bi-info-circle me-2"></i> VISTA ACTUAL: AÑO @Model.SelectedYear / @cuatNames[Model.SelectedCuatrimestre].ToUpper()
     </div>
 }
 
+@* ═══════════ KPI CARDS ═══════════ *@
 <div class="row g-3 mb-4">
     <div class="col-12 col-md-6 col-xl-3">
-        <div class="admin-card-white p-4 h-100 shadow-sm border-0 d-flex justify-content-between align-items-center">
-            <div>
-                <div class="text-xs fw-bold text-muted text-uppercase tracking-wide mb-1">Total Solicitudes</div>
-                <div class="fs-2 fw-bold txt-title" style="color: #0d9e7a;">@Model.TotalSolicitudes</div>
+        <div class="stat-card-sep">
+            <div class="d-flex justify-content-between align-items-start mb-2">
+                <span class="stat-label">Total Solicitudes</span>
+                <div class="icon-circle bg-accent-light txt-primary-dark shadow-sm"><i class="bi bi-folder2-open fs-5"></i></div>
             </div>
-            <div class="icon-circle-lg bg-app text-dark"><i class="bi bi-folder2-open fs-3"></i></div>
+            <div class="stat-value">@Model.TotalSolicitudes</div>
+            <span class="text-xxs txt-body mt-1 fw-medium">En el periodo seleccionado</span>
         </div>
     </div>
     <div class="col-12 col-md-6 col-xl-3">
-        <div class="admin-card-white p-4 h-100 shadow-sm border-0 d-flex justify-content-between align-items-center">
-            <div>
-                <div class="text-xs fw-bold text-muted text-uppercase tracking-wide mb-1">Pendientes</div>
-                <div class="fs-2 fw-bold txt-title text-warning">@Model.Pendientes</div>
+        <div class="stat-card-sep" style="border-left: 3px solid var(--warning-700);">
+            <div class="d-flex justify-content-between align-items-start mb-2">
+                <span class="stat-label">Pendientes</span>
+                <div class="icon-circle bg-warning-100 shadow-sm" style="color: var(--warning-700);"><i class="bi bi-hourglass-split fs-5"></i></div>
             </div>
-            <div class="icon-circle-lg bg-app text-dark"><i class="bi bi-hourglass-split fs-3"></i></div>
+            <div class="stat-value">@Model.Pendientes</div>
+            <span class="text-xxs txt-body mt-1 fw-medium">Esperando resolución</span>
         </div>
     </div>
     <div class="col-12 col-md-6 col-xl-3">
-        <div class="admin-card-white p-4 h-100 shadow-sm border-0 d-flex justify-content-between align-items-center">
-            <div>
-                <div class="text-xs fw-bold text-muted text-uppercase tracking-wide mb-1">Tiempo Promedio</div>
-                <div class="fs-2 fw-bold txt-title text-primary">@Model.PromedioResolucionDias <span class="text-sm text-muted">Días</span></div>
+        <div class="stat-card-sep" style="border-left: 3px solid var(--primary-700);">
+            <div class="d-flex justify-content-between align-items-start mb-2">
+                <span class="stat-label">Tiempo Promedio</span>
+                <div class="icon-circle bg-primary-100 txt-primary-dark shadow-sm"><i class="bi bi-stopwatch fs-5"></i></div>
             </div>
-            <div class="icon-circle-lg bg-app text-dark"><i class="bi bi-stopwatch fs-3"></i></div>
+            <div class="stat-value">@Model.PromedioResolucionDias <span class="text-sm text-muted">días</span></div>
+            <span class="text-xxs txt-body mt-1 fw-medium">Resolución promedio</span>
         </div>
     </div>
     <div class="col-12 col-md-6 col-xl-3">
-        <div class="admin-card-white p-4 h-100 shadow-sm border-0 d-flex justify-content-between align-items-center">
-            <div class="w-100">
-                <div class="text-xs fw-bold text-muted text-uppercase tracking-wide mb-1">Tasa Completado</div>
-                <div class="fs-2 fw-bold txt-title text-success">@Model.TasaCompletado%</div>
-                <div class="progress mt-2" style="height: 6px;">
-                    <div class="progress-bar bg-success" role="progressbar" style="width: @Model.TasaCompletado%"></div>
-                </div>
+        <div class="stat-card-sep" style="border-left: 3px solid var(--success-700);">
+            <div class="d-flex justify-content-between align-items-start mb-2">
+                <span class="stat-label">Tasa Completado</span>
+                <div class="icon-circle bg-success-100 shadow-sm" style="color: var(--success-700);"><i class="bi bi-check-circle fs-5"></i></div>
+            </div>
+            <div class="stat-value">@Model.TasaCompletado%</div>
+            <div class="progress mt-2" style="height: 4px; background-color: var(--bg-main);">
+                <div class="progress-bar" style="width: @Model.TasaCompletado%; background-color: var(--success-700);"></div>
             </div>
         </div>
     </div>
 </div>
 
+@* ═══════════ CHARTS: Volumen por Tipo + Semáforo ═══════════ *@
 <div class="row g-4 mb-4">
     <div class="col-12 col-lg-8">
-        <div class="admin-card-white p-4 h-100 shadow-sm border-0">
-            <h6 class="txt-title fw-bold text-uppercase mb-4 text-sm"><i class="bi bi-bar-chart-fill text-muted me-2"></i>Volumen por Tipo de Trámite</h6>
+        <div class="admin-card-white h-100">
+            <div class="d-flex align-items-center gap-2 mb-4 border-bottom pb-3">
+                <div style="width: 4px; height: 18px; background: var(--primary-900); border-radius: 2px;"></div>
+                <h6 class="txt-title fw-bold text-xs text-uppercase tracking-wide mb-0">Volumen por Tipo de Trámite</h6>
+            </div>
             @if (Model.ByTipoTramite.Any())
             {
-                <div style="position: relative; height: 280px; width: 100%;">
+                <div class="chart-container" style="height: 280px;">
                     <canvas id="chartVolume"></canvas>
                 </div>
             }
             else
             {
-                <div class="text-center text-muted p-5 bg-app rounded-3 text-sm">Sin datos para este periodo</div>
+                <div class="no-data">Sin datos para este periodo</div>
             }
         </div>
     </div>
     <div class="col-12 col-lg-4">
-        <div class="admin-card-white p-4 h-100 shadow-sm border-0">
-            <h6 class="txt-title fw-bold text-uppercase mb-4 text-sm"><i class="bi bi-pie-chart-fill text-muted me-2"></i>Semáforo de Entregas</h6>
+        <div class="admin-card-white h-100">
+            <div class="d-flex align-items-center gap-2 mb-4 border-bottom pb-3">
+                <div style="width: 4px; height: 18px; background: var(--accent-500); border-radius: 2px;"></div>
+                <h6 class="txt-title fw-bold text-xs text-uppercase tracking-wide mb-0">Semáforo de Entregas</h6>
+            </div>
             @if (Model.ByStatus.Any())
             {
-                <div style="position: relative; height: 260px; width: 100%;">
+                <div class="chart-container" style="height: 280px;">
                     <canvas id="chartSemaforo"></canvas>
                 </div>
             }
             else
             {
-                <div class="text-center text-muted p-5 bg-app rounded-3 text-sm">Sin datos para este periodo</div>
+                <div class="no-data">Sin datos para este periodo</div>
             }
         </div>
     </div>
 </div>
 
+@* ═══════════ Tendencia Mensual + Validación de Documentos ═══════════ *@
+<div class="row g-4 mb-4">
+    <div class="col-12 col-lg-8">
+        <div class="admin-card-white h-100">
+            <div class="d-flex align-items-center gap-2 mb-4 border-bottom pb-3">
+                <div style="width: 4px; height: 18px; background: var(--success-700, #0d9e7a); border-radius: 2px;"></div>
+                <h6 class="txt-title fw-bold text-xs text-uppercase tracking-wide mb-0">Tendencia Mensual de Solicitudes</h6>
+            </div>
+            @if (Model.MonthlyTrend.Any())
+            {
+                <div class="chart-container" style="height: 260px;">
+                    <canvas id="chartMonthly"></canvas>
+                </div>
+            }
+            else
+            {
+                <div class="no-data">Sin datos de tendencia para este periodo</div>
+            }
+        </div>
+    </div>
+    <div class="col-12 col-lg-4">
+        @if (totalDocs > 0)
+        {
+            <div class="admin-card-white h-100">
+                <h6 class="txt-title fw-bold text-xs text-uppercase tracking-wide mb-4 border-bottom pb-3">Validación de Documentos</h6>
+                <table class="table table-hover align-middle text-sm mb-0 table-borderless">
+                    <thead class="bg-app text-xxs fw-bold text-muted">
+                        <tr><th class="ps-3 border-0">Estatus</th><th class="text-center border-0">Total</th><th class="text-center pe-3 border-0">%</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td class="ps-3 fw-bold" style="color: var(--success-700);">Aprobados</td>
+                            <td class="text-center"><span class="badge badge-status status-aceptado shadow-sm">@Model.DocsAprobados</span></td>
+                            <td class="text-center pe-3 text-muted text-xs">@(totalDocs > 0 ? Math.Round((decimal)Model.DocsAprobados / totalDocs * 100, 1) : 0)%</td>
+                        </tr>
+                        <tr>
+                            <td class="ps-3 fw-bold" style="color: var(--warning-700);">Pendientes</td>
+                            <td class="text-center"><span class="badge badge-status status-pendiente shadow-sm">@Model.DocsPendientes</span></td>
+                            <td class="text-center pe-3 text-muted text-xs">@(totalDocs > 0 ? Math.Round((decimal)Model.DocsPendientes / totalDocs * 100, 1) : 0)%</td>
+                        </tr>
+                        <tr>
+                            <td class="ps-3 fw-bold" style="color: var(--error-700, #991B1B);">Rechazados</td>
+                            <td class="text-center"><span class="badge badge-status status-rechazado shadow-sm">@Model.DocsRechazados</span></td>
+                            <td class="text-center pe-3 text-muted text-xs">@(totalDocs > 0 ? Math.Round((decimal)Model.DocsRechazados / totalDocs * 100, 1) : 0)%</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+</div>
+
+@* ═══════════ Desglose por Tipo de Trámite ═══════════ *@
 @if (Model.ByTipoTramite.Any())
 {
-    <div class="admin-card-white p-4 shadow-sm border-0 mb-4">
-        <h6 class="txt-title fw-bold text-uppercase mb-3 text-sm border-bottom pb-2"><i class="bi bi-list-columns-reverse me-2"></i>Desglose por Tipo de Trámite</h6>
+    <div class="admin-card-white mb-4 shadow-sm">
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center border-bottom pb-3 mb-4 gap-3">
+            <h6 class="txt-title fw-bold text-xs text-uppercase tracking-wide mb-0"><i class="bi bi-list-columns-reverse me-2"></i>Desglose por Tipo de Trámite</h6>
+            <button class="btn btn-sm btn-light border text-xxs fw-bold px-3 py-1" onclick="exportTableToCSV('tblTipos','desglose_tramites.csv')"><i class="bi bi-download"></i></button>
+        </div>
         <div class="table-responsive custom-scroll" style="max-height: 350px;">
-            <table class="table table-hover align-middle text-sm mb-0" id="tblTipos">
-                <thead class="bg-app text-muted text-xs" style="position: sticky; top: 0; z-index: 1;">
+            <table class="table table-hover align-middle text-sm mb-0 table-borderless" id="tblTipos">
+                <thead class="bg-app text-xxs fw-bold text-muted" style="position: sticky; top: 0; z-index: 1;">
                     <tr>
                         <th class="ps-3 border-0">Tipo de Trámite</th>
                         <th class="text-center border-0">Total</th>
@@ -168,15 +232,15 @@
                         var pRech = tipo.Total > 0 ? Math.Round((decimal)tipo.Rechazadas / tipo.Total * 100, 0) : 0;
                         <tr>
                             <td class="ps-3 fw-bold txt-title text-xs">@tipo.TipoNombre</td>
-                            <td class="text-center"><span class="badge bg-light text-dark border">@tipo.Total</span></td>
-                            <td class="text-center text-success fw-bold">@tipo.Completadas</td>
-                            <td class="text-center text-warning fw-bold">@tipo.Pendientes</td>
-                            <td class="text-center @(tipo.Rechazadas > 0 ? "text-danger fw-bold" : "text-muted")">@tipo.Rechazadas</td>
+                            <td class="text-center"><span class="badge bg-primary-100 txt-primary-dark px-3 py-1">@tipo.Total</span></td>
+                            <td class="text-center fw-bold" style="color: var(--success-700);">@tipo.Completadas</td>
+                            <td class="text-center fw-bold" style="color: var(--warning-700);">@tipo.Pendientes</td>
+                            <td class="text-center @(tipo.Rechazadas > 0 ? "fw-bold" : "text-muted")" style="@(tipo.Rechazadas > 0 ? "color: var(--error-700, #991B1B);" : "")">@tipo.Rechazadas</td>
                             <td class="pe-3">
                                 <div class="progress" style="height: 10px; border-radius: 5px;">
-                                    <div class="progress-bar bg-success" style="width: @pComp%"></div>
-                                    <div class="progress-bar bg-warning" style="width: @pPend%"></div>
-                                    <div class="progress-bar bg-danger" style="width: @pRech%"></div>
+                                    <div class="progress-bar" style="width: @pComp%; background-color: var(--success-700);"></div>
+                                    <div class="progress-bar" style="width: @pPend%; background-color: var(--warning-700);"></div>
+                                    <div class="progress-bar" style="width: @pRech%; background-color: var(--error-700, #991B1B);"></div>
                                 </div>
                             </td>
                         </tr>
@@ -187,87 +251,64 @@
     </div>
 }
 
-<div class="row g-4 mb-4">
-    @if (totalDocs > 0)
-    {
-        <div class="col-12 col-lg-5">
-            <div class="admin-card-white p-4 h-100 shadow-sm border-0">
-                <h6 class="txt-title fw-bold text-uppercase mb-3 text-sm border-bottom pb-2">Validación de Documentos</h6>
-                <div class="table-responsive custom-scroll" style="max-height: 250px;">
-                    <table class="table table-hover align-middle text-sm mb-0">
-                        <thead class="bg-app text-muted text-xs" style="position: sticky; top: 0; z-index: 1;">
-                            <tr><th class="ps-3 border-0">Estatus</th><th class="text-center border-0">Total</th><th class="text-center pe-3 border-0">%</th></tr>
-                        </thead>
-                        <tbody>
-                            <tr><td class="ps-3 fw-bold text-success">Aprobados</td><td class="text-center"><span class="badge bg-success">@Model.DocsAprobados</span></td><td class="text-center pe-3 text-muted">@(totalDocs > 0 ? Math.Round((decimal)Model.DocsAprobados / totalDocs * 100, 1) : 0)%</td></tr>
-                            <tr><td class="ps-3 fw-bold text-warning text-dark">Pendientes</td><td class="text-center"><span class="badge bg-warning text-dark">@Model.DocsPendientes</span></td><td class="text-center pe-3 text-muted">@(totalDocs > 0 ? Math.Round((decimal)Model.DocsPendientes / totalDocs * 100, 1) : 0)%</td></tr>
-                            <tr><td class="ps-3 fw-bold text-danger">Rechazados</td><td class="text-center"><span class="badge bg-danger">@Model.DocsRechazados</span></td><td class="text-center pe-3 text-muted">@(totalDocs > 0 ? Math.Round((decimal)Model.DocsRechazados / totalDocs * 100, 1) : 0)%</td></tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
+@* ═══════════ Solicitudes con Mayor Antigüedad ═══════════ *@
+@if (Model.OldestPending.Any())
+{
+    <div class="admin-card-white mb-4 shadow-sm" style="border-left: 4px solid var(--error-700, #ef4444) !important;">
+        <h6 class="fw-bold text-xs text-uppercase tracking-wide mb-4 border-bottom pb-3" style="color: var(--error-700, #ef4444);"><i class="bi bi-exclamation-triangle-fill me-2"></i>Solicitudes con Mayor Antigüedad</h6>
+        <div class="table-responsive custom-scroll" style="max-height: 250px;">
+            <table class="table table-hover align-middle text-sm mb-0 table-borderless">
+                <thead class="bg-app text-xxs fw-bold text-muted" style="position: sticky; top: 0; z-index: 1;">
+                    <tr>
+                        <th class="ps-3 border-0">Folio</th>
+                        <th class="border-0">Alumno</th>
+                        <th class="border-0">Trámite</th>
+                        <th class="border-0">Fecha</th>
+                        <th class="text-center pe-3 border-0">Estatus</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model.OldestPending)
+                    {
+                        var uc = item.DiasTranscurridos > 30 ? "status-rechazado" : item.DiasTranscurridos > 15 ? "status-pendiente" : "status-aceptado";
+                        var ul = item.DiasTranscurridos > 30 ? "Retrasado" : item.DiasTranscurridos > 15 ? "Por Vencer" : "A Tiempo";
+                        <tr>
+                            <td class="ps-3 fw-bold txt-primary-dark">TRM-@item.Id</td>
+                            <td class="fw-bold txt-title text-xs">@item.Nombre</td>
+                            <td class="text-muted text-xs text-truncate" style="max-width: 120px;" title="@item.TipoTramite">@item.TipoTramite</td>
+                            <td class="text-muted text-xs">@item.Fecha.ToString("dd/MMM/yyyy")</td>
+                            <td class="text-center pe-3"><span class="badge badge-status @uc shadow-sm">@ul (@item.DiasTranscurridos d)</span></td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
         </div>
-    }
+    </div>
+}
 
-    @if (Model.OldestPending.Any())
-    {
-        <div class="col-12 col-lg-7">
-            <div class="admin-card-white p-4 h-100 shadow-sm border-0" style="border-left: 4px solid #ef4444 !important;">
-                <h6 class="text-danger fw-bold text-uppercase mb-3 text-sm border-bottom pb-2"><i class="bi bi-exclamation-triangle-fill me-2"></i>Solicitudes con Mayor Antigüedad</h6>
-                <div class="table-responsive custom-scroll" style="max-height: 250px;">
-                    <table class="table table-hover align-middle text-sm mb-0">
-                        <thead class="bg-app text-muted text-xs" style="position: sticky; top: 0; z-index: 1;">
-                            <tr>
-                                <th class="ps-3 border-0">Folio</th>
-                                <th class="border-0">Alumno</th>
-                                <th class="border-0">Trámite</th>
-                                <th class="border-0">Fecha</th>
-                                <th class="text-center pe-3 border-0">Estatus</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach (var item in Model.OldestPending)
-                            {
-                                var uc = item.DiasTranscurridos > 30 ? "bg-danger" : item.DiasTranscurridos > 15 ? "bg-warning text-dark" : "bg-success";
-                                var ul = item.DiasTranscurridos > 30 ? "Retrasado" : item.DiasTranscurridos > 15 ? "Por Vencer" : "A Tiempo";
-                                <tr>
-                                    <td class="ps-3 fw-bold" style="color: var(--primary-900);">TRM-@item.Id</td>
-                                    <td class="fw-bold txt-title text-xs">@item.Nombre</td>
-                                    <td class="text-muted text-xs text-truncate" style="max-width: 120px;" title="@item.TipoTramite">@item.TipoTramite</td>
-                                    <td class="text-muted text-xs">@item.Fecha.ToString("dd/MMM/yyyy")</td>
-                                    <td class="text-center pe-3"><span class="badge @uc">@ul (@item.DiasTranscurridos d)</span></td>
-                                </tr>
-                            }
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-    }
-</div>
-
+@* ═══════════ Bandeja de Solicitudes ═══════════ *@
 @if (Model.RecentSolicitudes.Any())
 {
-    <div class="admin-card-white p-4 shadow-sm border-0 mb-5">
-        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center border-bottom pb-3 mb-3 gap-3">
-            <h6 class="txt-title fw-bold text-uppercase mb-0"><i class="bi bi-inboxes me-2"></i>Bandeja de Solicitudes Recientes</h6>
+    <div class="admin-card-white mb-5 shadow-sm border-0">
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center border-bottom pb-3 mb-4 gap-3">
+            <h6 class="txt-title fw-bold text-xs text-uppercase tracking-wide mb-0"><i class="bi bi-inboxes me-2"></i>Bandeja de Solicitudes</h6>
             <div class="d-flex gap-2 flex-wrap">
-                <select class="form-select form-select-sm bg-app border-0 text-xs fw-bold" style="width: auto;" onchange="filterTableByColumn(this.value,'tblSolicitudes',4)">
+                <select class="form-select form-select-sm text-xxs fw-bold bg-app border-0" style="width: auto;" onchange="filterTableByColumn(this.value,'tblSolicitudes',4)">
                     <option value="">Estatus (Todos)</option>
                     @foreach (var s in Model.ByStatus)
                     {
                         <option value="@s.Status">@s.Status</option>
                     }
                 </select>
-                <select class="form-select form-select-sm bg-app border-0 text-xs fw-bold" style="width: auto;" onchange="filterTableByColumn(this.value,'tblSolicitudes',3)">
+                <select class="form-select form-select-sm text-xxs fw-bold bg-app border-0" style="width: auto;" onchange="filterTableByColumn(this.value,'tblSolicitudes',3)">
                     <option value="">Trámite (Todos)</option>
                     @foreach (var t in Model.ByTipoTramite)
                     {
                         <option value="@t.TipoNombre">@t.TipoNombre</option>
                     }
                 </select>
-                <button class="btn btn-dark text-xs fw-bold px-3 py-1" onclick="exportTableToCSV('tblSolicitudes','reporte_tramites.csv')">
-                    <i class="bi bi-download me-1"></i> EXPORTAR
+                <button class="btn-primary-sep text-xxs py-2 px-3" onclick="exportTableToCSV('tblSolicitudes','reporte_tramites.csv')">
+                    <i class="bi bi-file-earmark-excel me-2"></i> EXPORTAR
                 </button>
             </div>
         </div>
@@ -275,8 +316,8 @@
         <div class="text-xxs text-muted mb-2 fw-bold" id="tblSolicitudesCount">Mostrando 1 a @Model.RecentSolicitudes.Count registros</div>
 
         <div class="table-responsive custom-scroll" style="max-height: 450px;">
-            <table class="table table-hover align-middle text-sm mb-0" id="tblSolicitudes">
-                <thead class="bg-app text-muted text-xs" style="position: sticky; top: 0; z-index: 1;">
+            <table class="table table-hover align-middle text-sm mb-0 table-borderless" id="tblSolicitudes">
+                <thead class="bg-primary-dark txt-white text-xxs" style="position: sticky; top: 0; z-index: 10;">
                     <tr>
                         <th class="ps-3 border-0">Folio</th>
                         <th class="border-0">Alumno</th>
@@ -290,13 +331,13 @@
                 <tbody>
                     @foreach (var item in Model.RecentSolicitudes)
                     {
-                        var sc = item.Estatus switch { "Completado" or "Aprobado" => "bg-success", "Pendiente" => "bg-warning text-dark", "En Revisión" => "bg-info text-dark", "Rechazado" => "bg-danger", _ => "bg-secondary" };
+                        var sc = item.Estatus switch { "Completado" or "Aprobado" or "Entregado" => "status-aceptado", "Pendiente" => "status-pendiente", "En Revisión" => "status-pendiente", "Rechazado" => "status-rechazado", _ => "status-pendiente" };
                         <tr>
-                            <td class="ps-3 fw-bold" style="color: var(--primary-900);">TRM-@item.Id</td>
+                            <td class="ps-3 fw-bold txt-primary-dark">TRM-@item.Id</td>
                             <td class="fw-bold txt-title text-xs">@item.Nombre</td>
                             <td class="text-muted text-xs">@item.Matricula</td>
                             <td class="text-truncate text-xs text-muted" style="max-width: 180px;" title="@item.TipoTramite">@item.TipoTramite</td>
-                            <td class="text-center"><span class="badge @sc">@item.Estatus</span></td>
+                            <td class="text-center"><span class="badge badge-status @sc shadow-sm">@item.Estatus</span></td>
                             <td class="text-end text-xs text-muted">@item.Fecha.ToString("dd/MMM/yyyy")</td>
                             <td class="text-end pe-3 fw-bold">@item.DiasTranscurridos</td>
                         </tr>
@@ -310,121 +351,86 @@
 @section Scripts {
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
-    
     <script>
         Chart.register(ChartDataLabels);
-        Chart.defaults.color = '#6c757d';
-        Chart.defaults.borderColor = 'rgba(0,0,0,0.05)';
-        Chart.defaults.font.family = "'Plus Jakarta Sans', system-ui, sans-serif";
-        Chart.defaults.font.size = 12;
+        Chart.defaults.color = '#6B7280';
+        Chart.defaults.font.family = "'Montserrat', sans-serif";
 
         @if (Model.ByTipoTramite.Any())
         {
-            <text>
-                new Chart(document.getElementById('chartVolume'), {
-                type: 'bar',
-                data: {
-                labels: [@Html.Raw(string.Join(",", Model.ByTipoTramite.Select(t => $"'{t.TipoNombre}'")))],
-                datasets: [{
-                data: [@string.Join(",", Model.ByTipoTramite.Select(t => t.Total))],
-                backgroundColor: '#2C3E50', // Color oscuro corporativo
-                borderRadius: 6,
-                maxBarThickness: 50
-                }]
-                },
-                options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                legend: { display: false },
-                datalabels: { anchor: 'end', align: 'top', color: '#212529', font: { weight: 'bold', size: 12 }, offset: 4 }
-                },
-                scales: {
-                x: { grid: { display: false }, ticks: { font: { size: 10 }, maxRotation: 45 } },
-                y: { grid: { color: 'rgba(0,0,0,0.05)' }, ticks: { precision: 0 } }
-                }
-                }
-                });
-            </text>
+                <text>
+                    new Chart(document.getElementById('chartVolume'), {
+                    type: 'bar',
+                    data: {
+                    labels: [@Html.Raw(string.Join(",", Model.ByTipoTramite.Select(t => $"'{t.TipoNombre}'")))],
+                    datasets: [{
+                    data: [@string.Join(",", Model.ByTipoTramite.Select(t => t.Total))],
+                    backgroundColor: '#13322B', borderRadius: 4, maxBarThickness: 50
+                    }]
+                    },
+                    options: {
+                    responsive: true, maintainAspectRatio: false,
+                    plugins: { legend: { display: false }, datalabels: { anchor: 'end', align: 'top', color: '#13322B', font: { weight: '800', size: 10 }, offset: 4 } },
+                    scales: { x: { grid: { display: false }, ticks: { font: { size: 9 }, maxRotation: 45 } }, y: { grid: { color: 'rgba(0,0,0,0.04)' }, ticks: { precision: 0 } } }
+                    }
+                    });
+                </text>
         }
 
         @if (Model.ByStatus.Any())
         {
-            <text>
-                new Chart(document.getElementById('chartSemaforo'), {
-                type: 'doughnut',
-                data: {
-                labels: [@Html.Raw(string.Join(",", Model.ByStatus.Select(s => $"'{s.Status}'")))],
-                datasets: [{
-                data: [@string.Join(",", Model.ByStatus.Select(s => s.Count))],
-                backgroundColor: ['#18BC9C', '#F39C12', '#3498DB', '#E74C3C', '#9B59B6'], // Colores flat/alertas
-                borderWidth: 0
-                }]
-                },
-                options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                cutout: '65%',
-                plugins: {
-                legend: { position: 'bottom', labels: { padding: 20, usePointStyle: true, boxWidth: 8, font: { size: 11 } } },
-                datalabels: {
-                color: '#fff',
-                font: { weight: 'bold', size: 13 },
-                formatter: function(v, ctx) {
-                var t = ctx.dataset.data.reduce((a, b) => a + b, 0);
-                var p = t > 0 ? Math.round(v / t * 100) : 0;
-                return p > 5 ? p + '%' : '';
-                }
-                }
-                }
-                }
-                });
-            </text>
+                <text>
+                    new Chart(document.getElementById('chartSemaforo'), {
+                    type: 'doughnut',
+                    data: {
+                    labels: [@Html.Raw(string.Join(",", Model.ByStatus.Select(s => $"'{s.Status}'")))],
+                    datasets: [{ data: [@string.Join(",", Model.ByStatus.Select(s => s.Count))],
+                    backgroundColor: ['#13322B', '#D4C19C', '#204A40', '#991B1B', '#A67C52'], borderWidth: 2, borderColor: '#ffffff' }]
+                    },
+                    options: {
+                    responsive: true, maintainAspectRatio: false, cutout: '75%',
+                    plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, padding: 15, font: { size: 10, weight: '600' } } }, datalabels: { display: false } }
+                    }
+                    });
+                </text>
         }
 
-        // Funciones de filtrado y exportación unificadas
+        @if (Model.MonthlyTrend.Any())
+        {
+                <text>
+                    new Chart(document.getElementById('chartMonthly'), {
+                    type: 'line',
+                    data: {
+                    labels: [@Html.Raw(string.Join(",", Model.MonthlyTrend.Select(m => $"'{m.Month}'")))],
+                    datasets: [{
+                    label: 'Solicitudes', data: [@string.Join(",", Model.MonthlyTrend.Select(m => m.Count))],
+                    borderColor: '#13322B', backgroundColor: 'rgba(19,50,43,0.08)', fill: true,
+                    tension: 0.35, borderWidth: 2.5, pointRadius: 4, pointBackgroundColor: '#13322B'
+                    }]
+                    },
+                    options: {
+                    responsive: true, maintainAspectRatio: false,
+                    plugins: { legend: { display: false }, datalabels: { display: false } },
+                    scales: { x: { grid: { display: false }, ticks: { font: { size: 10 } } }, y: { grid: { color: 'rgba(0,0,0,0.04)' }, ticks: { precision: 0, font: { size: 10 } } } }
+                    }
+                    });
+                </text>
+        }
+
         function filterTableByColumn(value, tableId, colIndex) {
-        var table = document.getElementById(tableId);
-        if (!table) return;
-        if (!window._filters) window._filters = {};
-        if (!window._filters[tableId]) window._filters[tableId] = {};
-            
-        if (value) window._filters[tableId][colIndex] = value;
-        else delete window._filters[tableId][colIndex];
-            
-        var rows = table.querySelectorAll('tbody tr');
-        var visible = 0;
-        rows.forEach(function(row) {
-        var show = true;
-        for (var ci in window._filters[tableId]) {
-        var filterVal = window._filters[tableId][ci];
-        var cell = row.cells[parseInt(ci)];
-        if (cell && cell.textContent.trim().indexOf(filterVal) === -1) { show = false; break; }
-        }
-        row.style.display = show ? '' : 'none';
-        if (show) visible++;
-        });
-            
-        var countEl = document.getElementById(tableId + 'Count');
-        if (countEl) countEl.textContent = 'Mostrando 1 a ' + visible + ' registros';
-        }
+        var table = document.getElementById(tableId); if (!table) return;
+        if (!window._filters) window._filters = {}; if (!window._filters[tableId]) window._filters[tableId] = {};
+        if (value) window._filters[tableId][colIndex] = value; else delete window._filters[tableId][colIndex];
+        var rows = table.querySelectorAll('tbody tr'); var visible = 0;
+        rows.forEach(function(row) { var show = true;
+        for (var ci in window._filters[tableId]) { var fv = window._filters[tableId][ci]; var cell = row.cells[parseInt(ci)]; if (cell && cell.textContent.trim().indexOf(fv) === -1) { show = false; break; } }
+        row.style.display = show ? '' : 'none'; if (show) visible++; });
+        var countEl = document.getElementById(tableId + 'Count'); if (countEl) countEl.textContent = 'Mostrando 1 a ' + visible + ' registros'; }
 
         function exportTableToCSV(tid, fn) {
-        var t = document.getElementById(tid);
-        var r = t.querySelectorAll('tr');
-        var c = [];
-        r.forEach(function(row) {
-        if (row.style.display === 'none') return;
-        var cols = row.querySelectorAll('th,td');
-        var d = [];
-        cols.forEach(function(col) { d.push('"' + col.textContent.trim().replace(/\n/g,' ').replace(/"/g,'""') + '"'); });
-        c.push(d.join(','));
-        });
-        var b = new Blob(['\uFEFF' + c.join('\n')], { type: 'text/csv;charset=utf-8;' });
-        var l = document.createElement('a');
-        l.href = URL.createObjectURL(b);
-        l.download = fn;
-        l.click();
-        }
+        var t = document.getElementById(tid); var r = t.querySelectorAll('tr'); var c = [];
+        r.forEach(function(row) { if (row.style.display === 'none') return; var cols = row.querySelectorAll('th,td'); var d = [];
+        cols.forEach(function(col) { d.push('"' + col.textContent.trim().replace(/\n/g,' ').replace(/"/g,'""') + '"'); }); c.push(d.join(',')); });
+        var b = new Blob(['\uFEFF' + c.join('\n')], { type: 'text/csv;charset=utf-8;' }); var l = document.createElement('a'); l.href = URL.createObjectURL(b); l.download = fn; l.click(); }
     </script>
 }

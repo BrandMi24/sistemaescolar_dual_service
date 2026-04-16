@@ -1,7 +1,7 @@
 ﻿using ControlEscolar.Data;
 using ControlEscolar.Models.Dashboard;
 using System.Data;
-using Dapper; 
+using Dapper;
 
 namespace ControlEscolar.Services
 {
@@ -52,6 +52,8 @@ namespace ControlEscolar.Services
             // KPIs
             vm.TotalStudents = await connection.ExecuteScalarAsync<int>(
                 "SELECT COUNT(*) FROM management_student_table WHERE management_student_status = 1");
+            vm.ActiveStudents = await connection.ExecuteScalarAsync<int>(
+                "SELECT COUNT(*) FROM management_student_table WHERE management_student_status = 1 AND management_student_StatusCode = 'INSCRITO'");
             vm.TotalTeachers = await connection.ExecuteScalarAsync<int>(
                 "SELECT COUNT(*) FROM management_teacher_table WHERE management_teacher_status = 1");
             vm.TotalCareers = await connection.ExecuteScalarAsync<int>(
@@ -102,8 +104,8 @@ namespace ControlEscolar.Services
                 else if (gen.Contains("femenino") || gen == "f") vm.FemaleCount += count;
             }
 
-            // Groups by career (with cuatrimestre filter)
-            vm.GroupsByCareer = (await connection.QueryAsync<GroupStatItem>(@"
+            // Groups overview (with shift data — used for turno distribution in the view)
+            vm.GroupsOverview = (await connection.QueryAsync<GroupStatItem>(@"
                 SELECT c.management_career_Name AS CareerName, g.management_group_Code AS GroupCode,
                     g.management_group_Name AS GroupName, ISNULL(g.management_group_Shift,'—') AS Shift,
                     COUNT(s.management_student_ID) AS StudentCount
@@ -113,6 +115,29 @@ namespace ControlEscolar.Services
                 WHERE g.management_group_status = 1
                 GROUP BY c.management_career_Name, g.management_group_Code, g.management_group_Name, g.management_group_Shift
                 ORDER BY c.management_career_Name, g.management_group_Code")).ToList();
+
+            // Groups by career (same query, kept for backward compat)
+            vm.GroupsByCareer = vm.GroupsOverview;
+
+            // Careers overview
+            vm.CareersOverview = (await connection.QueryAsync<CareerOverviewItem>(@"
+                SELECT c.management_career_Name AS CareerName,
+                    c.management_career_Code AS CareerCode,
+                    COUNT(s.management_student_ID) AS TotalStudents,
+                    SUM(CASE WHEN s.management_student_StatusCode = 'INSCRITO' THEN 1 ELSE 0 END) AS Inscritos,
+                    SUM(CASE WHEN s.management_student_StatusCode = 'PREINSCRITO' THEN 1 ELSE 0 END) AS Preinscritos,
+                    SUM(CASE WHEN s.management_student_StatusCode = 'BAJA' THEN 1 ELSE 0 END) AS Bajas,
+                    COUNT(DISTINCT g.management_group_ID) AS Groups,
+                    0 AS TotalGroups, 0 AS TotalTeachers
+                FROM management_career_table c
+                LEFT JOIN management_student_table s ON c.management_career_ID = s.management_student_CareerID AND s.management_student_status = 1
+                LEFT JOIN management_group_table g ON c.management_career_ID = g.management_group_CareerID AND g.management_group_status = 1
+                WHERE c.management_career_status = 1
+                GROUP BY c.management_career_Name, c.management_career_Code
+                ORDER BY TotalStudents DESC")).ToList();
+            var totalCareerStudents = vm.CareersOverview.Sum(c => c.TotalStudents);
+            foreach (var c in vm.CareersOverview)
+                c.Percentage = totalCareerStudents > 0 ? Math.Round((decimal)c.TotalStudents / totalCareerStudents * 100, 1) : 0;
 
             // Preinscripciones count (from academiccontrol or old tables)
             try
@@ -196,6 +221,114 @@ namespace ControlEscolar.Services
             }
             catch { vm.GroupChanges = new(); }
 
+            // ══════════════════════════════════════════════════════════
+            // NEW — Enrollment trend by cuatrimestre
+            // Groups students by year + cuatrimestre based on createdDate
+            // ══════════════════════════════════════════════════════════
+            try
+            {
+                vm.EnrollmentTrend = (await connection.QueryAsync<EnrollmentTrendItem>(@"
+                    SELECT
+                        CAST(YEAR(management_student_createdDate) AS VARCHAR) + '-C' +
+                        CAST(CASE
+                            WHEN MONTH(management_student_createdDate) BETWEEN 1 AND 4 THEN 1
+                            WHEN MONTH(management_student_createdDate) BETWEEN 5 AND 8 THEN 2
+                            ELSE 3
+                        END AS VARCHAR) AS Period,
+                        YEAR(management_student_createdDate) AS Year,
+                        CASE
+                            WHEN MONTH(management_student_createdDate) BETWEEN 1 AND 4 THEN 1
+                            WHEN MONTH(management_student_createdDate) BETWEEN 5 AND 8 THEN 2
+                            ELSE 3
+                        END AS Cuatrimestre,
+                        SUM(CASE WHEN management_student_StatusCode = 'INSCRITO' THEN 1 ELSE 0 END) AS Inscritos,
+                        SUM(CASE WHEN management_student_StatusCode = 'PREINSCRITO' THEN 1 ELSE 0 END) AS Preinscritos,
+                        SUM(CASE WHEN management_student_StatusCode = 'BAJA' THEN 1 ELSE 0 END) AS Bajas
+                    FROM management_student_table
+                    WHERE management_student_status = 1
+                    GROUP BY
+                        YEAR(management_student_createdDate),
+                        CASE
+                            WHEN MONTH(management_student_createdDate) BETWEEN 1 AND 4 THEN 1
+                            WHEN MONTH(management_student_createdDate) BETWEEN 5 AND 8 THEN 2
+                            ELSE 3
+                        END
+                    ORDER BY Year, Cuatrimestre")).ToList();
+            }
+            catch { vm.EnrollmentTrend = new(); }
+
+            // ══════════════════════════════════════════════════════════
+            // NEW — Alerts bar: cross-module summary
+            // ══════════════════════════════════════════════════════════
+
+            // Trámites retrasados (pending > 15 days)
+            try
+            {
+                if (await TableExists(connection, "CE_TramitesSolicitud"))
+                {
+                    vm.TramitesRetrasados = await connection.ExecuteScalarAsync<int>(@"
+                        SELECT COUNT(*) FROM CE_TramitesSolicitud
+                        WHERE tramites_solicitud_estatus = 'Pendiente'
+                        AND DATEDIFF(DAY, tramites_solicitud_fecha, GETDATE()) > 15");
+
+                    vm.OldestTramiteDays = await connection.ExecuteScalarAsync<int?>(@"
+                        SELECT MAX(DATEDIFF(DAY, tramites_solicitud_fecha, GETDATE()))
+                        FROM CE_TramitesSolicitud
+                        WHERE tramites_solicitud_estatus = 'Pendiente'") ?? 0;
+
+                    // Also feed TotalTramitesPendientes if not already set
+                    if (vm.TotalTramitesPendientes == 0)
+                    {
+                        vm.TotalTramitesPendientes = await connection.ExecuteScalarAsync<int>(
+                            "SELECT COUNT(*) FROM CE_TramitesSolicitud WHERE tramites_solicitud_estatus = 'Pendiente'");
+                    }
+                }
+            }
+            catch { /* CE_TramitesSolicitud not available */ }
+
+            // Vinculación pending documents
+            try
+            {
+                if (await TableExists(connection, "operational_document_table"))
+                {
+                    vm.VinculacionPendingDocs = await connection.ExecuteScalarAsync<int>(@"
+                        SELECT COUNT(*) FROM operational_document_table
+                        WHERE operational_document_StatusCode = 'PENDING'
+                        AND operational_document_status = 1");
+                }
+            }
+            catch { /* operational tables not available */ }
+
+            // Bajas recientes (last 30 days)
+            try
+            {
+                vm.BajasRecientes = await connection.ExecuteScalarAsync<int>(@"
+                    SELECT COUNT(*) FROM management_student_table
+                    WHERE management_student_StatusCode = 'BAJA'
+                    AND management_student_status = 1
+                    AND management_student_createdDate >= DATEADD(DAY, -30, GETDATE())");
+            }
+            catch { vm.BajasRecientes = 0; }
+
+            // Salud: recent visits in last 7 days (as urgency proxy)
+            try
+            {
+                if (await TableExists(connection, "Visitas"))
+                {
+                    vm.SaludCasosUrgentes = await connection.ExecuteScalarAsync<int>(@"
+                        SELECT COUNT(*) FROM Visitas
+                        WHERE FechaVisita >= DATEADD(DAY, -7, GETDATE())");
+
+                    // Also feed TotalVisitasMedicas if not already set
+                    if (vm.TotalVisitasMedicas == 0)
+                    {
+                        vm.TotalVisitasMedicas = await connection.ExecuteScalarAsync<int>(
+                            "SELECT COUNT(*) FROM Visitas WHERE YEAR(FechaVisita) = @Year", new { Year = vm.SelectedYear });
+                    }
+                }
+            }
+            catch { /* Visitas table not available */ }
+
             return vm;
         }
 
@@ -255,9 +388,9 @@ namespace ControlEscolar.Services
                 vm.PreinscripcionesByCareer = byCareers.Select(x => new CareerStatItem { CareerName = (string)x.CareerName, Count = (int)x.Count, Percentage = totalC > 0 ? Math.Round((decimal)(int)x.Count / totalC * 100, 1) : 0 }).ToList();
 
                 // By Status (Preinscripciones)
-                var byStatus = await connection.QueryAsync<dynamic>($"SELECT p.academiccontrol_preinscription_state AS Status, COUNT(*) AS Count FROM academiccontrol_preinscription_table p WHERE {dfP} GROUP BY p.academiccontrol_preinscription_state ORDER BY Count DESC", fp);
-                var totalS = byStatus.Sum(x => (int)x.Count);
-                vm.PreinscripcionesByStatus = byStatus.Select(x => new StatusStatItem { Status = (string)x.Status, Count = (int)x.Count, Percentage = totalS > 0 ? Math.Round((decimal)(int)x.Count / totalS * 100, 1) : 0 }).ToList();
+                var byStatus2 = await connection.QueryAsync<dynamic>($"SELECT p.academiccontrol_preinscription_state AS Status, COUNT(*) AS Count FROM academiccontrol_preinscription_table p WHERE {dfP} GROUP BY p.academiccontrol_preinscription_state ORDER BY Count DESC", fp);
+                var totalS = byStatus2.Sum(x => (int)x.Count);
+                vm.PreinscripcionesByStatus = byStatus2.Select(x => new StatusStatItem { Status = (string)x.Status, Count = (int)x.Count, Percentage = totalS > 0 ? Math.Round((decimal)(int)x.Count / totalS * 100, 1) : 0 }).ToList();
 
                 // By Status (Inscripciones)
                 var byInsStatus = await connection.QueryAsync<dynamic>($"SELECT i.academiccontrol_inscription_state AS Status, COUNT(*) AS Count FROM academiccontrol_inscription_table i WHERE {dfI} GROUP BY i.academiccontrol_inscription_state ORDER BY Count DESC", fp);
@@ -349,9 +482,9 @@ namespace ControlEscolar.Services
                 var totalC = byCareers.Sum(x => (int)x.Count);
                 vm.PreinscripcionesByCareer = byCareers.Select(x => new CareerStatItem { CareerName = (string)x.CareerName, Count = (int)x.Count, Percentage = totalC > 0 ? Math.Round((decimal)(int)x.Count / totalC * 100, 1) : 0 }).ToList();
 
-                var byStatus = await connection.QueryAsync<dynamic>($"SELECT EstadoPreinscripcion AS Status, COUNT(*) AS Count FROM Preinscripciones WHERE YEAR(FechaPreinscripcion) = @Year AND MONTH(FechaPreinscripcion) BETWEEN @StartMonth AND @EndMonth GROUP BY EstadoPreinscripcion ORDER BY Count DESC", fp);
-                var totalS = byStatus.Sum(x => (int)x.Count);
-                vm.PreinscripcionesByStatus = byStatus.Select(x => new StatusStatItem { Status = (string)x.Status, Count = (int)x.Count, Percentage = totalS > 0 ? Math.Round((decimal)(int)x.Count / totalS * 100, 1) : 0 }).ToList();
+                var byStatus2 = await connection.QueryAsync<dynamic>($"SELECT EstadoPreinscripcion AS Status, COUNT(*) AS Count FROM Preinscripciones WHERE YEAR(FechaPreinscripcion) = @Year AND MONTH(FechaPreinscripcion) BETWEEN @StartMonth AND @EndMonth GROUP BY EstadoPreinscripcion ORDER BY Count DESC", fp);
+                var totalS = byStatus2.Sum(x => (int)x.Count);
+                vm.PreinscripcionesByStatus = byStatus2.Select(x => new StatusStatItem { Status = (string)x.Status, Count = (int)x.Count, Percentage = totalS > 0 ? Math.Round((decimal)(int)x.Count / totalS * 100, 1) : 0 }).ToList();
 
                 var byInsStatus = await connection.QueryAsync<dynamic>($"SELECT EstadoInscripcion AS Status, COUNT(*) AS Count FROM Inscripciones WHERE YEAR(FechaInscripcion) = @Year AND MONTH(FechaInscripcion) BETWEEN @StartMonth AND @EndMonth GROUP BY EstadoInscripcion ORDER BY Count DESC", fp);
                 var totalIS = byInsStatus.Sum(x => (int)x.Count);
