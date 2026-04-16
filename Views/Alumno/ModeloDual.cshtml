@@ -1,64 +1,98 @@
-﻿@* Asegúrate de pasar un ViewModel que contenga la información necesaria para todas las pestañas, o adapta esto a tu controlador para cargar todo en un solo View *@
+@model ControlEscolar.ViewModels.StudentPortal.DualPortalViewModel
 @{
-    ViewData["Title"] = "Modelo DUAL y Estadías";
+    ViewData["Title"] = "Modelo DUAL y Estadias";
     Layout = "_LayoutAlumno";
     ViewData["ShowBackButton"] = true;
+
+    var progress = Math.Clamp(Model.ProgressPercent, 0m, 100m);
+    var reportGoal = Model.RequiredHours > 0 ? Math.Max(1, (int)Math.Ceiling(Model.RequiredHours / 40m)) : 15;
+    var approvedReports = Model.WeeklyReports.Count(x => string.Equals(x.StatusCode, "APPROVED", StringComparison.OrdinalIgnoreCase));
+    var selectedSupportIds = Model.OrganizationId > 0 ? new HashSet<int> { Model.OrganizationId } : new HashSet<int>();
+
+    var resumeSpanish = Model.Documents.FirstOrDefault(x => x.DocumentType == "RESUME_SPANISH");
+    var resumeEnglish = Model.Documents.FirstOrDefault(x => x.DocumentType == "RESUME_ENGLISH");
+    var imssCertificate = Model.Documents.FirstOrDefault(x => x.DocumentType == "IMSS_CERTIFICATE");
+    var requestedLetter = Model.Documents.FirstOrDefault(x => x.DocumentType == "PRESENTATION_LETTER");
+    var acceptanceLetter = Model.Documents.FirstOrDefault(x => x.DocumentType == "ACCEPTANCE_LETTER");
+
+    var resumeSpanishRejected = resumeSpanish != null && string.Equals(resumeSpanish.StatusCode, "REJECTED", StringComparison.OrdinalIgnoreCase);
+    var resumeEnglishRejected = resumeEnglish != null && string.Equals(resumeEnglish.StatusCode, "REJECTED", StringComparison.OrdinalIgnoreCase);
+    var imssRejected = imssCertificate != null && string.Equals(imssCertificate.StatusCode, "REJECTED", StringComparison.OrdinalIgnoreCase);
+
+    var canUploadResumeSpanish = resumeSpanish == null || resumeSpanishRejected;
+    var canUploadResumeEnglish = resumeEnglish == null || resumeEnglishRejected;
+    var canUploadImss = imssCertificate == null || imssRejected;
+
+    var letterStatus = requestedLetter?.StatusCode ?? "NONE";
+    var letterIsPending = string.Equals(letterStatus, "PENDING", StringComparison.OrdinalIgnoreCase);
+    var letterIsApproved = string.Equals(letterStatus, "APPROVED", StringComparison.OrdinalIgnoreCase);
+    var letterIsRejected = string.Equals(letterStatus, "REJECTED", StringComparison.OrdinalIgnoreCase);
+    var showLetterRequestForm = requestedLetter == null || letterIsRejected;
+
+    var acceptanceStatus = acceptanceLetter?.StatusCode ?? "NONE";
+    var acceptanceIsPending = string.Equals(acceptanceStatus, "PENDING", StringComparison.OrdinalIgnoreCase);
+    var acceptanceIsApproved = string.Equals(acceptanceStatus, "APPROVED", StringComparison.OrdinalIgnoreCase);
+    var acceptanceIsRejected = string.Equals(acceptanceStatus, "REJECTED", StringComparison.OrdinalIgnoreCase);
+    var canUploadAcceptance = acceptanceLetter == null;
 }
 
 <div class="row g-4 align-items-start mx-auto" style="max-width: 1200px;">
-    
     <div class="col-12 col-lg-4 col-xl-3 position-lg-sticky" style="top: 80px;">
         <div class="bg-white p-4 rounded-4 shadow-sm border border-light d-flex flex-column gap-4">
-            
             <div class="text-center pb-3 border-bottom border-light">
                 <div class="bg-light rounded-circle d-flex align-items-center justify-content-center mx-auto mb-3 border shadow-sm" style="width: 60px; height: 60px;">
                     <i class="bi bi-buildings-fill text-dark fs-3"></i>
                 </div>
-                <h6 class="fw-bold mb-1 txt-title">Modelo DUAL / Estadías</h6>
-                <p class="text-muted text-xs mb-0">Gestión de Prácticas Profesionales</p>
-                
+                <h6 class="fw-bold mb-1 txt-title">Modelo DUAL / Estadias</h6>
+                <p class="text-muted text-xs mb-0">Gestion de Practicas Profesionales</p>
+
                 <div class="mt-3">
                     <div class="d-flex justify-content-between mb-1">
                         <span class="text-xs fw-bold text-muted">Progreso General</span>
-                        <span class="text-xs fw-bold text-dark">45%</span>
+                        <span class="text-xs fw-bold text-dark">@progress.ToString("0.#")%</span>
                     </div>
                     <div class="progress shadow-sm" style="height: 6px;">
-                        <div class="progress-bar bg-dark" role="progressbar" style="width: 45%;"></div>
+                        <div class="progress-bar bg-dark" role="progressbar" style="width: @progress.ToString(System.Globalization.CultureInfo.InvariantCulture)%"></div>
                     </div>
                 </div>
+                <div class="mt-3 text-xs text-muted">Estado actual: <strong class="text-dark">@Model.AssignmentStatusCode</strong></div>
             </div>
 
             <ul class="nav flex-column nav-pills-custom" id="dualTabs" role="tablist">
                 <li class="nav-item" role="presentation">
                     <button class="nav-link w-100 active d-flex justify-content-between align-items-center" data-bs-toggle="pill" data-bs-target="#paso1" type="button">
                         <span><i class="bi bi-person-badge me-2"></i> 1. Mis Datos</span>
-                        <i class="bi bi-check-circle-fill text-success" style="font-size: 0.8rem;"></i>
+                        <i class="bi bi-check-circle-fill @(string.IsNullOrWhiteSpace(Model.Email) || Model.Email == "Sin correo" ? "text-muted" : "text-success")" style="font-size: 0.8rem;"></i>
                     </button>
                 </li>
                 <li class="nav-item" role="presentation">
                     <button class="nav-link w-100 d-flex justify-content-between align-items-center" data-bs-toggle="pill" data-bs-target="#paso2" type="button">
                         <span><i class="bi bi-building me-2"></i> 2. Empresa / Apoyo</span>
-                        <i class="bi bi-check-circle-fill text-success d-none" style="font-size: 0.8rem;"></i>
+                        <i class="bi bi-check-circle-fill @(Model.OrganizationId > 0 ? "text-success" : "text-muted")" style="font-size: 0.8rem;"></i>
                     </button>
                 </li>
                 <li class="nav-item" role="presentation">
                     <button class="nav-link w-100 d-flex justify-content-between align-items-center" data-bs-toggle="pill" data-bs-target="#paso3" type="button">
                         <span><i class="bi bi-file-earmark-text me-2"></i> 3. Documentos CV</span>
+                        <i class="bi bi-check-circle-fill @((Model.HasResumeSpanish && Model.HasImssCertificate) ? "text-success" : "text-muted")" style="font-size: 0.8rem;"></i>
                     </button>
                 </li>
                 <li class="nav-item" role="presentation">
                     <button class="nav-link w-100 d-flex justify-content-between align-items-center" data-bs-toggle="pill" data-bs-target="#paso4" type="button">
                         <span><i class="bi bi-envelope-paper me-2"></i> 4. Carta Solicitud</span>
+                        <i class="bi bi-check-circle-fill @((Model.RequestedLettersCount > 0 || Model.HasAcceptanceLetter) ? "text-success" : "text-muted")" style="font-size: 0.8rem;"></i>
                     </button>
                 </li>
                 <li class="nav-item" role="presentation">
                     <button class="nav-link w-100 d-flex justify-content-between align-items-center" data-bs-toggle="pill" data-bs-target="#paso5" type="button">
                         <span><i class="bi bi-people me-2"></i> 5. Asesores Asignados</span>
+                        <i class="bi bi-check-circle-fill @(Model.AcademicAdvisorName == "Sin asignar" ? "text-muted" : "text-success")" style="font-size: 0.8rem;"></i>
                     </button>
                 </li>
                 <li class="nav-item" role="presentation">
                     <button class="nav-link w-100 d-flex justify-content-between align-items-center" data-bs-toggle="pill" data-bs-target="#paso6" type="button">
                         <span><i class="bi bi-calendar-week me-2"></i> 6. Reportes Semanales</span>
+                        <i class="bi bi-check-circle-fill @(Model.WeeklyReports.Any() ? "text-success" : "text-muted")" style="font-size: 0.8rem;"></i>
                     </button>
                 </li>
             </ul>
@@ -66,36 +100,48 @@
     </div>
 
     <div class="col-12 col-lg-8 col-xl-9">
+        @if (TempData["SuccessMessage"] != null)
+        {
+            <div class="alert bg-success-100 border border-success-700 text-success-700 rounded-3 shadow-sm">
+                <i class="bi bi-check-circle-fill me-2"></i>@TempData["SuccessMessage"]
+            </div>
+        }
+        @if (TempData["ErrorMessage"] != null)
+        {
+            <div class="alert bg-error-100 border border-danger border-opacity-25 text-danger rounded-3 shadow-sm">
+                <i class="bi bi-exclamation-triangle-fill me-2"></i>@TempData["ErrorMessage"]
+            </div>
+        }
+
         <div class="tab-content bg-white p-4 p-md-5 rounded-4 shadow-sm border border-light">
-            
             <div class="tab-pane fade show active" id="paso1" role="tabpanel">
                 <div class="mb-4 pb-3 border-bottom">
                     <h4 class="fw-bold txt-title mb-1">1. Datos del Estudiante</h4>
-                    <p class="text-muted text-sm mb-0">Información personal y académica para tu expediente.</p>
+                    <p class="text-muted text-sm mb-0">Informacion personal y academica para tu expediente.</p>
                 </div>
 
                 <form asp-action="StudentInfo" asp-controller="DualStudent" method="post">
                     @Html.AntiForgeryToken()
-                    
+
                     <div class="bg-light p-3 rounded-3 border border-light mb-4">
                         <h6 class="fw-bold text-dark text-sm mb-3"><i class="bi bi-lock-fill me-2"></i>Datos del Sistema (Solo lectura)</h6>
                         <div class="row g-3">
                             <div class="col-md-6">
                                 <label class="form-label-custom">Nombre Completo</label>
-                                <input type="text" class="form-control custom-input bg-white text-muted" value="Roberto Carlos Perez Cadena" readonly />
+                                <input type="text" class="form-control custom-input bg-white text-muted" value="@Model.FullName" readonly />
                             </div>
                             <div class="col-md-3">
-                                <label class="form-label-custom">Matrícula</label>
-                                <input type="text" class="form-control custom-input bg-white text-muted" value="26001504" readonly />
+                                <label class="form-label-custom">Matricula</label>
+                                <input type="text" class="form-control custom-input bg-white text-muted" value="@Model.Matricula" readonly />
                             </div>
                             <div class="col-md-3">
                                 <label class="form-label-custom">CURP</label>
-                                <input type="text" class="form-control custom-input bg-white text-muted" value="PECR000000XXXXXX00" readonly />
+                                <input type="text" class="form-control custom-input bg-white text-muted" value="@Model.Curp" readonly />
                             </div>
                         </div>
                     </div>
 
-                    <h6 class="fw-bold text-dark text-sm mb-3"><i class="bi bi-pencil-square me-2"></i>Información a Completar</h6>
+                    <h6 class="fw-bold text-dark text-sm mb-3"><i class="bi bi-pencil-square me-2"></i>Informacion a Completar</h6>
                     <div class="row g-3 mb-4">
                         <div class="col-md-4">
                             <label class="form-label-custom">NSS (Seguro Social) *</label>
@@ -103,47 +149,50 @@
                         </div>
                         <div class="col-md-4">
                             <label class="form-label-custom">Email Institucional *</label>
-                            <input type="email" class="form-control custom-input" name="InstitutionalEmail" placeholder="26001504@uttn.mx" />
+                            <input type="email" class="form-control custom-input" name="InstitutionalEmail" value="@(Model.Email == "Sin correo" ? string.Empty : Model.Email)" placeholder="@Model.Matricula@@uttn.mx" />
                         </div>
                         <div class="col-md-4">
                             <label class="form-label-custom">Celular *</label>
-                            <input type="tel" class="form-control custom-input" name="MobilePhone" placeholder="899-000-0000" />
+                            <input type="tel" class="form-control custom-input" name="MobilePhone" value="@(Model.Phone == "Sin telefono" ? string.Empty : Model.Phone)" placeholder="899-000-0000" />
                         </div>
-                        
+
                         <div class="col-md-4">
                             <label class="form-label-custom">Grado *</label>
                             <select class="form-select custom-input" name="Grade">
                                 <option value="">Selecciona...</option>
-                                <option value="7">7° Cuatrimestre</option>
-                                <option value="8">8° Cuatrimestre</option>
+                                <option value="7" selected="@(Model.Grade == "7")">7 Cuatrimestre</option>
+                                <option value="8" selected="@(Model.Grade == "8")">8 Cuatrimestre</option>
+                                <option value="9" selected="@(Model.Grade == "9")">9 Cuatrimestre</option>
+                                <option value="10" selected="@(Model.Grade == "10")">10 Cuatrimestre</option>
                             </select>
                         </div>
                         <div class="col-md-4">
                             <label class="form-label-custom">Grupo *</label>
-                            <input type="text" class="form-control custom-input" name="GroupCode" placeholder="Ej: A" />
+                            <input type="text" class="form-control custom-input" name="GroupCode" value="@(Model.GroupCode == "Sin grupo" ? string.Empty : Model.GroupCode)" placeholder="Ej: A" />
                         </div>
                         <div class="col-md-4">
                             <label class="form-label-custom">Turno *</label>
                             <select class="form-select custom-input" name="Shift">
                                 <option value="">Selecciona...</option>
-                                <option value="Matutino">Matutino</option>
-                                <option value="Vespertino">Vespertino</option>
+                                <option value="Matutino" selected="@(Model.Shift == "Matutino")">Matutino</option>
+                                <option value="Vespertino" selected="@(Model.Shift == "Vespertino")">Vespertino</option>
                             </select>
                         </div>
 
                         <div class="col-md-6">
-                            <label class="form-label-custom">Periodo de Estadías *</label>
+                            <label class="form-label-custom">Periodo de Estadias *</label>
                             <select class="form-select custom-input" name="InternshipPeriod">
                                 <option value="">Selecciona...</option>
-                                <option value="Enero-Junio">Enero - Junio</option>
-                                <option value="Agosto-Diciembre">Agosto - Diciembre</option>
+                                <option value="Enero-Junio" selected="@(Model.InternshipPeriod == "Enero-Junio")">Enero - Junio</option>
+                                <option value="Agosto-Diciembre" selected="@(Model.InternshipPeriod == "Agosto-Diciembre")">Agosto - Diciembre</option>
                             </select>
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label-custom">Año *</label>
+                            <label class="form-label-custom">Ano *</label>
                             <select class="form-select custom-input" name="InternshipYear">
-                                <option value="2026">2026</option>
-                                <option value="2027">2027</option>
+                                <option value="">Selecciona...</option>
+                                <option value="2026" selected="@(Model.InternshipYear == 2026)">2026</option>
+                                <option value="2027" selected="@(Model.InternshipYear == 2027)">2027</option>
                             </select>
                         </div>
                     </div>
@@ -157,9 +206,18 @@
 
             <div class="tab-pane fade" id="paso2" role="tabpanel">
                 <div class="mb-4 pb-3 border-bottom">
-                    <h4 class="fw-bold txt-title mb-1">2. Empresa / Apoyo de Colocación</h4>
-                    <p class="text-muted text-sm mb-0">Selecciona cómo deseas realizar tus estadías.</p>
+                    <h4 class="fw-bold txt-title mb-1">2. Empresa / Apoyo de Colocacion</h4>
+                    <p class="text-muted text-sm mb-0">Selecciona como deseas realizar tus estadias.</p>
                 </div>
+
+                @if (Model.OrganizationId > 0)
+                {
+                    <div class="alert alert-light border border-secondary shadow-sm mb-4">
+                        <i class="bi bi-building-check me-2 text-dark"></i>
+                        Empresa actual: <strong>@Model.OrganizationName</strong>.
+                        Contacto registrado: <strong>@Model.OrganizationContact</strong>.
+                    </div>
+                }
 
                 <form asp-action="PlacementSupport" asp-controller="DualStudent" method="post">
                     @Html.AntiForgeryToken()
@@ -171,7 +229,7 @@
                                 <div class="card-body text-center p-4">
                                     <i class="bi bi-person-raised-hand fs-1 text-dark mb-3"></i>
                                     <h6 class="fw-bold text-dark">Necesito apoyo</h6>
-                                    <p class="text-muted text-xs mb-0">La universidad me ayudará a encontrar una vacante.</p>
+                                    <p class="text-muted text-xs mb-0">La universidad me ayudara a encontrar una vacante.</p>
                                 </div>
                             </div>
                         </div>
@@ -180,27 +238,37 @@
                                 <div class="card-body text-center p-4">
                                     <i class="bi bi-building-check fs-1 text-secondary mb-3"></i>
                                     <h6 class="fw-bold text-dark">Ya tengo empresa</h6>
-                                    <p class="text-muted text-xs mb-0">Registraré los datos de la empresa donde haré estadías.</p>
+                                    <p class="text-muted text-xs mb-0">Registrare los datos de la empresa donde hare estadias.</p>
                                 </div>
                             </div>
                         </div>
                     </div>
 
                     <div id="parkSection" class="bg-light p-4 rounded-4 border border-light">
-                        <h6 class="fw-bold text-dark text-sm mb-3"><i class="bi bi-geo-alt-fill me-2"></i>Selecciona tus parques industriales preferidos</h6>
+                        <h6 class="fw-bold text-dark text-sm mb-3"><i class="bi bi-geo-alt-fill me-2"></i>Selecciona tus empresas o parques preferidos</h6>
                         <div class="row g-3">
-                            <div class="col-md-6">
-                                <div class="form-check bg-white border rounded-3 p-3 shadow-sm d-flex align-items-center cursor-pointer">
-                                    <input class="form-check-input ms-0 me-3" type="checkbox" name="SelectedParkIds" value="1" id="p1">
-                                    <label class="form-check-label fw-bold text-sm w-100 cursor-pointer" for="p1">Parque Industrial Reynosa</label>
+                            @if (!Model.AvailableOrganizations.Any())
+                            {
+                                <div class="col-12">
+                                    <div class="bg-white border rounded-3 p-3 shadow-sm text-muted text-sm">No hay empresas disponibles registradas por el momento.</div>
                                 </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="form-check bg-white border rounded-3 p-3 shadow-sm d-flex align-items-center cursor-pointer">
-                                    <input class="form-check-input ms-0 me-3" type="checkbox" name="SelectedParkIds" value="2" id="p2">
-                                    <label class="form-check-label fw-bold text-sm w-100 cursor-pointer" for="p2">Parque Industrial Villa Florida</label>
-                                </div>
-                            </div>
+                            }
+                            else
+                            {
+                                foreach (var option in Model.AvailableOrganizations)
+                                {
+                                    <div class="col-md-6">
+                                        <div class="form-check bg-white border rounded-3 p-3 shadow-sm d-flex align-items-start cursor-pointer h-100">
+                                            <input class="form-check-input ms-0 me-3 mt-1" type="checkbox" name="SelectedParkIds" value="@option.Id" id="dual-org-@option.Id" checked="@selectedSupportIds.Contains(option.Id)">
+                                            <label class="form-check-label text-sm w-100 cursor-pointer" for="dual-org-@option.Id">
+                                                <strong class="d-block text-dark">@option.Name</strong>
+                                                <span class="text-muted text-xs d-block mt-1"><i class="bi bi-geo-alt me-1"></i>@option.Address</span>
+                                                <span class="d-block text-muted text-xs mt-1"><i class="bi bi-person me-1"></i>@option.ContactName</span>
+                                            </label>
+                                        </div>
+                                    </div>
+                                }
+                            }
                         </div>
                     </div>
 
@@ -208,23 +276,23 @@
                         <h6 class="fw-bold text-dark border-bottom pb-2 mb-3">Datos de la Empresa Receptora</h6>
                         <div class="row g-3">
                             <div class="col-md-6">
-                                <label class="form-label-custom">Razón Social *</label>
-                                <input type="text" class="form-control custom-input" name="CompanyLegalName" placeholder="Nombre legal de la empresa" />
+                                <label class="form-label-custom">Razon Social *</label>
+                                <input type="text" class="form-control custom-input" name="CompanyLegalName" placeholder="Nombre legal de la empresa" value="@(Model.OrganizationId > 0 ? Model.OrganizationName : string.Empty)" />
                             </div>
                             <div class="col-md-6">
-                                <label class="form-label-custom">Dirección *</label>
-                                <input type="text" class="form-control custom-input" name="CompanyAddress" placeholder="Dirección completa" />
+                                <label class="form-label-custom">Direccion *</label>
+                                <input type="text" class="form-control custom-input" name="CompanyAddress" placeholder="Direccion completa" />
                             </div>
                             <div class="col-md-6">
                                 <label class="form-label-custom">Contacto de RH *</label>
-                                <input type="text" class="form-control custom-input" name="HRContactName" placeholder="Nombre del reclutador" />
+                                <input type="text" class="form-control custom-input" name="HRContactName" placeholder="Nombre del reclutador" value="@(Model.OrganizationContact == "Sin contacto" ? string.Empty : Model.OrganizationContact)" />
                             </div>
                             <div class="col-md-6">
                                 <label class="form-label-custom">Email de RH *</label>
                                 <input type="email" class="form-control custom-input" name="HRContactEmail" placeholder="correo@empresa.com" />
                             </div>
                             <div class="col-md-6">
-                                <label class="form-label-custom">Teléfono de RH</label>
+                                <label class="form-label-custom">Telefono de RH</label>
                                 <input type="tel" class="form-control custom-input" name="HRContactPhone" placeholder="899-xxx-xxxx" />
                             </div>
                             <div class="col-md-6">
@@ -248,61 +316,97 @@
 
             <div class="tab-pane fade" id="paso3" role="tabpanel">
                 <div class="mb-4 pb-3 border-bottom">
-                    <h4 class="fw-bold txt-title mb-1">3. Documentación</h4>
-                    <p class="text-muted text-sm mb-0">Sube tu Currículum y Constancia IMSS en formato PDF.</p>
+                    <h4 class="fw-bold txt-title mb-1">3. Documentacion</h4>
+                    <p class="text-muted text-sm mb-0">Sube tu Curriculum y Constancia IMSS en formato PDF.</p>
                 </div>
 
                 <div class="row g-3 mb-4">
                     <div class="col-md-4">
                         <div class="bg-white border rounded-3 p-3 text-center shadow-sm h-100">
-                            <i class="bi bi-check-circle-fill text-success fs-3 mb-2 d-block"></i>
-                            <h6 class="fw-bold text-dark text-sm mb-1">CV Español</h6>
-                            <span class="badge bg-success bg-opacity-10 text-success border border-success px-2">Subido</span>
+                            <i class="bi @(Model.HasResumeSpanish ? "bi-check-circle-fill text-success" : "bi-x-circle text-danger") fs-3 mb-2 d-block"></i>
+                            <h6 class="fw-bold text-dark text-sm mb-1">CV Espanol</h6>
+                            <span class="badge @(resumeSpanish == null ? "bg-danger bg-opacity-10 text-danger border border-danger" : string.Equals(resumeSpanish.StatusCode, "APPROVED", StringComparison.OrdinalIgnoreCase) ? "bg-success bg-opacity-10 text-success border border-success" : string.Equals(resumeSpanish.StatusCode, "REJECTED", StringComparison.OrdinalIgnoreCase) ? "bg-danger bg-opacity-10 text-danger border border-danger" : "bg-warning bg-opacity-10 text-warning border border-warning") px-2">
+                                @(resumeSpanish == null ? "Pendiente" : string.Equals(resumeSpanish.StatusCode, "APPROVED", StringComparison.OrdinalIgnoreCase) ? "Aprobado" : string.Equals(resumeSpanish.StatusCode, "REJECTED", StringComparison.OrdinalIgnoreCase) ? "Rechazado" : "En revision")
+                            </span>
                         </div>
                     </div>
                     <div class="col-md-4">
                         <div class="bg-white border rounded-3 p-3 text-center shadow-sm h-100">
-                            <i class="bi bi-x-circle text-danger fs-3 mb-2 d-block"></i>
-                            <h6 class="fw-bold text-dark text-sm mb-1">CV Inglés</h6>
-                            <span class="badge bg-danger bg-opacity-10 text-danger border border-danger px-2">Pendiente</span>
+                            <i class="bi @(Model.HasResumeEnglish ? "bi-check-circle-fill text-success" : "bi-x-circle text-danger") fs-3 mb-2 d-block"></i>
+                            <h6 class="fw-bold text-dark text-sm mb-1">CV Ingles</h6>
+                            <span class="badge @(resumeEnglish == null ? "bg-danger bg-opacity-10 text-danger border border-danger" : string.Equals(resumeEnglish.StatusCode, "APPROVED", StringComparison.OrdinalIgnoreCase) ? "bg-success bg-opacity-10 text-success border border-success" : string.Equals(resumeEnglish.StatusCode, "REJECTED", StringComparison.OrdinalIgnoreCase) ? "bg-danger bg-opacity-10 text-danger border border-danger" : "bg-warning bg-opacity-10 text-warning border border-warning") px-2">
+                                @(resumeEnglish == null ? "Pendiente" : string.Equals(resumeEnglish.StatusCode, "APPROVED", StringComparison.OrdinalIgnoreCase) ? "Aprobado" : string.Equals(resumeEnglish.StatusCode, "REJECTED", StringComparison.OrdinalIgnoreCase) ? "Rechazado" : "En revision")
+                            </span>
                         </div>
                     </div>
                     <div class="col-md-4">
                         <div class="bg-white border rounded-3 p-3 text-center shadow-sm h-100">
-                            <i class="bi bi-x-circle text-danger fs-3 mb-2 d-block"></i>
+                            <i class="bi @(Model.HasImssCertificate ? "bi-check-circle-fill text-success" : "bi-x-circle text-danger") fs-3 mb-2 d-block"></i>
                             <h6 class="fw-bold text-dark text-sm mb-1">IMSS</h6>
-                            <span class="badge bg-danger bg-opacity-10 text-danger border border-danger px-2">Pendiente</span>
+                            <span class="badge @(imssCertificate == null ? "bg-danger bg-opacity-10 text-danger border border-danger" : string.Equals(imssCertificate.StatusCode, "APPROVED", StringComparison.OrdinalIgnoreCase) ? "bg-success bg-opacity-10 text-success border border-success" : string.Equals(imssCertificate.StatusCode, "REJECTED", StringComparison.OrdinalIgnoreCase) ? "bg-danger bg-opacity-10 text-danger border border-danger" : "bg-warning bg-opacity-10 text-warning border border-warning") px-2">
+                                @(imssCertificate == null ? "Pendiente" : string.Equals(imssCertificate.StatusCode, "APPROVED", StringComparison.OrdinalIgnoreCase) ? "Aprobado" : string.Equals(imssCertificate.StatusCode, "REJECTED", StringComparison.OrdinalIgnoreCase) ? "Rechazado" : "En revision")
+                            </span>
                         </div>
                     </div>
                 </div>
 
                 <form asp-action="Documents" asp-controller="DualStudent" method="post" enctype="multipart/form-data">
                     @Html.AntiForgeryToken()
-                    
+
                     <div class="bg-light p-3 rounded-3 border mb-3 d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3">
                         <div>
-                            <span class="d-block fw-bold text-sm text-dark"><i class="bi bi-file-person me-2"></i> Currículum (Español)</span>
-                            <small class="text-muted text-xs">PDF. Máximo 5MB.</small>
-                            <br><small class="text-success fw-bold"><i class="bi bi-check me-1"></i>mi_cv_espanol.pdf</small>
+                            <span class="d-block fw-bold text-sm text-dark"><i class="bi bi-file-person me-2"></i> Curriculum (Espanol)</span>
+                            <small class="text-muted text-xs">PDF. Maximo 5MB.</small>
+                            @if (resumeSpanish != null)
+                            {
+                                <br><small class="text-success fw-bold"><i class="bi bi-check me-1"></i>@(resumeSpanish.Title)</small>
+                                @if (!string.IsNullOrWhiteSpace(resumeSpanish.ReviewComments))
+                                {
+                                    <br><small class="text-danger fw-bold"><i class="bi bi-chat-left-text me-1"></i>@resumeSpanish.ReviewComments</small>
+                                }
+                            }
                         </div>
-                        <input type="file" name="ResumeSpanishFile" class="form-control form-control-sm w-auto" accept=".pdf">
+                        <input type="file" name="ResumeSpanishFile" class="form-control form-control-sm w-auto" accept=".pdf" @(canUploadResumeSpanish ? "" : "disabled")>
                     </div>
 
                     <div class="bg-light p-3 rounded-3 border mb-3 d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3">
                         <div>
-                            <span class="d-block fw-bold text-sm text-dark"><i class="bi bi-file-person me-2"></i> Currículum (Inglés)</span>
+                            <span class="d-block fw-bold text-sm text-dark"><i class="bi bi-file-person me-2"></i> Curriculum (Ingles)</span>
                             <small class="text-muted text-xs">Opcional si la empresa lo requiere.</small>
+                            @if (resumeEnglish != null)
+                            {
+                                <br><small class="text-success fw-bold"><i class="bi bi-check me-1"></i>@(resumeEnglish.Title)</small>
+                                @if (!string.IsNullOrWhiteSpace(resumeEnglish.ReviewComments))
+                                {
+                                    <br><small class="text-danger fw-bold"><i class="bi bi-chat-left-text me-1"></i>@resumeEnglish.ReviewComments</small>
+                                }
+                            }
                         </div>
-                        <input type="file" name="ResumeEnglishFile" class="form-control form-control-sm w-auto" accept=".pdf">
+                        <input type="file" name="ResumeEnglishFile" class="form-control form-control-sm w-auto" accept=".pdf" @(canUploadResumeEnglish ? "" : "disabled")>
                     </div>
 
                     <div class="bg-light p-3 rounded-3 border mb-3 d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3">
                         <div>
                             <span class="d-block fw-bold text-sm text-dark"><i class="bi bi-file-medical me-2"></i> Certificado IMSS</span>
                             <small class="text-muted text-xs">Vigencia de derechos descargada del IMSS.</small>
+                            @if (imssCertificate != null)
+                            {
+                                <br><small class="text-success fw-bold"><i class="bi bi-check me-1"></i>@(imssCertificate.Title)</small>
+                                @if (!string.IsNullOrWhiteSpace(imssCertificate.ReviewComments))
+                                {
+                                    <br><small class="text-danger fw-bold"><i class="bi bi-chat-left-text me-1"></i>@imssCertificate.ReviewComments</small>
+                                }
+                            }
                         </div>
-                        <input type="file" name="IMSSCertificateFile" class="form-control form-control-sm w-auto" accept=".pdf">
+                        <input type="file" name="IMSSCertificateFile" class="form-control form-control-sm w-auto" accept=".pdf" @(canUploadImss ? "" : "disabled")>
                     </div>
+
+                    @if (!canUploadResumeSpanish || !canUploadResumeEnglish || !canUploadImss)
+                    {
+                        <div class="alert alert-light border border-secondary text-sm">
+                            <i class="bi bi-info-circle me-2"></i>Los documentos en estado <strong>Aprobado</strong> o <strong>En revision</strong> no se pueden reemplazar. Solo los documentos <strong>Rechazados</strong> pueden subirse de nuevo.
+                        </div>
+                    }
 
                     <div class="mt-4 mt-md-5 d-flex flex-column-reverse flex-md-row justify-content-md-between gap-3 border-top pt-4">
                         <button type="button" class="btn text-muted fw-bold px-4" onclick="$('#dualTabs button[data-bs-target=\'#paso2\']').tab('show'); window.scrollTo(0,0);">
@@ -318,26 +422,62 @@
 
             <div class="tab-pane fade" id="paso4" role="tabpanel">
                 <div class="mb-4 pb-3 border-bottom">
-                    <h4 class="fw-bold txt-title mb-1">4. Carta de Solicitud/Presentación</h4>
-                    <p class="text-muted text-sm mb-0">Solicita el documento oficial de vinculación con la empresa.</p>
+                    <h4 class="fw-bold txt-title mb-1">4. Carta de Solicitud/Presentacion</h4>
+                    <p class="text-muted text-sm mb-0">Solicita el documento oficial de vinculacion con la empresa.</p>
                 </div>
 
-                <div class="alert alert-light border border-secondary shadow-sm mb-4">
-                    <i class="bi bi-info-circle me-2 text-primary-900"></i> No tienes solicitudes previas. Llena los datos para generar tu carta.
-                </div>
+                @if (requestedLetter == null)
+                {
+                    <div class="alert alert-light border border-secondary shadow-sm mb-4">
+                        <i class="bi bi-info-circle me-2 text-primary-900"></i>
+                        <span>No tienes solicitudes previas. Llena los datos para generar tu carta.</span>
+                    </div>
+                }
+                else if (letterIsPending)
+                {
+                    <div class="alert alert-light border border-warning shadow-sm mb-4">
+                        <i class="bi bi-hourglass-split me-2 text-warning"></i>
+                        Tu carta de solicitud esta <strong>en espera de revision</strong> por el tutor.
+                    </div>
+                }
+                else if (letterIsApproved)
+                {
+                    <div class="bg-success bg-opacity-10 border border-success rounded-4 p-4 shadow-sm mb-4">
+                        <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3">
+                            <div>
+                                <div class="fw-bold text-success mb-1"><i class="bi bi-check-circle-fill me-2"></i>Carta aprobada</div>
+                                <div class="text-dark text-sm">Tu carta fue autorizada por el tutor y enviada exitosamente a: <strong>@(Model.Email == "Sin correo" ? "correo no registrado" : Model.Email)</strong>.</div>
+                            </div>
+                            <span class="badge bg-success text-white px-3 py-2">Solicitud completada</span>
+                        </div>
+                    </div>
+                }
+                else if (letterIsRejected)
+                {
+                    <div class="alert alert-light border border-danger shadow-sm mb-4">
+                        <i class="bi bi-x-circle-fill me-2 text-danger"></i>
+                        Carta de solicitud <strong>rechazada</strong>.
+                        @if (!string.IsNullOrWhiteSpace(requestedLetter?.ReviewComments))
+                        {
+                            <span>Comentarios: <strong>@requestedLetter.ReviewComments</strong>.</span>
+                        }
+                    </div>
+                }
 
+                @if (showLetterRequestForm)
+                {
                 <form asp-action="PresentationLetter" asp-controller="DualStudent" method="post">
                     @Html.AntiForgeryToken()
-                    
+
                     <h6 class="fw-bold text-dark border-bottom pb-2 mb-3">Datos del Destinatario (Empresa)</h6>
                     <div class="row g-3 mb-4">
                         <div class="col-md-12">
                             <label class="form-label-custom">Nombre de la Empresa *</label>
-                            <input type="text" class="form-control custom-input" name="CompanyName" placeholder="Razón Social Completa" />
+                            <input type="text" class="form-control custom-input" name="CompanyName" placeholder="Razon Social Completa" value="@(Model.OrganizationId > 0 ? Model.OrganizationName : string.Empty)" />
                         </div>
                         <div class="col-md-6">
                             <label class="form-label-custom">Nombre a quien va dirigida (Lic. / Ing.) *</label>
-                            <input type="text" class="form-control custom-input" name="RecipientName" placeholder="Ej. Ing. Carlos López" />
+                            <input type="text" class="form-control custom-input" name="RecipientName" placeholder="Ej. Ing. Carlos Lopez" />
                         </div>
                         <div class="col-md-6">
                             <label class="form-label-custom">Puesto del Destinatario *</label>
@@ -355,12 +495,61 @@
                         </div>
                     </div>
                 </form>
+                }
+
+                <div class="bg-light p-4 rounded-4 border border-light mt-4 shadow-sm">
+                    <h6 class="fw-bold text-dark mb-2"><i class="bi bi-file-earmark-check me-2"></i>Subir Carta de Aceptacion</h6>
+                    <p class="text-muted text-xs mb-3">Cuando la empresa te entregue la carta firmada, subela para revision del asesor.</p>
+                    @if (acceptanceLetter == null)
+                    {
+                        <div class="mb-3 text-muted text-sm"><i class="bi bi-info-circle me-2"></i>Aun no has subido carta de aceptacion.</div>
+                    }
+                    else if (acceptanceIsPending)
+                    {
+                        <div class="mb-3 text-warning text-sm fw-bold"><i class="bi bi-hourglass-split me-2"></i>Carta de aceptacion en revision por el tutor.</div>
+                    }
+                    else if (acceptanceIsApproved)
+                    {
+                        <div class="mb-3 text-success text-sm fw-bold"><i class="bi bi-check-circle-fill me-2"></i>Carta de aceptacion aprobada.</div>
+                    }
+                    else if (acceptanceIsRejected)
+                    {
+                        <div class="mb-3 text-danger text-sm fw-bold"><i class="bi bi-x-circle-fill me-2"></i>Carta de aceptacion rechazada.</div>
+                    }
+
+                    @if (acceptanceLetter != null && !string.IsNullOrWhiteSpace(acceptanceLetter.ReviewComments))
+                    {
+                        <div class="alert alert-light border border-danger text-sm">Comentarios del tutor: <strong>@acceptanceLetter.ReviewComments</strong></div>
+                    }
+
+                    @if (canUploadAcceptance)
+                    {
+                    <form asp-action="AcceptanceLetter" asp-controller="DualStudent" method="post" enctype="multipart/form-data">
+                        @Html.AntiForgeryToken()
+                        <div class="row g-3 align-items-end">
+                            <div class="col-md-9">
+                                <label class="form-label-custom">Carta de Aceptacion (PDF) *</label>
+                                <input type="file" name="acceptanceLetterFile" class="form-control custom-input bg-white" accept=".pdf" required>
+                            </div>
+                            <div class="col-md-3 d-grid">
+                                <button type="submit" class="btn btn-dark fw-bold shadow-sm"><i class="bi bi-cloud-upload me-2"></i>Subir</button>
+                            </div>
+                        </div>
+                    </form>
+                    }
+                    else
+                    {
+                        <div class="alert alert-light border border-secondary text-sm mb-0">
+                            <i class="bi bi-lock me-2"></i>La carta de aceptacion ya fue enviada y no permite nueva carga en este estado.
+                        </div>
+                    }
+                </div>
             </div>
 
             <div class="tab-pane fade" id="paso5" role="tabpanel">
                 <div class="mb-4 pb-3 border-bottom">
                     <h4 class="fw-bold txt-title mb-1">5. Mis Asesores</h4>
-                    <p class="text-muted text-sm mb-0">Quienes evaluarán y supervisarán tus prácticas.</p>
+                    <p class="text-muted text-sm mb-0">Quienes evaluaran y supervisaran tus practicas.</p>
                 </div>
 
                 <div class="row g-4 mb-4">
@@ -369,11 +558,11 @@
                             <div class="bg-white rounded-circle d-flex align-items-center justify-content-center mx-auto mb-3 border shadow-sm" style="width: 70px; height: 70px;">
                                 <i class="bi bi-mortarboard-fill text-dark fs-2"></i>
                             </div>
-                            <h6 class="fw-bold text-dark mb-1">Ing. María Fernanda López</h6>
-                            <span class="badge bg-white text-dark border px-3 py-1 mb-3 shadow-sm">Asesor Académico UTTN</span>
+                            <h6 class="fw-bold text-dark mb-1">@Model.AcademicAdvisorName</h6>
+                            <span class="badge bg-white text-dark border px-3 py-1 mb-3 shadow-sm">Asesor Academico UTTN</span>
                             <div class="text-start bg-white p-3 rounded-3 border">
-                                <p class="text-muted text-xs mb-1 fw-bold"><i class="bi bi-envelope me-2"></i>mlopez@uttn.mx</p>
-                                <p class="text-muted text-xs mb-0 fw-bold"><i class="bi bi-telephone me-2"></i>899-123-4567</p>
+                                <p class="text-muted text-xs mb-1 fw-bold"><i class="bi bi-envelope me-2"></i>@Model.AcademicAdvisorEmail</p>
+                                <p class="text-muted text-xs mb-0 fw-bold"><i class="bi bi-telephone me-2"></i>@Model.AcademicAdvisorPhone</p>
                             </div>
                         </div>
                     </div>
@@ -381,22 +570,34 @@
                     <div class="col-md-6">
                         <div class="bg-white border border-secondary rounded-4 p-4 h-100 shadow-sm">
                             <h6 class="fw-bold text-dark border-bottom pb-2 mb-3"><i class="bi bi-briefcase-fill me-2"></i> Asesor Empresarial</h6>
-                            <p class="text-muted text-xs mb-3">Registra a la persona que te supervisará dentro de la empresa.</p>
-                            
-                            <form asp-action="SaveBusinessAdvisor" asp-controller="DualStudent" method="post">
+                            <p class="text-muted text-xs mb-3">Solo se permite un asesor empresarial. Si ya existe, aqui mismo lo editas.</p>
+
+                            <div class="bg-light border rounded-3 p-3 mb-3 text-sm">
+                                <div class="fw-bold text-dark">@(Model.BusinessAdvisorName == "Sin registrar" ? "Sin registrar" : Model.BusinessAdvisorName)</div>
+                                <div class="text-muted">@(Model.BusinessAdvisorRole == "N/D" ? "Puesto no registrado" : Model.BusinessAdvisorRole)</div>
+                                <div class="text-muted">@(Model.BusinessAdvisorEmail == "N/D" ? "Correo no registrado" : Model.BusinessAdvisorEmail)</div>
+                            </div>
+
+                            <div class="mb-3 text-end">
+                                <button type="button" class="btn btn-outline-dark btn-sm fw-bold" onclick="toggleAdvisorEditor()">
+                                    @(Model.BusinessAdvisorName == "Sin registrar" ? "Registrar asesor" : "Editar asesor")
+                                </button>
+                            </div>
+
+                            <form asp-action="SaveBusinessAdvisor" asp-controller="DualStudent" method="post" id="advisorEditor" class="d-none">
                                 @Html.AntiForgeryToken()
                                 <div class="row g-2">
                                     <div class="col-12">
-                                        <input type="text" class="form-control custom-input bg-light text-sm" name="BusinessName" placeholder="Nombre completo *" required>
+                                        <input type="text" class="form-control custom-input bg-light text-sm" name="BusinessName" placeholder="Nombre completo *" value="@(Model.BusinessAdvisorName == "Sin registrar" ? string.Empty : Model.BusinessAdvisorName)" required>
                                     </div>
                                     <div class="col-12">
-                                        <input type="text" class="form-control custom-input bg-light text-sm" name="BusinessRole" placeholder="Puesto en la empresa">
+                                        <input type="text" class="form-control custom-input bg-light text-sm" name="BusinessRole" placeholder="Puesto en la empresa" value="@(Model.BusinessAdvisorRole == "N/D" ? string.Empty : Model.BusinessAdvisorRole)">
                                     </div>
                                     <div class="col-12">
-                                        <input type="email" class="form-control custom-input bg-light text-sm" name="BusinessEmail" placeholder="Correo corporativo">
+                                        <input type="email" class="form-control custom-input bg-light text-sm" name="BusinessEmail" placeholder="Correo corporativo" value="@(Model.BusinessAdvisorEmail == "N/D" ? string.Empty : Model.BusinessAdvisorEmail)">
                                     </div>
                                     <div class="col-12 mt-3 text-end">
-                                        <button type="submit" class="btn btn-outline-dark btn-sm fw-bold w-100 shadow-sm">Guardar Asesor</button>
+                                        <button type="submit" class="btn btn-outline-dark btn-sm fw-bold w-100 shadow-sm">@(Model.BusinessAdvisorName == "Sin registrar" ? "Guardar Asesor" : "Actualizar Asesor")</button>
                                     </div>
                                 </div>
                             </form>
@@ -421,7 +622,7 @@
                         <p class="text-muted text-sm mb-0">Sube tus avances y revisa los comentarios de tus asesores.</p>
                     </div>
                     <div class="text-end">
-                        <span class="d-block fw-bold text-dark fs-5">2 / 15</span>
+                        <span class="d-block fw-bold text-dark fs-5">@approvedReports / @reportGoal</span>
                         <small class="text-muted text-xs">Semanas</small>
                     </div>
                 </div>
@@ -432,15 +633,20 @@
                         <div class="row g-3 align-items-end">
                             <div class="col-md-2">
                                 <label class="form-label-custom">Semana</label>
-                                <select class="form-select custom-input bg-white" name="WeekNumber"><option value="3">3</option></select>
+                                <select class="form-select custom-input bg-white" name="WeekNumber">
+                                    @for (var week = 1; week <= reportGoal; week++)
+                                    {
+                                        <option value="@week">@week</option>
+                                    }
+                                </select>
                             </div>
                             <div class="col-md-4">
-                                <label class="form-label-custom">Título / Actividad Principal</label>
-                                <input type="text" class="form-control custom-input bg-white" name="ReportTitle" placeholder="Ej. Diseño de DB" required>
+                                <label class="form-label-custom">Titulo / Actividad Principal</label>
+                                <input type="text" class="form-control custom-input bg-white" name="ReportTitle" placeholder="Ej. Diseno de DB" required>
                             </div>
                             <div class="col-md-2">
                                 <label class="form-label-custom">Horas</label>
-                                <input type="number" class="form-control custom-input bg-white" name="HoursWorked" placeholder="40" required>
+                                <input type="number" class="form-control custom-input bg-white" name="HoursWorked" min="0.5" step="0.5" placeholder="40" required>
                             </div>
                             <div class="col-md-4">
                                 <label class="form-label-custom">Archivo (PDF)</label>
@@ -460,49 +666,65 @@
                             <tr>
                                 <th class="py-3 px-3 fw-bold text-xs" width="10%">SEM.</th>
                                 <th class="py-3 fw-bold text-xs" width="20%">INFO</th>
-                                <th class="py-3 fw-bold text-xs" width="40%">RETROALIMENTACIÓN</th>
+                                <th class="py-3 fw-bold text-xs" width="40%">RETROALIMENTACION</th>
                                 <th class="py-3 text-center fw-bold text-xs px-3" width="20%">ESTATUS</th>
                                 <th class="py-3 text-center fw-bold text-xs" width="10%">PDF</th>
                             </tr>
                         </thead>
                         <tbody>
-                            
-                            <tr class="border-bottom hover-bg-light">
-                                <td class="px-3 fw-bold text-dark fs-5 text-center">1</td>
-                                <td>
-                                    <span class="d-block fw-bold text-dark">Inducción y Seguridad</span>
-                                    <small class="text-muted">40 horas</small>
-                                </td>
-                                <td>
-                                    <div class="bg-light p-2 rounded-2 border">
-                                        <small class="text-muted fst-italic">"Excelente reporte, continuemos con la capacitación técnica." - Ing. María López</small>
-                                    </div>
-                                </td>
-                                <td class="text-center px-3">
-                                    <span class="badge bg-white text-dark border px-3 py-2 shadow-sm"><i class="bi bi-circle-fill text-success me-1" style="font-size:0.5rem;"></i> Aprobado</span>
-                                </td>
-                                <td class="text-center">
-                                    <a href="#" class="btn btn-light btn-sm border"><i class="bi bi-download text-dark"></i></a>
-                                </td>
-                            </tr>
+                            @if (!Model.WeeklyReports.Any())
+                            {
+                                <tr>
+                                    <td colspan="5" class="text-center py-4 text-muted">Aun no has enviado reportes semanales.</td>
+                                </tr>
+                            }
+                            else
+                            {
+                                foreach (var report in Model.WeeklyReports.OrderBy(x => x.WeekNumber ?? int.MaxValue).ThenBy(x => x.UploadDate))
+                                {
+                                    var statusClass = string.Equals(report.StatusCode, "APPROVED", StringComparison.OrdinalIgnoreCase)
+                                        ? "text-success"
+                                        : string.Equals(report.StatusCode, "REJECTED", StringComparison.OrdinalIgnoreCase)
+                                            ? "text-danger"
+                                            : "text-warning";
+                                    var statusText = string.Equals(report.StatusCode, "APPROVED", StringComparison.OrdinalIgnoreCase)
+                                        ? "Aprobado"
+                                        : string.Equals(report.StatusCode, "REJECTED", StringComparison.OrdinalIgnoreCase)
+                                            ? "Rechazado"
+                                            : "Pendiente";
+                                    var feedback = !string.IsNullOrWhiteSpace(report.Feedback)
+                                        ? report.Feedback
+                                        : string.Equals(report.StatusCode, "APPROVED", StringComparison.OrdinalIgnoreCase)
+                                            ? "Reporte aprobado sin observaciones registradas."
+                                            : "En espera de revision del asesor academico.";
 
-                            <tr class="border-bottom hover-bg-light">
-                                <td class="px-3 fw-bold text-dark fs-5 text-center">2</td>
-                                <td>
-                                    <span class="d-block fw-bold text-dark">Línea de Ensamble</span>
-                                    <small class="text-muted">38 horas</small>
-                                </td>
-                                <td>
-                                    <small class="text-muted">En espera de revisión del asesor académico.</small>
-                                </td>
-                                <td class="text-center px-3">
-                                    <span class="badge bg-white text-dark border px-3 py-2 shadow-sm"><i class="bi bi-circle-fill text-warning me-1" style="font-size:0.5rem;"></i> Pendiente</span>
-                                </td>
-                                <td class="text-center">
-                                    <a href="#" class="btn btn-light btn-sm border"><i class="bi bi-download text-dark"></i></a>
-                                </td>
-                            </tr>
-
+                                    <tr class="border-bottom hover-bg-light">
+                                        <td class="px-3 fw-bold text-dark fs-5 text-center">@(report.WeekNumber?.ToString() ?? "-")</td>
+                                        <td>
+                                            <span class="d-block fw-bold text-dark">@report.Title</span>
+                                            <small class="text-muted">@((report.HoursWorked ?? 0m).ToString("0.##")) horas</small>
+                                        </td>
+                                        <td>
+                                            <div class="bg-light p-2 rounded-2 border">
+                                                <small class="text-muted fst-italic">"@feedback"</small>
+                                            </div>
+                                        </td>
+                                        <td class="text-center px-3">
+                                            <span class="badge bg-white text-dark border px-3 py-2 shadow-sm"><i class="bi bi-circle-fill @statusClass me-1" style="font-size:0.5rem;"></i> @statusText</span>
+                                        </td>
+                                        <td class="text-center">
+                                            @if (!string.IsNullOrWhiteSpace(report.FilePath))
+                                            {
+                                                <a href="@report.FilePath" class="btn btn-light btn-sm border" target="_blank"><i class="bi bi-download text-dark"></i></a>
+                                            }
+                                            else
+                                            {
+                                                <span class="text-muted">N/D</span>
+                                            }
+                                        </td>
+                                    </tr>
+                                }
+                            }
                         </tbody>
                     </table>
                 </div>
@@ -513,29 +735,35 @@
                     </button>
                 </div>
             </div>
-
         </div>
     </div>
-
 </div>
 
 @section Scripts {
     <script>
         function selectDualType(type) {
             document.getElementById('placementTypeInput').value = type;
-            
-            // Lógica visual
-            $('.custom-radio-card').removeClass('border-primary-900 bg-white').addClass('bg-light').css({'border': '1px solid transparent', 'transform': 'scale(1)'});
-            
-            if(type === 'NEEDS_SUPPORT') {
-                $('#card-support').removeClass('bg-light').addClass('bg-white').css({'border': '2px solid var(--primary-900)', 'transform': 'scale(1.02)'});
+
+            $('.custom-radio-card').removeClass('border-primary-900 bg-white').addClass('bg-light').css({ 'border': '1px solid transparent', 'transform': 'scale(1)' });
+
+            if (type === 'NEEDS_SUPPORT') {
+                $('#card-support').removeClass('bg-light').addClass('bg-white').css({ 'border': '2px solid var(--primary-900)', 'transform': 'scale(1.02)' });
                 $('#parkSection').removeClass('d-none');
                 $('#companySection').addClass('d-none');
             } else {
-                $('#card-company').removeClass('bg-light').addClass('bg-white').css({'border': '2px solid var(--primary-900)', 'transform': 'scale(1.02)'});
+                $('#card-company').removeClass('bg-light').addClass('bg-white').css({ 'border': '2px solid var(--primary-900)', 'transform': 'scale(1.02)' });
                 $('#companySection').removeClass('d-none');
                 $('#parkSection').addClass('d-none');
             }
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            selectDualType('NEEDS_SUPPORT');
+            setTimeout(function () { $('.alert').fadeOut('slow'); }, 4000);
+        });
+
+        function toggleAdvisorEditor() {
+            $('#advisorEditor').toggleClass('d-none');
         }
     </script>
 }
