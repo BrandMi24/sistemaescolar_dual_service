@@ -4,12 +4,9 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Linq;
-using System.Security.Claims;
 
 namespace ControlEscolar.Controllers
 {
-    [Authorize(Roles = "STUDENT")]
-    [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
     public class AlumnoController : Controller
     {
         private readonly ApplicationDbContext _context;
@@ -65,13 +62,20 @@ namespace ControlEscolar.Controllers
         // ====================================================
         // AQUÍ CARGAMOS EL HISTORIAL DEL ALUMNO
         // ====================================================
+        [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
+        [Authorize(Roles = "STUDENT, ADMIN")]
         public IActionResult Tramites()
         {
             ViewData["Title"] = "Trámites Escolares";
             ViewData["ShowBackButton"] = true;
 
-            var userIdClaim = User.FindFirstValue(System.Security.Claims.ClaimTypes.NameIdentifier);
+            // Buscamos el ID de forma segura con la lógica "todoterreno"
+            var userIdClaim = User.FindFirst("UserId")?.Value
+                              ?? User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+
             int userIdActual = int.TryParse(userIdClaim, out int id) ? id : 0;
+
+            if (userIdActual == 0) return View(new List<DetalleSolicitudViewModel>());
 
             var historial = _context.Set<DetalleSolicitudViewModel>()
                 .FromSqlInterpolated($"EXEC sp_tramites @Option='tramites_solicitud_getbyalumno', @ID={userIdActual}")

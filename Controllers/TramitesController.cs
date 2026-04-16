@@ -22,37 +22,48 @@ namespace ControlEscolar.Controllers
     {
         private readonly ApplicationDbContext _context;
         private readonly IWebHostEnvironment _webHostEnvironment;
-        private readonly UserManager<IdentityUser> _userManager;
 
         public TramitesController(ApplicationDbContext context, IWebHostEnvironment webHostEnvironment, UserManager<IdentityUser> userManager)
         {
             _context = context;
             _webHostEnvironment = webHostEnvironment;
-            _userManager = userManager;
         }
-        private int GetUserIdActual()
-        {
-            var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            return int.TryParse(userIdClaim, out int id) ? id : 0;
-            //}
 
-            // NOTA PARA PRUEBAS: Si tu usuario de Identity no existe en la tabla vieja, 
-            // cambia este '0' temporalmente por un ID de alumno que SÍ exista en tu BD 
-            // (por ejemplo: 2, 5 o 10) para que puedas ver los datos en pantalla.
+        // ====================================================================
+        // MÉTODO FALTANTE: Obtiene el ID del usuario para el Stored Procedure
+        // ====================================================================
+        private async Task<int> GetLegacyUserIdAsync()
+        {
+            // 1. Obtenemos el ID directamente de los Claims que guardó el AccountController
+            var userIdClaim = User.FindFirst("UserId")?.Value
+                      ?? User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            if (string.IsNullOrEmpty(userIdClaim))
+            {
+                return 0; // No hay nadie logueado o la sesión no tiene el ID
+            }
+
+            // 2. Convertimos el string a int (Ej. de "24" a 24)
+            if (int.TryParse(userIdClaim, out int userId))
+            {
+                return userId;
+            }
+
             return 0;
         }
 
         // ==========================================
         // VISTAS DEL ALUMNO
         // ==========================================
-        public IActionResult MisTramites()
+        public async Task<IActionResult> MisTramites()
         {
-            int userIdActual = GetUserIdActual();
+            // Esperamos el ID de forma asíncrona sin bloquear el servidor
+            int userIdActual = await GetLegacyUserIdAsync();
 
-            var historial = _context.Set<DetalleSolicitudViewModel>()
+            // Convertimos la consulta a una lista de forma asíncrona (.ToListAsync())
+            var historial = await _context.Set<DetalleSolicitudViewModel>()
                 .FromSqlInterpolated($"EXEC sp_tramites @Option='tramites_solicitud_getbyalumno', @ID={userIdActual}")
-                .AsEnumerable()
-                .ToList();
+                .ToListAsync(); // <-- Cambiamos .ToList() por .ToListAsync()
 
             return View(historial);
         }
@@ -60,14 +71,27 @@ namespace ControlEscolar.Controllers
         [HttpGet]
         public async Task<IActionResult> ValidarMatricula()
         {
+            // --- BLOQUE DE DEBUG (Mantenlo para que en el servidor puedan ver qué pasa) ---
+            Console.WriteLine("Tramites/ValidarMatricula - IsAuthenticated: " + User.Identity.IsAuthenticated);
+            var debugClaims = User.Claims.Select(c => $"{c.Type} = {c.Value}").ToList();
+            foreach (var c in debugClaims)
+            {
+                Console.WriteLine("Claim encontrado: " + c);
+            }
+
             try
             {
-                int userId = GetUserIdActual();
-                if (userId == 0) return Json(new { success = false, message = "Sesión no válida." });
+                // Usamos el método asíncrono que busca tanto "UserId" como "NameIdentifier"
+                int userIdActual = await GetLegacyUserIdAsync();
+
+                if (userIdActual == 0)
+                {
+                    return Json(new { success = false, message = "Sesión no válida o usuario no identificado." });
+                }
 
                 // Ejecutamos el SP usando el ID de la sesión
                 var infoAlumno = _context.Set<InfoAlumnoViewModel>()
-                    .FromSqlInterpolated($"EXEC sp_tramites @Option='tramites_alumno_get_info_escolar', @ID={userId}")
+                    .FromSqlInterpolated($"EXEC sp_tramites @Option='tramites_alumno_get_info_escolar', @ID={userIdActual}")
                     .AsEnumerable()
                     .FirstOrDefault();
 
@@ -82,11 +106,13 @@ namespace ControlEscolar.Controllers
                         grupo = infoAlumno.Grupo
                     });
                 }
+
                 return Json(new { success = false, message = "No se encontraron datos escolares." });
             }
             catch (Exception ex)
             {
-                return Json(new { success = false, message = "Error: " + ex.Message });
+                // Esto ayudará a ver el error real en la consola del navegador si algo truena
+                return Json(new { success = false, message = "Error interno: " + ex.Message });
             }
         }
 
@@ -94,7 +120,7 @@ namespace ControlEscolar.Controllers
         [RequestSizeLimit(104857600)]
         public async Task<IActionResult> GuardarSolicitud(List<IFormFile> archivos)
         {
-            int userIdActual = GetUserIdActual();
+            int userIdActual = await GetLegacyUserIdAsync();
             if (!int.TryParse(Request.Form["id_tramite"], out int idTramiteLocal))
                 return BadRequest("ID de trámite no válido.");
 
@@ -178,7 +204,6 @@ namespace ControlEscolar.Controllers
         }
 
         [HttpGet]
-        [AllowAnonymous] // <--- ¡AGREGA ESTO! (Permite entrar sin login temporalmente)
         public async Task<IActionResult> ObtenerRequisitosJson(int id)
         {
             var requisitos = await _context.Set<RequisitoSolicitudViewModel>()
@@ -187,11 +212,7 @@ namespace ControlEscolar.Controllers
             return Json(requisitos.Select(r => new { id_requisito = r.IdRequisito, nombre_documento = r.NombreRequisito }).ToList());
         }
 
-
-        // ==========================================
-        // VISTAS DEL TUTOR / ADMIN (Revisión)
-        // ==========================================
-        [Authorize] // Puedes agregar los roles luego: [Authorize(Roles = "Admin,Tutor")]
+        [Authorize]
         public async Task<IActionResult> Gestion(string estatus = "Todos")
         {
             var listado = _context.Set<DetalleSolicitudViewModel>()
@@ -258,7 +279,7 @@ namespace ControlEscolar.Controllers
             if (!System.IO.File.Exists(path)) return Json(new { success = false, message = "Archivo físico no encontrado", rutaBuscada = path });
 
             var fileBytes = await System.IO.File.ReadAllBytesAsync(path);
-            string extension = Path.GetExtension(doc.NombreArchivoFisico);
+            string extension = Path.GetExtension(doc.NombreArchivoFisico ?? "");
             return File(fileBytes, "application/octet-stream", $"{doc.NombreRequisito.Replace(" ", "_")}_{matricula}_{DateTime.Now:yyyyMMdd_HHmmss}{extension}");
         }
 
@@ -267,7 +288,7 @@ namespace ControlEscolar.Controllers
         {
             int idSol = data.GetProperty("idSolicitud").GetInt32();
             int idReq = data.GetProperty("idRequisito").GetInt32();
-            string estatus = data.GetProperty("estatus").GetString();
+            string estatus = data.GetProperty("estatus").GetString() ?? "Pendiente";
 
             await _context.Database.ExecuteSqlInterpolatedAsync(
                 $"EXEC sp_tramites @Option='tramites_detalle_documento_actualizar_estatus', @ID={idSol}, @RequisitoID={idReq}, @Estatus={estatus}"
@@ -279,31 +300,34 @@ namespace ControlEscolar.Controllers
         [RequestSizeLimit(104857600)]
         public async Task<IActionResult> SubsanarDocumento(int idDetalle, int idSolicitud, IFormFile archivoNuevo)
         {
-            if (archivoNuevo == null || archivoNuevo.Length == 0) return Json(new { success = false, message = "Archivo no seleccionado." });
+            // Validaciones iniciales
+            if (archivoNuevo == null || archivoNuevo.Length == 0)
+                return Json(new { success = false, message = "Archivo no seleccionado." });
 
-            // 1. Buscamos el detalle (Usando el nombre de clase correcto: DetalleDocumentos)
+            // MANTENEMOS la validación de PDF de la Versión Actual
+            if (archivoNuevo.ContentType != "application/pdf")
+                return Json(new { success = false, message = "Solo se permiten archivos PDF." });
+
+            // 1. Buscamos los registros en la base de datos
             var detalle = await _context.TramitesDetalleDocumentos
                 .FirstOrDefaultAsync(d => d.id_solicitud == idSolicitud && d.id_requisito == idDetalle);
-
-            // USAMOS LOS DBSETS REALES AQUÍ TAMBIÉN
-            //var detalle = await _context.TramitesDetalleDocumentos.FirstOrDefaultAsync(d => d.id_solicitud == idSolicitud && d.id_requisito == idDetalle);
             var solicitud = await _context.TramitesSolicitudes.FindAsync(idSolicitud);
             var requisito = await _context.TramitesRequisitos.FindAsync(idDetalle);
 
             if (detalle == null || solicitud == null || requisito == null)
                 return Json(new { success = false, message = "Datos no encontrados." });
 
-            // 2. Ruta de la carpeta
+            // 2. Definimos la ruta de la carpeta del trámite
             string folderPath = Path.Combine(_webHostEnvironment.WebRootPath, "uploads", "tramites", solicitud.tramites_solicitud_archivo_path);
 
-            // 3. ¡IMPORTANTE! Solo intentamos borrar si el nombre del archivo NO es nulo
+            // 3. Borramos el archivo viejo si existe para no llenar el disco de basura
             if (!string.IsNullOrEmpty(detalle.nombre_archivo_fisico))
             {
                 string oldPath = Path.Combine(folderPath, detalle.nombre_archivo_fisico);
                 if (System.IO.File.Exists(oldPath)) System.IO.File.Delete(oldPath);
             }
 
-            // 4. Guardar el nuevo archivo
+            // 4. Guardamos el nuevo archivo con sufijo "CORREGIDO"
             string nuevoNombre = $"{requisito.nombre_documento.Replace(" ", "_")}_CORREGIDO_{DateTime.Now:yyyyMMddHHmmss}.pdf";
             string fullPath = Path.Combine(folderPath, nuevoNombre);
 
@@ -312,7 +336,7 @@ namespace ControlEscolar.Controllers
                 await archivoNuevo.CopyToAsync(stream);
             }
 
-            // 5. Ejecutar el SP
+            // 5. Notificamos a la base de datos mediante el SP
             await _context.Database.ExecuteSqlInterpolatedAsync(
                 $"EXEC sp_tramites @Option='tramites_documento_subsanar', @ID={idSolicitud}, @RequisitoID={idDetalle}, @NombreArchivo={nuevoNombre}"
             );

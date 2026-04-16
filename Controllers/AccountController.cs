@@ -1,4 +1,5 @@
 using ControlEscolar.Data;
+using ControlEscolar.Helpers;
 using ControlEscolar.Models;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
@@ -73,6 +74,7 @@ namespace ControlEscolar.Controllers
             // Claims
             var claims = new List<Claim>
             {
+                new Claim("UserId", user.management_user_ID.ToString()),
                 new Claim(ClaimTypes.NameIdentifier, user.management_user_ID.ToString()),
                 new Claim(ClaimTypes.Name, user.management_user_Email ?? "")
             };
@@ -90,7 +92,14 @@ namespace ControlEscolar.Controllers
                 CookieAuthenticationDefaults.AuthenticationScheme,
                 new ClaimsPrincipal(identity));
 
-            return LocalRedirect(returnUrl ?? Url.Action("Index", "Admin")!);
+            // PRIORIDAD: returnUrl
+            if (!string.IsNullOrEmpty(returnUrl))
+                return LocalRedirect(returnUrl);
+
+            // REDIRECCIÓN DINÁMICA
+            var (controller, action) = RoleRedirectHelper.GetRedirect(roles);
+
+            return RedirectToAction(action, controller);
         }
 
         [HttpPost]
@@ -120,33 +129,44 @@ namespace ControlEscolar.Controllers
         private async Task<List<string>> GetUserRoles(int userId)
         {
             var roles = new List<string>();
-
             var conn = _context.Database.GetDbConnection();
 
-            using var cmd = conn.CreateCommand();
-            cmd.CommandText = @"
-                SELECT r.management_role_Name
-                FROM dbo.management_userrole_table ur
-                INNER JOIN dbo.management_role_table r
-                    ON r.management_role_ID = ur.management_userrole_RoleID
-                WHERE ur.management_userrole_UserID = @UserID
-                  AND ur.management_userrole_status = 1
-                  AND r.management_role_status = 1";
-
-            cmd.Parameters.Add(new SqlParameter("@UserID", userId));
-
-            if (conn.State != ConnectionState.Open)
-                await conn.OpenAsync();
-
-            using var reader = await cmd.ExecuteReaderAsync();
-            while (await reader.ReadAsync())
+            try
             {
-                if (!reader.IsDBNull(0))
-                    roles.Add(reader.GetString(0));
+                using var cmd = conn.CreateCommand();
+                cmd.CommandText = @"
+            SELECT r.management_role_Name
+            FROM dbo.management_userrole_table ur
+            INNER JOIN dbo.management_role_table r
+                ON r.management_role_ID = ur.management_userrole_RoleID
+            WHERE ur.management_userrole_UserID = @UserID
+              AND ur.management_userrole_status = 1
+              AND r.management_role_status = 1";
+
+                cmd.Parameters.Add(new SqlParameter("@UserID", userId));
+
+                if (conn.State != ConnectionState.Open)
+                    await conn.OpenAsync();
+
+                using var reader = await cmd.ExecuteReaderAsync();
+                while (await reader.ReadAsync())
+                {
+                    if (!reader.IsDBNull(0))
+                    {
+                        roles.Add(reader.GetString(0));
+                    }
+                }
             }
-
-            await conn.CloseAsync();
-
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error obteniendo roles para usuario {userId}: {ex.Message}");
+                return new List<string>();
+            }
+            finally
+            {
+                if (conn.State == ConnectionState.Open)
+                    await conn.CloseAsync();
+            }
             return roles;
         }
     }

@@ -7,8 +7,6 @@ using System.Linq;
 
 namespace ControlEscolar.Controllers
 {
-    [Authorize(Roles = "Administrativo,TEACHER")]
-    [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
     public class TutorController : Controller
     {
         private readonly ApplicationDbContext _context;
@@ -42,6 +40,8 @@ namespace ControlEscolar.Controllers
         // ====================================================
         // AQUÍ CARGAMOS LA BANDEJA DE TRÁMITES PARA EL TUTOR
         // ====================================================
+        [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
+        [Authorize(Roles = "Administrativo,TEACHER,ADMIN")]
         public IActionResult Tramites(string estatus = "Todos")
         {
             var listado = _context.Set<DetalleSolicitudViewModel>()

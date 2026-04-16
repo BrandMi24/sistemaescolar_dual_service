@@ -1,0 +1,102 @@
+@model CreateRoleViewModel
+@{
+    ViewData["Title"] = "Roles";
+    Layout = "_LayoutCoordinador";
+
+    var isEdit = ViewBag.IsEdit as bool? ?? false;
+    var returnTab = ViewBag.ReturnTab as string ?? "tab-roles";
+}
+
+<div class="fade-in d-flex flex-column gap-4">
+
+    <div class="bg-surface p-4 rounded-4 border-theme shadow-sm d-flex justify-content-between align-items-center">
+        <div>
+            <h3 class="txt-title fw-bold mb-1">
+                @(isEdit ? "Editar Rol" : "Crear Rol")
+            </h3>
+            <span class="txt-body text-xs">
+                @(isEdit ? "Modifique la información del rol." : "Alta de nuevos roles en el sistema.")
+            </span>
+        </div>
+
+        <a href="@Url.Action("Catalogos", "Coordinador", new { tab = returnTab })"
+               class="btn btn-sm btn-ghost-sep border border-theme shadow-sm fw-semibold">
+            Volver a Catálogos
+        </a>
+    </div>
+
+    @if (!ViewData.ModelState.IsValid)
+    {
+        <div class="alert bg-error-100 border border-error txt-error rounded-3">
+            Verifique los datos.
+        </div>
+    }
+
+    <form asp-action="@(isEdit ? "EditRole" : "CreateRole")"
+          asp-controller="Coordinador"
+          method="post"
+          class="needs-validation"
+          novalidate>
+
+        @Html.AntiForgeryToken()
+
+        <input type="hidden" name="returnTab" value="@returnTab" />
+        <input type="hidden" asp-for="RoleId" />
+
+        <div class="row g-4">
+
+            <div class="col-lg-8">
+                <div class="admin-card-white p-4 rounded-4 border-theme shadow-sm bg-white">
+
+                    <h6 class="txt-title fw-bold mb-4 border-bottom border-theme pb-2">
+                        DATOS DEL ROL
+                    </h6>
+
+                    <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+                    <div class="mb-3">
+                        <label asp-for="RoleName" class="fw-bold text-xs">
+                            NOMBRE <span class="text-danger">*</span>
+                        </label>
+                        <input asp-for="RoleName" class="form-control search-input-custom" />
+                        <span asp-validation-for="RoleName" class="text-danger text-xs"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="RoleDescription" class="fw-bold text-xs">
+                            DESCRIPCIÓN
+                        </label>
+                        <textarea asp-for="RoleDescription"
+                                  class="form-control search-input-custom"
+                                  rows="3"></textarea>
+                        <span asp-validation-for="RoleDescription" class="text-danger text-xs"></span>
+                    </div>
+
+                </div>
+            </div>
+
+            <div class="col-lg-4">
+                <div class="admin-card-white p-4 rounded-4 shadow-sm h-100 d-flex flex-column bg-white border-theme">
+
+                    <div class="mt-auto">
+                        <button type="submit"
+                                class="btn btn-primary-sep w-100 fw-bold py-2">
+                            @(isEdit ? "Guardar Cambios" : "Crear Rol")
+                        </button>
+
+                        <a href="@Url.Action("Catalogos", "Coordinador", new { tab = returnTab })"
+                               class="btn btn-ghost-sep border border-theme w-100 mt-2">
+                            Cancelar
+                        </a>
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
