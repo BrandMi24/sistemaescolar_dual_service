@@ -14,4 +14,10 @@ namespace ControlEscolar.Models
         public string Email { get; set; } = "";
         public string Rol { get; set; } = "";
     }
+
+    public class AsignarRolRequest
+    {
+        public int UserId { get; set; }
+        public int RolId { get; set; }
+    }
 }

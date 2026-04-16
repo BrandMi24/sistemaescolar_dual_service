@@ -78,5 +78,6 @@ namespace ControlEscolar.Controllers
             ViewData["Matricula"] = id;
             return View(historial);
         }
+
     }
 }

@@ -57,14 +57,12 @@
                 <a class="nav-link" href="@Url.Action("Register", "VisitaPsicologica")">
                     <i class="bi bi-chat-dots-fill"></i> Nueva Sesión
                 </a>
-
-                @if (User.IsInRole("Admin") || User.IsInRole("Jefe de enfermeros") || User.IsInRole("Jefe de psicología"))
-                {
-                    <div class="nav-group-label">Administración</div>
-                    <a class="nav-link" href="@Url.Action("GestionUsuarios", "VisitaMedica")">
-                        <i class="bi bi-person-gear"></i> Roles Personal
-                    </a>
-                }
+                <div class="nav-group-label">Administración</div>
+                <a class="nav-link" href="@Url.Action("GestionUsuarios", "VisitaMedica")">
+                    <i class="bi bi-person-gear"></i> Roles Personal
+                </a>
+               
+               
             </nav>
 
             <div class="sidebar-footer">
