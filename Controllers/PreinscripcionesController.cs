@@ -137,6 +137,45 @@ namespace ControlEscolar.Controllers
                 }
             }
 
+            // ── Validación de coherencia de negocio (doble seguro servidor) ──────────────
+
+            // Edad mínima: 15 años
+            if (vm.academiccontrol_preinscription_personaldata_birthDate != default)
+            {
+                var edadAspirante = (int)Math.Floor(
+                    (DateTime.Today - vm.academiccontrol_preinscription_personaldata_birthDate).TotalDays / 365.25);
+
+                if (edadAspirante < 15)
+                    ModelState.AddModelError(
+                        nameof(vm.academiccontrol_preinscription_personaldata_birthDate),
+                        "El aspirante debe tener al menos 15 años de edad.");
+            }
+
+            // Intervalo de secundaria: exactamente 3 años (±30 días = 1065–1125 días)
+            if (vm.academiccontrol_preinscription_academic_startDate.HasValue &&
+                vm.academiccontrol_preinscription_academic_endDate.HasValue)
+            {
+                var inicioSec = vm.academiccontrol_preinscription_academic_startDate.Value;
+                var egresoSec = vm.academiccontrol_preinscription_academic_endDate.Value;
+
+                if (egresoSec <= inicioSec)
+                {
+                    ModelState.AddModelError(
+                        nameof(vm.academiccontrol_preinscription_academic_endDate),
+                        "La fecha de egreso de secundaria debe ser posterior a la fecha de inicio.");
+                }
+                else
+                {
+                    var diffDias = (egresoSec - inicioSec).TotalDays;
+                    if (diffDias < 1065 || diffDias > 1125)
+                        ModelState.AddModelError(
+                            nameof(vm.academiccontrol_preinscription_academic_endDate),
+                            "El intervalo entre inicio y egreso de secundaria debe ser de exactamente 3 años.");
+                }
+            }
+
+            // ─────────────────────────────────────────────────────────────────────────────
+
             if (ModelState.IsValid)
             {
                 try

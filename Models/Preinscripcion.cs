@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using Microsoft.AspNetCore.Http;
@@ -6,7 +7,7 @@ using ControlEscolar.Enums;
 
 namespace ControlEscolar.Models
 {
-    public class Preinscripcion
+    public class Preinscripcion : IValidatableObject
     {
         [Key]
         public int academiccontrol_preinscription_ID { get; set; }
@@ -113,8 +114,10 @@ namespace ControlEscolar.Models
 
         public string? academiccontrol_preinscription_academic_CCT { get; set; }
 
+        [DataType(DataType.Date)]
         public DateTime? academiccontrol_preinscription_academic_startDate { get; set; }
 
+        [DataType(DataType.Date)]
         public DateTime? academiccontrol_preinscription_academic_endDate { get; set; }
 
         #endregion
@@ -156,8 +159,52 @@ namespace ControlEscolar.Models
         [NotMapped]
         public int Edad => academiccontrol_preinscription_personaldata_birthDate == default
             ? 0
-            : (int)Math.Floor((DateTime.Now - academiccontrol_preinscription_personaldata_birthDate).TotalDays / 365.25);
+            : (int)Math.Floor((DateTime.Today - academiccontrol_preinscription_personaldata_birthDate).TotalDays / 365.25);
 
         #endregion
+
+        // -------------------------------------------------------
+        // Validaciones de coherencia de negocio
+        // -------------------------------------------------------
+        public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
+        {
+            // Regla 1: edad mínima de 15 años
+            if (academiccontrol_preinscription_personaldata_birthDate != default)
+            {
+                var edad = (int)Math.Floor(
+                    (DateTime.Today - academiccontrol_preinscription_personaldata_birthDate).TotalDays / 365.25);
+
+                if (edad < 15)
+                    yield return new ValidationResult(
+                        "El aspirante debe tener al menos 15 años de edad.",
+                        new[] { nameof(academiccontrol_preinscription_personaldata_birthDate) });
+            }
+
+            // Regla 2: intervalo de secundaria debe ser de 3 años (±30 días = 1065–1125 días)
+            if (academiccontrol_preinscription_academic_startDate.HasValue &&
+                academiccontrol_preinscription_academic_endDate.HasValue)
+            {
+                var inicio = academiccontrol_preinscription_academic_startDate.Value;
+                var egreso = academiccontrol_preinscription_academic_endDate.Value;
+
+                if (egreso <= inicio)
+                    yield return new ValidationResult(
+                        "La fecha de egreso de secundaria debe ser posterior a la fecha de inicio.",
+                        new[] { nameof(academiccontrol_preinscription_academic_endDate) });
+                else
+                {
+                    var diffDias = (egreso - inicio).TotalDays;
+                    // 3 años ≈ 1095 días; se permite ±30 días de margen (1065–1125)
+                    if (diffDias < 1065 || diffDias > 1125)
+                        yield return new ValidationResult(
+                            "El intervalo entre inicio y egreso de secundaria debe ser de exactamente 3 años.",
+                            new[]
+                            {
+                                nameof(academiccontrol_preinscription_academic_startDate),
+                                nameof(academiccontrol_preinscription_academic_endDate)
+                            });
+                }
+            }
+        }
     }
 }

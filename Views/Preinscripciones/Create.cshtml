@@ -68,7 +68,17 @@
                         </div>
                         <div class="col-md-4">
                             <label class="form-label txt-body text-xs fw-bold tracking-wide">FECHA DE NACIMIENTO *</label>
-                            <input name="academiccontrol_preinscription_personaldata_birthDate" type="date" class="form-control bg-app border-theme txt-title fw-bold date-quick" required />
+                            @{
+                                var maxFechaNac = DateTime.Today.AddYears(-15).ToString("yyyy-MM-dd");
+                                var minFechaNac = DateTime.Today.AddYears(-70).ToString("yyyy-MM-dd");
+                            }
+                            <input name="academiccontrol_preinscription_personaldata_birthDate"
+                                   type="date"
+                                   class="form-control bg-app border-theme txt-title fw-bold date-quick"
+                                   required
+                                   min="@minFechaNac"
+                                   max="@maxFechaNac"
+                                   title="El aspirante debe tener entre 15 y 70 años de edad" />
                         </div>
                         <div class="col-md-4">
                             <label class="form-label txt-body text-xs fw-bold tracking-wide">SEXO *</label>
@@ -267,11 +277,18 @@
                         </div>
                         <div class="col-md-4">
                             <label class="form-label txt-body text-xs fw-bold tracking-wide">INICIO SECUNDARIA</label>
-                            <input name="academiccontrol_preinscription_academic_startDate" type="date" class="form-control bg-app border-theme txt-title fw-bold date-quick" />
+                            <input id="startDateSecundaria"
+                                   name="academiccontrol_preinscription_academic_startDate"
+                                   type="date"
+                                   class="form-control bg-app border-theme txt-title fw-bold date-quick" />
                         </div>
                         <div class="col-md-4">
                             <label class="form-label txt-body text-xs fw-bold tracking-wide">EGRESO SECUNDARIA</label>
-                            <input name="academiccontrol_preinscription_academic_endDate" type="date" class="form-control bg-app border-theme txt-title fw-bold date-quick" />
+                            <input id="endDateSecundaria"
+                                   name="academiccontrol_preinscription_academic_endDate"
+                                   type="date"
+                                   class="form-control bg-app border-theme txt-title fw-bold date-quick"
+                                   title="Debe ser exactamente 3 años después del inicio" />
                         </div>
                     </div>
 
@@ -379,10 +396,59 @@
                 });
             });
 
+            // ── Intervalo de secundaria: ajuste dinámico de min/max en fecha de egreso ──
+            const startSecInput = document.getElementById('startDateSecundaria');
+            const endSecInput   = document.getElementById('endDateSecundaria');
+
+            function actualizarLimitesEgreso() {
+                const startVal = startSecInput.value;
+                if (!startVal) {
+                    endSecInput.min = '';
+                    endSecInput.max = '';
+                    return;
+                }
+                const start = new Date(startVal + 'T00:00:00'); // evitar offset de zona horaria
+                const minEnd = new Date(start);
+                minEnd.setFullYear(minEnd.getFullYear() + 3);
+                minEnd.setDate(minEnd.getDate() - 30);
+                const maxEnd = new Date(start);
+                maxEnd.setFullYear(maxEnd.getFullYear() + 3);
+                maxEnd.setDate(maxEnd.getDate() + 30);
+                endSecInput.min = minEnd.toISOString().split('T')[0];
+                endSecInput.max = maxEnd.toISOString().split('T')[0];
+                // Si ya tenía un valor fuera del nuevo rango, limpiarlo
+                if (endSecInput.value && (endSecInput.value < endSecInput.min || endSecInput.value > endSecInput.max)) {
+                    endSecInput.value = '';
+                }
+            }
+
+            startSecInput.addEventListener('change', actualizarLimitesEgreso);
+
             // Submit con manejo de PDF y redirección
             submitBtn.addEventListener('click', async function () {
                 const form = document.getElementById('preinscripcionForm');
                 const formData = new FormData(form);
+
+                // ── Validación cliente: intervalo de secundaria ───────────────────────────
+                const startRaw = formData.get('academiccontrol_preinscription_academic_startDate');
+                const endRaw   = formData.get('academiccontrol_preinscription_academic_endDate');
+
+                if (startRaw && endRaw) {
+                    const startD = new Date(startRaw + 'T00:00:00');
+                    const endD   = new Date(endRaw   + 'T00:00:00');
+                    const diffDias = (endD - startD) / (1000 * 60 * 60 * 24);
+
+                    if (endD <= startD) {
+                        alert('⚠️ La fecha de egreso de secundaria debe ser posterior a la de inicio.');
+                        return;
+                    }
+                    if (diffDias < 1065 || diffDias > 1125) {
+                        alert('⚠️ El intervalo entre inicio y egreso de secundaria debe ser de exactamente 3 años.');
+                        return;
+                    }
+                }
+                // ─────────────────────────────────────────────────────────────────────────
+
                 const actionUrl = '@Url.Action("Create", "Preinscripciones")';
 
                 try {
