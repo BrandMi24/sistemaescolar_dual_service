@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using QuestPDF.Infrastructure;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using System.Threading.RateLimiting;
 
 AppDomain.CurrentDomain.UnhandledException += (sender, e) =>
@@ -23,10 +24,6 @@ builder.Services.AddControllersWithViews();
 builder.Services.AddScoped<ControlEscolar.Services.IFileService, ControlEscolar.Services.FileService>();
 builder.Services.AddScoped<IPdfService, PdfService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
-builder.Services.AddScoped<IDualEducationService, DualEducationService>();
-builder.Services.AddScoped<ISocialServiceService, SocialServiceService>();
-builder.Services.AddScoped<IOperationalAuditService, OperationalAuditService>();
-builder.Services.AddHttpContextAccessor();
 
 // Configurar Entity Framework
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
@@ -43,7 +40,7 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
     .AddCookie(options =>
     {
         options.LoginPath = "/Account/Login";
-        options.AccessDeniedPath = "/Home/AccessDenied";
+        options.AccessDeniedPath = "/Account/AccessDenied";
         options.ExpireTimeSpan = TimeSpan.FromHours(8);
     });
 
@@ -63,11 +60,6 @@ builder.Services.AddRateLimiter(options =>
     options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
 });
 var app = builder.Build();
-var aspNetCoreUrls = Environment.GetEnvironmentVariable("ASPNETCORE_URLS");
-var launchProfile = Environment.GetEnvironmentVariable("DOTNET_LAUNCH_PROFILE");
-var shouldUseHttpsRedirection =
-    (!string.IsNullOrWhiteSpace(aspNetCoreUrls) && aspNetCoreUrls.Contains("https://", StringComparison.OrdinalIgnoreCase)) ||
-    string.Equals(launchProfile, "https", StringComparison.OrdinalIgnoreCase);
 
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
@@ -76,10 +68,7 @@ if (!app.Environment.IsDevelopment())
     app.UseHsts();
 }
 
-if (shouldUseHttpsRedirection)
-{
-    app.UseHttpsRedirection();
-}
+app.UseHttpsRedirection();
 app.UseStaticFiles();
 
 // Cabeceras de seguridad
@@ -109,5 +98,25 @@ app.UseAuthorization();
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
+
+// Migración automática y seed del admin (solo en desarrollo)
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    try
+    {
+        var context = services.GetRequiredService<ApplicationDbContext>();
+
+        //if (app.Environment.IsDevelopment())
+        //{
+        //    context.Database.Migrate();
+        //}
+    }
+    catch (Exception ex)
+    {
+        var logger = services.GetRequiredService<ILogger<Program>>();
+        logger.LogError(ex, "Ocurrió un error al inicializar la base de datos");
+    }
+}
 
 app.Run();
