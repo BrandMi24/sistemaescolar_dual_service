@@ -65,7 +65,7 @@ namespace ControlEscolar.Controllers
                 .FromSqlInterpolated($"EXEC sp_tramites @Option='tramites_solicitud_getbyalumno', @ID={userIdActual}")
                 .ToListAsync(); // <-- Cambiamos .ToList() por .ToListAsync()
 
-            return View("~/Views/Alumno/Tramites.cshtml", historial);
+            return View(historial);
         }
 
         [HttpGet]
@@ -221,7 +221,7 @@ namespace ControlEscolar.Controllers
 
             if (estatus != "Todos") listado = listado.Where(x => x.Estatus == estatus).ToList();
             ViewBag.EstatusActual = estatus;
-            return View("~/Views/Tutor/Tramites.cshtml", listado);
+            return View(listado);
         }
 
         [HttpPost]
