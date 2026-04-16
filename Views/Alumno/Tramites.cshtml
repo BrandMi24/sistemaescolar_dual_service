@@ -7,10 +7,10 @@
 
 
 <div class="row g-4 align-items-start mx-auto" style="max-width: 1200px;">
-    
+
     <div class="col-12 col-lg-4 col-xl-3 position-lg-sticky" style="top: 80px;">
         <div class="bg-white p-4 rounded-4 shadow-sm border border-light d-flex flex-column gap-4">
-            
+
             <div class="text-center pb-3 border-bottom border-light">
                 <div class="bg-light rounded-circle d-flex align-items-center justify-content-center mx-auto mb-3 border shadow-sm" style="width: 60px; height: 60px;">
                     <i class="bi bi-folder2-open text-dark fs-3"></i>
@@ -40,10 +40,10 @@
 
     <div class="col-12 col-lg-8 col-xl-9">
         <div class="tab-content">
-            
+
             <div class="tab-pane fade show active" id="nuevo-tramite" role="tabpanel">
                 <div class="bg-white p-4 p-md-5 rounded-4 shadow-sm border border-light">
-                    
+
                     <div class="mb-4 pb-3 border-bottom text-center text-md-start">
                         <h4 class="fw-bold txt-title mb-1">Información del Solicitante</h4>
                         <p class="text-muted text-sm mb-0">Verifica tus datos académicos para iniciar el trámite.</p>
@@ -130,11 +130,11 @@
                             <table class="table table-borderless align-middle mb-0" id="tablaAlumno" style="min-width: 800px;">
                                 <thead class="border-bottom text-muted">
                                     <tr>
-                <th class="py-3 px-4 fw-bold text-xs" width="10%">FOLIO</th>
-                <th class="py-3 fw-bold text-xs" width="15%">FECHA</th>
+                                        <th class="py-3 px-4 fw-bold text-xs" width="10%">FOLIO</th>
+                                        <th class="py-3 fw-bold text-xs" width="15%">FECHA</th>
                                         <th class="py-3 fw-bold text-xs" width="35%">TIPO DE TRÁMITE</th>
-                <th class="py-3 fw-bold text-xs" width="25%">OBSERVACIONES</th>
-                <th class="py-3 px-4 text-center fw-bold text-xs" width="15%">ESTATUS</th>
+                                        <th class="py-3 fw-bold text-xs" width="25%">OBSERVACIONES</th>
+                                        <th class="py-3 px-4 text-center fw-bold text-xs" width="15%">ESTATUS</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -144,41 +144,41 @@
                                         {
                                             bool tieneRechazos = item.Estatus.Equals("Rechazado", StringComparison.OrdinalIgnoreCase);
                                             <tr class="border-bottom hover-bg-light transition-all">
-    <td class="px-4 py-3 text-primary fw-bold text-sm">#@item.Id</td>
-    <td class="text-muted text-xs">@item.Fecha.ToString("dd/MM/yyyy")</td>
-    <td><span class="text-dark fw-bold text-sm d-block">@item.Tipo</span></td>
+                                                <td class="px-4 py-3 text-primary fw-bold text-sm">#@item.Id</td>
+                                                <td class="text-muted text-xs">@item.Fecha.ToString("dd/MM/yyyy")</td>
+                                                <td><span class="text-dark fw-bold text-sm d-block">@item.Tipo</span></td>
 
-    <td style="max-width: 200px;">
-        @if (!string.IsNullOrEmpty(item.Observaciones))
-        {
-            <div class="text-truncate-custom" style="cursor: pointer;" 
-                 onclick="mostrarObservacionesCompletras('@item.Observaciones.Replace("'", "\\'")')">
-                <span class="text-muted text-sm">@item.Observaciones</span>
-            </div>
-        }
-        else
-        {
-            <span class="text-muted text-xs">Sin observaciones.</span>
-        }
-    </td>
+                                                <td style="max-width: 200px;">
+                                                    @if (!string.IsNullOrEmpty(item.Observaciones))
+                                                    {
+                                                        <div class="text-truncate-custom" style="cursor: pointer;"
+                                                             onclick="mostrarObservacionesCompletras('@item.Observaciones.Replace("'", "\\'")')">
+                                                            <span class="text-muted text-sm">@item.Observaciones</span>
+                                                        </div>
+                                                    }
+                                                    else
+                                                    {
+                                                        <span class="text-muted text-xs">Sin observaciones.</span>
+                                                    }
+                                                </td>
 
-    <td class="px-4 text-center">
-        @if (tieneRechazos)
-        {
-            <button type="button" class="btn btn-sm btn-white border shadow-sm px-3 py-2 text-danger fw-bold btn-detalle-alumno"
-                    data-id="@item.Id" data-id-tramite="@item.IdTramite" data-tipo="@item.Tipo"
-                    data-archivopath="@item.ArchivoPath" data-estatus="@item.Estatus">
-                <i class="bi bi-exclamation-circle-fill me-1"></i> Corregir
-            </button>
-        }
-        else
-        {
-            <span class="badge bg-white text-dark border shadow-sm px-3 py-2">
-                <i class="bi bi-circle-fill @(item.Estatus == "Pendiente" ? "text-warning" : "text-success") me-1" style="font-size: 0.5rem;"></i> 
-                @item.Estatus
-            </span>
-        }
-    </td>
+                                                <td class="px-4 text-center">
+                                                    @if (tieneRechazos)
+                                                    {
+                                                        <button type="button" class="btn btn-sm btn-white border shadow-sm px-3 py-2 text-danger fw-bold btn-detalle-alumno"
+                                                                data-id="@item.Id" data-id-tramite="@item.IdTramite" data-tipo="@item.Tipo"
+                                                                data-archivopath="@item.ArchivoPath" data-estatus="@item.Estatus">
+                                                            <i class="bi bi-exclamation-circle-fill me-1"></i> Corregir
+                                                        </button>
+                                                    }
+                                                    else
+                                                    {
+                                                        <span class="badge bg-white text-dark border shadow-sm px-3 py-2">
+                                                            <i class="bi bi-circle-fill @(item.Estatus == "Pendiente" ? "text-warning" : "text-success") me-1" style="font-size: 0.5rem;"></i>
+                                                            @item.Estatus
+                                                        </span>
+                                                    }
+                                                </td>
                                             </tr>
                                         }
                                     }
@@ -243,444 +243,445 @@
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
     <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-<style>
-    /* Ajuste para que los botones de paginación sean legibles */
-    .dataTables_wrapper .dataTables_paginate .paginate_button {
-        background: transparent !important;
-        border: none !important;
-        padding: 4px 10px !important;
-        margin: 0 2px !important;
-        
-        /* TEXTO OSCURO Y LEGIBLE */
-        font-size: 0.85rem !important;
-        color: #333 !important; /* Gris muy oscuro, casi negro */
-        font-weight: bold !important; /* Un poco de grosor */
-        cursor: pointer !important;
-    }
+    <style>
+        /* Ajuste para que los botones de paginación sean legibles */
+        .dataTables_wrapper .dataTables_paginate .paginate_button {
+            background: transparent !important;
+            border: none !important;
+            padding: 4px 10px !important;
+            margin: 0 2px !important;
+            /* TEXTO OSCURO Y LEGIBLE */
+            font-size: 0.85rem !important;
+            color: #333 !important; /* Gris muy oscuro, casi negro */
+            font-weight: bold !important; /* Un poco de grosor */
+            cursor: pointer !important;
+        }
 
-    /* El número de página actual (se queda negro con texto blanco) */
-    .dataTables_wrapper .dataTables_paginate .paginate_button.current {
-        background: #000 !important;
-        color: #fff !important;
-        border-radius: 6px !important;
-    }
+            /* El número de página actual (se queda negro con texto blanco) */
+            .dataTables_wrapper .dataTables_paginate .paginate_button.current {
+                background: #000 !important;
+                color: #fff !important;
+                border-radius: 6px !important;
+            }
 
-    /* Efecto al pasar el mouse: se pone un poco más oscuro */
-    .dataTables_wrapper .dataTables_paginate .paginate_button:hover {
-        background: #f0f0f0 !important;
-        color: #000 !important;
-    }
+            /* Efecto al pasar el mouse: se pone un poco más oscuro */
+            .dataTables_wrapper .dataTables_paginate .paginate_button:hover {
+                background: #f0f0f0 !important;
+                color: #000 !important;
+            }
 
-    /* Botones cuando no se pueden usar (ej. estás en la página 1 y das Anterior) */
-    .dataTables_wrapper .dataTables_paginate .paginate_button.disabled {
-        color: #000 !important; /* Este sí se queda tenue porque no es clicable */
-        opacity: 0.7;
-        cursor: pointer !important;
-    }
-    .text-truncate-custom {
-        max-width: 100%;
-        display: block;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        padding: 4px 8px;
-        border-radius: 4px;
-        transition: background 0.2s;
-    }
-    .text-truncate-custom:hover {
-        background-color: #f0f2f5; /* Efecto sutil al pasar el mouse */
-    }
-</style>
+            /* Botones cuando no se pueden usar (ej. estás en la página 1 y das Anterior) */
+            .dataTables_wrapper .dataTables_paginate .paginate_button.disabled {
+                color: #000 !important; /* Este sí se queda tenue porque no es clicable */
+                opacity: 0.7;
+                cursor: pointer !important;
+            }
+
+        .text-truncate-custom {
+            max-width: 100%;
+            display: block;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            padding: 4px 8px;
+            border-radius: 4px;
+            transition: background 0.2s;
+        }
+
+            .text-truncate-custom:hover {
+                background-color: #f0f2f5; /* Efecto sutil al pasar el mouse */
+            }
+    </style>
     <script>
-$(document).ready(function () {
-    // Silenciamos errores visuales
-    $.fn.dataTable.ext.errMode = 'none'; 
+        $(document).ready(function () {
+            // Silenciamos errores visuales
+            $.fn.dataTable.ext.errMode = 'none';
 
-    const table = $('#tablaAlumno').DataTable({
-        language: {
-            url: 'https://cdn.datatables.net/plug-ins/1.13.6/i18n/es-ES.json',
-            emptyTable: "Aún no hay solicitudes registradas.",
-            lengthMenu: "Mostrar _MENU_ registros"
-        },
-        pageLength: 10,
-        order: [[0, 'desc']],
-        autoWidth: false,
-        columnDefs: [
-            { targets: "_all", defaultContent: "" }
-        ],
-        // Agregamos 'l' al inicio para que cree el selector de registros
-        dom: 'lfrt<"d-flex justify-content-between align-items-center p-3 border-top"ip>', 
-        initComplete: function() {
-            // 1. Lógica para la BARRA DE BÚSQUEDA (Moverla a #contenedorBusqueda)
-            const searchInput = $('.dataTables_filter').detach();
-            $('#contenedorBusqueda').empty().append(searchInput);
-            
-            $('.dataTables_filter input')
-                .addClass('form-control form-control-sm border shadow-sm px-3')
-                .attr('placeholder', 'Buscar folio o trámite...')
-                .css('width', '250px');
-            
-if ($('.dataTables_filter').length) {
-    $('.dataTables_filter label').contents().filter(function() {
-        return this.nodeType === 3;
-    }).remove();
-}
+            const table = $('#tablaAlumno').DataTable({
+                language: {
+                    url: 'https://cdn.datatables.net/plug-ins/1.13.6/i18n/es-ES.json',
+                    emptyTable: "Aún no hay solicitudes registradas.",
+                    lengthMenu: "Mostrar _MENU_ registros"
+                },
+                pageLength: 10,
+                order: [[0, 'desc']],
+                autoWidth: false,
+                columnDefs: [
+                    { targets: "_all", defaultContent: "" }
+                ],
+                // Agregamos 'l' al inicio para que cree el selector de registros
+                dom: 'lfrt<"d-flex justify-content-between align-items-center p-3 border-top"ip>',
+                initComplete: function() {
+                    // 1. Lógica para la BARRA DE BÚSQUEDA (Moverla a #contenedorBusqueda)
+                    const searchInput = $('.dataTables_filter').detach();
+                    $('#contenedorBusqueda').empty().append(searchInput);
 
-            // 2. Lógica para MOSTRAR REGISTROS (Moverla a #containerLength)
-            const lengthMenuOriginal = $('.dataTables_length').detach();
-            $('#containerLength').empty().append(lengthMenuOriginal);
+                    $('.dataTables_filter input')
+                        .addClass('form-control form-control-sm border shadow-sm px-3')
+                        .attr('placeholder', 'Buscar folio o trámite...')
+                        .css('width', '250px');
 
-            // Ajuste de estilos para que queden en una sola línea (como en el admin)
-            $('.dataTables_length').css({
-                'display': 'flex',
-                'align-items': 'center',
-                'gap': '8px',
-                'margin-bottom': '0'
+        if ($('.dataTables_filter').length) {
+            $('.dataTables_filter label').contents().filter(function() {
+                return this.nodeType === 3;
+            }).remove();
+        }
+
+                    // 2. Lógica para MOSTRAR REGISTROS (Moverla a #containerLength)
+                    const lengthMenuOriginal = $('.dataTables_length').detach();
+                    $('#containerLength').empty().append(lengthMenuOriginal);
+
+                    // Ajuste de estilos para que queden en una sola línea (como en el admin)
+                    $('.dataTables_length').css({
+                        'display': 'flex',
+                        'align-items': 'center',
+                        'gap': '8px',
+                        'margin-bottom': '0'
+                    });
+
+                    $('.dataTables_length label').css({
+                        'display': 'flex',
+                        'align-items': 'center',
+                        'gap': '8px',
+                        'margin-bottom': '0',
+                        'font-weight': 'bold'
+                    });
+
+        $('.dataTables_length select').addClass('form-select form-select-sm border shadow-sm')
+            .css({
+                'width': '70px',
+                'height': '40px',
+                'font-size': '0.85rem'
+            });
+                }
             });
 
-            $('.dataTables_length label').css({
-                'display': 'flex',
-                'align-items': 'center',
-                'gap': '8px',
-                'margin-bottom': '0',
-                'font-weight': 'bold'
+            // Escuchar errores de conteo para que no interrumpan al usuario
+            $('#tablaAlumno').on('error.dt', function (e, settings, techNote, message) {
+                console.warn('DataTables count mismatch: ', message);
             });
+                // 1. Timeout de seguridad por si el servidor no responde
+                setTimeout(() => {
+                const loading = document.getElementById("infoAlumnoCargando");
+                if (loading && loading.style.display !== "none") {
+                loading.innerHTML = `<div class="alert alert-warning small">La consulta está tardando más de lo esperado.</div>`;
+                }
+                }, 5000);
 
-$('.dataTables_length select').addClass('form-select form-select-sm border shadow-sm')
-    .css({ 
-        'width': '70px',   
-        'height': '40px',
-        'font-size': '0.85rem' 
-    });
-        }
-    });
+                // 2. Carga de datos del alumno al abrir la página
+                fetch('/Tramites/ValidarMatricula')
+                .then(response => {
+                const contentType = response.headers.get("content-type");
+                if (!contentType || !contentType.includes("application/json")) {
+                throw new TypeError("Sesión expirada o bloqueada por ASP.NET.");
+                }
+                return response.json();
+                })
+                .then(data => {
+                const loading = document.getElementById("infoAlumnoCargando");
+                const info = document.getElementById("infoAlumno");
+                if (data.success) {
+                document.getElementById("nombreAlumno").innerText = data.nombre || "--";
+                document.getElementById("matriculaAlumno").innerText = data.matricula || "--";
+                document.getElementById("gradoAlumno").innerText = data.grado || "--";
+                document.getElementById("grupoAlumno").innerText = data.grupo || "--";
+                if(document.getElementById("hiddenMatricula")) document.getElementById("hiddenMatricula").value = data.matricula;
+                loading.style.display = "none";
+                info.style.display = "block";
+                } else {
+                loading.innerHTML = `<div class="alert alert-danger small">${data.message}</div>`;
+                }
+                })
+                .catch(err => {
+                console.error("Error capturado:", err);
+                document.getElementById("infoAlumnoCargando").innerHTML =
+                `<div class="alert alert-danger small"><strong>Error:</strong> No se pudo conectar. Verifica tu sesión.</div>`;
+                });
+                });
 
-    // Escuchar errores de conteo para que no interrumpan al usuario
-    $('#tablaAlumno').on('error.dt', function (e, settings, techNote, message) {
-        console.warn('DataTables count mismatch: ', message);
-    });
-        // 1. Timeout de seguridad por si el servidor no responde
-        setTimeout(() => {
-        const loading = document.getElementById("infoAlumnoCargando");
-        if (loading && loading.style.display !== "none") {
-        loading.innerHTML = `<div class="alert alert-warning small">La consulta está tardando más de lo esperado.</div>`;
-        }
-        }, 5000);
+                // 3. Cargar los inputs de PDF dinámicamente cuando elige el trámite
+                function cargarRequisitosDinamicos() {
+                const id = document.getElementById("selectTipo").value;
+                const contenedor = document.getElementById("contenedorRequisitos");
+                const btnEnviar = document.getElementById("btnEnviar");
 
-        // 2. Carga de datos del alumno al abrir la página
-        fetch('/Tramites/ValidarMatricula')
-        .then(response => {
-        const contentType = response.headers.get("content-type");
-        if (!contentType || !contentType.includes("application/json")) {
-        throw new TypeError("Sesión expirada o bloqueada por ASP.NET.");
-        }
-        return response.json();
-        })
-        .then(data => {
-        const loading = document.getElementById("infoAlumnoCargando");
-        const info = document.getElementById("infoAlumno");
-        if (data.success) {
-        document.getElementById("nombreAlumno").innerText = data.nombre || "--";
-        document.getElementById("matriculaAlumno").innerText = data.matricula || "--";
-        document.getElementById("gradoAlumno").innerText = data.grado || "--";
-        document.getElementById("grupoAlumno").innerText = data.grupo || "--";
-        if(document.getElementById("hiddenMatricula")) document.getElementById("hiddenMatricula").value = data.matricula;
-        loading.style.display = "none";
-        info.style.display = "block";
-        } else {
-        loading.innerHTML = `<div class="alert alert-danger small">${data.message}</div>`;
-        }
-        })
-        .catch(err => {
-        console.error("Error capturado:", err);
-        document.getElementById("infoAlumnoCargando").innerHTML =
-        `<div class="alert alert-danger small"><strong>Error:</strong> No se pudo conectar. Verifica tu sesión.</div>`;
-        });
-        });
+                if (!id) {
+                btnEnviar.style.display = "none";
+                contenedor.innerHTML = '<div class="col-12 text-center text-muted py-5" id="msgAyuda"><i class="bi bi-info-circle d-block mb-2" style="font-size: 2rem;"></i>Selecciona un tipo de trámite para ver los requisitos.</div>';
+                return;
+                }
 
-        // 3. Cargar los inputs de PDF dinámicamente cuando elige el trámite
-        function cargarRequisitosDinamicos() {
-        const id = document.getElementById("selectTipo").value;
-        const contenedor = document.getElementById("contenedorRequisitos");
-        const btnEnviar = document.getElementById("btnEnviar");
-        
-        if (!id) {
-        btnEnviar.style.display = "none";
-        contenedor.innerHTML = '<div class="col-12 text-center text-muted py-5" id="msgAyuda"><i class="bi bi-info-circle d-block mb-2" style="font-size: 2rem;"></i>Selecciona un tipo de trámite para ver los requisitos.</div>';
-        return;
-        }
-        
-        contenedor.innerHTML = '<div class="text-center p-5 col-12"><div class="spinner-border text-primary"></div><p class="mt-2 text-muted small">Cargando requisitos...</p></div>';
+                contenedor.innerHTML = '<div class="text-center p-5 col-12"><div class="spinner-border text-primary"></div><p class="mt-2 text-muted small">Cargando requisitos...</p></div>';
 
-        fetch(`/Tramites/ObtenerRequisitosJson?id=${id}`)
-        .then(res => res.json())
-        .then(requisitos => {
-        let html = '<h6 class="fw-bold text-dark text-sm border-bottom border-light pb-2 mb-3 col-12"><i class="bi bi-paperclip me-2"></i>Adjuntar Documentación (Solo PDF)</h6>';
-                
-        if (requisitos.length === 0) {
-        html += '<div class="alert alert-warning small col-12">No hay requisitos configurados para este trámite.</div>';
-        } else {
-        requisitos.forEach(req => {
-        const esFoto = req.nombre_documento.toLowerCase().includes("foto") || req.nombre_documento.toLowerCase().includes("fotografía");
-        html += `
-        <div class="col-md-6 mb-3">
-        <label class="small fw-bold text-dark d-block mb-1">${req.nombre_documento}</label>
-        ${esFoto ? `
-    <div class="bg-light border rounded-2 py-2 px-3 text-muted text-xs shadow-sm"><i class="bi bi-camera-fill me-1"></i> Entrega física</div>
-        ` : `
-    <input type="file" name="archivos" class="form-control form-control-sm bg-white shadow-sm" 
-           accept=".pdf" required onchange="validarPDF(this)">
-        `}
-        </div>`;
-        });
-        }
-        contenedor.innerHTML = html;
-        btnEnviar.style.display = "inline-block";
-        })
-        .catch(err => {
-        contenedor.innerHTML = '<div class="alert alert-danger small col-12">Error al cargar los requisitos.</div>';
-        });
-        }
+                fetch(`/Tramites/ObtenerRequisitosJson?id=${id}`)
+                .then(res => res.json())
+                .then(requisitos => {
+                let html = '<h6 class="fw-bold text-dark text-sm border-bottom border-light pb-2 mb-3 col-12"><i class="bi bi-paperclip me-2"></i>Adjuntar Documentación (Solo PDF)</h6>';
 
-        // 4. Interceptar el envío del formulario principal
-        const formSolicitud = document.getElementById("formSolicitud");;
-        if(formSolicitud) {
-        formSolicitud.addEventListener("submit", function (e) {
-        e.preventDefault();
+                if (requisitos.length === 0) {
+                html += '<div class="alert alert-warning small col-12">No hay requisitos configurados para este trámite.</div>';
+                } else {
+                requisitos.forEach(req => {
+                const esFoto = req.nombre_documento.toLowerCase().includes("foto") || req.nombre_documento.toLowerCase().includes("fotografía");
+                html += `
+                <div class="col-md-6 mb-3">
+                <label class="small fw-bold text-dark d-block mb-1">${req.nombre_documento}</label>
+                ${esFoto ? `
+            <div class="bg-light border rounded-2 py-2 px-3 text-muted text-xs shadow-sm"><i class="bi bi-camera-fill me-1"></i> Entrega física</div>
+                ` : `
+            <input type="file" name="archivos" class="form-control form-control-sm bg-white shadow-sm"
+                   accept=".pdf" required onchange="validarPDF(this)">
+                `}
+                </div>`;
+                });
+                }
+                contenedor.innerHTML = html;
+                btnEnviar.style.display = "inline-block";
+                })
+                .catch(err => {
+                contenedor.innerHTML = '<div class="alert alert-danger small col-12">Error al cargar los requisitos.</div>';
+                });
+                }
 
-        Swal.fire({
-        title: '¿Confirmar solicitud?',
-        text: "Asegúrate de que todos tus documentos PDF sean correctos.",
-        icon: 'question',
-        showCancelButton: true,
-        confirmButtonColor: '#198754',
-        cancelButtonColor: '#6c757d',
-        confirmButtonText: 'Sí, enviar ahora',
-        cancelButtonText: 'Revisar'
-        }).then((result) => {
-        if (result.isConfirmed) {
-        enviarFormulario(this);
-        }
-        });
-        });
-        }
+                // 4. Interceptar el envío del formulario principal
+                const formSolicitud = document.getElementById("formSolicitud");;
+                if(formSolicitud) {
+                formSolicitud.addEventListener("submit", function (e) {
+                e.preventDefault();
 
-        // Revisa esta parte en tu función enviarFormulario:
-        function enviarFormulario(formElement) {
-        const btn = document.getElementById("btnEnviar"); // Este es el BOTÓN
-        const textBtn = document.getElementById("textBtn");
-        const spinnerBtn = document.getElementById("spinnerBtn");
+                Swal.fire({
+                title: '¿Confirmar solicitud?',
+                text: "Asegúrate de que todos tus documentos PDF sean correctos.",
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#198754',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: 'Sí, enviar ahora',
+                cancelButtonText: 'Revisar'
+                }).then((result) => {
+                if (result.isConfirmed) {
+                enviarFormulario(this);
+                }
+                });
+                });
+                }
 
-        btn.disabled = true;
-        textBtn.style.display = "none";
-        spinnerBtn.style.display = "inline-block";
+                // Revisa esta parte en tu función enviarFormulario:
+                function enviarFormulario(formElement) {
+                const btn = document.getElementById("btnEnviar"); // Este es el BOTÓN
+                const textBtn = document.getElementById("textBtn");
+                const spinnerBtn = document.getElementById("spinnerBtn");
 
-        const formData = new FormData(formElement);
+                btn.disabled = true;
+                textBtn.style.display = "none";
+                spinnerBtn.style.display = "inline-block";
 
-        // IMPORTANTE: Asegúrate de que la URL sea la correcta
-        fetch('/Tramites/GuardarSolicitud', {
-        method: 'POST',
-        body: formData
-        })
-        .then(response => {
-        // Si el servidor te manda a otra página, el fetch se rompe.
-        // Esta línea ayuda a ver si recibimos JSON o una página HTML de error.
-        if (!response.ok) throw new Error('Error en el servidor');
-        return response.json();
-        })
-        .then(data => {
-        if (data.success) {
-        Swal.fire({
-        title: '¡Solicitud Enviada!',
-        text: `Tu trámite con Folio #${data.folio} ha sido registrado.`,
-        icon: 'success',
-        confirmButtonText: 'Entendido'
-        }).then(() => {
-        // ESTO evita que te quedes en la pantalla negra
-        window.location.reload();
-        });
-        } else {
-        Swal.fire({ icon: 'error', title: 'Error', text: data.message });
-        resetBoton(btn, textBtn, spinnerBtn);
-        }
-        })
-        .catch(err => {
-        console.error(err);
-        Swal.fire({ icon: 'error', title: 'Error', text: 'No se pudo procesar la solicitud.' });
-        resetBoton(btn, textBtn, spinnerBtn);
-        });
-        }
+                const formData = new FormData(formElement);
 
-        function resetBoton(btn, text, spinner) {
-        btn.disabled = false;
-        text.style.display = "inline-block";
-        spinner.style.display = "none";
-        }
+                // IMPORTANTE: Asegúrate de que la URL sea la correcta
+                fetch('/Tramites/GuardarSolicitud', {
+                method: 'POST',
+                body: formData
+                })
+                .then(response => {
+                // Si el servidor te manda a otra página, el fetch se rompe.
+                // Esta línea ayuda a ver si recibimos JSON o una página HTML de error.
+                if (!response.ok) throw new Error('Error en el servidor');
+                return response.json();
+                })
+                .then(data => {
+                if (data.success) {
+                Swal.fire({
+                title: '¡Solicitud Enviada!',
+                text: `Tu trámite con Folio #${data.folio} ha sido registrado.`,
+                icon: 'success',
+                confirmButtonText: 'Entendido'
+                }).then(() => {
+                // ESTO evita que te quedes en la pantalla negra
+                window.location.reload();
+                });
+                } else {
+                Swal.fire({ icon: 'error', title: 'Error', text: data.message });
+                resetBoton(btn, textBtn, spinnerBtn);
+                }
+                })
+                .catch(err => {
+                console.error(err);
+                Swal.fire({ icon: 'error', title: 'Error', text: 'No se pudo procesar la solicitud.' });
+                resetBoton(btn, textBtn, spinnerBtn);
+                });
+                }
 
-        // 5. Lógica del Modal del Historial (Para Ver y Corregir Archivos)
-        document.addEventListener('click', function (e) {
-        const btn = e.target.closest('.btn-detalle-alumno');
-        if (btn) {
-        const data = btn.dataset;
-            
-        const modalTitulo = document.getElementById('modalTitulo');
-        if(modalTitulo) modalTitulo.innerText = `Detalle de Trámite: ${data.tipo}`;
+                function resetBoton(btn, text, spinner) {
+                btn.disabled = false;
+                text.style.display = "inline-block";
+                spinner.style.display = "none";
+                }
 
-        const containerPdf = document.getElementById('pdfContainerAlumno');
-        if(containerPdf) {
-        containerPdf.innerHTML = `
-        <div class="h-100 d-flex align-items-center justify-content-center text-white opacity-50">
-        <div class="text-center">
-        <i class="bi bi-file-earmark-pdf" style="font-size: 3rem;"></i>
-        <p>Selecciona un documento para visualizarlo</p>
-        </div>
-        </div>`;
-        }
+                // 5. Lógica del Modal del Historial (Para Ver y Corregir Archivos)
+                document.addEventListener('click', function (e) {
+                const btn = e.target.closest('.btn-detalle-alumno');
+                if (btn) {
+                const data = btn.dataset;
 
-        cargarDetalleSubsanacion(data.id, data.archivopath, data.idTramite);
-        new bootstrap.Modal(document.getElementById('modalAlumno')).show();
-        }
-        });
+                const modalTitulo = document.getElementById('modalTitulo');
+                if(modalTitulo) modalTitulo.innerText = `Detalle de Trámite: ${data.tipo}`;
 
-        function cargarDetalleSubsanacion(idSolicitud, folderPath, idTramite) {
-        const lista = document.getElementById('listaDocumentosAlumno');
-        lista.innerHTML = '<div class="text-center p-4"><div class="spinner-border text-primary"></div></div>';
+                const containerPdf = document.getElementById('pdfContainerAlumno');
+                if(containerPdf) {
+                containerPdf.innerHTML = `
+                <div class="h-100 d-flex align-items-center justify-content-center text-white opacity-50">
+                <div class="text-center">
+                <i class="bi bi-file-earmark-pdf" style="font-size: 3rem;"></i>
+                <p>Selecciona un documento para visualizarlo</p>
+                </div>
+                </div>`;
+                }
 
-        fetch(`/Tramites/ObtenerDetalleRequisitos?idSolicitud=${idSolicitud}`)
-        .then(r => r.json())
-        .then(requisitos => {
-        lista.innerHTML = "";
-        if(requisitos.length === 0) {
-        lista.innerHTML = '<div class="alert alert-info small">No hay documentos.</div>';
-        return;
-        }
+                cargarDetalleSubsanacion(data.id, data.archivopath, data.idTramite);
+                new bootstrap.Modal(document.getElementById('modalAlumno')).show();
+                }
+                });
 
-        requisitos.forEach(req => {
-        const esRechazado = (req.estatus || req.Estatus).toLowerCase() === "rechazado";
-        const esAprobado = (req.estatus || req.Estatus).toLowerCase() === "aprobado";
-        const archivoFisico = req.nombreArchivoFisico || req.NombreArchivoFisico;
-        const tieneArchivo = archivoFisico && archivoFisico !== "null" && archivoFisico !== "";
-        const nombreRequisito = req.nombreRequisito || req.NombreRequisito;
-        const idReq = req.idRequisito || req.IdRequisito;
-                    
-        let colorBorde = 'border-secondary';
-        let colorIcono = 'text-secondary';
-        if(esAprobado) { colorBorde = 'border-success'; colorIcono = 'text-success'; }
-        if(esRechazado) { colorBorde = 'border-danger'; colorIcono = 'text-danger'; }
+                function cargarDetalleSubsanacion(idSolicitud, folderPath, idTramite) {
+                const lista = document.getElementById('listaDocumentosAlumno');
+                lista.innerHTML = '<div class="text-center p-4"><div class="spinner-border text-primary"></div></div>';
 
-        lista.innerHTML += `
-        <div class="bg-white border rounded-3 p-3 mb-2 shadow-sm border-start border-4 ${colorBorde}">
-        <div class="d-flex justify-content-between align-items-center mb-2">
-        <span class="fw-bold text-dark text-xs">${nombreRequisito}</span>
-        <i class="bi bi-circle-fill ${colorIcono}" style="font-size:0.6rem"></i>
-        </div>
-        <div class="d-flex gap-2">
-        <button type="button" class="btn btn-dark btn-sm text-xs flex-grow-1" ${!tieneArchivo ? 'disabled' : ''} onclick="verArchivoAlumno('${folderPath}', '${archivoFisico}', '${nombreRequisito}')">${tieneArchivo ? 'Ver Documento' : 'Sin archivo'}</button>
-        ${esRechazado ? `
-        <button type="button" class="btn btn-outline-danger btn-sm text-xs" onclick="document.getElementById('in_${idReq}').click()" title="Subir corrección"><i class="bi bi-arrow-repeat"></i> Reemplazar</button>
-        <input type="file" id="in_${idReq}" class="d-none" accept=".pdf" onchange="subirCorreccion(this, ${idSolicitud}, ${idReq}, '${folderPath}')">
-        ` : ''}
-        </div>
-        </div>`;
-        });
-        })
-        .catch(err => {
-        lista.innerHTML = '<div class="alert alert-danger small">Error al cargar documentos.</div>';
-        });
-        }
+                fetch(`/Tramites/ObtenerDetalleRequisitos?idSolicitud=${idSolicitud}`)
+                .then(r => r.json())
+                .then(requisitos => {
+                lista.innerHTML = "";
+                if(requisitos.length === 0) {
+                lista.innerHTML = '<div class="alert alert-info small">No hay documentos.</div>';
+                return;
+                }
 
-        function verArchivoAlumno(folderPath, archivoFisico, nombre) {
-        if (!archivoFisico || archivoFisico === "null" || archivoFisico === "") return;
+                requisitos.forEach(req => {
+                const esRechazado = (req.estatus || req.Estatus).toLowerCase() === "rechazado";
+                const esAprobado = (req.estatus || req.Estatus).toLowerCase() === "aprobado";
+                const archivoFisico = req.nombreArchivoFisico || req.NombreArchivoFisico;
+                const tieneArchivo = archivoFisico && archivoFisico !== "null" && archivoFisico !== "";
+                const nombreRequisito = req.nombreRequisito || req.NombreRequisito;
+                const idReq = req.idRequisito || req.IdRequisito;
 
-        let path = folderPath.replace(/\\/g, '/');
-        if (!path.includes('/Carpetas_ZIP/')) {
-        path = path.replace('Carpetas_ZIP', '/Carpetas_ZIP/');
-        }
-        const url = `/uploads/tramites/${path}/${archivoFisico}`.replace(/\/+/g, '/');
+                let colorBorde = 'border-secondary';
+                let colorIcono = 'text-secondary';
+                if(esAprobado) { colorBorde = 'border-success'; colorIcono = 'text-success'; }
+                if(esRechazado) { colorBorde = 'border-danger'; colorIcono = 'text-danger'; }
 
-        const labelActivo = document.getElementById('nombreDocActivo');
-        if(labelActivo) labelActivo.innerText = nombre;
-        
-        const container = document.getElementById('pdfContainerAlumno');
-        container.innerHTML = `<div class="d-flex flex-column align-items-center justify-content-center h-100"><div class="spinner-border text-light"></div></div>`;
+                lista.innerHTML += `
+                <div class="bg-white border rounded-3 p-3 mb-2 shadow-sm border-start border-4 ${colorBorde}">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                <span class="fw-bold text-dark text-xs">${nombreRequisito}</span>
+                <i class="bi bi-circle-fill ${colorIcono}" style="font-size:0.6rem"></i>
+                </div>
+                <div class="d-flex gap-2">
+                <button type="button" class="btn btn-dark btn-sm text-xs flex-grow-1" ${!tieneArchivo ? 'disabled' : ''} onclick="verArchivoAlumno('${folderPath}', '${archivoFisico}', '${nombreRequisito}')">${tieneArchivo ? 'Ver Documento' : 'Sin archivo'}</button>
+                ${esRechazado ? `
+                <button type="button" class="btn btn-outline-danger btn-sm text-xs" onclick="document.getElementById('in_${idReq}').click()" title="Subir corrección"><i class="bi bi-arrow-repeat"></i> Reemplazar</button>
+                <input type="file" id="in_${idReq}" class="d-none" accept=".pdf" onchange="subirCorreccion(this, ${idSolicitud}, ${idReq}, '${folderPath}')">
+                ` : ''}
+                </div>
+                </div>`;
+                });
+                })
+                .catch(err => {
+                lista.innerHTML = '<div class="alert alert-danger small">Error al cargar documentos.</div>';
+                });
+                }
 
-        setTimeout(() => {
-        container.innerHTML = `<iframe src="${url}?v=${new Date().getTime()}#toolbar=1" style="width:100%; height:100%; border:none; min-height: 500px;"></iframe>`;
-        }, 300);
-        }
+                function verArchivoAlumno(folderPath, archivoFisico, nombre) {
+                if (!archivoFisico || archivoFisico === "null" || archivoFisico === "") return;
 
-        function subirCorreccion(input, idSolicitud, idRequisito, folderPath) {
-        if (!input.files || input.files.length === 0) return;
+                let path = folderPath.replace(/\\/g, '/');
+                if (!path.includes('/Carpetas_ZIP/')) {
+                path = path.replace('Carpetas_ZIP', '/Carpetas_ZIP/');
+                }
+                const url = `/uploads/tramites/${path}/${archivoFisico}`.replace(/\/+/g, '/');
 
-        const archivo = input.files[0];
-        if (archivo.type !== "application/pdf") {
-        Swal.fire({ icon: 'error', title: 'Formato inválido', text: 'Solo se permiten archivos PDF.' });
-        input.value = "";
-        return;
-        }
+                const labelActivo = document.getElementById('nombreDocActivo');
+                if(labelActivo) labelActivo.innerText = nombre;
 
-        const formData = new FormData();
-        formData.append("idDetalle", idRequisito);
-        formData.append("idSolicitud", idSolicitud);
-        formData.append("archivoNuevo", archivo);
+                const container = document.getElementById('pdfContainerAlumno');
+                container.innerHTML = `<div class="d-flex flex-column align-items-center justify-content-center h-100"><div class="spinner-border text-light"></div></div>`;
 
-        const btnReemplazar = input.previousElementSibling;
-        const btnOriginalHtml = btnReemplazar.innerHTML;
-        btnReemplazar.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
-        btnReemplazar.disabled = true;
+                setTimeout(() => {
+                container.innerHTML = `<iframe src="${url}?v=${new Date().getTime()}#toolbar=1" style="width:100%; height:100%; border:none; min-height: 500px;"></iframe>`;
+                }, 300);
+                }
 
-        fetch('/Tramites/SubsanarDocumento', {
-        method: 'POST',
-        body: formData
-        })
-        .then(response => response.json())
-        .then(data => {
-        if (data.success) {
-        Swal.fire({ icon: 'success', title: '¡Actualizado!', text: 'El documento ha sido reemplazado.', timer: 2000, showConfirmButton: false });
-        const btnDetalle = document.querySelector(`.btn-detalle-alumno[data-id="${idSolicitud}"]`);
-        cargarDetalleSubsanacion(idSolicitud, folderPath, btnDetalle ? btnDetalle.dataset.idTramite : 0);
-        } else {
-        Swal.fire({ icon: 'warning', title: 'Error', text: data.message });
-        btnReemplazar.innerHTML = btnOriginalHtml;
-        btnReemplazar.disabled = false;
-        }
-        })
-        .catch(err => {
-        Swal.fire({ icon: 'error', title: 'Error', text: 'No se pudo conectar con el servidor.' });
-        btnReemplazar.innerHTML = btnOriginalHtml;
-        btnReemplazar.disabled = false;
-        });
+                function subirCorreccion(input, idSolicitud, idRequisito, folderPath) {
+                if (!input.files || input.files.length === 0) return;
+
+                const archivo = input.files[0];
+                if (archivo.type !== "application/pdf") {
+                Swal.fire({ icon: 'error', title: 'Formato inválido', text: 'Solo se permiten archivos PDF.' });
+                input.value = "";
+                return;
+                }
+
+                const formData = new FormData();
+                formData.append("idDetalle", idRequisito);
+                formData.append("idSolicitud", idSolicitud);
+                formData.append("archivoNuevo", archivo);
+
+                const btnReemplazar = input.previousElementSibling;
+                const btnOriginalHtml = btnReemplazar.innerHTML;
+                btnReemplazar.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
+                btnReemplazar.disabled = true;
+
+                fetch('/Tramites/SubsanarDocumento', {
+                method: 'POST',
+                body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                if (data.success) {
+                Swal.fire({ icon: 'success', title: '¡Actualizado!', text: 'El documento ha sido reemplazado.', timer: 2000, showConfirmButton: false });
+                const btnDetalle = document.querySelector(`.btn-detalle-alumno[data-id="${idSolicitud}"]`);
+                cargarDetalleSubsanacion(idSolicitud, folderPath, btnDetalle ? btnDetalle.dataset.idTramite : 0);
+                } else {
+                Swal.fire({ icon: 'warning', title: 'Error', text: data.message });
+                btnReemplazar.innerHTML = btnOriginalHtml;
+                btnReemplazar.disabled = false;
+                }
+                })
+                .catch(err => {
+                Swal.fire({ icon: 'error', title: 'Error', text: 'No se pudo conectar con el servidor.' });
+                btnReemplazar.innerHTML = btnOriginalHtml;
+                btnReemplazar.disabled = false;
+                });
+                }
+
+                // 6. Recargar la tabla si el alumno cierra el modal después de corregir algo
+                const modalElement = document.getElementById('modalAlumno');
+        if (modalElement) {
+                modalElement.addEventListener('hidden.bs.modal', function () {
+                window.location.reload();
+                });
         }
 
-        // 6. Recargar la tabla si el alumno cierra el modal después de corregir algo
-        const modalElement = document.getElementById('modalAlumno');
-if (modalElement) {
-        modalElement.addEventListener('hidden.bs.modal', function () {
-        window.location.reload();
-        });
-}
+        // ESTA FUNCIÓN DEBE ESTAR FUERA DEL IF ANTERIOR
+        function mostrarObservacionesCompletras(texto) {
+            if (!texto || texto === "null") return;
 
-// ESTA FUNCIÓN DEBE ESTAR FUERA DEL IF ANTERIOR
-function mostrarObservacionesCompletras(texto) {
-    if (!texto || texto === "null") return;
-    
-    document.getElementById('textoObservacionCompleto').innerText = texto;
-    var myModal = new bootstrap.Modal(document.getElementById('modalVerObservaciones'));
-    myModal.show();
-}
-        function validarPDF(input) {
-    if (input.files && input.files[0]) {
-        const archivo = input.files[0];
-        if (archivo.type !== "application/pdf") {
-            Swal.fire({ 
-                icon: 'error', 
-                title: 'Formato inválido', 
-                text: 'Solo se permiten archivos PDF.',
-                confirmButtonColor: '#000' 
-            });
-            input.value = ""; // Limpia el input para que no se mande el archivo basura
+            document.getElementById('textoObservacionCompleto').innerText = texto;
+            var myModal = new bootstrap.Modal(document.getElementById('modalVerObservaciones'));
+            myModal.show();
         }
-    }
-        }
+                function validarPDF(input) {
+            if (input.files && input.files[0]) {
+                const archivo = input.files[0];
+                if (archivo.type !== "application/pdf") {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Formato inválido',
+                        text: 'Solo se permiten archivos PDF.',
+                        confirmButtonColor: '#000'
+                    });
+                    input.value = ""; // Limpia el input para que no se mande el archivo basura
+                }
+            }
+                }
     </script>
 }

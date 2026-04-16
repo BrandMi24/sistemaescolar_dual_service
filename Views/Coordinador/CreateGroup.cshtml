@@ -2,31 +2,44 @@
 @{
     ViewData["Title"] = "Registrar Grupo";
     Layout = "_LayoutCoordinador";
+
+    var isEdit = ViewBag.IsEdit as bool? ?? false;
+    var returnTab = ViewBag.ReturnTab as string ?? Context.Request.Query["tab"].ToString();
+
+    if (string.IsNullOrWhiteSpace(returnTab))
+    {
+        returnTab = "tab-grupos";
+    }
 }
 
 <div class="fade-in d-flex flex-column gap-4">
 
     <div class="bg-surface p-4 rounded-4 border-theme shadow-sm d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
         <div>
-            <h3 class="txt-title fw-bold mb-1">Registrar Nuevo Grupo</h3>
+            <h3 class="txt-title fw-bold mb-1">@(isEdit ? "Editar Grupo" : "Registrar Nuevo Grupo")</h3>
             <div class="d-flex align-items-center gap-3 mt-2 txt-body text-xs">
-                <span>Configure la estructura de un nuevo grupo académico para asignación de estudiantes.</span>
+                <span>
+                    @(isEdit
+                                        ? "Actualice la estructura académica del grupo utilizando únicamente catálogos activos."
+                                        : "Configure la estructura de un nuevo grupo académico para asignación de estudiantes.")
+                </span>
             </div>
         </div>
         <div class="text-end d-flex flex-column align-items-md-end gap-2">
-            <a href="@Url.Action("Catalogos", "Coordinador")" class="btn btn-sm btn-ghost-sep border border-theme shadow-sm mt-1 fw-semibold">
+            <a href="@Url.Action("Catalogos", "Coordinador", new { tab = returnTab })" class="btn btn-sm btn-ghost-sep border border-theme shadow-sm mt-1 fw-semibold">
                 <i class="bi bi-arrow-left me-1"></i> Volver a Catálogos
             </a>
         </div>
     </div>
 
-    @{
-        var isEdit = ViewBag.IsEdit as bool? ?? false;
-    }
     <form asp-action="@(isEdit ? "EditGroup" : "CreateGroup")"
-          asp-controller="Coordinador" method="post" class="needs-validation">
+          asp-controller="Coordinador"
+          method="post"
+          class="needs-validation"
+          novalidate>
+        @Html.AntiForgeryToken()
 
-    @Html.AntiForgeryToken()
+        <input type="hidden" name="returnTab" value="@returnTab" />
 
         <div class="row justify-content-center">
             <div class="col-lg-8">
@@ -34,54 +47,76 @@
                 {
                     <input asp-for="Id" type="hidden" />
                 }
+
                 <div class="admin-card-white p-4 p-md-5 rounded-4 border-theme shadow-sm bg-white">
                     <h6 class="txt-title fw-bold mb-4 border-bottom border-theme pb-2">
                         INFORMACIÓN DEL GRUPO
                     </h6>
-                    
+
+                    <div asp-validation-summary="ModelOnly" class="alert alert-danger mb-4" style="display:@(!ViewData.ModelState.IsValid ? "block" : "none")"></div>
+
                     <div class="row g-4">
                         <div class="col-md-6">
-                            <label class="txt-body text-xs fw-bold tracking-wide mb-2">CLAVE DEL GRUPO (ID) <span class="text-danger">*</span></label>
-                            <input name="GroupCode" type="text" value="@Model?.GroupCode" class="form-control search-input-custom ps-3 text-uppercase" placeholder="Ej. G-7A-SW" required />
+                            <label asp-for="GroupCode" class="txt-body text-xs fw-bold tracking-wide mb-2">
+                                CLAVE DEL GRUPO (ID) <span class="text-danger">*</span>
+                            </label>
+                            <input asp-for="GroupCode"
+                                   class="form-control search-input-custom ps-3 text-uppercase"
+                                   placeholder="Ej. G-7A-SW"
+                                    />
+                            <span asp-validation-for="GroupCode" class="text-danger text-xs"></span>
                         </div>
+
                         <div class="col-md-6">
-                            <label class="txt-body text-xs fw-bold tracking-wide mb-2">NOMBRE DESCRIPTIVO <span class="text-danger">*</span></label>
-                            <input name="GroupName" type="text" value="@Model?.GroupName" class="form-control search-input-custom ps-3" placeholder="Ej. 7º A Matutino" required />
+                            <label asp-for="GroupName" class="txt-body text-xs fw-bold tracking-wide mb-2">
+                                NOMBRE DESCRIPTIVO <span class="text-danger">*</span>
+                            </label>
+                            <input asp-for="GroupName"
+                                   class="form-control search-input-custom ps-3"
+                                   placeholder="Ej. 7º A Matutino"
+                                    />
+                            <span asp-validation-for="GroupName" class="text-danger text-xs"></span>
                         </div>
 
                         <div class="col-md-12">
-                            <label class="txt-body text-xs fw-bold tracking-wide mb-2">CARRERA / ESPECIALIDAD <span class="text-danger">*</span></label>
-                            <select name="CareerId" asp-items="@(new SelectList(ViewBag.Careers, "Key", "Value"))" class="form-select bg-app border-theme txt-title fw-semibold py-2" required>
+                            <label asp-for="CareerId" class="txt-body text-xs fw-bold tracking-wide mb-2">
+                                CARRERA / ESPECIALIDAD <span class="text-danger">*</span>
+                            </label>
+                            <select asp-for="CareerId"
+                                    class="form-select bg-app border-theme txt-title fw-semibold py-2"
+                                    >
                                 <option value="">-- Seleccionar carrera --</option>
                                 @if (ViewBag.Careers != null)
                                 {
+                                    foreach (var career in (Dictionary<int, string>)ViewBag.Careers)
+                                    {
+                                        <option value="@career.Key">@career.Value</option>
+                                    }
                                 }
                             </select>
+                            <span asp-validation-for="CareerId" class="text-danger text-xs"></span>
                         </div>
 
                         <div class="col-md-6">
-                            <label class="txt-body text-xs fw-bold tracking-wide mb-2">TURNO <span class="text-danger">*</span></label>
-                            <select name="Shift" class="form-select bg-app border-theme txt-title fw-semibold py-2" required>
-                                <option value="MATUTINO" selected="@(Model?.Shift == "MATUTINO")">Matutino</option>
-                                <option value="VESPERTINO" selected="@(Model?.Shift == "VESPERTINO")">Vespertino</option>
+                            <label asp-for="Shift" class="txt-body text-xs fw-bold tracking-wide mb-2">
+                                TURNO <span class="text-danger">*</span>
+                            </label>
+                            <select asp-for="Shift" class="form-select bg-app border-theme txt-title fw-semibold py-2" >
+                                <option value="MATUTINO">Matutino</option>
+                                <option value="VESPERTINO">Vespertino</option>
                             </select>
-                        </div>
-                        
-                        <div class="col-md-6">
-                            <label class="txt-body text-xs fw-bold tracking-wide mb-2">ESTADO</label>
-                            <select name="IsActive" class="form-select bg-app border-theme txt-title fw-semibold py-2">
-                                <option value="true" selected>Activo</option>
-                                <option value="false">Inactivo</option>
-                            </select>
+                            <span asp-validation-for="Shift" class="text-danger text-xs"></span>
                         </div>
                     </div>
 
                     <div class="mt-5 border-top border-theme pt-4 d-flex justify-content-end gap-3">
-                        <a href="@Url.Action("Catalogos", "Coordinador")" class="btn btn-ghost-sep border border-theme px-4 py-2 shadow-sm text-body fw-semibold">
+                        <a href="@Url.Action("Catalogos", "Coordinador", new { tab = returnTab })"
+                           class="btn btn-ghost-sep border border-theme px-4 py-2 shadow-sm text-body fw-semibold">
                             Cancelar
                         </a>
+
                         <button type="submit" class="btn btn-primary-sep bg-primary-900 px-5 py-2 shadow-sm text-white fw-bold">
-                            @(isEdit ? "Editar Grupo" : "Guardar Grupo")
+                            @(isEdit ? "Guardar Cambios" : "Guardar Grupo")
                         </button>
                     </div>
                 </div>
@@ -89,3 +124,7 @@
         </div>
     </form>
 </div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
