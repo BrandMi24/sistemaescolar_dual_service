@@ -8,118 +8,149 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] - Coordinación UTTN</title>
-
+    
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
-    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
-
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
     <link rel="stylesheet" href="~/css/design-system.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/coordinador-styles.css" asp-append-version="true" />
+
+    <style>
+            body {
+                font-family: 'Montserrat', sans-serif !important;
+            }
+        
+            .nav-link {
+                font-size: 0.8rem;
+                letter-spacing: 0.5px;
+                text-transform: uppercase;
+                font-weight: 600;
+                display: flex;
+                align-items: center;
+                gap: 12px; /* Espacio entre el icono y el texto */
+            }
+        
+                /* Ajuste de tamaño para que los iconos no se vean desproporcionados */
+                .nav-link i {
+                    font-size: 1.1rem;
+                    opacity: 0.8; /* Iconos ligeramente más tenues para no saturar */
+                }
+        
+            .sidebar-brand-text {
+                letter-spacing: 1.5px;
+            }
+        
+            .user-initial-avatar {
+                width: 38px;
+                height: 38px;
+                background-color: var(--accent-500);
+                color: var(--primary-900);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                border-radius: 50%;
+                font-weight: 800;
+                font-size: 1rem;
+                flex-shrink: 0;
+            }
+    </style>
 </head>
 
 <body>
     <div class="admin-layout">
 
-        <!-- HEADER MOBILE -->
-        <div class="bg-primary-dark p-3 d-flex d-lg-none justify-content-between align-items-center">
+        <div class="bg-primary-dark p-3 d-flex d-lg-none justify-content-between align-items-center flex-shrink-0 z-3 shadow-sm">
             <div class="d-flex align-items-center gap-2">
-                <span class="txt-white fw-bold fs-6">Portal Coordinador</span>
+                <span class="txt-white fw-bold text-xs tracking-widest">PREPARATORIA</span>
             </div>
-            <button id="btnMobileMenu" class="btn btn-link text-white p-0 fs-2">
-                <i class="bi bi-list"></i>
+            <button id="btnMobileMenu" class="btn btn-link text-white p-0 text-decoration-none fw-bold text-xs border border-white border-opacity-25 px-2 py-1 rounded">
+                MENÚ
             </button>
         </div>
 
         <div id="mobileOverlay" class="mobile-overlay"></div>
 
-        <!-- SIDEBAR -->
-        <aside id="sidebar" class="sidebar-sep">
-
-            <!-- LOGO -->
-            <div class="sidebar-brand">
-                <div class="brand-logo">
-                    <i class="bi bi-diagram-3-fill"></i>
+        <aside id="sidebar" class="sidebar-sep bg-primary-dark border-end border-white border-opacity-10 shadow">
+            
+            <div class="sidebar-brand d-flex align-items-center p-4">
+                <div class="brand-logo bg-white txt-primary-dark fw-bolder d-flex align-items-center justify-content-center rounded-2" style="width:35px; height:35px; font-size: 1.1rem;">
+                    UT
                 </div>
-                <div class="ms-2">
-                    <div class="fw-bold small text-white">UT TAMAULIPAS</div>
-                    <div class="opacity-50 text-white text-xxs">Coordinación Académica</div>
+                <div class="ms-3">
+                    <div class="sidebar-brand-text fw-bold text-white fs-6 mb-0">PREPARATORIA</div>
+                    <div class="opacity-50 text-white text-xxs fw-semibold">COORDINACIÓN ACADÉMICA</div>
                 </div>
             </div>
 
-            <!-- CLOSE MOBILE -->
-            <div class="d-flex d-lg-none justify-content-end p-2">
-                <button id="btnCloseMenu" class="btn btn-link text-white p-0 fs-3">
-                    <i class="bi bi-x-lg"></i>
-                </button>
-            </div>
-
-            <!-- NAV -->
-            <nav class="sidebar-nav mt-2">
-
-                <!-- PANEL PRINCIPAL (CATÁLOGOS) -->
-                <a class="nav-link @(currentAction == "Catalogos" ? "active" : "")"
-                       href="@Url.Action("Catalogos", "Coordinador")">
-                    <i class="bi bi-grid-1x2"></i> Panel Principal
+            <nav class="sidebar-nav custom-scroll mt-2 px-3">
+                <a class="nav-link px-3 py-2 mb-1 @(ViewContext.RouteData.Values["action"]?.ToString() == "Index" ? "active" : "")"
+                       href="@Url.Action("Index", "Coordinador")">
+                    <i class="bi bi-grid-1x2-fill"></i> Panel Principal
                 </a>
 
-                <div class="nav-group-label">Organización Escolar</div>
-
-                <!-- CICLOS -->
-                <a class="nav-link @(currentAction == "Ciclos" ? "active" : "")"
+                <div class="nav-group-label mt-4 mb-2 ps-3 opacity-50">Organización Escolar</div>
+                
+                <a class="nav-link px-3 py-2 mb-1 @(ViewContext.RouteData.Values["action"]?.ToString() == "Ciclos" ? "active" : "")"
                        href="@Url.Action("Ciclos", "Coordinador")">
-                    <i class="bi bi-calendar-range"></i> Ciclos Escolares
+                    <i class="bi bi-calendar3-range"></i> Ciclos Escolares
+                </a>
+                
+                <a class="nav-link px-3 py-2 mb-1 @(ViewContext.RouteData.Values["action"]?.ToString() == "Catalogos" ? "active" : "")"
+                       href="@Url.Action("Catalogos", "Coordinador")">
+                    <i class="bi bi-folder2-open"></i> Catálogos Generales
+                </a>
+                
+                <a class="nav-link px-3 py-2 mb-1 @(ViewContext.RouteData.Values["action"]?.ToString() == "ImportStudentsCsv" ? "active" : "")"
+                       href="@Url.Action("ImportStudentsCsv", "Coordinador", new { tab = "tab-alumnos" })">
+                    <i class="bi bi-cloud-arrow-up-fill"></i> Carga Masiva (CSV)
                 </a>
 
-                <!-- CARGA MASIVA CSV -->
-                <a class="nav-link @(currentAction == "ImportStudentsCsv" ? "active" : "")"
-                       href="@Url.Action("ImportStudentsCsv", "Coordinador", new { tab = "tab-alumnos" })">
-                    <i class="bi bi-upload"></i> Carga masiva CSV
+                <div class="nav-group-label mt-4 mb-2 ps-3 opacity-50">Gestión Operativa</div>
+                
+                <a class="nav-link px-3 py-2 mb-1 @(ViewContext.RouteData.Values["action"]?.ToString() == "Asignaciones" ? "active" : "")"
+                       href="@Url.Action("Asignaciones", "Coordinador")">
+                    <i class="bi bi-table"></i> Matriz de Asignaciones
+                </a>
+                
+                <a class="nav-link px-3 py-2 mb-1 @(ViewContext.RouteData.Values["action"]?.ToString() == "Grupos" ? "active" : "")"
+                       href="@Url.Action("Grupos", "Coordinador")">
+                    <i class="bi bi-people-fill"></i> Control de Grupos
+                </a>
+                
+                <a class="nav-link px-3 py-2 mb-1 @(ViewContext.RouteData.Values["action"]?.ToString() == "SeguimientoDualEstadias" ? "active" : "")"
+                       href="@Url.Action("SeguimientoDualEstadias", "Coordinador")">
+                    <i class="bi bi-briefcase-fill"></i> Seguimiento Estadías
                 </a>
 
             </nav>
 
-            <!-- FOOTER -->
-            <div class="sidebar-footer">
-                <div class="d-flex flex-column gap-1 px-2">
-
-                    <!-- USUARIO -->
-                    <div class="fw-semibold text-white" style="font-size: 0.95rem;">
-                        @User.Identity.Name
+            <div class="sidebar-footer p-4 mt-auto border-top border-white border-opacity-10 bg-black bg-opacity-10">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="user-initial-avatar shadow-sm">
+                        @(User.Identity.Name?.Substring(0, 1).ToUpper() ?? "U")
                     </div>
-
-                    <!-- LOGOUT -->
-                    <form asp-controller="Account" asp-action="Logout" method="post">
-                        <button type="submit"
-                                class="btn btn-link p-0 text-white text-decoration-none border-0"
-                                style="font-size: 0.85rem; opacity: 0.8;">
-                            Cerrar Sesión
-                        </button>
-                    </form>
-
+                    <div class="overflow-hidden">
+                        <div class="fw-bold text-white text-xs text-truncate">@User.Identity.Name</div>
+                        <form asp-controller="Account" asp-action="Logout" method="post" class="m-0">
+                            <button type="submit" class="btn btn-link p-0 text-white opacity-50 text-xxs text-decoration-none shadow-none border-0 text-uppercase fw-bold tracking-tighter">
+                                Cerrar Sesión
+                            </button>
+                        </form>
+                    </div>
                 </div>
             </div>
-
         </aside>
 
-        <!-- MAIN -->
-        <main class="main-content">
-
-            <header class="admin-header border-bottom border-theme">
-                <h5 class="fw-bold txt-title mb-0">@ViewData["Title"]</h5>
+        <main class="main-content d-flex flex-column">
+            <header class="admin-header bg-white px-4 py-3 border-bottom border-theme shadow-sm d-flex align-items-center justify-content-between">
+                <div>
+                    <h5 class="fw-bold txt-title mb-0">@ViewData["Title"]</h5>
+                    <div class="text-xxs fw-bold text-muted text-uppercase tracking-tighter">Preparatoria • Módulo Administrativo</div>
+                </div>
             </header>
 
-            @if (TempData["SuccessMessage"] != null)
-            {
-                <div class="p-4 pb-0">
-                    <div class="alert bg-success-100 border border-success-700 text-success-700 rounded-3 alert-dismissible fade show shadow-sm mb-0">
-                        <i class="bi bi-check-circle-fill me-2"></i>
-                        @TempData["SuccessMessage"]
-                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                    </div>
-                </div>
-            }
-
-            <div class="p-4 p-lg-5 container-fluid">
+            <div class="p-4 p-lg-5 flex-grow-1 bg-app">
                 @RenderBody()
             </div>
 
@@ -129,25 +160,18 @@
     <!-- SCRIPTS -->
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
-
+    
     <script>
-        $(document).ready(function () {
+        $(document).ready(function() {
         const sidebar = $('#sidebar');
         const overlay = $('#mobileOverlay');
-
-        $('#btnMobileMenu').click(function () {
-        sidebar.addClass('show');
-        overlay.addClass('active');
-        });
-
-        $('#btnCloseMenu, #mobileOverlay').click(function () {
-        sidebar.removeClass('show');
-        overlay.removeClass('active');
+        $('#btnMobileMenu, #mobileOverlay').click(function() {
+        sidebar.toggleClass('show');
+        overlay.toggleClass('active');
         });
         });
     </script>
-
+    
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

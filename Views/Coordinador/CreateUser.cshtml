@@ -1,28 +1,28 @@
 @model CreateUserViewModel
 @{
-    ViewData["Title"] = "Creación y Gestión de cuentas";
-    Layout = "_LayoutCoordinador";
-
     var isEdit = ViewBag.IsEdit as bool? ?? false;
     var returnTab = ViewBag.ReturnTab as string ?? "tab-cuentas";
     var roles = ViewBag.Roles as Dictionary<int, string> ?? new Dictionary<int, string>();
     var availableStudents = ViewBag.AvailableStudents as Dictionary<int, StudentOption>
     ?? new Dictionary<int, StudentOption>();
+
+    ViewData["Title"] = isEdit ? "Editar Cuenta" : "Crear Cuenta";
+    Layout = "_LayoutCoordinador";
 }
 
-<div class="fade-in d-flex flex-column gap-4">
+<div class="container-fluid d-flex flex-column gap-4 p-0 fade-in">
 
-    <div class="bg-surface p-4 rounded-4 border-theme shadow-sm d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+    <div class="bg-white p-4 rounded-4 shadow-sm border-0 d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
         <div>
-            <h3 class="txt-title fw-bold mb-1">@(isEdit ? "Editar Cuenta" : "Crear Cuenta")</h3>
-            <div class="d-flex align-items-center gap-3 mt-2 txt-body text-xs">
-                <span>@(isEdit ? "Puede cambiar la contraseña sin capturar la anterior." : "Alta de cuentas de acceso al sistema.")</span>
-            </div>
+            <h5 class="txt-title fw-bold mb-1 text-uppercase">@(isEdit ? "Modificar Cuenta de Usuario" : "Nueva Cuenta de Acceso")</h5>
+            <p class="txt-body text-xxs fw-bold text-uppercase tracking-widest mb-0 opacity-75">
+                @(isEdit ? "Gestión de perfil y actualización de credenciales de acceso" : "Definición de perfil y permisos para nuevos integrantes")
+            </p>
         </div>
-        <div class="text-end d-flex flex-column align-items-md-end gap-2">
+        <div class="flex-shrink-0">
             <a href="@Url.Action("Catalogos", "Coordinador", new { tab = returnTab })"
-               class="btn btn-sm btn-ghost-sep border border-theme shadow-sm mt-1 fw-semibold">
-                <i class="bi bi-arrow-left me-1"></i> Volver a Catálogos
+                   class="btn-ghost-sep bg-app border-0 px-4 py-2 fw-bold text-xxs d-flex align-items-center text-decoration-none shadow-none">
+                REGRESAR A CATÁLOGOS
             </a>
         </div>
     </div>
@@ -38,81 +38,73 @@
         <input type="hidden" asp-for="PersonId" />
         <input type="hidden" name="returnTab" value="@returnTab" />
 
-        <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
-
         <div class="row g-4">
             <div class="col-lg-8 d-flex flex-column gap-4">
-                <div class="admin-card-white p-4 p-md-5 rounded-4 border-theme shadow-sm bg-white">
-                    <h6 class="txt-title fw-bold mb-4 border-bottom border-theme pb-2">
-                        DATOS DE LA CUENTA
-                    </h6>
+                
+                <div class="admin-card-white p-4 p-md-5 rounded-4 border-0 shadow-sm bg-white">
+                    <div class="mb-4 pb-3 border-bottom border-light">
+                        <h6 class="txt-title fw-bold text-xs text-uppercase tracking-widest mb-0">Datos de Identidad y Perfil</h6>
+                    </div>
+
+                    @if (!ViewData.ModelState.IsValid)
+                    {
+                        <div asp-validation-summary="ModelOnly" class="bg-error-100 border-start border-4 text-danger text-xs fw-bold rounded-3 p-3 mb-4" style="border-left-color: var(--error-700) !important;"></div>
+                    }
 
                     <div class="row g-4">
                         <div class="col-md-4">
-                            <label asp-for="FirstName" class="txt-body text-xs fw-bold tracking-wide mb-2">
-                                NOMBRE(S) <span class="text-danger">*</span>
-                            </label>
-                            <input asp-for="FirstName" class="form-control search-input-custom ps-3"  />
-                            <span asp-validation-for="FirstName" class="text-danger text-xs"></span>
+                            <label asp-for="FirstName" class="txt-body text-xxs fw-bold tracking-wide mb-2 d-block text-uppercase">Nombre(s) <span class="text-danger">*</span></label>
+                            <input asp-for="FirstName" class="form-control border-0 bg-app py-2 px-3 text-xs fw-medium shadow-none" placeholder="EJ. CARLOS" required />
+                            <span asp-validation-for="FirstName" class="text-danger text-xxs fw-bold mt-1 d-block"></span>
                         </div>
 
                         <div class="col-md-4">
-                            <label asp-for="LastNamePaternal" class="txt-body text-xs fw-bold tracking-wide mb-2">
-                                APELLIDO PATERNO <span class="text-danger">*</span>
-                            </label>
-                            <input asp-for="LastNamePaternal" class="form-control search-input-custom ps-3"  />
-                            <span asp-validation-for="LastNamePaternal" class="text-danger text-xs"></span>
+                            <label asp-for="LastNamePaternal" class="txt-body text-xxs fw-bold tracking-wide mb-2 d-block text-uppercase">Apellido Paterno <span class="text-danger">*</span></label>
+                            <input asp-for="LastNamePaternal" class="form-control border-0 bg-app py-2 px-3 text-xs fw-medium shadow-none" placeholder="EJ. GARCÍA" required />
+                            <span asp-validation-for="LastNamePaternal" class="text-danger text-xxs fw-bold mt-1 d-block"></span>
                         </div>
 
                         <div class="col-md-4">
-                            <label asp-for="LastNameMaternal" class="txt-body text-xs fw-bold tracking-wide mb-2">
-                                APELLIDO MATERNO
-                            </label>
-                            <input asp-for="LastNameMaternal" class="form-control search-input-custom ps-3" />
-                            <span asp-validation-for="LastNameMaternal" class="text-danger text-xs"></span>
+                            <label asp-for="LastNameMaternal" class="txt-body text-xxs fw-bold tracking-wide mb-2 d-block text-uppercase">Apellido Materno</label>
+                            <input asp-for="LastNameMaternal" class="form-control border-0 bg-app py-2 px-3 text-xs fw-medium shadow-none" placeholder="OPCIONAL" />
+                            <span asp-validation-for="LastNameMaternal" class="text-danger text-xxs fw-bold mt-1 d-block"></span>
                         </div>
 
                         <div class="col-md-6">
-                            <label asp-for="Email" class="txt-body text-xs fw-bold tracking-wide mb-2">
-                                CORREO INSTITUCIONAL <span class="text-danger">*</span>
-                            </label>
-                            <input asp-for="Email" type="email" class="form-control search-input-custom ps-3"  />
-                            <span asp-validation-for="Email" class="text-danger text-xs"></span>
+                            <label asp-for="Email" class="txt-body text-xxs fw-bold tracking-wide mb-2 d-block text-uppercase">Correo Institucional <span class="text-danger">*</span></label>
+                            <input asp-for="Email" type="email" class="form-control border-0 bg-app py-2 px-3 text-xs fw-medium shadow-none" placeholder="CORREO@INSTITUCION.EDU.MX" required />
+                            <span asp-validation-for="Email" class="text-danger text-xxs fw-bold mt-1 d-block"></span>
                         </div>
 
                         <div class="col-md-6">
-                            <label asp-for="Role" class="txt-body text-xs fw-bold tracking-wide mb-2">
-                                ROL EN EL SISTEMA <span class="text-danger">*</span>
-                            </label>
-                            <select asp-for="Role" id="roleSelect" class="form-select bg-app border-theme txt-title fw-semibold py-2" >
-                                <option value="">-- Seleccionar Rol --</option>
+                            <label asp-for="Role" class="txt-body text-xxs fw-bold tracking-wide mb-2 d-block text-uppercase">Rol Asignado <span class="text-danger">*</span></label>
+                            <select asp-for="Role" id="roleSelect" class="form-select border-0 bg-app py-2 px-3 text-xs fw-bold txt-title shadow-none cursor-pointer" required>
+                                <option value="">-- SELECCIONAR ROL --</option>
                                 @foreach (var role in roles)
                                 {
-                                    <option value="@role.Key">@role.Value</option>
+                                    <option value="@role.Key">@role.Value.ToUpper()</option>
                                 }
                             </select>
-                            <span asp-validation-for="Role" class="text-danger text-xs"></span>
+                            <span asp-validation-for="Role" class="text-danger text-xxs fw-bold mt-1 d-block"></span>
                         </div>
 
                         <div class="col-12" id="studentLinkBlock" style="display:none;">
-                            <label asp-for="ExistingStudentId" class="txt-body text-xs fw-bold tracking-wide mb-2">
-                                VINCULAR ALUMNO EXISTENTE
-                            </label>
-                            <select asp-for="ExistingStudentId" class="form-select bg-app border-theme txt-title fw-semibold py-2">
-                                <option value="">-- Ninguno --</option>
-                                @foreach (var s in availableStudents)
-                                {
-                                    <option value="@s.Key"
-                                            data-first="@s.Value.FirstName"
-                                            data-lastp="@s.Value.LastNamePaternal"
-                                            data-lastm="@s.Value.LastNameMaternal"
-                                            data-email="@s.Value.Email">
-                                        @s.Value.Display
-                                    </option>
-                                }
-                            </select>
-                            <div class="txt-body text-xs mt-2">
-                                Si el rol es alumno, puede vincular esta cuenta a un alumno ya registrado.
+                            <div class="bg-app rounded-3 p-4 border-start border-4 border-primary">
+                                <label asp-for="ExistingStudentId" class="txt-body text-xxs fw-bold tracking-wide mb-2 d-block text-uppercase">Vincular con Alumno Registrado</label>
+                                <select asp-for="ExistingStudentId" class="form-select border-0 bg-white py-2 px-3 text-xs fw-bold txt-title shadow-sm cursor-pointer">
+                                    <option value="">-- NINGUNO / CARGA MANUAL --</option>
+                                    @foreach (var s in availableStudents)
+                                    {
+                                        <option value="@s.Key"
+                                                data-first="@s.Value.FirstName"
+                                                data-lastp="@s.Value.LastNamePaternal"
+                                                data-lastm="@s.Value.LastNameMaternal"
+                                                data-email="@s.Value.Email">
+                                            @s.Value.Display.ToUpper()
+                                        </option>
+                                    }
+                                </select>
+                                <div class="text-muted text-xxs mt-2 fw-medium">Al seleccionar un alumno, los campos de identidad se completarán automáticamente.</div>
                             </div>
                         </div>
                     </div>
@@ -120,57 +112,40 @@
             </div>
 
             <div class="col-lg-4">
-                <div class="admin-card-white p-4 p-md-5 rounded-4 shadow-sm h-100 d-flex flex-column bg-white border-theme">
-                    <h6 class="txt-title fw-bold mb-4 border-bottom border-theme pb-2">
-                        ACCESO
-                    </h6>
+                <div class="admin-card-white p-4 p-md-5 rounded-4 border-0 shadow-sm bg-white h-100 d-flex flex-column">
+                    <h6 class="txt-title fw-bold text-xs text-uppercase tracking-widest mb-4 border-bottom border-light pb-2">Acceso</h6>
 
                     <div class="mb-4">
-                        <label asp-for="Username" class="txt-body text-xs fw-bold tracking-wide mb-2">
-                            USUARIO DE ACCESO <span class="text-danger">*</span>
-                        </label>
-                        <input asp-for="Username" class="form-control search-input-custom ps-3" autocomplete="off"  />
-                        <span asp-validation-for="Username" class="text-danger text-xs"></span>
+                        <label asp-for="Username" class="txt-body text-xxs fw-bold tracking-wide mb-2 d-block text-uppercase">Nombre de Usuario <span class="text-danger">*</span></label>
+                        <input asp-for="Username" class="form-control border-0 bg-app py-2 px-3 text-xs fw-medium shadow-none" placeholder="USUARIO.ACCESO" autocomplete="off" required />
+                        <span asp-validation-for="Username" class="text-danger text-xxs fw-bold mt-1 d-block"></span>
                     </div>
 
                     <div class="mb-5">
-                        <label asp-for="Password" class="txt-body text-xs fw-bold tracking-wide mb-2">
-                            @(isEdit ? "NUEVA CONTRASEÑA" : "CONTRASEÑA")
-                            @if (!isEdit)
-                            {
-                                <span class="text-danger">*</span>
-                            }
+                        <label asp-for="Password" class="txt-body text-xxs fw-bold tracking-wide mb-2 d-block text-uppercase">
+                            @(isEdit ? "Nueva Contraseña" : "Contraseña")
+                            @(!isEdit ? Html.Raw("<span class='text-danger'>*</span>") : null)
                         </label>
 
+                        <input asp-for="Password" type="password"
+                               class="form-control border-0 bg-app py-2 px-3 text-xs fw-medium shadow-none"
+                               placeholder="@(isEdit ? "DEJAR VACÍO PARA CONSERVAR" : "MÍNIMO 6 CARACTERES")"
+                               autocomplete="new-password" />
+                        
                         @if (isEdit)
                         {
-                            <input asp-for="Password"
-                                   type="password"
-                                   class="form-control search-input-custom ps-3"
-                                   placeholder="Déjelo vacío para conservar la actual"
-                                   autocomplete="new-password" />
-                            <div class="txt-body text-xs mt-2">En edición este campo es opcional.</div>
+                            <div class="text-muted text-xxs mt-2 fw-medium">Solo complete este campo si desea restablecer la contraseña.</div>
                         }
-                        else
-                        {
-                            <input asp-for="Password"
-                                   type="password"
-                                   class="form-control search-input-custom ps-3"
-                                   placeholder="Mínimo 6 caracteres"
-                                   autocomplete="new-password"
-                                    />
-                        }
-
-                        <span asp-validation-for="Password" class="text-danger text-xs"></span>
+                        <span asp-validation-for="Password" class="text-danger text-xxs fw-bold mt-1 d-block"></span>
                     </div>
 
-                    <div class="mt-auto pt-4 border-top border-theme d-flex flex-column gap-3">
-                        <button type="submit" class="btn btn-primary-sep bg-primary-900 w-100 fw-bold py-3 shadow-sm text-white">
-                            @(isEdit ? "Guardar Cambios" : "Crear Cuenta")
+                    <div class="mt-auto pt-4 border-top border-light d-flex flex-column gap-3">
+                        <button type="submit" class="btn-primary-sep border-0 w-100 py-3 text-xxs fw-bold tracking-widest shadow-sm">
+                            @(isEdit ? "ACTUALIZAR CUENTA" : "CREAR CUENTA")
                         </button>
                         <a href="@Url.Action("Catalogos", "Coordinador", new { tab = returnTab })"
-                           class="btn btn-ghost-sep border border-theme w-100 py-2 shadow-sm text-body fw-semibold">
-                            Cancelar
+                               class="btn-ghost-sep bg-app border-0 w-100 py-2 text-xxs fw-bold text-muted text-center text-decoration-none shadow-none">
+                            CANCELAR
                         </a>
                     </div>
                 </div>
@@ -183,69 +158,63 @@
     <partial name="_ValidationScriptsPartial" />
     <script>
         document.addEventListener('DOMContentLoaded', function () {
-
             const roleSelect = document.getElementById('roleSelect');
             const studentLinkBlock = document.getElementById('studentLinkBlock');
             const studentSelect = document.querySelector('[name="ExistingStudentId"]');
 
             function toggleStudentLink() {
                 if (!roleSelect || !studentLinkBlock) return;
-
                 const selected = roleSelect.options[roleSelect.selectedIndex];
                 const text = selected ? selected.text.toUpperCase() : '';
-
-                const isStudent =
-                    text.includes('STUDENT') ||
-                    text.includes('ALUMNO') ||
-                    text.includes('ESTUDIANTE');
+                const isStudent = text.includes('STUDENT') || text.includes('ALUMNO') || text.includes('ESTUDIANTE');
 
                 studentLinkBlock.style.display = isStudent ? 'block' : 'none';
-
                 if (!isStudent && studentSelect) {
                     studentSelect.value = '';
-
-                    // limpiar inputs
                     setValues('', '', '', '');
                 }
             }
 
             function setValues(first, lastp, lastm, email) {
-                const firstInput = document.querySelector('[name="FirstName"]');
-                const lastpInput = document.querySelector('[name="LastNamePaternal"]');
-                const lastmInput = document.querySelector('[name="LastNameMaternal"]');
-                const emailInput = document.querySelector('[name="Email"]');
-
-                if (firstInput) firstInput.value = first;
-                if (lastpInput) lastpInput.value = lastp;
-                if (lastmInput) lastmInput.value = lastm;
-                if (emailInput) emailInput.value = email;
+                const fields = {
+                    FirstName: first,
+                    LastNamePaternal: lastp,
+                    LastNameMaternal: lastm,
+                    Email: email
+                };
+                Object.keys(fields).forEach(name => {
+                    const el = document.querySelector(`[name="${name}"]`);
+                    if (el) el.value = fields[name];
+                });
             }
 
-            // EVENTO: cambio de alumno
             if (studentSelect) {
                 studentSelect.addEventListener('change', function () {
                     const selected = this.options[this.selectedIndex];
-
                     if (!selected || !selected.value) {
                         setValues('', '', '', '');
                         return;
                     }
-
-                    const first = selected.getAttribute('data-first');
-                    const lastp = selected.getAttribute('data-lastp');
-                    const lastm = selected.getAttribute('data-lastm');
-                    const email = selected.getAttribute('data-email');
-
-                    setValues(first, lastp, lastm, email);
+                    setValues(
+                        selected.getAttribute('data-first'),
+                        selected.getAttribute('data-lastp'),
+                        selected.getAttribute('data-lastm'),
+                        selected.getAttribute('data-email')
+                    );
                 });
             }
 
-            // EVENTO: cambio de rol
             if (roleSelect) {
                 roleSelect.addEventListener('change', toggleStudentLink);
                 toggleStudentLink();
             }
-
         });
     </script>
+    <style>
+        .form-control:focus, .form-select:focus {
+            background-color: var(--white) !important;
+            box-shadow: 0 0 0 4px var(--accent-100) !important;
+            border: 1px solid var(--accent-500) !important;
+        }
+    </style>
 }
