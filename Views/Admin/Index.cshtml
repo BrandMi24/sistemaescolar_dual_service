@@ -1,660 +1,143 @@
-@* @using ControlEscolar.Helpers;
-@using ControlEscolar.Enums;
 @model ControlEscolar.Models.AdminDashboardViewModel
 
 @{
-    ViewData["Title"] = "Control Escolar";
-    Layout = "_Layout";
+    ViewData["Title"] = "Panel de Control Central";
+    Layout = "_LayoutAdmin"; 
 }
 
-<div class="main-container pt-5 mb-5">
-    <div class="container">
+<div class="fade-in">
+    <div class="mb-5">
+        <h4 class="fw-bold txt-primary-dark mb-1">BIENVENIDO AL SISTEMA INTEGRAL</h4>
+        <p class="text-muted text-xs fw-bold text-uppercase tracking-widest">Seleccione el módulo al que desea dirigirse</p>
+    </div>
 
-        @if (TempData["SuccessMessage"] != null)
-        {
-            <div class="alert alert-success alert-dismissible fade show rounded-3 mb-4" role="alert">
-                <i class="bi bi-check-circle-fill me-2"></i> @TempData["SuccessMessage"]
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            </div>
-        }
-        @if (TempData["ErrorMessage"] != null)
-        {
-            <div class="alert alert-danger alert-dismissible fade show rounded-3 mb-4" role="alert">
-                <i class="bi bi-exclamation-circle-fill me-2"></i> @TempData["ErrorMessage"]
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            </div>
-        }
-
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <div>
-                <h2 class="fw-bold txt-primary-dark mb-1">Control Escolar</h2>
-                <p class="txt-body small mb-0">Gestión y validación de preinscripciones e inscripciones</p>
-            </div>
-            <a asp-action="ConfigurarFichas" class="btn btn-ghost-sep px-4">
-                <i class="bi bi-gear me-2"></i> Configurar Fichas
+    <div class="row g-4 mb-5">
+        
+        <div class="col-md-6 col-lg-4">
+            <a href="@Url.Action("Catalogos", "Coordinador")" class="text-decoration-none">
+                <div class="module-card bg-surface p-4 shadow-sm border border-light h-100 d-flex flex-column align-items-center text-center">
+                    <div class="icon-box mb-3 shadow-sm">
+                        <i class="bi bi-folder-fill fs-2"></i>
+                    </div>
+                    <h6 class="fw-bold text-uppercase tracking-wide mb-2">Coordinación</h6>
+                    <p class="text-muted text-xxs fw-semibold px-3 uppercase opacity-75">Gestión de catálogos, infraestructura y organización escolar.</p>
+                </div>
             </a>
         </div>
 
-        <ul class="nav nav-tabs border-theme mb-4" id="controlTab">
-            <li class="nav-item">
-                <a class="nav-link fw-bold @(Model.Tab == "preinscripciones" ? "active" : "")"
-                   href="@Url.Action("Index", new { tab = "preinscripciones", carrera = Model.FiltroCarrera, estado = Model.FiltroEstado })">
-                    <i class="bi bi-person-lines-fill me-2"></i>
-                    Preinscripciones
-                    <span class="badge bg-secondary ms-1">@Model.Preinscripciones.Count</span>
-                </a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link fw-bold @(Model.Tab == "inscripciones" ? "active" : "")"
-                   href="@Url.Action("Index", new { tab = "inscripciones", carrera = Model.FiltroCarrera, estado = Model.FiltroEstado })">
-                    <i class="bi bi-person-check-fill me-2"></i>
-                    Inscripciones
-                    <span class="badge bg-secondary ms-1">@Model.Inscripciones.Count</span>
-                </a>
-            </li>
-        </ul>
-
-        <div class="bg-surface rounded-4 shadow-sm border-theme p-4 mb-4">
-            <form method="get" asp-action="Index" class="row g-3 align-items-end">
-                <input type="hidden" name="tab" value="@Model.Tab" />
-                <div class="col-md-4">
-                    <label class="form-label txt-body text-xs fw-bold tracking-wide">CARRERA</label>
-                    <select name="carrera" class="form-select bg-app border-theme txt-title fw-bold">
-                        <option value="">Todas las carreras</option>
-                        @foreach (var c in CatalogosHelper.Carreras)
-                        {
-                            <option value="@c" selected="@(Model.FiltroCarrera == c)">@c</option>
-                        }
-                    </select>
+        <div class="col-md-6 col-lg-4">
+            <a href="@Url.Action("Index", "Maestro")" class="text-decoration-none">
+                <div class="module-card bg-surface p-4 shadow-sm border border-light h-100 d-flex flex-column align-items-center text-center">
+                    <div class="icon-box mb-3 shadow-sm">
+                        <i class="bi bi-mortarboard-fill fs-2"></i>
+                    </div>
+                    <h6 class="fw-bold text-uppercase tracking-wide mb-2">Maestros</h6>
+                    <p class="text-muted text-xxs fw-semibold px-3 uppercase opacity-75">Panel de control docente, pase de lista y calificaciones.</p>
                 </div>
-                <div class="col-md-4">
-                    <label class="form-label txt-body text-xs fw-bold tracking-wide">ESTADO</label>
-                    <select name="estado" class="form-select bg-app border-theme txt-title fw-bold">
-                        <option value="">Todos los estados</option>
-                        @if (Model.Tab == "preinscripciones")
-                        {
-                            foreach (var e in Enum.GetNames(typeof(EstadoPreinscripcion)))
-                            {
-                                <option value="@e" selected="@(Model.FiltroEstado == e)">@e</option>
-                            }
-                        }
-                        else
-                        {
-                            foreach (var e in Enum.GetNames(typeof(EstadoInscripcion)))
-                            {
-                                <option value="@e" selected="@(Model.FiltroEstado == e)">@e</option>
-                            }
-                        }
-                    </select>
-                </div>
-                <div class="col-md-2">
-                    <button type="submit" class="btn btn-primary-sep w-100">
-                        <i class="bi bi-funnel me-2"></i> Filtrar
-                    </button>
-                </div>
-                <div class="col-md-2">
-                    <a href="@Url.Action("Index", new { tab = Model.Tab })" class="btn btn-ghost-sep w-100">
-                        <i class="bi bi-x-circle me-2"></i> Limpiar
-                    </a>
-                </div>
-            </form>
+            </a>
         </div>
 
-        @if (Model.Tab == "preinscripciones")
-        {
-            <div class="bg-surface rounded-4 shadow-sm border-theme p-4">
-                @if (!Model.Preinscripciones.Any())
-                {
-                    <div class="text-center py-5">
-                        <i class="bi bi-inbox fs-1 txt-body opacity-50"></i>
-                        <p class="txt-body mt-3">No hay preinscripciones que mostrar.</p>
+        <div class="col-md-6 col-lg-4">
+            <a href="@Url.Action("Index", "Tutor")" class="text-decoration-none">
+                <div class="module-card bg-surface p-4 shadow-sm border border-light h-100 d-flex flex-column align-items-center text-center">
+                    <div class="icon-box mb-3 shadow-sm">
+                        <i class="bi bi-shield-check fs-2"></i>
                     </div>
-                }
-                else
-                {
-                    <div class="table-responsive">
-                        <table class="table align-middle mb-0" style="font-size: 0.875rem;">
-                            <thead>
-                                <tr class="txt-body border-bottom border-theme">
-                                    <th class="fw-bold pb-3">Folio</th>
-                                    <th class="fw-bold pb-3">Aspirante</th>
-                                    <th class="fw-bold pb-3">Carrera</th>
-                                    <th class="fw-bold pb-3">Promedio</th>
-                                    <th class="fw-bold pb-3">Fecha</th>
-                                    <th class="fw-bold pb-3">Estado</th>
-                                    <th class="fw-bold pb-3 text-end">Acciones</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach (var item in Model.Preinscripciones)
-                                {
-                                    <tr class="border-bottom border-theme">
-                                        <td class="fw-bold txt-primary-dark">@(item.academiccontrol_preinscription_folio ?? $"#{item.academiccontrol_preinscription_ID}")</td>
-                                        <td>
-                                            <div class="fw-bold txt-title">
-                                                @item.DatosPersonales?.academiccontrol_preinscription_personaldata_paternalSurname
-                                                @item.DatosPersonales?.academiccontrol_preinscription_personaldata_maternalSurname,
-                                                @item.DatosPersonales?.academiccontrol_preinscription_personaldata_name
-                                            </div>
-                                            <small class="txt-body">@item.DatosPersonales?.academiccontrol_preinscription_personaldata_email</small>
-                                        </td>
-                                        <td class="txt-body">@item.academiccontrol_preinscription_careerRequested</td>
-                                        <td class="txt-body">@item.academiccontrol_preinscription_average.ToString("F1")</td>
-                                        <td class="txt-body">@item.academiccontrol_preinscription_registrationDate.ToString("dd/MM/yyyy")</td>
-                                        <td>
-                                            @await Html.PartialAsync("_StatusBadge", null, new ViewDataDictionary(ViewData)
-                                            {
-                                                { "StatusValue", item.academiccontrol_preinscription_state },
-                                                                { "StatusType", "preinscripcion" }
-                                            })
-                            </td>
-                            <td class="text-end">
-                                <div class="d-flex justify-content-end gap-2">
-                                    <a asp-controller="Preinscripciones"
-                                       asp-action="Details"
-                                       asp-route-id="@item.academiccontrol_preinscription_ID"
-                                       class="btn btn-sm btn-ghost-sep px-3">
-                                        <i class="bi bi-eye me-1"></i> Ver
-                                    </a>
+                    <h6 class="fw-bold text-uppercase tracking-wide mb-2">Tutorías</h6>
+                    <p class="text-muted text-xxs fw-semibold px-3 uppercase opacity-75">Acompañamiento académico y seguimiento grupal.</p>
+                </div>
+            </a>
+        </div>
 
-                                    @if (item.academiccontrol_preinscription_state == EstadoPreinscripcion.Pendiente.ToString())
-                                                {
-                                                    <form asp-action="ValidarPreinscripcion" method="post" class="d-inline">
-                                                        @Html.AntiForgeryToken()
-                                                        <input type="hidden" name="id" value="@item.academiccontrol_preinscription_ID" />
-                                                        <button type="submit"
-                                                                class="btn btn-sm btn-primary-sep px-3 btn-validar-pre"
-                                                                data-folio="@item.academiccontrol_preinscription_folio">
-                                                            <i class="bi bi-check-lg me-1"></i> Validar
-                                                        </button>
-                                                    </form>
-                                                }
-
-                                                @if (item.academiccontrol_preinscription_state == EstadoPreinscripcion.Validada.ToString())
-                                                {
-                                                    <form asp-action="HabilitarInscripcion" method="post" class="d-inline">
-                                                        @Html.AntiForgeryToken()
-                                                        <input type="hidden" name="id" value="@item.academiccontrol_preinscription_ID" />
-                                                        <button type="submit"
-                                                                class="btn btn-sm px-3 btn-habilitar"
-                                                                style="background-color: var(--success-700); color: white;"
-                                                                data-folio="@item.academiccontrol_preinscription_folio">
-                                                            <i class="bi bi-unlock me-1"></i> Habilitar
-                                                        </button>
-                                                    </form>
-                                                }
-
-                                                @if (item.academiccontrol_preinscription_state == EstadoPreinscripcion.Pendiente.ToString()
-                                                                                    || item.academiccontrol_preinscription_state == EstadoPreinscripcion.Validada.ToString())
-                                                {
-                                                    <button type="button"
-                                                            class="btn btn-sm btn-danger px-3"
-                                                            data-bs-toggle="modal"
-                                                            data-bs-target="#modalRechazarPre"
-                                                            data-id="@item.academiccontrol_preinscription_ID"
-                                                            data-folio="@item.academiccontrol_preinscription_folio">
-                                                        <i class="bi bi-x-lg me-1"></i> Rechazar
-                                                    </button>
-                                                }
-                                            </div>
-                                        </td>
-                                    </tr>
-                                }
-                            </tbody>
-                        </table>
+        <div class="col-md-6 col-lg-4">
+            <a href="@Url.Action("Index", "VisitaMedica")" class="text-decoration-none">
+                <div class="module-card bg-surface p-4 shadow-sm border border-light h-100 d-flex flex-column align-items-center text-center">
+                    <div class="icon-box mb-3 shadow-sm">
+                        <i class="bi bi-heart-pulse-fill fs-2"></i>
                     </div>
-                }
-            </div>
-        }
+                    <h6 class="fw-bold text-uppercase tracking-wide mb-2">Servicio Médico</h6>
+                    <p class="text-muted text-xxs fw-semibold px-3 uppercase opacity-75">Atención en enfermería y expedientes clínicos.</p>
+                </div>
+            </a>
+        </div>
 
-        @if (Model.Tab == "inscripciones")
-        {
-            <div class="bg-surface rounded-4 shadow-sm border-theme p-4">
-                @if (!Model.Inscripciones.Any())
-                {
-                    <div class="text-center py-5">
-                        <i class="bi bi-inbox fs-1 txt-body opacity-50"></i>
-                        <p class="txt-body mt-3">No hay inscripciones que mostrar.</p>
+        <div class="col-md-6 col-lg-4">
+            <a href="@Url.Action("Index", "VisitaPsicologica")" class="text-decoration-none">
+                <div class="module-card bg-surface p-4 shadow-sm border border-light h-100 d-flex flex-column align-items-center text-center">
+                    <div class="icon-box mb-3 shadow-sm">
+                        <i class="bi bi-person-heart fs-2"></i>
                     </div>
-                }
-                else
-                {
-                    <div class="table-responsive">
-                        <table class="table align-middle mb-0" style="font-size: 0.875rem;">
-                            <thead>
-                                <tr class="txt-body border-bottom border-theme">
-                                    <th class="fw-bold pb-3">Matrícula</th>
-                                    <th class="fw-bold pb-3">Aspirante</th>
-                                    <th class="fw-bold pb-3">Carrera</th>
-                                    <th class="fw-bold pb-3">Documentos</th>
-                                    <th class="fw-bold pb-3">Fecha</th>
-                                    <th class="fw-bold pb-3">Estado</th>
-                                    <th class="fw-bold pb-3 text-end">Acciones</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach (var item in Model.Inscripciones)
-                                {
-                                    <tr class="border-bottom border-theme">
-                                        <td class="fw-bold txt-primary-dark">@(item.academiccontrol_inscription_enrollment ?? $"#{item.academiccontrol_inscription_ID}")</td>
-                                        <td>
-                                            <div class="fw-bold txt-title">
-                                                @item.Preinscripcion?.DatosPersonales?.academiccontrol_preinscription_personaldata_paternalSurname
-                                                @item.Preinscripcion?.DatosPersonales?.academiccontrol_preinscription_personaldata_maternalSurname,
-                                                @item.Preinscripcion?.DatosPersonales?.academiccontrol_preinscription_personaldata_name
-                                            </div>
-                                            <small class="txt-body">Folio: @item.Preinscripcion?.academiccontrol_preinscription_folio</small>
-                                        </td>
-                                        <td class="txt-body">@item.academiccontrol_inscription_careerRequested</td>
-                                        <td>
-                                            <div class="d-flex gap-1">
-                                                @if (!string.IsNullOrEmpty(item.academiccontrol_inscription_birthCertificatePath))
-                                                {
-                                                    <a href="@item.academiccontrol_inscription_birthCertificatePath" target="_blank"
-                                                       class="btn btn-sm btn-ghost-sep px-2" title="Ver Acta">
-                                                        <i class="bi bi-file-earmark-pdf text-danger"></i>
-                                                    </a>
-                                                }
-                                                @if (!string.IsNullOrEmpty(item.academiccontrol_inscription_curpPdfPath))
-                                                {
-                                                    <a href="@item.academiccontrol_inscription_curpPdfPath" target="_blank"
-                                                       class="btn btn-sm btn-ghost-sep px-2" title="Ver CURP">
-                                                        <i class="bi bi-file-earmark-pdf text-danger"></i>
-                                                    </a>
-                                                }
-                                                @if (!string.IsNullOrEmpty(item.academiccontrol_inscription_transcriptPath))
-                                                {
-                                                    <a href="@item.academiccontrol_inscription_transcriptPath" target="_blank"
-                                                       class="btn btn-sm btn-ghost-sep px-2" title="Ver Boleta">
-                                                        <i class="bi bi-file-earmark-pdf text-danger"></i>
-                                                    </a>
-                                                }
-                                            </div>
-                                        </td>
-                                        <td class="txt-body">@item.academiccontrol_inscription_registrationDate.ToString("dd/MM/yyyy")</td>
-                                        <td>
-                                            @await Html.PartialAsync("_StatusBadge", null, new ViewDataDictionary(ViewData)
-                                            {
-                                                { "StatusValue", item.academiccontrol_inscription_state },
-                                                                { "StatusType", "inscripcion" }
-                                            })
-                            </td>
-                            <td class="text-end">
-                                <div class="d-flex justify-content-end gap-2">
-                                    @if (item.academiccontrol_inscription_state == EstadoInscripcion.Pendiente.ToString())
-                                                {
-                                                    <form asp-action="ValidarDocumentos" method="post" class="d-inline">
-                                                        @Html.AntiForgeryToken()
-                                                        <input type="hidden" name="id" value="@item.academiccontrol_inscription_ID" />
-                                                        <button type="submit"
-                                                                class="btn btn-sm btn-primary-sep px-3 btn-validar-docs">
-                                                            <i class="bi bi-file-earmark-check me-1"></i> Validar Docs
-                                                        </button>
-                                                    </form>
-                                                }
+                    <h6 class="fw-bold text-uppercase tracking-wide mb-2">Psicología</h6>
+                    <p class="text-muted text-xxs fw-semibold px-3 uppercase opacity-75">Seguimiento psicopedagógico y salud mental.</p>
+                </div>
+            </a>
+        </div>
 
-                                                @if (item.academiccontrol_inscription_state == EstadoInscripcion.PagoValidado.ToString())
-                                                {
-                                                    <form asp-action="AprobarInscripcion" method="post" class="d-inline">
-                                                        @Html.AntiForgeryToken()
-                                                        <input type="hidden" name="id" value="@item.academiccontrol_inscription_ID" />
-                                                        <button type="submit"
-                                                                class="btn btn-sm px-3 btn-aprobar"
-                                                                style="background-color: var(--success-700); color: white;"
-                                                                data-matricula="@item.academiccontrol_inscription_enrollment">
-                                                            <i class="bi bi-check-circle me-1"></i> Aprobar
-                                                        </button>
-                                                    </form>
-                                                }
-
-                                                @if (item.academiccontrol_inscription_state != EstadoInscripcion.Aprobada.ToString()
-                                                                                    && item.academiccontrol_inscription_state != EstadoInscripcion.Rechazada.ToString())
-                                                {
-                                                    <button type="button"
-                                                            class="btn btn-sm btn-danger px-3"
-                                                            data-bs-toggle="modal"
-                                                            data-bs-target="#modalRechazarIns"
-                                                            data-id="@item.academiccontrol_inscription_ID"
-                                                            data-matricula="@item.academiccontrol_inscription_enrollment">
-                                                        <i class="bi bi-x-lg me-1"></i> Rechazar
-                                                    </button>
-                                                }
-                                            </div>
-                                        </td>
-                                    </tr>
-                                }
-                            </tbody>
-                        </table>
+        <div class="col-md-6 col-lg-4">
+            <a href="@Url.Action("Index", "Alumno")" class="text-decoration-none">
+                <div class="module-card bg-surface p-4 shadow-sm border border-light h-100 d-flex flex-column align-items-center text-center">
+                    <div class="icon-box mb-3 shadow-sm">
+                        <i class="bi bi-person-circle fs-2"></i>
                     </div>
-                }
-            </div>
-        }
+                    <h6 class="fw-bold text-uppercase tracking-wide mb-2">Vista Estudiante</h6>
+                    <p class="text-muted text-xxs fw-semibold px-3 uppercase opacity-75">Consulta de calificaciones, asistencias y trámites.</p>
+                </div>
+            </a>
+        </div>
+
     </div>
 </div>
 
-@* Modales *@
-@* <div class="modal fade" id="modalRechazarPre" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content bg-surface border-theme">
-            <div class="modal-header border-theme">
-                <h5 class="modal-title fw-bold txt-primary-dark">Rechazar Preinscripción</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <form asp-action="RechazarPreinscripcion" method="post">
-                @Html.AntiForgeryToken()
-                <div class="modal-body">
-                    <input type="hidden" name="id" id="preRechazarId" />
-                    <p class="txt-body">¿Está seguro que desea rechazar el folio <strong id="preRechazarFolio"></strong>?</p>
-                    <div class="mb-3">
-                        <label class="form-label txt-body text-xs fw-bold tracking-wide">MOTIVO (OPCIONAL)</label>
-                        <textarea name="motivo" class="form-control bg-app border-theme txt-title" rows="3"
-                                  placeholder="Indique el motivo del rechazo..."></textarea>
-                    </div>
-                </div>
-                <div class="modal-footer border-theme">
-                    <button type="button" class="btn btn-ghost-sep" data-bs-dismiss="modal">Cancelar</button>
-                    <button type="submit" class="btn btn-danger">Confirmar Rechazo</button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
+<style>
+    /* VARIABLES DEL DESIGN SYSTEM APLICADAS */
+    :root {
+        --primary-900: #13322B;
+        --accent-500: #D4C19C;
+    }
 
-<div class="modal fade" id="modalRechazarIns" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content bg-surface border-theme">
-            <div class="modal-header border-theme">
-                <h5 class="modal-title fw-bold txt-primary-dark">Rechazar Inscripción</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <form asp-action="RechazarInscripcion" method="post">
-                @Html.AntiForgeryToken()
-                <div class="modal-body">
-                    <input type="hidden" name="id" id="insRechazarId" />
-                    <p class="txt-body">¿Está seguro que desea rechazar la matrícula <strong id="insRechazarMatricula"></strong>?</p>
-                    <div class="mb-3">
-                        <label class="form-label txt-body text-xs fw-bold tracking-wide">MOTIVO (OPCIONAL)</label>
-                        <textarea name="motivo" class="form-control bg-app border-theme txt-title" rows="3"
-                                  placeholder="Indique el motivo del rechazo..."></textarea>
-                    </div>
-                </div>
-                <div class="modal-footer border-theme">
-                    <button type="button" class="btn btn-ghost-sep" data-bs-dismiss="modal">Cancelar</button>
-                    <button type="submit" class="btn btn-danger">Confirmar Rechazo</button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
+    /* ESTILO DE LA TARJETA DEL HUB */
+    .module-card {
+        border-radius: 20px;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        cursor: pointer;
+    }
 
-@section Scripts {
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <script>
-        // Validar preinscripción
-        document.querySelectorAll('.btn-validar-pre').forEach(btn => {
-            btn.addEventListener('click', function (e) {
-                e.preventDefault();
-                const form = this.closest('form');
-                Swal.fire({
-                    title: '¿Validar preinscripción?',
-                    text: `¿Está seguro que desea validar el folio ${this.dataset.folio}?`,
-                    icon: 'question',
-                    showCancelButton: true,
-                    confirmButtonText: 'Sí, validar',
-                    cancelButtonText: 'Cancelar',
-                    confirmButtonColor: '#13322B',
-                    cancelButtonColor: '#6c757d'
-                }).then(result => {
-                    if (result.isConfirmed) form.submit();
-                });
-            });
-        });
+    /* ICON BOX POR DEFECTO (Gris/Cuerpo) */
+    .icon-box {
+        width: 70px;
+        height: 70px;
+        background-color: var(--bg-main, #f3f4f6);
+        color: var(--text-body, #6B7280);
+        border-radius: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.3s ease;
+    }
 
-        // Habilitar inscripción
-        document.querySelectorAll('.btn-habilitar').forEach(btn => {
-            btn.addEventListener('click', function (e) {
-                e.preventDefault();
-                const form = this.closest('form');
-                Swal.fire({
-                    title: '¿Habilitar inscripción?',
-                    text: `¿Está seguro que desea habilitar la inscripción para el folio ${this.dataset.folio}?`,
-                    icon: 'question',
-                    showCancelButton: true,
-                    confirmButtonText: 'Sí, habilitar',
-                    cancelButtonText: 'Cancelar',
-                    confirmButtonColor: '#13322B',
-                    cancelButtonColor: '#6c757d'
-                }).then(result => {
-                    if (result.isConfirmed) form.submit();
-                });
-            });
-        });
+    /* TEXTO POR DEFECTO */
+    .module-card h6 {
+        color: var(--text-title, #1F2937);
+        letter-spacing: 1px;
+    }
 
-        // Validar documentos
-        document.querySelectorAll('.btn-validar-docs').forEach(btn => {
-            btn.addEventListener('click', function (e) {
-                e.preventDefault();
-                const form = this.closest('form');
-                Swal.fire({
-                    title: '¿Validar documentos?',
-                    text: '¿Confirma que los documentos presentados son correctos?',
-                    icon: 'question',
-                    showCancelButton: true,
-                    confirmButtonText: 'Sí, validar',
-                    cancelButtonText: 'Cancelar',
-                    confirmButtonColor: '#13322B',
-                    cancelButtonColor: '#6c757d'
-                }).then(result => {
-                    if (result.isConfirmed) form.submit();
-                });
-            });
-        });
+    /* HOVER EFECTO: REPLICANDO EL PEDIDO */
+    .module-card:hover {
+        background-color: #ffffff !important; /* Mantiene el blanco */
+        border-color: var(--primary-900) !important; /* Borde se vuelve verde */
+        transform: translateY(-5px);
+        box-shadow: 0 10px 25px rgba(19, 50, 43, 0.1) !important;
+    }
 
-        // Aprobar inscripción
-        document.querySelectorAll('.btn-aprobar').forEach(btn => {
-            btn.addEventListener('click', function (e) {
-                e.preventDefault();
-                const form = this.closest('form');
-                Swal.fire({
-                    title: '¿Aprobar inscripción?',
-                    text: `¿Está seguro que desea aprobar la matrícula ${this.dataset.matricula}?`,
-                    icon: 'question',
-                    showCancelButton: true,
-                    confirmButtonText: 'Sí, aprobar',
-                    cancelButtonText: 'Cancelar',
-                    confirmButtonColor: '#13322B',
-                    cancelButtonColor: '#6c757d'
-                }).then(result => {
-                    if (result.isConfirmed) form.submit();
-                });
-            });
-        });
+    .module-card:hover .icon-box {
+        background-color: var(--primary-900); /* Fondo icono verde oscuro */
+        color: #ffffff; /* Icono blanco */
+    }
 
-        // Modales
-        document.getElementById('modalRechazarPre')?.addEventListener('show.bs.modal', function (e) {
-            const btn = e.relatedTarget;
-            document.getElementById('preRechazarId').value = btn.dataset.id;
-            document.getElementById('preRechazarFolio').textContent = btn.dataset.folio || `#${btn.dataset.id}`;
-        });
+    .module-card:hover h6 {
+        color: var(--primary-900); /* Texto del título verde oscuro */
+    }
 
-        document.getElementById('modalRechazarIns')?.addEventListener('show.bs.modal', function (e) {
-            const btn = e.relatedTarget;
-            document.getElementById('insRechazarId').value = btn.dataset.id;
-            document.getElementById('insRechazarMatricula').textContent = btn.dataset.matricula || `#${btn.dataset.id}`;
-        });
-    </script>
-} *@
-
-@model ControlEscolar.Models.AdminDashboardViewModel
-
-@{
-    ViewData["Title"] = "Dashboard";
-    Layout = "_LayoutAdmin";
-}
-
-<div class="row g-4 mb-4">
-    <div class="col-md-6 col-lg-3">
-        <div class="admin-card-white h-100 p-4 shadow-sm border-0" style="border-radius: 16px;">
-            <div class="d-flex justify-content-between align-items-start mb-4">
-                <div class="bg-light rounded p-2 text-muted d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
-                    <i class="bi bi-person-plus-fill fs-5"></i>
-                </div>
-            </div>
-            <div class="text-muted small fw-bold mb-1">Total Preinscripciones</div>
-            <h3 class="fw-bold mb-0" style="color: var(--primary-900);">@Model.TotalPreinscripciones</h3>
-            <div class="mt-2 small">
-                <span class="text-warning">@Model.PreinscripcionesPendientes pendientes</span> ·
-                <span class="text-success">@Model.PreinscripcionesConvertidas convertidas</span>
-            </div>
-        </div>
-    </div>
-
-    <div class="col-md-6 col-lg-3">
-        <div class="admin-card-white h-100 p-4 shadow-sm border-0" style="border-radius: 16px;">
-            <div class="d-flex justify-content-between align-items-start mb-4">
-                <div class="bg-light rounded p-2 text-muted d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
-                    <i class="bi bi-people-fill fs-5"></i>
-                </div>
-            </div>
-            <div class="text-muted small fw-bold mb-1">Total Inscripciones</div>
-            <h3 class="fw-bold mb-0" style="color: var(--primary-900);">@Model.TotalAspirantes</h3>
-            <div class="mt-2 small">
-                <span class="text-warning">@Model.AspirantesPendientes pendientes</span> ·
-                <span class="text-success">@Model.AspirantesAprobados aprobados</span>
-            </div>
-        </div>
-    </div>
-
-    <div class="col-md-6 col-lg-3">
-        <div class="admin-card-white h-100 p-4 shadow-sm border-0" style="border-radius: 16px;">
-            <div class="d-flex justify-content-between align-items-start mb-4">
-                <div class="bg-success bg-opacity-10 rounded p-2 text-success d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
-                    <i class="bi bi-check-circle-fill fs-5"></i>
-                </div>
-            </div>
-            <div class="text-muted small fw-bold mb-1">Preinscripciones Canceladas</div>
-            <h3 class="fw-bold mb-0 text-danger">@Model.PreinscripcionesCanceladas</h3>
-        </div>
-    </div>
-
-    <div class="col-md-6 col-lg-3">
-        <div class="admin-card-white h-100 p-4 shadow-sm border-0" style="border-radius: 16px;">
-            <div class="d-flex justify-content-between align-items-start mb-4">
-                <div class="bg-light rounded p-2 text-muted d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
-                    <i class="bi bi-x-circle-fill fs-5"></i>
-                </div>
-            </div>
-            <div class="text-muted small fw-bold mb-1">Inscripciones Rechazadas</div>
-            <h3 class="fw-bold mb-0 text-danger">@Model.AspirantesRechazados</h3>
-        </div>
-    </div>
-</div>
-
-<div class="row g-4 mb-4">
-    <div class="col-lg-6">
-        <div class="admin-card-white h-100 p-4 shadow-sm border-0" style="border-radius: 16px;">
-            <h6 class="fw-bold mb-3" style="color: var(--primary-900);">Preinscripciones por Carrera</h6>
-            @if (Model.PreinscripcionesPorCarrera.Any())
-            {
-                foreach (var item in Model.PreinscripcionesPorCarrera.OrderByDescending(x => x.Value))
-                {
-                    <div class="d-flex justify-content-between align-items-center mb-2">
-                        <span class="small text-muted fw-bold">@item.Key</span>
-                        <span class="badge bg-primary bg-opacity-10 txt-primary-dark px-3">@item.Value</span>
-                    </div>
-                }
-            }
-            else
-            {
-                <p class="text-muted small">Sin datos.</p>
-            }
-        </div>
-    </div>
-
-    <div class="col-lg-6">
-        <div class="admin-card-white h-100 p-4 shadow-sm border-0" style="border-radius: 16px;">
-            <h6 class="fw-bold mb-3" style="color: var(--primary-900);">Inscripciones por Carrera</h6>
-            @if (Model.AspirantesPorCarrera.Any())
-            {
-                foreach (var item in Model.AspirantesPorCarrera.OrderByDescending(x => x.Value))
-                {
-                    <div class="d-flex justify-content-between align-items-center mb-2">
-                        <span class="small text-muted fw-bold">@item.Key</span>
-                        <span class="badge bg-success bg-opacity-10 text-success px-3">@item.Value</span>
-                    </div>
-                }
-            }
-            else
-            {
-                <p class="text-muted small">Sin datos.</p>
-            }
-        </div>
-    </div>
-</div>
-
-<div class="row g-4 pb-5">
-    <div class="col-lg-6">
-        <div class="admin-card-white p-4 shadow-sm border-0" style="border-radius: 16px;">
-            <h6 class="fw-bold mb-3" style="color: var(--primary-900);">Últimas Preinscripciones</h6>
-            <div class="table-responsive">
-                <table class="table table-borderless align-middle mb-0" style="font-size: 0.85rem;">
-                    <thead>
-                        <tr class="text-muted border-bottom">
-                            <th class="pb-3 fw-bold px-0">Aspirante</th>
-                            <th class="pb-3 fw-bold">Carrera</th>
-                            <th class="pb-3 fw-bold text-end px-0">Fecha</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach (var item in Model.UltimasPreinscripciones)
-                        {
-                            <tr class="border-bottom">
-                                <td class="py-2 fw-bold px-0" style="color: var(--text-title);">
-                                    @item.DatosPersonales?.academiccontrol_preinscription_personaldata_paternalSurname
-                                    @item.DatosPersonales?.academiccontrol_preinscription_personaldata_name
-                                </td>
-                                <td class="text-muted">@item.academiccontrol_preinscription_careerRequested</td>
-                                <td class="text-end text-muted small px-0">
-                                    @item.academiccontrol_preinscription_registrationDate.ToString("dd/MM/yyyy")
-                                </td>
-                            </tr>
-                        }
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
-
-    <div class="col-lg-6">
-        <div class="admin-card-white p-4 shadow-sm border-0" style="border-radius: 16px;">
-            <h6 class="fw-bold mb-3" style="color: var(--primary-900);">Últimas Inscripciones</h6>
-            <div class="table-responsive">
-                <table class="table table-borderless align-middle mb-0" style="font-size: 0.85rem;">
-                    <thead>
-                        <tr class="text-muted border-bottom">
-                            <th class="pb-3 fw-bold px-0">Aspirante</th>
-                            <th class="pb-3 fw-bold">Matrícula</th>
-                            <th class="pb-3 fw-bold text-end px-0">Fecha</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach (var item in Model.UltimosAspirantes)
-                        {
-                            <tr class="border-bottom">
-                                <td class="py-2 fw-bold px-0" style="color: var(--text-title);">
-                                    @item.Preinscripcion?.DatosPersonales?.academiccontrol_preinscription_personaldata_paternalSurname
-                                    @item.Preinscripcion?.DatosPersonales?.academiccontrol_preinscription_personaldata_name
-                                </td>
-                                <td class="text-muted">@(item.academiccontrol_inscription_enrollment ?? $"#{item.academiccontrol_inscription_ID}")</td>
-                                <td class="text-end text-muted small px-0">
-                                    @item.academiccontrol_inscription_registrationDate.ToString("dd/MM/yyyy")
-                                </td>
-                            </tr>
-                        }
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
-</div>
-
+    .tracking-wide { letter-spacing: 1.2px; }
+    .uppercase { text-transform: uppercase; }
+</style>

@@ -1,0 +1,104 @@
+﻿@{
+    ViewData["Title"] = "Resumen de Actividades";
+    Layout = "_LayoutMaestro";
+}
+
+<div class="d-flex flex-column gap-4 fade-in" style="min-height: 82vh;">
+    
+    <div class="bg-surface p-4 rounded-4 border border-light shadow-sm">
+        <h5 class="txt-primary-dark fw-bold mb-1 text-uppercase tracking-tight">Panel de Control Docente</h5>
+        <div class="text-xxs fw-bold text-muted text-uppercase tracking-widest">
+            Bienvenido, @User.Identity.Name • Ciclo Escolar 2026
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-md-4">
+            <div class="admin-card-white p-4 rounded-4 border border-light shadow-sm h-100">
+                <div class="text-xxs fw-bold text-muted tracking-widest mb-3 uppercase">Grupos Asignados</div>
+                <div class="d-flex align-items-baseline gap-2">
+                    <span class="txt-primary-dark fw-bold fs-1" style="line-height: 1;">04</span>
+                    <span class="text-xxs fw-bold text-secondary uppercase opacity-75">Secciones</span>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="admin-card-white p-4 rounded-4 border border-light shadow-sm h-100">
+                <div class="text-xxs fw-bold text-muted tracking-widest mb-3 uppercase">Carga Académica</div>
+                <div class="d-flex align-items-baseline gap-2">
+                    <span class="txt-primary-dark fw-bold fs-1" style="line-height: 1;">06</span>
+                    <span class="text-xxs fw-bold text-secondary uppercase opacity-75">Asignaturas</span>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="admin-card-white p-4 rounded-4 border border-light shadow-sm h-100">
+                <div class="text-xxs fw-bold text-muted tracking-widest mb-3 uppercase">Pendientes de Registro</div>
+                <div class="d-flex align-items-baseline gap-2">
+                    <span class="text-danger fw-bold fs-1" style="line-height: 1;">02</span>
+                    <span class="text-xxs fw-bold text-danger uppercase opacity-75">Listas de Asistencia</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4 pb-5">
+        <div class="col-md-6">
+            <a href="@Url.Action("Grupos", "Maestro")" class="text-decoration-none">
+                <div class="module-access-card bg-surface p-5 rounded-4 border border-light shadow-sm h-100 d-flex flex-column align-items-center text-center">
+                    <h6 class="txt-primary-dark fw-bold text-uppercase tracking-widest mb-3">Gestión de Grupos</h6>
+                    <p class="text-muted text-xxs fw-bold uppercase tracking-tighter opacity-75 mb-4">
+                        Consulta de alumnos inscritos, historial de grupos y reportes de materias por sección.
+                    </p>
+                    <div class="btn-access text-xxs fw-bold tracking-widest bg-app px-4 py-2 rounded-2">
+                        INGRESAR AL MÓDULO
+                    </div>
+                </div>
+            </a>
+        </div>
+
+        <div class="col-md-6">
+            <a href="@Url.Action("Asistencia", "Maestro")" class="text-decoration-none">
+                <div class="module-access-card bg-surface p-5 rounded-4 border border-light shadow-sm h-100 d-flex flex-column align-items-center text-center">
+                    <h6 class="txt-primary-dark fw-bold text-uppercase tracking-widest mb-3">Control de Asistencia</h6>
+                    <p class="text-muted text-xxs fw-bold uppercase tracking-tighter opacity-75 mb-4">
+                        Pase de lista diario, gestión de retardos y visualización de porcentajes de asistencia.
+                    </p>
+                    <div class="btn-access text-xxs fw-bold tracking-widest bg-app px-4 py-2 rounded-2">
+                        CAPTURAR REGISTROS
+                    </div>
+                </div>
+            </a>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Estilo Hub: Blanca con texto Verde en hover */
+    .module-access-card {
+        transition: all 0.2s ease-in-out;
+        cursor: pointer;
+    }
+
+    .module-access-card:hover {
+        background-color: #ffffff !important;
+        border-color: var(--primary-900) !important;
+        box-shadow: 0 10px 25px rgba(19, 50, 43, 0.08) !important;
+    }
+
+    .module-access-card:hover h6 {
+        color: var(--primary-900) !important;
+    }
+
+    .module-access-card:hover .btn-access {
+        background-color: var(--primary-900);
+        color: #ffffff;
+    }
+
+    .btn-access {
+        transition: all 0.2s;
+        color: var(--primary-900);
+    }
+
+    .uppercase { text-transform: uppercase; }
+</style>

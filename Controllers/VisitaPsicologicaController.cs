@@ -8,7 +8,6 @@ using System.Collections.Generic;
 
 namespace ControlEscolar.Controllers
 {
-    [Authorize(Roles = "Psychologist,Head Nurse")]
     public class VisitaPsicologicaController : Controller
     {
         private readonly ApplicationDbContext _context;
