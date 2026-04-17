@@ -52,9 +52,12 @@
                 }
             </select>
         </div>
-        <div class="col-md-6 d-flex gap-2">
+        <div class="col-md-6 d-flex gap-2 flex-wrap">
             <button type="submit" class="btn-primary-sep text-xs px-4"><i class="bi bi-funnel me-2"></i> FILTRAR DATOS</button>
             <a href="@Url.Action("Tramites", "Dashboard")" class="btn-ghost-sep text-xs px-4 bg-surface">LIMPIAR</a>
+            <button type="button" class="btn-ghost-sep text-xs px-4" onclick="exportAllTablesToZip('tramites_operativos')" title="Descargar todas las tablas en un ZIP (respeta filtros actuales)">
+                <i class="bi bi-file-earmark-zip me-2"></i> DESCARGAR TODO (ZIP)
+            </button>
         </div>
     </form>
 </div>
@@ -213,7 +216,7 @@
             <button class="btn btn-sm btn-light border text-xxs fw-bold px-3 py-1" onclick="exportTableToCSV('tblTipos','desglose_tramites.csv')"><i class="bi bi-download"></i></button>
         </div>
         <div class="table-responsive custom-scroll" style="max-height: 350px;">
-            <table class="table table-hover align-middle text-sm mb-0 table-borderless" id="tblTipos">
+            <table class="table table-hover align-middle text-sm mb-0 table-borderless" id="tblTipos" data-export-name="desglose_por_tipo">
                 <thead class="bg-app text-xxs fw-bold text-muted" style="position: sticky; top: 0; z-index: 1;">
                     <tr>
                         <th class="ps-3 border-0">Tipo de Trámite</th>
@@ -316,7 +319,7 @@
         <div class="text-xxs text-muted mb-2 fw-bold" id="tblSolicitudesCount">Mostrando 1 a @Model.RecentSolicitudes.Count registros</div>
 
         <div class="table-responsive custom-scroll" style="max-height: 450px;">
-            <table class="table table-hover align-middle text-sm mb-0 table-borderless" id="tblSolicitudes">
+            <table class="table table-hover align-middle text-sm mb-0 table-borderless" id="tblSolicitudes" data-export-name="bandeja_solicitudes">
                 <thead class="bg-primary-dark txt-white text-xxs" style="position: sticky; top: 0; z-index: 10;">
                     <tr>
                         <th class="ps-3 border-0">Folio</th>

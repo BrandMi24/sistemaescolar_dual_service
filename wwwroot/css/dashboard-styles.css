@@ -358,3 +358,36 @@
     height: 100%;
     transition: width 0.5s ease-out;
 }
+
+/* ============================================
+   Botón "Descargar todo" — exportación global
+   ============================================ */
+.btn-export-all {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--accent, #0d9e7a);
+    color: #fff;
+    border: none;
+    padding: 9px 18px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+}
+
+    .btn-export-all:hover {
+        background: var(--accent-hover, #0bb88d);
+        transform: translateY(-1px);
+        box-shadow: 0 4px 10px rgba(13, 158, 122, 0.2);
+    }
+
+    .btn-export-all:active {
+        transform: translateY(0);
+    }
+
+    .btn-export-all i {
+        font-size: 15px;
+    }

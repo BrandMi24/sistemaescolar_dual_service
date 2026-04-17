@@ -50,9 +50,12 @@
                 }
             </select>
         </div>
-        <div class="col-md-6 d-flex gap-2">
+        <div class="col-md-6 d-flex gap-2 flex-wrap">
             <button type="submit" class="btn-primary-sep text-xs px-4"><i class="bi bi-funnel me-2"></i> FILTRAR DATOS</button>
             <a href="@Url.Action("Calidad", "Dashboard")" class="btn-ghost-sep text-xs px-4 bg-surface">LIMPIAR</a>
+            <button type="button" class="btn-ghost-sep text-xs px-4" onclick="exportAllTablesToZip('calidad_academica')" title="Descargar todas las tablas en un ZIP (respeta filtros actuales)">
+                <i class="bi bi-file-earmark-zip me-2"></i> DESCARGAR TODO (ZIP)
+            </button>
         </div>
     </form>
 </div>
@@ -162,7 +165,7 @@
         </div>
         <div class="text-xxs text-muted mb-2 fw-bold" id="tblSubjectsCount">Mostrando 1 a @Model.GradesBySubject.Count registros</div>
         <div class="table-responsive custom-scroll" style="max-height: 350px;">
-            <table class="table table-hover align-middle text-sm mb-0 table-borderless" id="tblSubjects">
+            <table class="table table-hover align-middle text-sm mb-0 table-borderless" id="tblSubjects" data-export-name="rendimiento_por_materia">
                 <thead class="bg-app text-xxs fw-bold text-muted" style="position: sticky; top: 0; z-index: 1;">
                     <tr><th class="ps-3 border-0">Materia</th><th class="border-0">Carrera</th><th class="text-center border-0">Promedio</th><th class="text-center border-0">Alumnos</th><th class="text-center border-0">Aprobados</th><th class="text-center border-0">Reprobados</th><th class="text-center pe-3 border-0">% Aprob.</th></tr>
                 </thead>
@@ -307,7 +310,7 @@
         </div>
         <div class="text-xxs text-muted mb-2 fw-bold" id="tblCatalogCount">Mostrando 1 a @Model.SubjectCatalog.Count registros</div>
         <div class="table-responsive custom-scroll" style="max-height: 350px;">
-            <table class="table table-hover align-middle text-sm mb-0 table-borderless" id="tblCatalog">
+            <table class="table table-hover align-middle text-sm mb-0 table-borderless" id="tblCatalog" data-export-name="catalogo_materias">
                 <thead class="bg-app text-xxs fw-bold text-muted" style="position: sticky; top: 0; z-index: 1;">
                     <tr><th class="ps-3 border-0">Código</th><th class="border-0">Materia</th><th class="border-0">Carrera</th><th class="text-center border-0">Cuatrimestre</th><th class="text-center pe-3 border-0">Hrs/Sem</th></tr>
                 </thead>
@@ -344,7 +347,7 @@
         </div>
         <div class="text-xxs text-muted mb-2 fw-bold" id="tblGradesCount">Mostrando 1 a @Model.RecentFinalGrades.Count registros</div>
         <div class="table-responsive custom-scroll" style="max-height: 400px;">
-            <table class="table table-hover align-middle text-sm mb-0 table-borderless" id="tblGrades">
+            <table class="table table-hover align-middle text-sm mb-0 table-borderless" id="tblGrades" data-export-name="calificaciones_finales">
                 <thead class="bg-primary-dark txt-white text-xxs" style="position: sticky; top: 0; z-index: 10;">
                     <tr><th class="ps-3 border-0">Alumno</th><th class="border-0">Matrícula</th><th class="border-0">Materia</th><th class="border-0">Docente</th><th class="text-center border-0">Calif.</th><th class="text-center border-0">Estatus</th><th class="pe-3 border-0">Periodo</th></tr>
                 </thead>
@@ -377,7 +380,7 @@
             <button class="btn btn-sm btn-light border text-xxs fw-bold px-3 py-1" onclick="exportTableToCSV('tblOpp','oportunidades.csv')"><i class="bi bi-download"></i></button>
         </div>
         <div class="table-responsive custom-scroll" style="max-height: 300px;">
-            <table class="table table-hover align-middle text-sm mb-0 table-borderless" id="tblOpp">
+            <table class="table table-hover align-middle text-sm mb-0 table-borderless" id="tblOpp" data-export-name="oportunidades_extraordinarias">
                 <thead class="bg-app text-xxs fw-bold text-muted" style="position: sticky; top: 0; z-index: 1;">
                     <tr><th class="ps-3 border-0">Alumno</th><th class="border-0">Materia</th><th class="text-center border-0">Tipo</th><th class="text-center border-0">Calif. Original</th><th class="text-center border-0">Calif. Oport.</th><th class="text-center border-0">Máx.</th><th class="pe-3 border-0">Notas</th></tr>
                 </thead>

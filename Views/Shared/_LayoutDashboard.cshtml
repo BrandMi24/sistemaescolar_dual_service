@@ -4,16 +4,16 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] - Analítica UTTN</title>
-    
+
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
-    
+
     <link rel="stylesheet" href="~/css/design-system.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/dashboard-styles.css" asp-append-version="true" />
 </head>
 <body>
     <div class="admin-layout">
-        
+
         <aside id="sidebar" class="sidebar-sep">
             <div class="sidebar-brand">
                 <div class="brand-logo"><i class="bi bi-pie-chart-fill"></i></div>
@@ -40,12 +40,11 @@
                 <a class="nav-link" href="@Url.Action("Calidad", "Dashboard")">
                     <i class="bi bi-journal-bookmark-fill"></i> Calidad Académica
                 </a>
-             
                 <a class="nav-link" href="@Url.Action("Salud", "Dashboard")">
                     <i class="bi bi-heart-pulse-fill"></i> Salud Integral
                 </a>
             </nav>
-            
+
             <div class="sidebar-footer">
                 <a href="/Home/Index" class="btn btn-ghost-sep w-100 text-white border-surface d-flex align-items-center justify-content-center gap-2">
                     <i class="bi bi-box-arrow-left"></i> Salir al Portal
@@ -56,14 +55,14 @@
         <main class="main-content">
             <header class="admin-header">
                 <h5 class="fw-bold txt-title mb-0">@ViewData["Title"]</h5>
-                
+
                 <div class="d-flex align-items-center gap-3">
                     <div class="text-end d-none d-md-block">
-                        <div class="fw-bold txt-title text-sm">@User.Identity.Name</div>
+                        <div class="fw-bold txt-title text-sm">@User.Identity?.Name</div>
                         <div class="text-xxs txt-body text-uppercase tracking-wide">Administrador</div>
                     </div>
                     <div class="avatar-md bg-accent-light txt-primary-dark shadow-sm">
-                        @User.Identity.Name?.Substring(0, 1).ToUpper()
+                        @(!string.IsNullOrEmpty(User.Identity?.Name) ? User.Identity.Name.Substring(0, 1).ToUpper() : "U")
                     </div>
                 </div>
             </header>
@@ -76,20 +75,83 @@
 
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-    
+    <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+
     <script>
-        // Este script marca en color oscuro la pestaña actual en el menú lateral
-        $(document).ready(function() {
-        const currentPath = window.location.pathname;
-        $('.sidebar-nav a').each(function() {
-        if ($(this).attr('href') === currentPath) {
-        $('.sidebar-nav a').removeClass('active');
-        $(this).addClass('active');
+        // ============================================
+        // Marca la pestaña activa en el sidebar
+        // ============================================
+        $(document).ready(function () {
+            const currentPath = window.location.pathname;
+            $('.sidebar-nav a').each(function () {
+                if ($(this).attr('href') === currentPath) {
+                    $('.sidebar-nav a').removeClass('active');
+                    $(this).addClass('active');
+                }
+            });
+        });
+
+        // ============================================
+        // Exporta TODAS las tablas con [data-export-name] a un ZIP
+        // (respeta filas visibles según filtros)
+        // ============================================
+        async function exportAllTablesToZip(zipFilename) {
+            if (typeof JSZip === 'undefined') {
+                alert('JSZip no está cargado.');
+                return;
+            }
+
+            var tables = document.querySelectorAll('table[data-export-name]');
+            if (tables.length === 0) {
+                alert('No hay tablas exportables en esta página.');
+                return;
+            }
+
+            var zip = new JSZip();
+            var timestamp = new Date().toISOString().slice(0, 10);
+            var usedNames = {};
+
+            tables.forEach(function (table) {
+                var exportName = table.getAttribute('data-export-name') || table.id || 'tabla';
+                if (usedNames[exportName]) {
+                    usedNames[exportName]++;
+                    exportName = exportName + '_' + usedNames[exportName];
+                } else {
+                    usedNames[exportName] = 1;
+                }
+
+                var rows = table.querySelectorAll('tr');
+                var csv = [];
+                rows.forEach(function (row) {
+                    if (row.style.display === 'none') return;
+                    var cells = row.querySelectorAll('th, td');
+                    var data = [];
+                    cells.forEach(function (cell) {
+                        var text = cell.textContent.trim().replace(/\s+/g, ' ').replace(/"/g, '""');
+                        data.push('"' + text + '"');
+                    });
+                    csv.push(data.join(','));
+                });
+
+                if (csv.length > 0) {
+                    zip.file(exportName + '.csv', '\uFEFF' + csv.join('\n'));
+                }
+            });
+
+            try {
+                var blob = await zip.generateAsync({ type: 'blob' });
+                var finalName = (zipFilename || 'dashboard') + '_' + timestamp + '.zip';
+                var link = document.createElement('a');
+                link.href = URL.createObjectURL(blob);
+                link.download = finalName;
+                link.click();
+            } catch (err) {
+                console.error('Error generando ZIP:', err);
+                alert('Error al generar el archivo ZIP.');
+            }
         }
-        });
-        });
     </script>
-    
+
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

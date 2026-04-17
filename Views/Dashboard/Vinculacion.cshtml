@@ -51,9 +51,12 @@
                 }
             </select>
         </div>
-        <div class="col-md-6 d-flex gap-2">
+        <div class="col-md-6 d-flex gap-2 flex-wrap">
             <button type="submit" class="btn-primary-sep text-xs px-4"><i class="bi bi-funnel me-2"></i> FILTRAR DATOS</button>
             <a href="@Url.Action("Vinculacion", "Dashboard")" class="btn-ghost-sep text-xs px-4 bg-surface">LIMPIAR</a>
+            <button type="button" class="btn-ghost-sep text-xs px-4" onclick="exportAllTablesToZip('vinculacion')" title="Descargar todas las tablas en un ZIP (respeta filtros actuales)">
+                <i class="bi bi-file-earmark-zip me-2"></i> DESCARGAR TODO (ZIP)
+            </button>
         </div>
     </form>
 </div>
@@ -233,7 +236,7 @@
         </div>
         <div class="text-xxs text-muted mb-2 fw-bold" id="tblProgramsCount">Mostrando 1 a @Model.Programs.Count registros</div>
         <div class="table-responsive custom-scroll" style="max-height: 400px;">
-            <table class="table table-hover align-middle text-sm mb-0 table-borderless" id="tblPrograms">
+            <table class="table table-hover align-middle text-sm mb-0 table-borderless" id="tblPrograms" data-export-name="catalogo_programas">
                 <thead class="bg-app text-xxs fw-bold text-muted" style="position: sticky; top: 0; z-index: 1;">
                     <tr><th class="ps-3 border-0">Código</th><th class="border-0">Programa</th><th class="border-0">Tipo</th><th class="border-0">Periodo</th><th class="text-center border-0">Año</th><th class="text-center border-0">Hrs. Req.</th><th class="text-center border-0">Estudiantes</th><th class="text-center pe-3 border-0">Activo</th></tr>
                 </thead>
@@ -283,7 +286,7 @@
         </div>
         <div class="text-xxs text-muted mb-2 fw-bold" id="tblOrgsCount">Mostrando 1 a @Model.Organizations.Count registros</div>
         <div class="table-responsive custom-scroll" style="max-height: 400px;">
-            <table class="table table-hover align-middle text-sm mb-0 table-borderless" id="tblOrgs">
+            <table class="table table-hover align-middle text-sm mb-0 table-borderless" id="tblOrgs" data-export-name="directorio_organizaciones">
                 <thead class="bg-app text-xxs fw-bold text-muted" style="position: sticky; top: 0; z-index: 1;">
                     <tr><th class="ps-3 border-0">Organización</th><th class="border-0">Tipo</th><th class="border-0">Ciudad</th><th class="border-0">Contacto</th><th class="border-0">Teléfono</th><th class="text-center pe-3 border-0">Estudiantes</th></tr>
                 </thead>
@@ -331,7 +334,7 @@
         </div>
         <div class="text-xxs text-muted mb-2 fw-bold" id="tblAssignCount">Mostrando 1 a @Model.RecentAssignments.Count registros</div>
         <div class="table-responsive custom-scroll" style="max-height: 450px;">
-            <table class="table table-hover align-middle text-sm mb-0 table-borderless" id="tblAssign">
+            <table class="table table-hover align-middle text-sm mb-0 table-borderless" id="tblAssign" data-export-name="asignaciones_estudiantes">
                 <thead class="bg-primary-dark txt-white text-xxs" style="position: sticky; top: 0; z-index: 10;">
                     <tr><th class="ps-3 border-0">Alumno</th><th class="border-0">Matrícula</th><th class="border-0">Programa</th><th class="border-0">Tipo</th><th class="border-0">Organización</th><th class="text-center border-0">Estatus</th><th class="text-center border-0">Hrs.</th><th class="text-center border-0">Eval.</th><th class="text-end pe-3 border-0">Inicio</th></tr>
                 </thead>
@@ -384,7 +387,7 @@
         </div>
         <div class="text-xxs text-muted mb-2 fw-bold" id="tblDocsCount">Mostrando 1 a @Model.RecentDocuments.Count registros</div>
         <div class="table-responsive custom-scroll" style="max-height: 400px;">
-            <table class="table table-hover align-middle text-sm mb-0 table-borderless" id="tblDocs">
+            <table class="table table-hover align-middle text-sm mb-0 table-borderless" id="tblDocs" data-export-name="documentos_vinculacion">
                 <thead class="bg-app text-xxs fw-bold text-muted" style="position: sticky; top: 0; z-index: 1;">
                     <tr><th class="ps-3 border-0">Título</th><th class="border-0">Alumno</th><th class="border-0">Tipo</th><th class="border-0">Programa</th><th class="text-center border-0">Estatus</th><th class="border-0">Archivo</th><th class="text-end pe-3 border-0">Fecha</th></tr>
                 </thead>

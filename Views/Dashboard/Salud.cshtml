@@ -50,9 +50,12 @@
                 }
             </select>
         </div>
-        <div class="col-md-6 d-flex gap-2">
+        <div class="col-md-6 d-flex gap-2 flex-wrap">
             <button type="submit" class="btn-primary-sep text-xs px-4"><i class="bi bi-funnel me-2"></i> FILTRAR DATOS</button>
             <a href="@Url.Action("Salud", "Dashboard")" class="btn-ghost-sep text-xs px-4 bg-surface">LIMPIAR</a>
+            <button type="button" class="btn-ghost-sep text-xs px-4" onclick="exportAllTablesToZip('salud_integral')" title="Descargar todas las tablas en un ZIP (respeta filtros actuales)">
+                <i class="bi bi-file-earmark-zip me-2"></i> DESCARGAR TODO (ZIP)
+            </button>
         </div>
     </form>
 </div>
@@ -197,7 +200,7 @@
                     <button class="btn btn-sm btn-light border text-xxs fw-bold px-3 py-1" onclick="exportTableToCSV('tblDiag','diagnosticos_medicos.csv')"><i class="bi bi-download"></i></button>
                 </div>
                 <div class="table-responsive custom-scroll" style="max-height: 300px;">
-                    <table class="table table-hover align-middle text-sm mb-0 table-borderless" id="tblDiag">
+                    <table class="table table-hover align-middle text-sm mb-0 table-borderless" id="tblDiag" data-export-name="diagnosticos_medicos">
                         <thead class="bg-app text-xxs fw-bold text-muted" style="position: sticky; top: 0; z-index: 1;">
                             <tr><th class="ps-3 border-0">#</th><th class="border-0">Diagnóstico</th><th class="text-center border-0">Casos</th><th class="text-center pe-3 border-0">%</th></tr>
                         </thead>
@@ -225,7 +228,7 @@
                     <button class="btn btn-sm btn-light border text-xxs fw-bold px-3 py-1" onclick="exportTableToCSV('tblPsico','motivos_psicologicos.csv')"><i class="bi bi-download"></i></button>
                 </div>
                 <div class="table-responsive custom-scroll" style="max-height: 300px;">
-                    <table class="table table-hover align-middle text-sm mb-0 table-borderless" id="tblPsico">
+                    <table class="table table-hover align-middle text-sm mb-0 table-borderless" id="tblPsico" data-export-name="motivos_psicologicos">
                         <thead class="bg-app text-xxs fw-bold text-muted" style="position: sticky; top: 0; z-index: 1;">
                             <tr><th class="ps-3 border-0">#</th><th class="border-0">Motivo</th><th class="text-center border-0">Casos</th><th class="text-center pe-3 border-0">%</th></tr>
                         </thead>
@@ -301,7 +304,7 @@
         </div>
         <div class="text-xxs text-muted mb-2 fw-bold" id="tblVisitasCount">Mostrando 1 a @Model.RecentVisitas.Count registros</div>
         <div class="table-responsive custom-scroll" style="max-height: 400px;">
-            <table class="table table-hover align-middle text-sm mb-0 table-borderless" id="tblVisitas">
+            <table class="table table-hover align-middle text-sm mb-0 table-borderless" id="tblVisitas" data-export-name="bitacora_medica">
                 <thead class="bg-app text-xxs fw-bold text-muted" style="position: sticky; top: 0; z-index: 1;">
                     <tr><th class="ps-3 border-0">Matrícula</th><th class="border-0">Fecha</th><th class="text-center border-0">Edad</th><th class="text-center border-0">Temp.</th><th class="border-0">Diagnóstico</th><th class="text-center border-0">P/A</th><th class="text-center border-0">Sat.</th><th class="text-center pe-3 border-0">Alergias</th></tr>
                 </thead>
@@ -351,7 +354,7 @@
         </div>
         <div class="text-xxs text-muted mb-2 fw-bold" id="tblPsicoVisitasCount">Mostrando 1 a @Model.RecentPsicologicas.Count registros</div>
         <div class="table-responsive custom-scroll" style="max-height: 400px;">
-            <table class="table table-hover align-middle text-sm mb-0 table-borderless" id="tblPsicoVisitas">
+            <table class="table table-hover align-middle text-sm mb-0 table-borderless" id="tblPsicoVisitas" data-export-name="bitacora_psicologica">
                 <thead class="bg-app text-xxs fw-bold text-muted" style="position: sticky; top: 0; z-index: 1;">
                     <tr><th class="ps-3 border-0">Matrícula</th><th class="border-0">Fecha</th><th class="text-center border-0">Edad</th><th class="text-center border-0">Terapia Previa</th><th class="border-0">Motivo de Consulta</th><th class="pe-3 border-0">Medicación</th></tr>
                 </thead>
