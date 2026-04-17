@@ -1,102 +1,114 @@
 @model CreateRoleViewModel
 @{
-    ViewData["Title"] = "Roles";
-    Layout = "_LayoutCoordinador";
-
+    // Declaración de variables para evitar errores de compilación
     var isEdit = ViewBag.IsEdit as bool? ?? false;
     var returnTab = ViewBag.ReturnTab as string ?? "tab-roles";
+
+    ViewData["Title"] = isEdit ? "Editar Rol" : "Crear Rol";
+    Layout = "_LayoutCoordinador";
 }
 
-<div class="fade-in d-flex flex-column gap-4">
+<div class="container-fluid d-flex flex-column gap-4 p-0 fade-in">
 
-    <div class="bg-surface p-4 rounded-4 border-theme shadow-sm d-flex justify-content-between align-items-center">
+    <div class="bg-white p-4 rounded-4 shadow-sm border-0 d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
         <div>
-            <h3 class="txt-title fw-bold mb-1">
-                @(isEdit ? "Editar Rol" : "Crear Rol")
-            </h3>
-            <span class="txt-body text-xs">
-                @(isEdit ? "Modifique la información del rol." : "Alta de nuevos roles en el sistema.")
-            </span>
+            <h5 class="txt-title fw-bold mb-1 text-uppercase">@(isEdit ? "Modificar Perfil de Rol" : "Alta de Nuevo Rol")</h5>
+            <p class="txt-body text-xxs fw-bold text-uppercase tracking-widest mb-0 opacity-75">
+                @(isEdit
+                    ? "Actualice la etiqueta y descripción de permisos del rol seleccionado."
+                    : "Defina las características básicas para un nuevo nivel de acceso en el sistema.")
+            </p>
         </div>
-
-        <a href="@Url.Action("Catalogos", "Coordinador", new { tab = returnTab })"
-               class="btn btn-sm btn-ghost-sep border border-theme shadow-sm fw-semibold">
-            Volver a Catálogos
-        </a>
+        <div class="flex-shrink-0">
+            <a href="@Url.Action("Catalogos", "Coordinador", new { tab = returnTab })" 
+               class="btn-ghost-sep bg-app border-0 px-4 py-2 fw-bold text-xxs d-flex align-items-center text-decoration-none shadow-none">
+                REGRESAR A CATÁLOGOS
+            </a>
+        </div>
     </div>
-
-    @if (!ViewData.ModelState.IsValid)
-    {
-        <div class="alert bg-error-100 border border-error txt-error rounded-3">
-            Verifique los datos.
-        </div>
-    }
 
     <form asp-action="@(isEdit ? "EditRole" : "CreateRole")"
           asp-controller="Coordinador"
           method="post"
           class="needs-validation"
           novalidate>
-
         @Html.AntiForgeryToken()
 
         <input type="hidden" name="returnTab" value="@returnTab" />
         <input type="hidden" asp-for="RoleId" />
 
         <div class="row g-4">
-
             <div class="col-lg-8">
-                <div class="admin-card-white p-4 rounded-4 border-theme shadow-sm bg-white">
-
-                    <h6 class="txt-title fw-bold mb-4 border-bottom border-theme pb-2">
-                        DATOS DEL ROL
-                    </h6>
-
-                    <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
-
-                    <div class="mb-3">
-                        <label asp-for="RoleName" class="fw-bold text-xs">
-                            NOMBRE <span class="text-danger">*</span>
-                        </label>
-                        <input asp-for="RoleName" class="form-control search-input-custom" />
-                        <span asp-validation-for="RoleName" class="text-danger text-xs"></span>
+                <div class="admin-card-white p-4 p-md-5 rounded-4 border-0 shadow-sm bg-white h-100">
+                    
+                    <div class="mb-4 pb-3 border-bottom border-light">
+                        <h6 class="txt-title fw-bold text-xs text-uppercase tracking-widest mb-0">Atributos del Rol</h6>
                     </div>
 
-                    <div class="mb-3">
-                        <label asp-for="RoleDescription" class="fw-bold text-xs">
-                            DESCRIPCIÓN
-                        </label>
-                        <textarea asp-for="RoleDescription"
-                                  class="form-control search-input-custom"
-                                  rows="3"></textarea>
-                        <span asp-validation-for="RoleDescription" class="text-danger text-xs"></span>
-                    </div>
+                    @if (!ViewData.ModelState.IsValid)
+                    {
+                        <div class="bg-error-100 border-start border-4 text-danger text-xs fw-bold rounded-3 p-3 mb-4" style="border-left-color: var(--error-700) !important;">
+                            <i class="bi bi-exclamation-circle me-1"></i> Verifique los datos ingresados e intente nuevamente.
+                        </div>
+                    }
 
+                    <div asp-validation-summary="ModelOnly" class="text-danger text-xxs fw-bold mb-3"></div>
+
+                    <div class="row g-4">
+                        <div class="col-12">
+                            <label asp-for="RoleName" class="txt-body text-xxs fw-bold tracking-wide mb-2 d-block text-uppercase">
+                                NOMBRE DEL ROL <span class="text-danger">*</span>
+                            </label>
+                            <input asp-for="RoleName" 
+                                   class="form-control border-0 bg-app py-2 px-3 text-xs fw-medium text-uppercase shadow-none" 
+                                   placeholder="EJ. ADMINISTRADOR DE SISTEMAS" required />
+                            <span asp-validation-for="RoleName" class="text-danger text-xxs fw-bold mt-1 d-block"></span>
+                        </div>
+
+                        <div class="col-12">
+                            <label asp-for="RoleDescription" class="txt-body text-xxs fw-bold tracking-wide mb-2 d-block text-uppercase">
+                                DESCRIPCIÓN DEL ALCANCE
+                            </label>
+                            <textarea asp-for="RoleDescription" 
+                                      class="form-control border-0 bg-app py-2 px-3 text-xs fw-medium shadow-none" 
+                                      rows="4" 
+                                      placeholder="DESCRIBA LAS FUNCIONES O PERMISOS ASOCIADOS A ESTE ROL..."></textarea>
+                            <span asp-validation-for="RoleDescription" class="text-danger text-xxs fw-bold mt-1 d-block"></span>
+                        </div>
+                    </div>
                 </div>
             </div>
 
             <div class="col-lg-4">
-                <div class="admin-card-white p-4 rounded-4 shadow-sm h-100 d-flex flex-column bg-white border-theme">
+                <div class="admin-card-white p-4 p-md-5 rounded-4 border-0 shadow-sm bg-white h-100 d-flex flex-column">
+                    <h6 class="txt-title fw-bold text-xs text-uppercase tracking-widest mb-4 border-bottom border-light pb-2">Acciones</h6>
+                    
+                    <p class="text-muted text-xs mb-4">Los nombres de roles se normalizan a mayúsculas para mantener la consistencia en el motor de seguridad.</p>
 
-                    <div class="mt-auto">
-                        <button type="submit"
-                                class="btn btn-primary-sep w-100 fw-bold py-2">
-                            @(isEdit ? "Guardar Cambios" : "Crear Rol")
+                    <div class="mt-auto d-flex flex-column gap-3">
+                        <button type="submit" class="btn-primary-sep border-0 w-100 py-3 text-xxs fw-bold tracking-widest shadow-sm">
+                            @(isEdit ? "GUARDAR CAMBIOS" : "CREAR ROL")
                         </button>
-
-                        <a href="@Url.Action("Catalogos", "Coordinador", new { tab = returnTab })"
-                               class="btn btn-ghost-sep border border-theme w-100 mt-2">
-                            Cancelar
+                        
+                        <a href="@Url.Action("Catalogos", "Coordinador", new { tab = returnTab })" 
+                           class="btn-ghost-sep bg-app border-0 w-100 py-2 text-xxs fw-bold text-muted text-center text-decoration-none shadow-none">
+                            CANCELAR
                         </a>
                     </div>
-
                 </div>
             </div>
-
         </div>
     </form>
 </div>
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
+    <style>
+        /* Foco institucional */
+        .form-control:focus {
+            background-color: var(--white) !important;
+            box-shadow: 0 0 0 4px var(--accent-100) !important;
+            border: 1px solid var(--accent-500) !important;
+        }
+    </style>
 }
