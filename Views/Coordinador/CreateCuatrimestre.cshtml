@@ -1,0 +1,67 @@
+@model CuatrimestreCatalogViewModel
+@{
+    ViewData["Title"] = "Catálogo de Cuatrimestres";
+    Layout = "_LayoutCoordinador";
+
+    var isEdit = ViewBag.IsEdit as bool? ?? false;
+    var returnTab = ViewBag.ReturnTab as string ?? "tab-flujo-modulos";
+}
+
+<div class="fade-in d-flex flex-column gap-4">
+    <div class="bg-surface p-4 rounded-4 border-theme shadow-sm d-flex justify-content-between align-items-center">
+        <div>
+            <h3 class="txt-title fw-bold mb-1">@(isEdit ? "Editar Cuatrimestre" : "Crear Cuatrimestre")</h3>
+            <span class="txt-body text-xs">Configura catálogo general para habilitar accesos por período.</span>
+        </div>
+
+        <a href="@Url.Action("Catalogos", "Coordinador", new { tab = returnTab })" class="btn btn-sm btn-ghost-sep border border-theme shadow-sm fw-semibold">
+            Volver a Catálogos
+        </a>
+    </div>
+
+    <form asp-action="@(isEdit ? "EditCuatrimestre" : "CreateCuatrimestre")" asp-controller="Coordinador" method="post" novalidate>
+        @Html.AntiForgeryToken()
+        <input type="hidden" name="returnTab" value="@returnTab" />
+        <input type="hidden" asp-for="Id" />
+
+        <div class="row g-4">
+            <div class="col-lg-8">
+                <div class="admin-card-white p-4 rounded-4 border-theme shadow-sm bg-white">
+                    <h6 class="txt-title fw-bold mb-4 border-bottom border-theme pb-2">DATOS DEL CUATRIMESTRE</h6>
+
+                    <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+                    <div class="mb-3">
+                        <label asp-for="Number" class="fw-bold text-xs">NÚMERO</label>
+                        <input asp-for="Number" class="form-control search-input-custom" type="number" min="1" max="20" />
+                        <span asp-validation-for="Number" class="text-danger text-xs"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Name" class="fw-bold text-xs">NOMBRE</label>
+                        <input asp-for="Name" class="form-control search-input-custom" />
+                        <span asp-validation-for="Name" class="text-danger text-xs"></span>
+                    </div>
+
+                    <div class="form-check mt-3">
+                        <input asp-for="IsActive" class="form-check-input" />
+                        <label asp-for="IsActive" class="form-check-label fw-semibold text-xs">Activo en portal de alumnos</label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-4">
+                <div class="admin-card-white p-4 rounded-4 shadow-sm h-100 d-flex flex-column bg-white border-theme">
+                    <div class="mt-auto">
+                        <button type="submit" class="btn btn-primary-sep w-100 fw-bold py-2">@(isEdit ? "Guardar Cambios" : "Crear Cuatrimestre")</button>
+                        <a href="@Url.Action("Catalogos", "Coordinador", new { tab = returnTab })" class="btn btn-ghost-sep border border-theme w-100 mt-2">Cancelar</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

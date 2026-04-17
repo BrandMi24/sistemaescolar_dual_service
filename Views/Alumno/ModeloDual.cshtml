@@ -5,6 +5,8 @@
     ViewData["ShowBackButton"] = true;
 
     var progress = Math.Clamp(Model.ProgressPercent, 0m, 100m);
+    var canAccessPortal = Model.CanAccessPortal;
+    var canAccessTrackingStage = Model.CanAccessTrackingStage;
     var reportGoal = Model.RequiredHours > 0 ? Math.Max(1, (int)Math.Ceiling(Model.RequiredHours / 40m)) : 15;
     var approvedReports = Model.WeeklyReports.Count(x => string.Equals(x.StatusCode, "APPROVED", StringComparison.OrdinalIgnoreCase));
     var selectedSupportIds = Model.OrganizationId > 0 ? new HashSet<int> { Model.OrganizationId } : new HashSet<int>();
@@ -33,7 +35,7 @@
     var acceptanceIsPending = string.Equals(acceptanceStatus, "PENDING", StringComparison.OrdinalIgnoreCase);
     var acceptanceIsApproved = string.Equals(acceptanceStatus, "APPROVED", StringComparison.OrdinalIgnoreCase);
     var acceptanceIsRejected = string.Equals(acceptanceStatus, "REJECTED", StringComparison.OrdinalIgnoreCase);
-    var canUploadAcceptance = acceptanceLetter == null;
+    var canUploadAcceptance = acceptanceLetter == null || acceptanceIsRejected;
 }
 
 <div class="row g-4 align-items-start mx-auto" style="max-width: 1200px;">
@@ -56,41 +58,42 @@
                     </div>
                 </div>
                 <div class="mt-3 text-xs text-muted">Estado actual: <strong class="text-dark">@Model.AssignmentStatusCode</strong></div>
+                <div class="mt-2 text-xs text-muted">Cuatrimestre actual: <strong class="text-dark">@(Model.CurrentCuatrimestre?.ToString() ?? "N/D")</strong></div>
             </div>
 
             <ul class="nav flex-column nav-pills-custom" id="dualTabs" role="tablist">
-                <li class="nav-item" role="presentation">
+                <li class="nav-item @(Model.ShowStep1 ? string.Empty : "d-none")" role="presentation">
                     <button class="nav-link w-100 active d-flex justify-content-between align-items-center" data-bs-toggle="pill" data-bs-target="#paso1" type="button">
                         <span><i class="bi bi-person-badge me-2"></i> 1. Mis Datos</span>
                         <i class="bi bi-check-circle-fill @(string.IsNullOrWhiteSpace(Model.Email) || Model.Email == "Sin correo" ? "text-muted" : "text-success")" style="font-size: 0.8rem;"></i>
                     </button>
                 </li>
-                <li class="nav-item" role="presentation">
+                <li class="nav-item @(Model.ShowStep2 ? string.Empty : "d-none")" role="presentation">
                     <button class="nav-link w-100 d-flex justify-content-between align-items-center" data-bs-toggle="pill" data-bs-target="#paso2" type="button">
                         <span><i class="bi bi-building me-2"></i> 2. Empresa / Apoyo</span>
                         <i class="bi bi-check-circle-fill @(Model.OrganizationId > 0 ? "text-success" : "text-muted")" style="font-size: 0.8rem;"></i>
                     </button>
                 </li>
-                <li class="nav-item" role="presentation">
+                <li class="nav-item @(Model.ShowStep3 ? string.Empty : "d-none")" role="presentation">
                     <button class="nav-link w-100 d-flex justify-content-between align-items-center" data-bs-toggle="pill" data-bs-target="#paso3" type="button">
                         <span><i class="bi bi-file-earmark-text me-2"></i> 3. Documentos CV</span>
                         <i class="bi bi-check-circle-fill @((Model.HasResumeSpanish && Model.HasImssCertificate) ? "text-success" : "text-muted")" style="font-size: 0.8rem;"></i>
                     </button>
                 </li>
-                <li class="nav-item" role="presentation">
+                <li class="nav-item @(Model.ShowStep4 ? string.Empty : "d-none")" role="presentation">
                     <button class="nav-link w-100 d-flex justify-content-between align-items-center" data-bs-toggle="pill" data-bs-target="#paso4" type="button">
                         <span><i class="bi bi-envelope-paper me-2"></i> 4. Carta Solicitud</span>
                         <i class="bi bi-check-circle-fill @((Model.RequestedLettersCount > 0 || Model.HasAcceptanceLetter) ? "text-success" : "text-muted")" style="font-size: 0.8rem;"></i>
                     </button>
                 </li>
-                <li class="nav-item" role="presentation">
+                <li class="nav-item @(Model.ShowStep5 ? string.Empty : "d-none")" role="presentation">
                     <button class="nav-link w-100 d-flex justify-content-between align-items-center" data-bs-toggle="pill" data-bs-target="#paso5" type="button">
                         <span><i class="bi bi-people me-2"></i> 5. Asesores Asignados</span>
                         <i class="bi bi-check-circle-fill @(Model.AcademicAdvisorName == "Sin asignar" ? "text-muted" : "text-success")" style="font-size: 0.8rem;"></i>
                     </button>
                 </li>
-                <li class="nav-item" role="presentation">
-                    <button class="nav-link w-100 d-flex justify-content-between align-items-center" data-bs-toggle="pill" data-bs-target="#paso6" type="button">
+                <li class="nav-item @(Model.ShowStep6 ? string.Empty : "d-none")" role="presentation">
+                    <button class="nav-link w-100 d-flex justify-content-between align-items-center @((canAccessTrackingStage && Model.ShowStep6) ? string.Empty : "disabled opacity-50")" data-bs-toggle="pill" data-bs-target="#paso6" type="button" @((canAccessTrackingStage && Model.ShowStep6) ? null : "disabled")>
                         <span><i class="bi bi-calendar-week me-2"></i> 6. Reportes Semanales</span>
                         <i class="bi bi-check-circle-fill @(Model.WeeklyReports.Any() ? "text-success" : "text-muted")" style="font-size: 0.8rem;"></i>
                     </button>
@@ -113,8 +116,18 @@
             </div>
         }
 
+        @if (!canAccessPortal)
+        {
+            <div class="bg-white p-4 p-md-5 rounded-4 shadow-sm border border-light">
+                <div class="alert bg-light border border-theme rounded-4 mb-0">
+                    @Model.PortalAvailabilityMessage
+                </div>
+            </div>
+        }
+        else
+        {
         <div class="tab-content bg-white p-4 p-md-5 rounded-4 shadow-sm border border-light">
-            <div class="tab-pane fade show active" id="paso1" role="tabpanel">
+            <div class="tab-pane fade show active @(Model.ShowStep1 ? string.Empty : "d-none")" id="paso1" role="tabpanel">
                 <div class="mb-4 pb-3 border-bottom">
                     <h4 class="fw-bold txt-title mb-1">1. Datos del Estudiante</h4>
                     <p class="text-muted text-sm mb-0">Informacion personal y academica para tu expediente.</p>
@@ -157,26 +170,16 @@
                         </div>
 
                         <div class="col-md-4">
-                            <label class="form-label-custom">Grado *</label>
-                            <select class="form-select custom-input" name="Grade">
-                                <option value="">Selecciona...</option>
-                                <option value="7" selected="@(Model.Grade == "7")">7 Cuatrimestre</option>
-                                <option value="8" selected="@(Model.Grade == "8")">8 Cuatrimestre</option>
-                                <option value="9" selected="@(Model.Grade == "9")">9 Cuatrimestre</option>
-                                <option value="10" selected="@(Model.Grade == "10")">10 Cuatrimestre</option>
-                            </select>
+                            <label class="form-label-custom">Cuatrimestre actual</label>
+                            <input type="text" class="form-control custom-input bg-white text-muted" value="@(Model.CurrentCuatrimestre?.ToString() ?? "N/D")" readonly />
                         </div>
                         <div class="col-md-4">
-                            <label class="form-label-custom">Grupo *</label>
-                            <input type="text" class="form-control custom-input" name="GroupCode" value="@(Model.GroupCode == "Sin grupo" ? string.Empty : Model.GroupCode)" placeholder="Ej: A" />
+                            <label class="form-label-custom">Grupo</label>
+                            <input type="text" class="form-control custom-input bg-white text-muted" value="@(Model.GroupCode == "Sin grupo" ? string.Empty : Model.GroupCode)" readonly />
                         </div>
                         <div class="col-md-4">
-                            <label class="form-label-custom">Turno *</label>
-                            <select class="form-select custom-input" name="Shift">
-                                <option value="">Selecciona...</option>
-                                <option value="Matutino" selected="@(Model.Shift == "Matutino")">Matutino</option>
-                                <option value="Vespertino" selected="@(Model.Shift == "Vespertino")">Vespertino</option>
-                            </select>
+                            <label class="form-label-custom">Turno</label>
+                            <input type="text" class="form-control custom-input bg-white text-muted" value="@(Model.Shift == "Sin turno" ? string.Empty : Model.Shift)" readonly />
                         </div>
 
                         <div class="col-md-6">
@@ -204,7 +207,7 @@
                 </form>
             </div>
 
-            <div class="tab-pane fade" id="paso2" role="tabpanel">
+            <div class="tab-pane fade @(Model.ShowStep2 ? string.Empty : "d-none")" id="paso2" role="tabpanel">
                 <div class="mb-4 pb-3 border-bottom">
                     <h4 class="fw-bold txt-title mb-1">2. Empresa / Apoyo de Colocacion</h4>
                     <p class="text-muted text-sm mb-0">Selecciona como deseas realizar tus estadias.</p>
@@ -314,7 +317,7 @@
                 </form>
             </div>
 
-            <div class="tab-pane fade" id="paso3" role="tabpanel">
+            <div class="tab-pane fade @(Model.ShowStep3 ? string.Empty : "d-none")" id="paso3" role="tabpanel">
                 <div class="mb-4 pb-3 border-bottom">
                     <h4 class="fw-bold txt-title mb-1">3. Documentacion</h4>
                     <p class="text-muted text-sm mb-0">Sube tu Curriculum y Constancia IMSS en formato PDF.</p>
@@ -420,7 +423,7 @@
                 </form>
             </div>
 
-            <div class="tab-pane fade" id="paso4" role="tabpanel">
+            <div class="tab-pane fade @(Model.ShowStep4 ? string.Empty : "d-none")" id="paso4" role="tabpanel">
                 <div class="mb-4 pb-3 border-bottom">
                     <h4 class="fw-bold txt-title mb-1">4. Carta de Solicitud/Presentacion</h4>
                     <p class="text-muted text-sm mb-0">Solicita el documento oficial de vinculacion con la empresa.</p>
@@ -540,13 +543,13 @@
                     else
                     {
                         <div class="alert alert-light border border-secondary text-sm mb-0">
-                            <i class="bi bi-lock me-2"></i>La carta de aceptacion ya fue enviada y no permite nueva carga en este estado.
+                            <i class="bi bi-lock me-2"></i>La carta de aceptación solo puede volver a cargarse cuando el tutor la rechaza.
                         </div>
                     }
                 </div>
             </div>
 
-            <div class="tab-pane fade" id="paso5" role="tabpanel">
+            <div class="tab-pane fade @(Model.ShowStep5 ? string.Empty : "d-none")" id="paso5" role="tabpanel">
                 <div class="mb-4 pb-3 border-bottom">
                     <h4 class="fw-bold txt-title mb-1">5. Mis Asesores</h4>
                     <p class="text-muted text-sm mb-0">Quienes evaluaran y supervisaran tus practicas.</p>
@@ -615,7 +618,22 @@
                 </div>
             </div>
 
-            <div class="tab-pane fade" id="paso6" role="tabpanel">
+            <div class="tab-pane fade @(Model.ShowStep6 ? string.Empty : "d-none")" id="paso6" role="tabpanel">
+                @if (!canAccessTrackingStage)
+                {
+                    <div class="mb-4 pb-3 border-bottom d-flex justify-content-between align-items-center">
+                        <div>
+                            <h4 class="fw-bold txt-title mb-1">6. Reportes Semanales</h4>
+                            <p class="text-muted text-sm mb-0">Sube tus avances y revisa los comentarios de tus asesores.</p>
+                        </div>
+                    </div>
+
+                    <div class="alert bg-light border border-theme rounded-4 shadow-sm mb-0">
+                        Los reportes semanales del módulo dual se habilitan hasta el cuatrimestre 11.
+                    </div>
+                }
+                else
+                {
                 <div class="mb-4 pb-3 border-bottom d-flex justify-content-between align-items-center">
                     <div>
                         <h4 class="fw-bold txt-title mb-1">6. Reportes Semanales</h4>
@@ -734,8 +752,10 @@
                         <i class="bi bi-arrow-left me-2"></i> Regresar a Asesores
                     </button>
                 </div>
+                }
             </div>
         </div>
+        }
     </div>
 </div>
 

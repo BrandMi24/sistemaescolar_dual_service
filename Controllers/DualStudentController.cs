@@ -16,12 +16,18 @@ public class DualStudentController : Controller
 {
     private readonly ApplicationDbContext _context;
     private readonly IDualEducationService _dualService;
+    private readonly IModuleFlowConfigurationService _moduleFlowConfigurationService;
     private readonly IWebHostEnvironment _env;
 
-    public DualStudentController(ApplicationDbContext context, IDualEducationService dualService, IWebHostEnvironment env)
+    public DualStudentController(
+        ApplicationDbContext context,
+        IDualEducationService dualService,
+        IModuleFlowConfigurationService moduleFlowConfigurationService,
+        IWebHostEnvironment env)
     {
         _context = context;
         _dualService = dualService;
+        _moduleFlowConfigurationService = moduleFlowConfigurationService;
         _env = env;
     }
 
@@ -36,23 +42,24 @@ public class DualStudentController : Controller
             return RedirectToAction("ModeloDual", "Alumno");
         }
 
+        var assignment = await _dualService.EnsureAssignmentAsync(student.Id);
+        var currentCuatrimestre = await _moduleFlowConfigurationService.ExtractCuatrimestreFromGroupCodeAsync(student.Group?.Code);
+        var access = await _moduleFlowConfigurationService.BuildAccessAsync(
+            ProgramTypes.PRACTICAS_PROFESIONALES,
+            currentCuatrimestre,
+            assignment.StatusCode);
+
+        if (!access.CanAccessPortal || !access.IsStepVisible("PASO1"))
+        {
+            TempData["ErrorMessage"] = "El paso 1 del módulo dual no está habilitado para tu cuatrimestre o estatus actual.";
+            return RedirectToAction("ModeloDual", "Alumno");
+        }
+
         student.Person.Email = vm.InstitutionalEmail ?? student.Person.Email;
         student.Person.Phone = vm.MobilePhone ?? student.Person.Phone;
 
-        if (!string.IsNullOrWhiteSpace(vm.GroupCode) && student.Group != null)
-        {
-            student.Group.Code = vm.GroupCode;
-        }
-
-        if (!string.IsNullOrWhiteSpace(vm.Shift) && student.Group != null)
-        {
-            student.Group.Shift = vm.Shift;
-        }
-
-        var assignment = await _dualService.EnsureAssignmentAsync(student.Id);
-
         var profileMetadata = ParseMetadata(assignment.EvaluationNotes);
-        UpsertMetadata(profileMetadata, "Perfil.Grado", vm.Grade);
+        UpsertMetadata(profileMetadata, "Perfil.Grado", currentCuatrimestre?.ToString());
         UpsertMetadata(profileMetadata, "Perfil.PeriodoEstadias", vm.InternshipPeriod);
         UpsertMetadata(profileMetadata, "Perfil.AnioEstadias", vm.InternshipYear?.ToString());
         assignment.EvaluationNotes = BuildMetadata(profileMetadata);
@@ -74,6 +81,17 @@ public class DualStudentController : Controller
         }
 
         var assignment = await _dualService.EnsureAssignmentAsync(student.Id);
+        var currentCuatrimestre = await _moduleFlowConfigurationService.ExtractCuatrimestreFromGroupCodeAsync(student.Group?.Code);
+        var access = await _moduleFlowConfigurationService.BuildAccessAsync(
+            ProgramTypes.PRACTICAS_PROFESIONALES,
+            currentCuatrimestre,
+            assignment.StatusCode);
+
+        if (!access.CanAccessPortal || !access.IsStepVisible("PASO2"))
+        {
+            TempData["ErrorMessage"] = "El paso 2 del módulo dual no está habilitado para tu cuatrimestre o estatus actual.";
+            return RedirectToAction("ModeloDual", "Alumno");
+        }
 
         var selectedFromParks = vm.SelectedOrganizationId;
         if (!selectedFromParks.HasValue && vm.SelectedParkIds.Count > 0)
@@ -110,6 +128,17 @@ public class DualStudentController : Controller
         }
 
         var assignment = await _dualService.EnsureAssignmentAsync(student.Id);
+        var currentCuatrimestre = await _moduleFlowConfigurationService.ExtractCuatrimestreFromGroupCodeAsync(student.Group?.Code);
+        var access = await _moduleFlowConfigurationService.BuildAccessAsync(
+            ProgramTypes.PRACTICAS_PROFESIONALES,
+            currentCuatrimestre,
+            assignment.StatusCode);
+
+        if (!access.CanAccessPortal || !access.IsStepVisible("PASO3"))
+        {
+            TempData["ErrorMessage"] = "El paso 3 del módulo dual no está habilitado para tu cuatrimestre o estatus actual.";
+            return RedirectToAction("ModeloDual", "Alumno");
+        }
         var uploadsDir = Path.Combine(_env.WebRootPath, "uploads", "dual", student.Id.ToString());
         Directory.CreateDirectory(uploadsDir);
 
@@ -150,6 +179,17 @@ public class DualStudentController : Controller
         }
 
         var assignment = await _dualService.EnsureAssignmentAsync(student.Id);
+        var currentCuatrimestre = await _moduleFlowConfigurationService.ExtractCuatrimestreFromGroupCodeAsync(student.Group?.Code);
+        var access = await _moduleFlowConfigurationService.BuildAccessAsync(
+            ProgramTypes.PRACTICAS_PROFESIONALES,
+            currentCuatrimestre,
+            assignment.StatusCode);
+
+        if (!access.CanAccessPortal || !access.IsStepVisible("PASO4"))
+        {
+            TempData["ErrorMessage"] = "El paso 4 del módulo dual no está habilitado para tu cuatrimestre o estatus actual.";
+            return RedirectToAction("ModeloDual", "Alumno");
+        }
 
         await _dualService.SaveDocumentAsync(new OperationalDocument
         {
@@ -177,13 +217,24 @@ public class DualStudentController : Controller
             return RedirectToAction("ModeloDual", "Alumno");
         }
 
+        var assignment = await _dualService.EnsureAssignmentAsync(student.Id);
+        var currentCuatrimestre = await _moduleFlowConfigurationService.ExtractCuatrimestreFromGroupCodeAsync(student.Group?.Code);
+        var access = await _moduleFlowConfigurationService.BuildAccessAsync(
+            ProgramTypes.PRACTICAS_PROFESIONALES,
+            currentCuatrimestre,
+            assignment.StatusCode);
+
+        if (!access.CanAccessPortal || !access.IsStepVisible("PASO4"))
+        {
+            TempData["ErrorMessage"] = "El paso 4 del módulo dual no está habilitado para tu cuatrimestre o estatus actual.";
+            return RedirectToAction("ModeloDual", "Alumno");
+        }
+
         if (acceptanceLetterFile == null || acceptanceLetterFile.Length == 0)
         {
             TempData["ErrorMessage"] = "Debes adjuntar la carta de aceptacion en PDF.";
             return RedirectToAction("ModeloDual", "Alumno");
         }
-
-        var assignment = await _dualService.EnsureAssignmentAsync(student.Id);
 
         var existingAcceptance = await _context.OperationalDocuments
             .AsNoTracking()
@@ -193,9 +244,9 @@ public class DualStudentController : Controller
             .OrderByDescending(x => x.UploadDate)
             .FirstOrDefaultAsync();
 
-        if (existingAcceptance != null)
+        if (existingAcceptance != null && !string.Equals(existingAcceptance.StatusCode, DocumentStatusCodes.REJECTED, StringComparison.OrdinalIgnoreCase))
         {
-            TempData["ErrorMessage"] = "La carta de aceptacion ya fue enviada y no permite nueva carga en este estado.";
+            TempData["ErrorMessage"] = "La carta de aceptación ya fue enviada y solo puede volver a cargarse si el tutor la rechaza.";
             return RedirectToAction("ModeloDual", "Alumno");
         }
 
@@ -241,6 +292,17 @@ public class DualStudentController : Controller
         }
 
         var assignment = await _dualService.EnsureAssignmentAsync(student.Id);
+        var currentCuatrimestre = await _moduleFlowConfigurationService.ExtractCuatrimestreFromGroupCodeAsync(student.Group?.Code);
+        var access = await _moduleFlowConfigurationService.BuildAccessAsync(
+            ProgramTypes.PRACTICAS_PROFESIONALES,
+            currentCuatrimestre,
+            assignment.StatusCode);
+
+        if (!access.CanAccessPortal || !access.IsStepVisible("PASO5"))
+        {
+            TempData["ErrorMessage"] = "El paso 5 del módulo dual no está habilitado para tu cuatrimestre o estatus actual.";
+            return RedirectToAction("ModeloDual", "Alumno");
+        }
 
         var profileMetadata = ParseMetadata(assignment.EvaluationNotes);
         UpsertMetadata(profileMetadata, "Asesor empresarial", businessName);
@@ -265,13 +327,40 @@ public class DualStudentController : Controller
             return RedirectToAction("ModeloDual", "Alumno");
         }
 
+        var assignment = await _dualService.EnsureAssignmentAsync(student.Id);
+        var currentCuatrimestre = await _moduleFlowConfigurationService.ExtractCuatrimestreFromGroupCodeAsync(student.Group?.Code);
+        var access = await _moduleFlowConfigurationService.BuildAccessAsync(
+            ProgramTypes.PRACTICAS_PROFESIONALES,
+            currentCuatrimestre,
+            assignment.StatusCode);
+
+        if (!access.CanAccessTracking || !access.IsStepVisible("PASO6"))
+        {
+            TempData["ErrorMessage"] = $"Los reportes semanales dual se habilitan desde el cuatrimestre {access.TrackingStartCuatrimestre} y según tu estatus actual.";
+            return RedirectToAction("ModeloDual", "Alumno");
+        }
+
         if (vm.ReportFile == null || vm.ReportFile.Length == 0)
         {
             TempData["ErrorMessage"] = "Debes adjuntar el reporte semanal.";
             return RedirectToAction("ModeloDual", "Alumno");
         }
 
-        var assignment = await _dualService.EnsureAssignmentAsync(student.Id);
+        var existingReportForWeek = await _context.OperationalDocuments
+            .AsNoTracking()
+            .Where(x => x.Status
+                && x.AssignmentId == assignment.Id
+                && x.DocumentType == "WEEKLY_REPORT")
+            .OrderByDescending(x => x.UploadDate)
+            .ToListAsync();
+
+        if (existingReportForWeek.Any(x => GetWeekNumberFromNotes(x.Notes) == vm.WeekNumber
+            && !string.Equals(x.StatusCode, DocumentStatusCodes.REJECTED, StringComparison.OrdinalIgnoreCase)))
+        {
+            TempData["ErrorMessage"] = $"La semana {vm.WeekNumber} ya fue enviada. Solo puedes volver a subirla si el tutor la rechaza.";
+            return RedirectToAction("ModeloDual", "Alumno");
+        }
+
         var uploadsDir = Path.Combine(_env.WebRootPath, "uploads", "dual", student.Id.ToString(), "reports");
         Directory.CreateDirectory(uploadsDir);
 
@@ -406,6 +495,13 @@ public class DualStudentController : Controller
         metadata[key] = value.Trim();
     }
 
+    private static int? TryGetInt(IReadOnlyDictionary<string, string> metadata, string key)
+    {
+        return metadata.TryGetValue(key, out var value) && int.TryParse(value, out var number)
+            ? number
+            : null;
+    }
+
     private static string? BuildMetadata(IReadOnlyDictionary<string, string> metadata)
     {
         if (metadata.Count == 0)
@@ -414,5 +510,11 @@ public class DualStudentController : Controller
         }
 
         return string.Join("; ", metadata.Select(x => $"{x.Key}: {x.Value}"));
+    }
+
+    private static int? GetWeekNumberFromNotes(string? notes)
+    {
+        var metadata = ParseMetadata(notes);
+        return TryGetInt(metadata, "Semana");
     }
 }

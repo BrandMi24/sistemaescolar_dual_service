@@ -11,9 +11,12 @@ namespace ControlEscolar.Helpers
         {
             { "ADMIN", ("Coordinador", "Index") },
             { "COORDINADOR", ("Coordinador", "Index") },
+            { "COORDINADORSERVICIOSOCIAL", ("Coordinador", "Index") },
+            { "COORDINADORDUAL", ("Coordinador", "Index") },
             { "DOCENTE", ("Docente", "Index") },
             { "TEACHER", ("Docente", "Index") },
-            { "ALUMNO", ("Alumno", "Index") }
+            { "ALUMNO", ("Alumno", "Index") },
+            { "STUDENT", ("Alumno", "Index") }
         };
 
             // Buscar primer rol válido

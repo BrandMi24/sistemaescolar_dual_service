@@ -7,6 +7,11 @@
     int? selectedTeacher = ViewBag.Teacher as int?;
     var createdFrom = ViewBag.CreatedFrom as string ?? string.Empty;
     var createdTo = ViewBag.CreatedTo as string ?? string.Empty;
+    var selectedModule = ViewBag.Module as string ?? string.Empty;
+    int? selectedCuatrimestre = ViewBag.Cuatrimestre as int?;
+    int? selectedModuleNumber = ViewBag.ModuleNumber as int?;
+    var canDualModule = (bool)(ViewBag.CanDualModule ?? true);
+    var canServiceModule = (bool)(ViewBag.CanServiceModule ?? true);
     var sort = ViewBag.Sort as string ?? "created";
     var order = ViewBag.Order as string ?? "desc";
     var currentPage = (int)(ViewBag.Page ?? 1);
@@ -72,6 +77,34 @@
             <input type="date" name="createdFrom" class="form-control bg-app border-theme txt-title fw-bold tab-filter" style="width: auto; min-width: 170px;" value="@createdFrom" title="Desde" />
             <input type="date" name="createdTo" class="form-control bg-app border-theme txt-title fw-bold tab-filter" style="width: auto; min-width: 170px;" value="@createdTo" title="Hasta" />
 
+            <select name="module" class="form-select bg-app border-theme txt-title fw-bold tab-filter" style="width: auto; min-width: 210px;">
+                <option value="">Todos los módulos</option>
+                @if (canDualModule)
+                {
+                    <option value="PRACTICAS_PROFESIONALES" selected="@(selectedModule == "PRACTICAS_PROFESIONALES")">Coordinador módulo dual</option>
+                }
+                @if (canServiceModule)
+                {
+                    <option value="SERVICIO_SOCIAL" selected="@(selectedModule == "SERVICIO_SOCIAL")">Coordinador servicio social</option>
+                }
+            </select>
+
+            <select name="cuatrimestre" class="form-select bg-app border-theme txt-title fw-bold tab-filter" style="width: auto; min-width: 170px;">
+                <option value="">Todos los cuatrimestres</option>
+                @for (var q = 1; q <= 11; q++)
+                {
+                    <option value="@q" selected="@(selectedCuatrimestre == q)">@q Cuatrimestre</option>
+                }
+            </select>
+
+            <select name="moduleNumber" class="form-select bg-app border-theme txt-title fw-bold tab-filter" style="width: auto; min-width: 150px;">
+                <option value="">Módulo (1-5)</option>
+                @for (var m = 1; m <= 5; m++)
+                {
+                    <option value="@m" selected="@(selectedModuleNumber == m)">Módulo @m</option>
+                }
+            </select>
+
             <div class="d-flex gap-2 flex-shrink-0">
                 <button type="submit" class="btn btn-primary-sep d-flex align-items-center gap-2 shadow-sm bg-primary-900">
                     <i class="bi bi-funnel-fill"></i> Filtrar
@@ -89,17 +122,17 @@
                 <thead class="admin-table-header">
                     <tr>
                         <th class="py-3 px-4" width="25%">
-                            <a class="text-reset text-decoration-none" href="@Url.Action("SeguimientoDualEstadias", new { search, status = selectedStatus, teacher = selectedTeacher, createdFrom, createdTo, sort = "student", order = ToggleOrder("student"), page = 1, pageSize })">Estudiante</a>
+                            <a class="text-reset text-decoration-none" href="@Url.Action("SeguimientoDualEstadias", new { search, status = selectedStatus, teacher = selectedTeacher, createdFrom, createdTo, module = selectedModule, cuatrimestre = selectedCuatrimestre, moduleNumber = selectedModuleNumber, sort = "student", order = ToggleOrder("student"), page = 1, pageSize })">Estudiante</a>
                         </th>
                         <th class="py-3" width="20%">
-                            <a class="text-reset text-decoration-none" href="@Url.Action("SeguimientoDualEstadias", new { search, status = selectedStatus, teacher = selectedTeacher, createdFrom, createdTo, sort = "program", order = ToggleOrder("program"), page = 1, pageSize })">Programa / Org.</a>
+                            <a class="text-reset text-decoration-none" href="@Url.Action("SeguimientoDualEstadias", new { search, status = selectedStatus, teacher = selectedTeacher, createdFrom, createdTo, module = selectedModule, cuatrimestre = selectedCuatrimestre, moduleNumber = selectedModuleNumber, sort = "program", order = ToggleOrder("program"), page = 1, pageSize })">Programa / Org.</a>
                         </th>
                         <th class="py-3" width="20%">Supervisor</th>
                         <th class="py-3 text-center" width="10%">
-                            <a class="text-reset text-decoration-none" href="@Url.Action("SeguimientoDualEstadias", new { search, status = selectedStatus, teacher = selectedTeacher, createdFrom, createdTo, sort = "status", order = ToggleOrder("status"), page = 1, pageSize })">Estado</a>
+                            <a class="text-reset text-decoration-none" href="@Url.Action("SeguimientoDualEstadias", new { search, status = selectedStatus, teacher = selectedTeacher, createdFrom, createdTo, module = selectedModule, cuatrimestre = selectedCuatrimestre, moduleNumber = selectedModuleNumber, sort = "status", order = ToggleOrder("status"), page = 1, pageSize })">Estado</a>
                         </th>
                         <th class="py-3 text-center" width="15%">
-                            <a class="text-reset text-decoration-none" href="@Url.Action("SeguimientoDualEstadias", new { search, status = selectedStatus, teacher = selectedTeacher, createdFrom, createdTo, sort = "hours", order = ToggleOrder("hours"), page = 1, pageSize })">Horas</a>
+                            <a class="text-reset text-decoration-none" href="@Url.Action("SeguimientoDualEstadias", new { search, status = selectedStatus, teacher = selectedTeacher, createdFrom, createdTo, module = selectedModule, cuatrimestre = selectedCuatrimestre, moduleNumber = selectedModuleNumber, sort = "hours", order = ToggleOrder("hours"), page = 1, pageSize })">Horas</a>
                         </th>
                         <th class="py-3 text-end px-4" width="10%">Acciones</th>
                     </tr>
@@ -128,7 +161,15 @@
                                 </td>
                                 <td>
                                     <div class="txt-title fw-bold text-sm mb-1">@row.ProgramName</div>
-                                    <span class="badge bg-app border border-theme txt-title text-xxs px-2 py-1">@row.OrganizationName</span>
+                                    <div class="d-flex flex-wrap gap-1">
+                                        <span class="badge bg-app border border-theme txt-title text-xxs px-2 py-1">@row.OrganizationName</span>
+                                        <span class="badge border border-theme text-xxs px-2 py-1">@(row.ProgramType == "SERVICIO_SOCIAL" ? "Servicio Social" : "Módulo Dual")</span>
+                                        <span class="badge border border-theme text-xxs px-2 py-1">Módulo @row.ModuleNumber</span>
+                                        @if (row.Cuatrimestre.HasValue)
+                                        {
+                                            <span class="badge border border-theme text-xxs px-2 py-1">@row.Cuatrimestre°</span>
+                                        }
+                                    </div>
                                 </td>
                                 <td>
                                     @if (row.TeacherId.HasValue)
@@ -179,7 +220,7 @@
             <nav aria-label="Navegación de tabla">
                 <ul class="pagination pagination-sm mb-0">
                     <li class="page-item @(currentPage <= 1 ? "disabled" : "")">
-                        <a class="page-link page-link-custom" href="@Url.Action("SeguimientoDualEstadias", new { search, status = selectedStatus, teacher = selectedTeacher, createdFrom, createdTo, sort, order, page = prevPage, pageSize })"><i class="bi bi-chevron-left"></i></a>
+                        <a class="page-link page-link-custom" href="@Url.Action("SeguimientoDualEstadias", new { search, status = selectedStatus, teacher = selectedTeacher, createdFrom, createdTo, module = selectedModule, cuatrimestre = selectedCuatrimestre, moduleNumber = selectedModuleNumber, sort, order, page = prevPage, pageSize })"><i class="bi bi-chevron-left"></i></a>
                     </li>
 
                     @{
@@ -194,12 +235,12 @@
                     @for (var p = startPage; p <= endPage; p++)
                     {
                         <li class="page-item @(p == currentPage ? "active" : "")">
-                            <a class="page-link page-link-custom" href="@Url.Action("SeguimientoDualEstadias", new { search, status = selectedStatus, teacher = selectedTeacher, createdFrom, createdTo, sort, order, page = p, pageSize })">@p</a>
+                            <a class="page-link page-link-custom" href="@Url.Action("SeguimientoDualEstadias", new { search, status = selectedStatus, teacher = selectedTeacher, createdFrom, createdTo, module = selectedModule, cuatrimestre = selectedCuatrimestre, moduleNumber = selectedModuleNumber, sort, order, page = p, pageSize })">@p</a>
                         </li>
                     }
 
                     <li class="page-item @(currentPage >= totalPages ? "disabled" : "")">
-                        <a class="page-link page-link-custom" href="@Url.Action("SeguimientoDualEstadias", new { search, status = selectedStatus, teacher = selectedTeacher, createdFrom, createdTo, sort, order, page = nextPage, pageSize })"><i class="bi bi-chevron-right"></i></a>
+                        <a class="page-link page-link-custom" href="@Url.Action("SeguimientoDualEstadias", new { search, status = selectedStatus, teacher = selectedTeacher, createdFrom, createdTo, module = selectedModule, cuatrimestre = selectedCuatrimestre, moduleNumber = selectedModuleNumber, sort, order, page = nextPage, pageSize })"><i class="bi bi-chevron-right"></i></a>
                     </li>
                 </ul>
             </nav>
@@ -293,7 +334,7 @@
 
             $('#rowsPerPage').on('change', function () {
                 const size = $(this).val();
-                const url = '@Url.Action("SeguimientoDualEstadias", new { search, status = selectedStatus, teacher = selectedTeacher, createdFrom, createdTo, sort, order, page = 1, pageSize = "__SIZE__" })';
+                const url = '@Url.Action("SeguimientoDualEstadias", new { search, status = selectedStatus, teacher = selectedTeacher, createdFrom, createdTo, module = selectedModule, cuatrimestre = selectedCuatrimestre, moduleNumber = selectedModuleNumber, sort, order, page = 1, pageSize = "__SIZE__" })';
                 window.location.href = url.replace('__SIZE__', size);
             });
         });

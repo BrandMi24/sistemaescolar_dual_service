@@ -92,9 +92,11 @@ namespace ControlEscolar.Controllers
                 CookieAuthenticationDefaults.AuthenticationScheme,
                 new ClaimsPrincipal(identity));
 
-            // PRIORIDAD: returnUrl
-            if (!string.IsNullOrEmpty(returnUrl))
+            // PRIORIDAD: returnUrl solo si es compatible con el rol autenticado.
+            if (!string.IsNullOrEmpty(returnUrl) && IsReturnUrlAllowedForRoles(returnUrl, roles))
+            {
                 return LocalRedirect(returnUrl);
+            }
 
             // REDIRECCIÓN DINÁMICA
             var (controller, action) = RoleRedirectHelper.GetRedirect(roles);
@@ -168,6 +170,42 @@ namespace ControlEscolar.Controllers
                     await conn.CloseAsync();
             }
             return roles;
+        }
+
+        private static bool IsReturnUrlAllowedForRoles(string returnUrl, List<string> roles)
+        {
+            if (string.IsNullOrWhiteSpace(returnUrl))
+            {
+                return false;
+            }
+
+            var normalizedRoles = new HashSet<string>(roles.Select(r => r.ToUpperInvariant()));
+            if (normalizedRoles.Contains("ADMIN") || normalizedRoles.Contains("MASTER") || normalizedRoles.Contains("ADMINISTRATOR"))
+            {
+                return true;
+            }
+
+            var url = returnUrl.Trim();
+            if (url.StartsWith("/Coordinador", StringComparison.OrdinalIgnoreCase))
+            {
+                return normalizedRoles.Contains("COORDINADOR")
+                    || normalizedRoles.Contains("COORDINADORDUAL")
+                    || normalizedRoles.Contains("COORDINADORSERVICIOSOCIAL");
+            }
+
+            if (url.StartsWith("/Docente", StringComparison.OrdinalIgnoreCase))
+            {
+                return normalizedRoles.Contains("DOCENTE") || normalizedRoles.Contains("TEACHER");
+            }
+
+            if (url.StartsWith("/Alumno", StringComparison.OrdinalIgnoreCase))
+            {
+                return normalizedRoles.Contains("ALUMNO")
+                    || normalizedRoles.Contains("STUDENT");
+            }
+
+            // Home/u otras rutas públicas
+            return true;
         }
     }
 }

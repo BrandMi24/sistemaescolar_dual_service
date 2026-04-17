@@ -1,7 +1,11 @@
 ﻿@model ControlEscolar.ViewModels.OperationalTracking.TutorSeguimientoViewModel
 @{
     ViewData["Title"] = "Bitácora de Seguimiento";
-    Layout = "_LayoutTutor";
+    var isCoordinatorReadOnly = (bool?)(ViewBag.IsCoordinatorReadOnly) ?? false;
+    Layout = isCoordinatorReadOnly ? "_LayoutCoordinador" : "_LayoutTutor";
+    var backUrl = ViewBag.BackUrl as string ?? Url.Action("Entrevista", "Tutor");
+    var backText = ViewBag.BackText as string ?? "Volver a Expedientes";
+    var moduleScopeLabel = ViewBag.ModuleScopeLabel as string;
 }
 
 <div class="tutor-split-layout">
@@ -34,24 +38,36 @@
                 </div>
             </div>
 
-            <button class="btn btn-primary-sep w-100 mt-4 d-flex align-items-center justify-content-center gap-2 shadow-sm" data-bs-toggle="modal" data-bs-target="#modalNuevaNota">
-                <i class="bi bi-plus-circle-fill"></i> Nueva Nota
-            </button>
+            @if (!isCoordinatorReadOnly)
+            {
+                <button class="btn btn-primary-sep w-100 mt-4 d-flex align-items-center justify-content-center gap-2 shadow-sm" data-bs-toggle="modal" data-bs-target="#modalNuevaNota">
+                    <i class="bi bi-plus-circle-fill"></i> Nueva Nota
+                </button>
+            }
         </div>
 
-        <a href="@Url.Action("Entrevista", "Tutor")" class="btn btn-ghost-sep w-100 mt-3 text-xs fw-bold">
-            <i class="bi bi-arrow-left me-2"></i> Volver a Expedientes
+        <a href="@backUrl" class="btn btn-ghost-sep w-100 mt-3 text-xs fw-bold">
+            <i class="bi bi-arrow-left me-2"></i> @backText
         </a>
     </aside>
 
     <main class="d-flex flex-column gap-3">
 
         <div class="bg-surface p-3 rounded-4 border-theme d-flex justify-content-between align-items-center">
-            <h6 class="txt-title fw-bold mb-0">Historial Cronológico</h6>
-            <div class="position-relative search-wrapper" style="width: 250px;">
-                <i class="bi bi-search position-absolute search-icon-left txt-body"></i>
-                <input type="text" class="form-control form-control-sm search-input-custom" placeholder="Filtrar notas...">
+            <div>
+                <h6 class="txt-title fw-bold mb-0">Historial Cronológico</h6>
+                @if (!string.IsNullOrWhiteSpace(moduleScopeLabel))
+                {
+                    <div class="txt-body text-xxs mt-1">Vista filtrada por: @moduleScopeLabel</div>
+                }
             </div>
+            @if (!isCoordinatorReadOnly)
+            {
+                <div class="position-relative search-wrapper" style="width: 250px;">
+                    <i class="bi bi-search position-absolute search-icon-left txt-body"></i>
+                    <input type="text" class="form-control form-control-sm search-input-custom" placeholder="Filtrar notas...">
+                </div>
+            }
         </div>
 
         <div class="tutor-timeline pt-3">
@@ -99,13 +115,15 @@
                                 <span class="txt-body text-xxs fw-bold tracking-wide">@doc.UploadDate.ToString("dd MMMM, yyyy")</span>
                             </div>
                             <p class="txt-body text-sm">@(string.IsNullOrWhiteSpace(doc.Notes) ? "Sin observaciones del alumno." : doc.Notes)</p>
+                            @if (!string.IsNullOrWhiteSpace(doc.ReviewComments))
+                            {
+                                <div class="txt-body text-xs mt-2">Comentarios de revisión: @doc.ReviewComments</div>
+                            }
                             <div class="border-top border-theme pt-2 mt-2 d-flex align-items-center justify-content-between gap-2 flex-wrap">
                                 <span class="txt-body text-xxs">Tipo: <strong>@doc.DocumentType</strong></span>
-                                <div class="d-flex gap-2">
-                                    @if (!string.IsNullOrWhiteSpace(doc.FilePath))
-                                    {
-                                        <a href="@Url.Action("DownloadOperationalDocument", "Tutor", new { documentId = doc.Id })" class="btn btn-sm btn-ghost-sep">Descargar</a>
-                                    }
+                                        <div class="d-flex gap-2">
+                                            @if (!isCoordinatorReadOnly)
+                                            {
                                     <form method="post" action="@Url.Action("ApproveDocument", "Tutor")">
                                         @Html.AntiForgeryToken()
                                         <input type="hidden" name="documentId" value="@doc.Id" />
@@ -117,12 +135,15 @@
                                         <input type="hidden" name="comments" value="Requiere correcciones" />
                                         <button type="submit" class="btn btn-sm btn-ghost-sep">Rechazar</button>
                                     </form>
+                                    }
                                 </div>
                             </div>
                         </div>
                     </div>
                 }
 
+                @if (!isCoordinatorReadOnly)
+                {
                 <div class="admin-card-white p-4 rounded-4 border-theme shadow-sm mt-3">
                     <div class="d-flex flex-column flex-md-row gap-2 align-items-md-center justify-content-between">
                         <div class="txt-body text-sm">Aprobación de horas y cierre de proceso</div>
@@ -141,6 +162,7 @@
                         </div>
                     </div>
                 </div>
+                }
             }
 
         </div>
@@ -148,38 +170,41 @@
     </main>
 </div>
 
-<div class="modal fade" id="modalNuevaNota" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content border-theme rounded-4 shadow-lg">
-            <div class="modal-header border-bottom border-theme p-4">
-                <h5 class="modal-title txt-title fw-bold">Nueva Nota de Seguimiento</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body p-4">
-                <div class="row g-3">
-                    <div class="col-12">
-                        <label class="form-label txt-body text-xs fw-bold">CATEGORÍA</label>
-                        <select class="form-select bg-app border-theme fw-bold">
-                            <option>Académico</option>
-                            <option>Conductual</option>
-                            <option>Médico / Psicológico</option>
-                            <option>Personal</option>
-                        </select>
-                    </div>
-                    <div class="col-12">
-                        <label class="form-label txt-body text-xs fw-bold">ASUNTO</label>
-                        <input type="text" class="form-control bg-app border-theme" placeholder="Ej. Reporte de entrevista">
-                    </div>
-                    <div class="col-12">
-                        <label class="form-label txt-body text-xs fw-bold">DESCRIPCIÓN DETALLADA</label>
-                        <textarea class="form-control bg-app border-theme text-sm" rows="4" placeholder="Escribe aquí los detalles de la nota..."></textarea>
+@if (!isCoordinatorReadOnly)
+{
+    <div class="modal fade" id="modalNuevaNota" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-theme rounded-4 shadow-lg">
+                <div class="modal-header border-bottom border-theme p-4">
+                    <h5 class="modal-title txt-title fw-bold">Nueva Nota de Seguimiento</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <label class="form-label txt-body text-xs fw-bold">CATEGORÍA</label>
+                            <select class="form-select bg-app border-theme fw-bold">
+                                <option>Académico</option>
+                                <option>Conductual</option>
+                                <option>Médico / Psicológico</option>
+                                <option>Personal</option>
+                            </select>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label txt-body text-xs fw-bold">ASUNTO</label>
+                            <input type="text" class="form-control bg-app border-theme" placeholder="Ej. Reporte de entrevista">
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label txt-body text-xs fw-bold">DESCRIPCIÓN DETALLADA</label>
+                            <textarea class="form-control bg-app border-theme text-sm" rows="4" placeholder="Escribe aquí los detalles de la nota..."></textarea>
+                        </div>
                     </div>
                 </div>
-            </div>
-            <div class="modal-footer border-top border-theme p-3">
-                <button type="button" class="btn btn-ghost-sep px-4" data-bs-dismiss="modal">Cancelar</button>
-                <button type="button" class="btn btn-primary-sep px-4" onclick="location.reload()">Guardar Nota</button>
+                <div class="modal-footer border-top border-theme p-3">
+                    <button type="button" class="btn btn-ghost-sep px-4" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary-sep px-4" onclick="location.reload()">Guardar Nota</button>
+                </div>
             </div>
         </div>
     </div>
-</div>
+}

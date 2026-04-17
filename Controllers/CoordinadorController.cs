@@ -1,28 +1,41 @@
 using ControlEscolar.Data;
 using ControlEscolar.Models;
+using ControlEscolar.Models.ModuleCommon;
+using ControlEscolar.Models.Operational;
+using ControlEscolar.ViewModels.OperationalTracking;
+using ControlEscolar.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
+using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace ControlEscolar.Controllers
 {
+    [Authorize(Roles = "Coordinador,CoordinadorServicioSocial,CoordinadorDual,Admin,ADMIN,Administrator,Master")]
     public class CoordinadorController : Controller
     {
         private readonly ApplicationDbContext _context;
         private readonly Management _repo;
         private readonly ILogger<CoordinadorController> _logger;
+        private readonly IModuleFlowConfigurationService _moduleFlowConfigurationService;
 
-        public CoordinadorController(ApplicationDbContext context, ILogger<CoordinadorController> logger)
+        public CoordinadorController(
+            ApplicationDbContext context,
+            ILogger<CoordinadorController> logger,
+            IModuleFlowConfigurationService moduleFlowConfigurationService)
         {
             _context = context;
             _repo = new Management(context);
             _logger = logger;
+            _moduleFlowConfigurationService = moduleFlowConfigurationService;
         }
 
         public IActionResult Index()
@@ -35,10 +48,421 @@ namespace ControlEscolar.Controllers
             return View();
         }
 
-        public IActionResult Catalogos(string? tab = null)
+        public async Task<IActionResult> Catalogos(string? tab = null)
         {
+            await _moduleFlowConfigurationService.EnsureInfrastructureAsync();
+
+            ViewBag.Cuatrimestres = await _context.CuatrimestresCatalog
+                .AsNoTracking()
+                .Where(x => x.Status)
+                .OrderBy(x => x.Number)
+                .ToListAsync();
+
+            ViewBag.ModuleFlowConfigs = await _context.OperationalModuleFlowConfigs
+                .AsNoTracking()
+                .Where(x => x.Status)
+                .OrderBy(x => x.ModuleType)
+                .ToListAsync();
+
+            ViewBag.ModuleStepRules = await _context.OperationalModuleStepRules
+                .AsNoTracking()
+                .Where(x => x.Status)
+                .OrderBy(x => x.ModuleType)
+                .ThenBy(x => x.SortOrder)
+                .ThenBy(x => x.Id)
+                .ToListAsync();
+
             ViewBag.ActiveTab = string.IsNullOrWhiteSpace(tab) ? "tab-personas" : tab;
             return View();
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetCuatrimestresJson()
+        {
+            await _moduleFlowConfigurationService.EnsureInfrastructureAsync();
+
+            var data = await _context.CuatrimestresCatalog
+                .AsNoTracking()
+                .Where(x => x.Status)
+                .OrderBy(x => x.Number)
+                .Select(x => new
+                {
+                    id = x.Id,
+                    numero = x.Number,
+                    nombre = x.Name,
+                    activo = x.IsActive,
+                })
+                .ToListAsync();
+
+            return Json(new { data });
+        }
+
+        [HttpGet]
+        public IActionResult CreateCuatrimestre(string? tab = null)
+        {
+            ViewBag.IsEdit = false;
+            ViewBag.ReturnTab = string.IsNullOrWhiteSpace(tab) ? "tab-flujo-modulos" : tab;
+            return View(new CuatrimestreCatalogViewModel());
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> CreateCuatrimestre(CuatrimestreCatalogViewModel model, string? returnTab = null)
+        {
+            returnTab = string.IsNullOrWhiteSpace(returnTab) ? "tab-flujo-modulos" : returnTab;
+            await _moduleFlowConfigurationService.EnsureInfrastructureAsync();
+
+            if (await _context.CuatrimestresCatalog.AnyAsync(x => x.Status && x.Number == model.Number))
+            {
+                ModelState.AddModelError(nameof(model.Number), "Ese cuatrimestre ya existe.");
+            }
+
+            if (!ModelState.IsValid)
+            {
+                ViewBag.IsEdit = false;
+                ViewBag.ReturnTab = returnTab;
+                return View(model);
+            }
+
+            _context.CuatrimestresCatalog.Add(new Models.ManagementOperational.CuatrimestreCatalog
+            {
+                Number = model.Number,
+                Name = model.Name,
+                IsActive = model.IsActive,
+                Status = true,
+                CreatedDate = DateTime.Now,
+            });
+
+            await _context.SaveChangesAsync();
+            TempData["SuccessMessage"] = "Cuatrimestre creado correctamente.";
+            return RedirectToAction(nameof(Catalogos), new { tab = returnTab });
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> EditCuatrimestre(int id, string? tab = null)
+        {
+            await _moduleFlowConfigurationService.EnsureInfrastructureAsync();
+
+            var entity = await _context.CuatrimestresCatalog.FirstOrDefaultAsync(x => x.Status && x.Id == id);
+            if (entity == null)
+            {
+                return NotFound();
+            }
+
+            ViewBag.IsEdit = true;
+            ViewBag.ReturnTab = string.IsNullOrWhiteSpace(tab) ? "tab-flujo-modulos" : tab;
+
+            return View("CreateCuatrimestre", new CuatrimestreCatalogViewModel
+            {
+                Id = entity.Id,
+                Number = entity.Number,
+                Name = entity.Name,
+                IsActive = entity.IsActive,
+            });
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> EditCuatrimestre(CuatrimestreCatalogViewModel model, string? returnTab = null)
+        {
+            returnTab = string.IsNullOrWhiteSpace(returnTab) ? "tab-flujo-modulos" : returnTab;
+            await _moduleFlowConfigurationService.EnsureInfrastructureAsync();
+
+            if (!model.Id.HasValue)
+            {
+                return NotFound();
+            }
+
+            if (await _context.CuatrimestresCatalog.AnyAsync(x => x.Status && x.Id != model.Id.Value && x.Number == model.Number))
+            {
+                ModelState.AddModelError(nameof(model.Number), "Ese número de cuatrimestre ya está en uso.");
+            }
+
+            if (!ModelState.IsValid)
+            {
+                ViewBag.IsEdit = true;
+                ViewBag.ReturnTab = returnTab;
+                return View("CreateCuatrimestre", model);
+            }
+
+            var entity = await _context.CuatrimestresCatalog.FirstOrDefaultAsync(x => x.Status && x.Id == model.Id.Value);
+            if (entity == null)
+            {
+                return NotFound();
+            }
+
+            entity.Number = model.Number;
+            entity.Name = model.Name;
+            entity.IsActive = model.IsActive;
+            entity.UpdatedDate = DateTime.Now;
+
+            await _context.SaveChangesAsync();
+            TempData["SuccessMessage"] = "Cuatrimestre actualizado correctamente.";
+            return RedirectToAction(nameof(Catalogos), new { tab = returnTab });
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteCuatrimestre(int id)
+        {
+            await _moduleFlowConfigurationService.EnsureInfrastructureAsync();
+
+            var entity = await _context.CuatrimestresCatalog.FirstOrDefaultAsync(x => x.Status && x.Id == id);
+            if (entity == null)
+            {
+                return NotFound();
+            }
+
+            entity.Status = false;
+            entity.UpdatedDate = DateTime.Now;
+            await _context.SaveChangesAsync();
+
+            return Ok();
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> CreateModuleFlowConfig(string? tab = null)
+        {
+            await _moduleFlowConfigurationService.EnsureInfrastructureAsync();
+
+            ViewBag.IsEdit = false;
+            ViewBag.ReturnTab = string.IsNullOrWhiteSpace(tab) ? "tab-flujo-modulos" : tab;
+            return View(new ModuleFlowConfigViewModel());
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> CreateModuleFlowConfig(ModuleFlowConfigViewModel model, string? returnTab = null)
+        {
+            returnTab = string.IsNullOrWhiteSpace(returnTab) ? "tab-flujo-modulos" : returnTab;
+            await _moduleFlowConfigurationService.EnsureInfrastructureAsync();
+
+            if (await _context.OperationalModuleFlowConfigs.AnyAsync(x => x.Status && x.ModuleType == model.ModuleType))
+            {
+                ModelState.AddModelError(nameof(model.ModuleType), "Ese módulo ya tiene configuración registrada.");
+            }
+
+            if (!ModelState.IsValid)
+            {
+                ViewBag.IsEdit = false;
+                ViewBag.ReturnTab = returnTab;
+                return View(model);
+            }
+
+            _context.OperationalModuleFlowConfigs.Add(new OperationalModuleFlowConfig
+            {
+                ModuleType = model.ModuleType,
+                PortalStartCuatrimestre = model.PortalStartCuatrimestre,
+                TrackingStartCuatrimestre = model.TrackingStartCuatrimestre,
+                Status = true,
+                CreatedDate = DateTime.Now,
+            });
+
+            await _context.SaveChangesAsync();
+            TempData["SuccessMessage"] = "Configuración del módulo guardada.";
+            return RedirectToAction(nameof(Catalogos), new { tab = returnTab });
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> EditModuleFlowConfig(int id, string? tab = null)
+        {
+            await _moduleFlowConfigurationService.EnsureInfrastructureAsync();
+
+            var entity = await _context.OperationalModuleFlowConfigs.FirstOrDefaultAsync(x => x.Status && x.Id == id);
+            if (entity == null)
+            {
+                return NotFound();
+            }
+
+            ViewBag.IsEdit = true;
+            ViewBag.ReturnTab = string.IsNullOrWhiteSpace(tab) ? "tab-flujo-modulos" : tab;
+
+            return View("CreateModuleFlowConfig", new ModuleFlowConfigViewModel
+            {
+                Id = entity.Id,
+                ModuleType = entity.ModuleType,
+                PortalStartCuatrimestre = entity.PortalStartCuatrimestre,
+                TrackingStartCuatrimestre = entity.TrackingStartCuatrimestre,
+            });
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> EditModuleFlowConfig(ModuleFlowConfigViewModel model, string? returnTab = null)
+        {
+            returnTab = string.IsNullOrWhiteSpace(returnTab) ? "tab-flujo-modulos" : returnTab;
+            await _moduleFlowConfigurationService.EnsureInfrastructureAsync();
+
+            if (!model.Id.HasValue)
+            {
+                return NotFound();
+            }
+
+            if (!ModelState.IsValid)
+            {
+                ViewBag.IsEdit = true;
+                ViewBag.ReturnTab = returnTab;
+                return View("CreateModuleFlowConfig", model);
+            }
+
+            var entity = await _context.OperationalModuleFlowConfigs.FirstOrDefaultAsync(x => x.Status && x.Id == model.Id.Value);
+            if (entity == null)
+            {
+                return NotFound();
+            }
+
+            entity.ModuleType = model.ModuleType;
+            entity.PortalStartCuatrimestre = model.PortalStartCuatrimestre;
+            entity.TrackingStartCuatrimestre = model.TrackingStartCuatrimestre;
+            entity.UpdatedDate = DateTime.Now;
+            await _context.SaveChangesAsync();
+
+            TempData["SuccessMessage"] = "Configuración del módulo actualizada.";
+            return RedirectToAction(nameof(Catalogos), new { tab = returnTab });
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteModuleFlowConfig(int id)
+        {
+            await _moduleFlowConfigurationService.EnsureInfrastructureAsync();
+
+            var entity = await _context.OperationalModuleFlowConfigs.FirstOrDefaultAsync(x => x.Status && x.Id == id);
+            if (entity == null)
+            {
+                return NotFound();
+            }
+
+            entity.Status = false;
+            entity.UpdatedDate = DateTime.Now;
+            await _context.SaveChangesAsync();
+            return Ok();
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> CreateModuleStepRule(string? tab = null)
+        {
+            await _moduleFlowConfigurationService.EnsureInfrastructureAsync();
+
+            ViewBag.IsEdit = false;
+            ViewBag.ReturnTab = string.IsNullOrWhiteSpace(tab) ? "tab-flujo-modulos" : tab;
+            return View(new ModuleStepRuleViewModel());
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> CreateModuleStepRule(ModuleStepRuleViewModel model, string? returnTab = null)
+        {
+            returnTab = string.IsNullOrWhiteSpace(returnTab) ? "tab-flujo-modulos" : returnTab;
+            await _moduleFlowConfigurationService.EnsureInfrastructureAsync();
+
+            if (!ModelState.IsValid)
+            {
+                ViewBag.IsEdit = false;
+                ViewBag.ReturnTab = returnTab;
+                return View(model);
+            }
+
+            _context.OperationalModuleStepRules.Add(new OperationalModuleStepRule
+            {
+                ModuleType = model.ModuleType,
+                StepCode = model.StepCode.Trim().ToUpperInvariant(),
+                StepName = model.StepName,
+                MinCuatrimestre = model.MinCuatrimestre,
+                AllowedStatusesCsv = model.AllowedStatusesCsv,
+                SortOrder = model.SortOrder,
+                Status = model.IsActive,
+                CreatedDate = DateTime.Now,
+            });
+
+            await _context.SaveChangesAsync();
+            TempData["SuccessMessage"] = "Regla de paso creada correctamente.";
+            return RedirectToAction(nameof(Catalogos), new { tab = returnTab });
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> EditModuleStepRule(int id, string? tab = null)
+        {
+            await _moduleFlowConfigurationService.EnsureInfrastructureAsync();
+
+            var entity = await _context.OperationalModuleStepRules.FirstOrDefaultAsync(x => x.Status && x.Id == id);
+            if (entity == null)
+            {
+                return NotFound();
+            }
+
+            ViewBag.IsEdit = true;
+            ViewBag.ReturnTab = string.IsNullOrWhiteSpace(tab) ? "tab-flujo-modulos" : tab;
+
+            return View("CreateModuleStepRule", new ModuleStepRuleViewModel
+            {
+                Id = entity.Id,
+                ModuleType = entity.ModuleType,
+                StepCode = entity.StepCode,
+                StepName = entity.StepName,
+                MinCuatrimestre = entity.MinCuatrimestre,
+                AllowedStatusesCsv = entity.AllowedStatusesCsv,
+                SortOrder = entity.SortOrder,
+                IsActive = entity.Status,
+            });
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> EditModuleStepRule(ModuleStepRuleViewModel model, string? returnTab = null)
+        {
+            returnTab = string.IsNullOrWhiteSpace(returnTab) ? "tab-flujo-modulos" : returnTab;
+            await _moduleFlowConfigurationService.EnsureInfrastructureAsync();
+
+            if (!model.Id.HasValue)
+            {
+                return NotFound();
+            }
+
+            if (!ModelState.IsValid)
+            {
+                ViewBag.IsEdit = true;
+                ViewBag.ReturnTab = returnTab;
+                return View("CreateModuleStepRule", model);
+            }
+
+            var entity = await _context.OperationalModuleStepRules.FirstOrDefaultAsync(x => x.Status && x.Id == model.Id.Value);
+            if (entity == null)
+            {
+                return NotFound();
+            }
+
+            entity.ModuleType = model.ModuleType;
+            entity.StepCode = model.StepCode.Trim().ToUpperInvariant();
+            entity.StepName = model.StepName;
+            entity.MinCuatrimestre = model.MinCuatrimestre;
+            entity.AllowedStatusesCsv = model.AllowedStatusesCsv;
+            entity.SortOrder = model.SortOrder;
+            entity.Status = model.IsActive;
+            entity.UpdatedDate = DateTime.Now;
+
+            await _context.SaveChangesAsync();
+            TempData["SuccessMessage"] = "Regla de paso actualizada correctamente.";
+            return RedirectToAction(nameof(Catalogos), new { tab = returnTab });
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteModuleStepRule(int id)
+        {
+            await _moduleFlowConfigurationService.EnsureInfrastructureAsync();
+
+            var entity = await _context.OperationalModuleStepRules.FirstOrDefaultAsync(x => x.Status && x.Id == id);
+            if (entity == null)
+            {
+                return NotFound();
+            }
+
+            entity.Status = false;
+            entity.UpdatedDate = DateTime.Now;
+            await _context.SaveChangesAsync();
+
+            return Ok();
         }
 
         [HttpGet]
@@ -901,6 +1325,7 @@ namespace ControlEscolar.Controllers
                 CURP = student.CURP,
                 Phone = student.Phone,
                 CareerId = student.CareerId,
+                Cuatrimestre = student.Semestre,
                 GroupId = student.GroupId,
                 StatusCode = string.IsNullOrWhiteSpace(student.EstadoCodigo) ? "INSCRITO" : student.EstadoCodigo,
                 Matricula = student.Matricula
@@ -1085,11 +1510,92 @@ namespace ControlEscolar.Controllers
         }
 
         [HttpGet]
-        public IActionResult StudentDetail(int id)
+        public async Task<IActionResult> StudentDetail(int id)
         {
+            var student = await _context.StudentsOperational
+                .AsNoTracking()
+                .Include(x => x.Person)
+                .Include(x => x.Career)
+                .Include(x => x.Group)
+                .FirstOrDefaultAsync(x => x.Id == id);
+
+            if (student == null)
+            {
+                return NotFound();
+            }
+
+            var assignments = await FilterAssignmentsByCurrentModule(
+                    _context.OperationalStudentAssignments
+                        .AsNoTracking()
+                        .Include(x => x.Program)
+                        .Include(x => x.Organization)
+                        .Include(x => x.Teacher)
+                            .ThenInclude(t => t!.Person)
+                        .Where(x => x.Status && x.StudentId == id))
+                .OrderByDescending(x => x.CreatedDate)
+                .ToListAsync();
+
+            var documents = await FilterDocumentsByCurrentModule(
+                    _context.OperationalDocuments
+                        .AsNoTracking()
+                        .Include(x => x.Assignment)
+                            .ThenInclude(x => x.Program)
+                        .Where(x => x.Status && x.Assignment.StudentId == id))
+                .OrderByDescending(x => x.UploadDate)
+                .ToListAsync();
+
+            var approvedHours = assignments.Sum(x => x.ApprovedHours);
+            var requiredHours = assignments.Sum(x => (decimal)x.Program.RequiredHours);
+            var pendingHours = Math.Max(0m, requiredHours - approvedHours);
+
+            ViewBag.ModuleScopeLabel = GetModuleScopeLabel(null);
+
             var model = new CoordinadorStudentDetailViewModel
             {
-                StudentId = id
+                StudentId = student.Id,
+                FullName = student.Person.FullName,
+                Matricula = string.IsNullOrWhiteSpace(student.Matricula) ? "S/N" : student.Matricula,
+                Email = string.IsNullOrWhiteSpace(student.Person.Email) ? "Sin correo" : student.Person.Email,
+                Phone = string.IsNullOrWhiteSpace(student.Person.Phone) ? "Sin telefono" : student.Person.Phone,
+                StatusCode = string.IsNullOrWhiteSpace(student.StatusCode) ? "N/A" : student.StatusCode,
+                IsActive = student.Status,
+                Curp = string.IsNullOrWhiteSpace(student.Person.CURP) ? "N/D" : student.Person.CURP,
+                CareerName = student.Career?.Name ?? "Sin carrera",
+                GroupName = string.IsNullOrWhiteSpace(student.Group?.Code) ? "Sin grupo" : student.Group.Code,
+                ApprovedHours = approvedHours,
+                PendingHours = pendingHours,
+                DocumentsCount = documents.Count,
+                EvaluationsCount = assignments.Count(x => x.EvaluationScore.HasValue),
+                Assignments = assignments.Select(x => new CoordinadorStudentAssignmentRowViewModel
+                {
+                    AssignmentId = x.Id,
+                    ProgramName = x.Program.Name,
+                    ProgramType = x.Program.Type,
+                    TeacherName = x.Teacher?.Person?.FullName ?? "Sin asignar",
+                    StatusCode = x.StatusCode,
+                    ApprovedHours = x.ApprovedHours,
+                    RequiredHours = x.Program.RequiredHours,
+                    ProgressPercent = x.Program.RequiredHours > 0
+                        ? Math.Round((x.ApprovedHours / x.Program.RequiredHours) * 100m, 1)
+                        : 0m,
+                    EvaluationScore = x.EvaluationScore,
+                    CreatedDate = x.CreatedDate
+                }).ToList(),
+                Documents = documents.Take(30).Select(x => new CoordinadorStudentDocumentRowViewModel
+                {
+                    Id = x.Id,
+                    AssignmentId = x.AssignmentId,
+                    Title = x.Title,
+                    DocumentType = x.DocumentType,
+                    ProgramName = x.Assignment.Program.Name,
+                    ProgramType = x.Assignment.Program.Type,
+                    StatusCode = x.StatusCode,
+                    UploadDate = x.UploadDate,
+                    OriginalFileName = x.OriginalFileName,
+                    Notes = x.Notes,
+                    ReviewComments = x.ReviewComments,
+                    ReviewDate = x.ReviewDate
+                }).ToList()
             };
 
             return View(model);
@@ -1461,28 +1967,224 @@ namespace ControlEscolar.Controllers
 
 
         [HttpGet]
-        public IActionResult TeacherDetail(int id)
+        public async Task<IActionResult> TeacherDetail(int id)
         {
+            var teacher = await _context.TeachersOperational
+                .AsNoTracking()
+                .Include(x => x.Person)
+                .FirstOrDefaultAsync(x => x.Id == id);
+
+            if (teacher == null)
+            {
+                return NotFound();
+            }
+
+            var assignments = await FilterAssignmentsByCurrentModule(
+                    _context.OperationalStudentAssignments
+                        .AsNoTracking()
+                        .Include(x => x.Student)
+                            .ThenInclude(s => s.Person)
+                        .Include(x => x.Student)
+                            .ThenInclude(s => s.Career)
+                        .Include(x => x.Program)
+                        .Where(x => x.Status && x.TeacherId == id))
+                .OrderByDescending(x => x.CreatedDate)
+                .ToListAsync();
+
+            var assignmentIds = assignments.Select(x => x.Id).ToList();
+            var pendingDocs = assignmentIds.Count == 0
+                ? 0
+                : await _context.OperationalDocuments
+                    .AsNoTracking()
+                    .CountAsync(x => x.Status
+                        && assignmentIds.Contains(x.AssignmentId)
+                        && x.StatusCode == DocumentStatusCodes.PENDING);
+
+            var totalStudents = assignments.Count;
+            var activeStudents = assignments.Count(x => !string.Equals(x.StatusCode, "COMPLETED", StringComparison.OrdinalIgnoreCase));
+            var completedStudents = assignments.Count(x => x.Program.RequiredHours > 0 && x.ApprovedHours >= x.Program.RequiredHours);
+            var completionRate = totalStudents > 0 ? Math.Round((decimal)completedStudents / totalStudents * 100m, 1) : 0m;
+            var pendingHours = assignments.Sum(x => Math.Max(0m, x.Program.RequiredHours - x.ApprovedHours));
+
+            ViewBag.ModuleScopeLabel = GetModuleScopeLabel(null);
+
             var model = new CoordinadorTeacherDetailViewModel
             {
-                TeacherId = id
+                TeacherId = teacher.Id,
+                FullName = teacher.Person.FullName,
+                EmployeeNumber = string.IsNullOrWhiteSpace(teacher.EmployeeNumber) ? "N/D" : teacher.EmployeeNumber,
+                Email = string.IsNullOrWhiteSpace(teacher.Person.Email) ? "Sin correo" : teacher.Person.Email,
+                Phone = string.IsNullOrWhiteSpace(teacher.Person.Phone) ? "Sin telefono" : teacher.Person.Phone,
+                StatusCode = string.IsNullOrWhiteSpace(teacher.StatusCode) ? "N/A" : teacher.StatusCode,
+                IsActive = teacher.Status,
+                TotalStudents = totalStudents,
+                ActiveStudents = activeStudents,
+                PendingHours = pendingHours,
+                PendingDocuments = pendingDocs,
+                EvaluationsCount = assignments.Count(x => x.EvaluationScore.HasValue),
+                CompletionRate = completionRate,
+                AssignedStudents = assignments.Select(x => new CoordinadorTeacherStudentRowViewModel
+                {
+                    AssignmentId = x.Id,
+                    StudentId = x.StudentId,
+                    StudentName = x.Student.Person.FullName,
+                    Matricula = string.IsNullOrWhiteSpace(x.Student.Matricula) ? "S/N" : x.Student.Matricula,
+                    CareerName = x.Student.Career?.Name ?? "Sin carrera",
+                    ProgramName = x.Program.Name,
+                    ProgramType = x.Program.Type,
+                    StatusCode = x.StatusCode,
+                    ApprovedHours = x.ApprovedHours,
+                    RequiredHours = x.Program.RequiredHours,
+                    ProgressPercent = x.Program.RequiredHours > 0
+                        ? Math.Round((x.ApprovedHours / x.Program.RequiredHours) * 100m, 1)
+                        : 0m,
+                }).ToList()
             };
 
             return View(model);
         }
 
         [HttpGet]
-        public IActionResult GetAssignableStudents(int teacherId)
+        public async Task<IActionResult> GetAssignableStudents(int teacherId)
         {
-            return Json(new List<object>());
+            var assignments = await FilterAssignmentsByCurrentModule(
+                    _context.OperationalStudentAssignments
+                        .AsNoTracking()
+                        .Include(x => x.Student)
+                            .ThenInclude(x => x.Person)
+                        .Include(x => x.Student)
+                            .ThenInclude(x => x.Career)
+                        .Include(x => x.Program)
+                        .Where(x => x.Status && (x.TeacherId == null || x.TeacherId == teacherId)))
+                .OrderByDescending(x => x.CreatedDate)
+                .Take(200)
+                .ToListAsync();
+
+            var data = assignments.Select(x => new
+            {
+                id = x.Id,
+                nombre = x.Student.Person != null ? x.Student.Person.FullName : "Sin nombre",
+                matricula = x.Student.Matricula,
+                careerName = x.Student.Career?.Name ?? "Sin carrera",
+                teacherId = x.TeacherId,
+                estado = x.StatusCode,
+                programName = x.Program.Name,
+                programType = x.Program.Type
+            });
+
+            return Json(new { data });
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult AssignStudentsToTeacher(int teacherId, List<int> enrollmentIds)
+        public async Task<IActionResult> AssignStudentsToTeacher(int teacherId, List<int> enrollmentIds)
         {
+            if (teacherId <= 0 || enrollmentIds == null || enrollmentIds.Count == 0)
+            {
+                TempData["ErrorMessage"] = "Debes seleccionar docente y al menos una asignación.";
+                return RedirectToAction("TeacherDetail", new { id = teacherId });
+            }
+
+            var teacherExists = await _context.TeachersOperational
+                .AsNoTracking()
+                .AnyAsync(x => x.Id == teacherId && x.Status);
+
+            if (!teacherExists)
+            {
+                TempData["ErrorMessage"] = "No se encontró el docente seleccionado.";
+                return RedirectToAction("TeacherDetail", new { id = teacherId });
+            }
+
+            var assignmentIds = enrollmentIds.Where(x => x > 0).Distinct().ToList();
+            var assignments = await FilterAssignmentsByCurrentModule(
+                    _context.OperationalStudentAssignments
+                        .Include(x => x.Program)
+                        .Where(x => x.Status && assignmentIds.Contains(x.Id)))
+                .ToListAsync();
+
+            if (assignments.Count != assignmentIds.Count)
+            {
+                TempData["ErrorMessage"] = "Una o más asignaciones no existen o no pertenecen al módulo permitido para tu rol.";
+                return RedirectToAction("TeacherDetail", new { id = teacherId });
+            }
+
+            foreach (var assignment in assignments)
+            {
+                assignment.TeacherId = teacherId;
+                if (assignment.StatusCode == DualStatusCodes.LETTER_REQUESTED || assignment.StatusCode == DualStatusCodes.PLACEMENT)
+                {
+                    assignment.StatusCode = DualStatusCodes.ADVISORS_ASSIGNED;
+                }
+            }
+
+            await _context.SaveChangesAsync();
             TempData["SuccessMessage"] = "Estudiantes asignados correctamente.";
             return RedirectToAction("TeacherDetail", new { id = teacherId });
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> SeguimientoAlumno(int studentId, int? assignmentId = null)
+        {
+            var student = await _context.StudentsOperational
+                .AsNoTracking()
+                .Include(x => x.Person)
+                .Include(x => x.Career)
+                .Include(x => x.Group)
+                .FirstOrDefaultAsync(x => x.Id == studentId);
+
+            if (student == null)
+            {
+                return NotFound();
+            }
+
+            var assignments = await FilterAssignmentsByCurrentModule(
+                    _context.OperationalStudentAssignments
+                        .AsNoTracking()
+                        .Include(x => x.Program)
+                        .Where(x => x.Status && x.StudentId == studentId))
+                .OrderByDescending(x => x.CreatedDate)
+                .ToListAsync();
+
+            var selectedAssignment = assignmentId.HasValue
+                ? assignments.FirstOrDefault(x => x.Id == assignmentId.Value)
+                : assignments.FirstOrDefault();
+
+            if (assignmentId.HasValue && selectedAssignment == null)
+            {
+                TempData["ErrorMessage"] = "La asignación solicitada no pertenece al módulo permitido para tu rol.";
+                return RedirectToAction(nameof(StudentDetail), new { id = studentId });
+            }
+
+            var timelineDocuments = new List<OperationalDocument>();
+            if (selectedAssignment != null)
+            {
+                timelineDocuments = await _context.OperationalDocuments
+                    .AsNoTracking()
+                    .Where(x => x.Status && x.AssignmentId == selectedAssignment.Id)
+                    .OrderByDescending(x => x.UploadDate)
+                    .ToListAsync();
+            }
+
+            ViewBag.IsCoordinatorReadOnly = true;
+            ViewBag.BackUrl = Url.Action(nameof(StudentDetail), new { id = studentId });
+            ViewBag.BackText = "Volver al expediente";
+            ViewBag.ModuleScopeLabel = GetModuleScopeLabel(selectedAssignment?.Program?.Type);
+
+            var model = new TutorSeguimientoViewModel
+            {
+                AssignmentId = selectedAssignment?.Id,
+                StudentId = student.Id,
+                StudentName = student.Person.FullName,
+                Matricula = string.IsNullOrWhiteSpace(student.Matricula) ? "N/A" : student.Matricula,
+                CareerCode = student.Career?.Name ?? "N/A",
+                GroupCode = student.Group?.Code ?? "N/A",
+                ApprovedHours = selectedAssignment?.ApprovedHours ?? 0m,
+                RequiredHours = selectedAssignment?.Program?.RequiredHours ?? 480,
+                StatusCode = selectedAssignment?.StatusCode ?? "SIN_DATOS",
+                TimelineDocuments = timelineDocuments
+            };
+
+            return View("~/Views/Tutor/Seguimiento.cshtml", model);
         }
 
         [HttpGet]
@@ -2120,9 +2822,173 @@ namespace ControlEscolar.Controllers
             return Json(new { data = roles });
         }
 
-        public IActionResult Asignaciones()
+        public async Task<IActionResult> Asignaciones(
+            string? search,
+            string? status,
+            int? teacher,
+            DateTime? createdFrom,
+            DateTime? createdTo,
+            string? module,
+            int? cuatrimestre,
+            int? moduleNumber,
+            string? sort = "created",
+            string? order = "desc",
+            int page = 1,
+            int pageSize = 10)
         {
-            return View();
+            page = page <= 0 ? 1 : page;
+            pageSize = pageSize is 5 or 10 or 20 ? pageSize : 10;
+            var isAsc = string.Equals(order, "asc", StringComparison.OrdinalIgnoreCase);
+
+            var canAccessDual = CanAccessDualModule();
+            var canAccessService = CanAccessServiceModule();
+            var isAdmin = IsAdminUser();
+
+            module = NormalizeRequestedModule(module);
+
+            var query = FilterAssignmentsByCurrentModule(_context.OperationalStudentAssignments
+                .AsNoTracking()
+                .Include(x => x.Student)
+                    .ThenInclude(x => x.Person)
+                .Include(x => x.Student)
+                    .ThenInclude(x => x.Group)
+                .Include(x => x.Program)
+                .Include(x => x.Organization)
+                .Include(x => x.Teacher)
+                    .ThenInclude(x => x.Person)
+                .Where(x => x.Status));
+
+            if (!string.IsNullOrWhiteSpace(module))
+            {
+                var moduleCode = module.Trim().ToUpperInvariant();
+                query = query.Where(x => x.Program.Type == moduleCode);
+            }
+
+            if (cuatrimestre.HasValue && cuatrimestre.Value > 0)
+            {
+                query = query.Where(x => ExtractGradeFromGroupCode(x.Student.Group != null ? x.Student.Group.Code : null) == cuatrimestre.Value);
+            }
+
+            if (moduleNumber.HasValue && moduleNumber.Value >= 1 && moduleNumber.Value <= 5)
+            {
+                query = query.Where(x => GetModuleNumberByStatus(x.StatusCode) == moduleNumber.Value);
+            }
+
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                var term = search.Trim().ToUpperInvariant();
+                query = query.Where(x =>
+                    (x.Student.Matricula != null && x.Student.Matricula.ToUpper().Contains(term)) ||
+                    (x.Student.Person != null &&
+                     ((x.Student.Person.FirstName ?? "") + " " + (x.Student.Person.LastNamePaternal ?? "") + " " + (x.Student.Person.LastNameMaternal ?? "")).ToUpper().Contains(term)));
+            }
+
+            if (!string.IsNullOrWhiteSpace(status))
+            {
+                query = query.Where(x => x.StatusCode == status);
+            }
+
+            if (teacher.HasValue)
+            {
+                query = query.Where(x => x.TeacherId == teacher.Value);
+            }
+
+            if (createdFrom.HasValue)
+            {
+                query = query.Where(x => x.CreatedDate >= createdFrom.Value.Date);
+            }
+
+            if (createdTo.HasValue)
+            {
+                var toExclusive = createdTo.Value.Date.AddDays(1);
+                query = query.Where(x => x.CreatedDate < toExclusive);
+            }
+
+            query = (sort ?? "created").ToLowerInvariant() switch
+            {
+                "student" => isAsc
+                    ? query.OrderBy(x => x.Student.Person.FirstName).ThenBy(x => x.Student.Person.LastNamePaternal)
+                    : query.OrderByDescending(x => x.Student.Person.FirstName).ThenByDescending(x => x.Student.Person.LastNamePaternal),
+                "status" => isAsc
+                    ? query.OrderBy(x => x.StatusCode)
+                    : query.OrderByDescending(x => x.StatusCode),
+                "hours" => isAsc
+                    ? query.OrderBy(x => x.ApprovedHours)
+                    : query.OrderByDescending(x => x.ApprovedHours),
+                "program" => isAsc
+                    ? query.OrderBy(x => x.Program.Name)
+                    : query.OrderByDescending(x => x.Program.Name),
+                _ => isAsc
+                    ? query.OrderBy(x => x.CreatedDate)
+                    : query.OrderByDescending(x => x.CreatedDate)
+            };
+
+            var totalItems = await query.CountAsync();
+            var totalPages = Math.Max(1, (int)Math.Ceiling(totalItems / (double)pageSize));
+            if (page > totalPages)
+            {
+                page = totalPages;
+            }
+
+            var items = await query
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .Select(x => new CoordinatorAssignmentRowViewModel
+                {
+                    AssignmentId = x.Id,
+                    StudentName = x.Student.Person != null ? x.Student.Person.FullName : "Sin nombre",
+                    Matricula = x.Student.Matricula,
+                    ProgramName = x.Program.Name,
+                    ProgramType = x.Program.Type,
+                    OrganizationName = x.Organization != null ? x.Organization.Name : "Sin organizacion",
+                    TeacherId = x.TeacherId,
+                    TeacherName = x.Teacher != null ? x.Teacher.Person.FullName : "SIN ASIGNAR",
+                    StatusCode = x.StatusCode,
+                    ApprovedHours = x.ApprovedHours,
+                    RequiredHours = x.Program.RequiredHours,
+                    GroupCode = x.Student.Group != null ? x.Student.Group.Code : string.Empty,
+                    Cuatrimestre = ExtractGradeFromGroupCode(x.Student.Group != null ? x.Student.Group.Code : null),
+                    ModuleNumber = GetModuleNumberByStatus(x.StatusCode)
+                })
+                .ToListAsync();
+
+            ViewBag.Search = search;
+            ViewBag.Status = status;
+            ViewBag.Teacher = teacher;
+            ViewBag.CreatedFrom = createdFrom?.ToString("yyyy-MM-dd");
+            ViewBag.CreatedTo = createdTo?.ToString("yyyy-MM-dd");
+            ViewBag.Module = module;
+            ViewBag.Cuatrimestre = cuatrimestre;
+            ViewBag.ModuleNumber = moduleNumber;
+            ViewBag.Sort = sort;
+            ViewBag.Order = isAsc ? "asc" : "desc";
+            ViewBag.Page = page;
+            ViewBag.PageSize = pageSize;
+            ViewBag.TotalItems = totalItems;
+            ViewBag.TotalPages = totalPages;
+            ViewBag.CanDualModule = canAccessDual || isAdmin;
+            ViewBag.CanServiceModule = canAccessService || isAdmin;
+            ViewBag.ModuleScopeLabel = GetModuleScopeLabel(module);
+            ViewBag.Teachers = await FilterAssignmentsByCurrentModule(_context.OperationalStudentAssignments
+                .AsNoTracking()
+                .AsNoTracking()
+                .Include(x => x.Teacher)
+                    .ThenInclude(x => x!.Person)
+                .Include(x => x.Program)
+                .Where(x => x.Status && x.TeacherId.HasValue))
+                .Where(x => string.IsNullOrWhiteSpace(module) || x.Program.Type == module)
+                .GroupBy(x => new
+                {
+                    Id = x.TeacherId!.Value,
+                    First = x.Teacher!.Person.FirstName,
+                    LastP = x.Teacher!.Person.LastNamePaternal,
+                    LastM = x.Teacher!.Person.LastNameMaternal,
+                })
+                .OrderBy(x => x.Key.First)
+                .Select(x => new { x.Key.Id, Name = (x.Key.First + " " + x.Key.LastP + " " + x.Key.LastM).Trim() })
+                .ToListAsync();
+
+            return View("SeguimientoDualEstadias", items);
         }
 
         public IActionResult Grupos()
@@ -2130,9 +2996,63 @@ namespace ControlEscolar.Controllers
             return View();
         }
 
-        public IActionResult SeguimientoDualEstadias()
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ReassignSupervisor(int enrollmentId, int newTeacherId)
         {
-            return View(new List<ControlEscolar.ViewModels.OperationalTracking.CoordinatorAssignmentRowViewModel>());
+            if (enrollmentId <= 0 || newTeacherId <= 0)
+            {
+                TempData["ErrorMessage"] = "Parámetros de reasignación inválidos.";
+                return RedirectToAction(nameof(SeguimientoDualEstadias));
+            }
+
+            var assignment = await _context.OperationalStudentAssignments
+                .Include(x => x.Program)
+                .FirstOrDefaultAsync(x => x.Id == enrollmentId && x.Status);
+
+            if (assignment == null)
+            {
+                TempData["ErrorMessage"] = "No se encontró la asignación indicada.";
+                return RedirectToAction(nameof(SeguimientoDualEstadias));
+            }
+
+            if (!IsAdminUser())
+            {
+                var isDualAssignment = string.Equals(assignment.Program.Type, ProgramTypes.PRACTICAS_PROFESIONALES, StringComparison.OrdinalIgnoreCase);
+                var isServiceAssignment = string.Equals(assignment.Program.Type, ProgramTypes.SERVICIO_SOCIAL, StringComparison.OrdinalIgnoreCase);
+                if ((isDualAssignment && !CanAccessDualModule()) || (isServiceAssignment && !CanAccessServiceModule()))
+                {
+                    TempData["ErrorMessage"] = "No tienes permisos para reasignar en este módulo.";
+                    return RedirectToAction(nameof(SeguimientoDualEstadias));
+                }
+            }
+
+            assignment.TeacherId = newTeacherId;
+            if (assignment.StatusCode == DualStatusCodes.LETTER_REQUESTED || assignment.StatusCode == DualStatusCodes.PLACEMENT)
+            {
+                assignment.StatusCode = DualStatusCodes.ADVISORS_ASSIGNED;
+            }
+
+            await _context.SaveChangesAsync();
+            TempData["SuccessMessage"] = "Supervisor reasignado correctamente.";
+            return RedirectToAction(nameof(SeguimientoDualEstadias));
+        }
+
+        public async Task<IActionResult> SeguimientoDualEstadias(
+            string? search,
+            string? status,
+            int? teacher,
+            DateTime? createdFrom,
+            DateTime? createdTo,
+            string? module,
+            int? cuatrimestre,
+            int? moduleNumber,
+            string? sort = "created",
+            string? order = "desc",
+            int page = 1,
+            int pageSize = 10)
+        {
+            return await Asignaciones(search, status, teacher, createdFrom, createdTo, module, cuatrimestre, moduleNumber, sort, order, page, pageSize);
         }
 
         public IActionResult Reportes()
@@ -2145,6 +3065,159 @@ namespace ControlEscolar.Controllers
             using var sha = SHA256.Create();
             var bytes = sha.ComputeHash(Encoding.UTF8.GetBytes(password));
             return Convert.ToBase64String(bytes);
+        }
+
+        private bool IsAdminUser()
+        {
+            return User.IsInRole("Admin") || User.IsInRole("ADMIN") || User.IsInRole("Administrator") || User.IsInRole("Master");
+        }
+
+        private bool HasRoleInClaims(params string[] roles)
+        {
+            var userRoles = User.Claims
+                .Where(c => c.Type == ClaimTypes.Role)
+                .Select(c => c.Value)
+                .ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+            return roles.Any(r => userRoles.Contains(r));
+        }
+
+        private bool CanAccessDualModule()
+        {
+            return HasRoleInClaims("Coordinador", "CoordinadorDual");
+        }
+
+        private bool CanAccessServiceModule()
+        {
+            return HasRoleInClaims("Coordinador", "CoordinadorServicioSocial");
+        }
+
+        private IQueryable<OperationalStudentAssignment> FilterAssignmentsByCurrentModule(IQueryable<OperationalStudentAssignment> query)
+        {
+            if (IsAdminUser())
+            {
+                return query;
+            }
+
+            var canAccessDual = CanAccessDualModule();
+            var canAccessService = CanAccessServiceModule();
+
+            if (canAccessDual && !canAccessService)
+            {
+                return query.Where(x => x.Program.Type == ProgramTypes.PRACTICAS_PROFESIONALES);
+            }
+
+            if (!canAccessDual && canAccessService)
+            {
+                return query.Where(x => x.Program.Type == ProgramTypes.SERVICIO_SOCIAL);
+            }
+
+            if (!canAccessDual && !canAccessService)
+            {
+                return query.Where(x => false);
+            }
+
+            return query;
+        }
+
+        private IQueryable<OperationalDocument> FilterDocumentsByCurrentModule(IQueryable<OperationalDocument> query)
+        {
+            if (IsAdminUser())
+            {
+                return query;
+            }
+
+            var canAccessDual = CanAccessDualModule();
+            var canAccessService = CanAccessServiceModule();
+
+            if (canAccessDual && !canAccessService)
+            {
+                return query.Where(x => x.Assignment.Program.Type == ProgramTypes.PRACTICAS_PROFESIONALES);
+            }
+
+            if (!canAccessDual && canAccessService)
+            {
+                return query.Where(x => x.Assignment.Program.Type == ProgramTypes.SERVICIO_SOCIAL);
+            }
+
+            if (!canAccessDual && !canAccessService)
+            {
+                return query.Where(x => false);
+            }
+
+            return query;
+        }
+
+        private string? NormalizeRequestedModule(string? module)
+        {
+            if (!string.IsNullOrWhiteSpace(module))
+            {
+                return module.Trim().ToUpperInvariant();
+            }
+
+            if (IsAdminUser())
+            {
+                return null;
+            }
+
+            var canAccessDual = CanAccessDualModule();
+            var canAccessService = CanAccessServiceModule();
+
+            if (canAccessDual && !canAccessService)
+            {
+                return ProgramTypes.PRACTICAS_PROFESIONALES;
+            }
+
+            if (!canAccessDual && canAccessService)
+            {
+                return ProgramTypes.SERVICIO_SOCIAL;
+            }
+
+            return null;
+        }
+
+        private string GetModuleScopeLabel(string? module)
+        {
+            var effectiveModule = NormalizeRequestedModule(module);
+            if (string.IsNullOrWhiteSpace(effectiveModule))
+            {
+                return "Todos los módulos";
+            }
+
+            return effectiveModule == ProgramTypes.SERVICIO_SOCIAL
+                ? "Servicio social"
+                : "Módulo dual";
+        }
+
+        private static int? ExtractGradeFromGroupCode(string? groupCode)
+        {
+            if (string.IsNullOrWhiteSpace(groupCode))
+            {
+                return null;
+            }
+
+            var trimmed = groupCode.Trim();
+            var digits = new string(trimmed.TakeWhile(char.IsDigit).ToArray());
+            if (string.IsNullOrWhiteSpace(digits))
+            {
+                return null;
+            }
+
+            return int.TryParse(digits, out var grade) ? grade : null;
+        }
+
+        private static int GetModuleNumberByStatus(string? statusCode)
+        {
+            var status = (statusCode ?? string.Empty).Trim().ToUpperInvariant();
+            return status switch
+            {
+                "REGISTERED" or "PLACEMENT" => 1,
+                "PROFILE_COMPLETE" or "DOCUMENTS" => 2,
+                "LETTER_REQUESTED" or "ACCEPTANCE_SUBMITTED" => 3,
+                "ADVISOR_ASSIGNED" or "ADVISORS_ASSIGNED" => 4,
+                "IN_PROGRESS" or "COMPLETED" or "FINALIZED" or "RELEASED" => 5,
+                _ => 1
+            };
         }
     }
 

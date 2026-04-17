@@ -6,10 +6,14 @@ public class CoordinatorAssignmentRowViewModel
     public string StudentName { get; set; } = string.Empty;
     public string? Matricula { get; set; }
     public string ProgramName { get; set; } = string.Empty;
+    public string ProgramType { get; set; } = string.Empty;
     public string OrganizationName { get; set; } = "Sin organizacion";
     public int? TeacherId { get; set; }
     public string TeacherName { get; set; } = "SIN ASIGNAR";
     public string StatusCode { get; set; } = string.Empty;
+    public string GroupCode { get; set; } = string.Empty;
+    public int? Cuatrimestre { get; set; }
+    public int ModuleNumber { get; set; }
     public decimal ApprovedHours { get; set; }
     public int RequiredHours { get; set; }
     public int ProgressPercent => RequiredHours > 0 ? (int)Math.Min(100, Math.Round((ApprovedHours / RequiredHours) * 100m)) : 0;

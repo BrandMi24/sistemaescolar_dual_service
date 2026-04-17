@@ -30,6 +30,7 @@ namespace ControlEscolar.Models
     {
         public int Id { get; set; }
         public int? CareerId { get; set; }
+        public int? Cuatrimestre { get; set; }
         public string Carrera { get; set; } = string.Empty;
         public string Codigo { get; set; } = string.Empty;
         public string Nombre { get; set; } = string.Empty;
@@ -156,6 +157,8 @@ namespace ControlEscolar.Models
         
         public int CareerId { get; set; }
 
+        public int? Cuatrimestre { get; set; }
+
         public int? GroupId { get; set; }
 
         public string? Username { get; set; }
@@ -240,5 +243,62 @@ namespace ControlEscolar.Models
         public string LastNamePaternal { get; set; } = string.Empty;
         public string? LastNameMaternal { get; set; }
         public string? Email { get; set; }
+    }
+
+    public class CuatrimestreCatalogViewModel
+    {
+        public int? Id { get; set; }
+
+        [Range(1, 20)]
+        public int Number { get; set; }
+
+        [Required]
+        [StringLength(80)]
+        public string Name { get; set; } = string.Empty;
+
+        public bool IsActive { get; set; } = true;
+    }
+
+    public class ModuleFlowConfigViewModel
+    {
+        public int? Id { get; set; }
+
+        [Required]
+        [StringLength(60)]
+        public string ModuleType { get; set; } = string.Empty;
+
+        [Range(1, 20)]
+        public int PortalStartCuatrimestre { get; set; } = 10;
+
+        [Range(1, 20)]
+        public int TrackingStartCuatrimestre { get; set; } = 11;
+    }
+
+    public class ModuleStepRuleViewModel
+    {
+        public int? Id { get; set; }
+
+        [Required]
+        [StringLength(60)]
+        public string ModuleType { get; set; } = string.Empty;
+
+        [Required]
+        [StringLength(30)]
+        public string StepCode { get; set; } = string.Empty;
+
+        [Required]
+        [StringLength(120)]
+        public string StepName { get; set; } = string.Empty;
+
+        [Range(1, 20)]
+        public int? MinCuatrimestre { get; set; }
+
+        [StringLength(400)]
+        public string? AllowedStatusesCsv { get; set; }
+
+        [Range(1, 50)]
+        public int SortOrder { get; set; } = 1;
+
+        public bool IsActive { get; set; } = true;
     }
 }

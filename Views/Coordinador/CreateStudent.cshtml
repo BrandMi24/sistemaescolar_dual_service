@@ -6,6 +6,13 @@
     var isEdit = ViewBag.IsEdit as bool? ?? false;
     var returnTab = ViewBag.ReturnTab as string ?? "tab-alumnos";
     var availableAccounts = ViewBag.AvailableAccounts as Dictionary<int, string> ?? new Dictionary<int, string>();
+    var groups = ViewBag.Groups as List<GroupViewModel> ?? new List<GroupViewModel>();
+    var cuatrimestreOptions = groups
+        .Where(g => g.Cuatrimestre.HasValue)
+        .Select(g => g.Cuatrimestre!.Value)
+        .Distinct()
+        .OrderBy(x => x)
+        .ToList();
 }
 
 <div class="fade-in d-flex flex-column gap-4">
@@ -125,14 +132,25 @@
                         </div>
 
                         <div class="col-md-6">
+                            <label asp-for="Cuatrimestre" class="txt-body text-xs fw-bold tracking-wide mb-2">CUATRIMESTRE</label>
+                            <select asp-for="Cuatrimestre" class="form-select bg-app border-theme txt-title fw-semibold py-2" id="cuatrimestreSelect">
+                                <option value="">-- Seleccionar cuatrimestre --</option>
+                                @foreach (var cuatrimestreOption in cuatrimestreOptions)
+                                {
+                                    <option value="@cuatrimestreOption">Cuatrimestre @cuatrimestreOption</option>
+                                }
+                            </select>
+                        </div>
+
+                        <div class="col-md-6">
                             <label asp-for="GroupId" class="txt-body text-xs fw-bold tracking-wide mb-2">GRUPO ASIGNADO</label>
                             <select asp-for="GroupId" class="form-select bg-app border-theme txt-title fw-semibold py-2" id="groupSelect">
                                 <option value="">-- Seleccionar grupo --</option>
-                                @if (ViewBag.Groups != null)
+                                @if (groups.Count > 0)
                                 {
-                                    foreach (var group in (List<GroupViewModel>)ViewBag.Groups)
+                                    foreach (var group in groups)
                                     {
-                                        <option value="@group.Id" data-career="@group.CareerId">@group.Codigo - @group.Nombre</option>
+                                        <option value="@group.Id" data-career="@group.CareerId" data-cuatrimestre="@group.Cuatrimestre">@group.Codigo - @group.Nombre</option>
                                     }
                                 }
                             </select>
@@ -213,6 +231,7 @@
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             const careerSelect = document.getElementById('careerSelect');
+            const cuatrimestreSelect = document.getElementById('cuatrimestreSelect');
             const groupSelect = document.getElementById('groupSelect');
             const statusSelect = document.getElementById('statusSelect');
             const accountFields = document.getElementById('accountFields');
@@ -225,6 +244,7 @@
 
                 function filterGroups() {
                     const careerId = careerSelect.value;
+                    const cuatrimestre = cuatrimestreSelect ? cuatrimestreSelect.value : '';
                     const previous = groupSelect.value || initialValue;
 
                     while (groupSelect.options.length > 1) {
@@ -232,8 +252,19 @@
                     }
 
                     allGroupOptions
-                        .filter(o => !careerId || o.dataset.career === careerId)
+                        .filter(o => {
+                            const careerMatch = !careerId || o.dataset.career === careerId;
+                            const cuatrimestreMatch = !cuatrimestre || o.dataset.cuatrimestre === cuatrimestre;
+                            return careerMatch && cuatrimestreMatch;
+                        })
                         .forEach(o => groupSelect.add(o.cloneNode(true)));
+
+                    if (previous && !Array.from(groupSelect.options).some(o => o.value === previous)) {
+                        const selectedOriginal = allGroupOptions.find(o => o.value === previous);
+                        if (selectedOriginal) {
+                            groupSelect.add(selectedOriginal.cloneNode(true));
+                        }
+                    }
 
                     if (previous) {
                         groupSelect.value = previous;
@@ -241,6 +272,17 @@
                 }
 
                 careerSelect.addEventListener('change', filterGroups);
+                if (cuatrimestreSelect) {
+                    cuatrimestreSelect.addEventListener('change', filterGroups);
+                }
+
+                groupSelect.addEventListener('change', function () {
+                    const selectedOption = groupSelect.options[groupSelect.selectedIndex];
+                    if (selectedOption && cuatrimestreSelect && selectedOption.dataset.cuatrimestre) {
+                        cuatrimestreSelect.value = selectedOption.dataset.cuatrimestre;
+                    }
+                });
+
                 filterGroups();
             }
 

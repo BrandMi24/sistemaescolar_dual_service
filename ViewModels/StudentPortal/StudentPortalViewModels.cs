@@ -28,6 +28,18 @@ public class StudentPortalOrganizationOptionViewModel
 public class DualPortalViewModel
 {
     public int StudentId { get; set; }
+    public int? CurrentCuatrimestre { get; set; }
+    public bool CanAccessPortal { get; set; }
+    public bool CanAccessTrackingStage { get; set; }
+    public int PortalStartCuatrimestre { get; set; } = 10;
+    public int TrackingStartCuatrimestre { get; set; } = 11;
+    public bool ShowStep1 { get; set; } = true;
+    public bool ShowStep2 { get; set; } = true;
+    public bool ShowStep3 { get; set; } = true;
+    public bool ShowStep4 { get; set; } = true;
+    public bool ShowStep5 { get; set; } = true;
+    public bool ShowStep6 { get; set; } = true;
+    public string PortalAvailabilityMessage { get; set; } = string.Empty;
     public string FullName { get; set; } = string.Empty;
     public string Matricula { get; set; } = "S/N";
     public string Curp { get; set; } = "N/D";
@@ -66,6 +78,18 @@ public class DualPortalViewModel
 public class SocialServicePortalViewModel
 {
     public int StudentId { get; set; }
+    public int? CurrentCuatrimestre { get; set; }
+    public bool CanAccessPortal { get; set; }
+    public bool CanAccessTrackingStage { get; set; }
+    public int PortalStartCuatrimestre { get; set; } = 10;
+    public int TrackingStartCuatrimestre { get; set; } = 11;
+    public bool ShowStep1 { get; set; } = true;
+    public bool ShowStep2 { get; set; } = true;
+    public bool ShowStep3 { get; set; } = true;
+    public bool ShowStep4 { get; set; } = true;
+    public bool ShowStep5 { get; set; } = true;
+    public bool ShowStep6 { get; set; } = true;
+    public string PortalAvailabilityMessage { get; set; } = string.Empty;
     public string FullName { get; set; } = string.Empty;
     public string Matricula { get; set; } = "S/N";
     public string Curp { get; set; } = "N/D";

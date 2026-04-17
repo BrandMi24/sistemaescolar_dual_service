@@ -43,10 +43,13 @@ namespace ControlEscolar.Data
         public DbSet<Teacher> TeachersOperational { get; set; }
         public DbSet<Career> CareersOperational { get; set; }
         public DbSet<Group> GroupsOperational { get; set; }
+        public DbSet<CuatrimestreCatalog> CuatrimestresCatalog { get; set; }
         public DbSet<OperationalProgram> OperationalPrograms { get; set; }
         public DbSet<OperationalOrganization> OperationalOrganizations { get; set; }
         public DbSet<OperationalStudentAssignment> OperationalStudentAssignments { get; set; }
         public DbSet<OperationalDocument> OperationalDocuments { get; set; }
+        public DbSet<OperationalModuleFlowConfig> OperationalModuleFlowConfigs { get; set; }
+        public DbSet<OperationalModuleStepRule> OperationalModuleStepRules { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

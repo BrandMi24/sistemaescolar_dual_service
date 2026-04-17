@@ -58,12 +58,16 @@ namespace ControlEscolar.Models
 
         public static GroupViewModel MapToGroup(DbDataReader reader)
         {
+            var groupCode = Management.GetValue<string>(reader, "management_group_Code") ?? "";
+            var digits = new string(groupCode.TakeWhile(char.IsDigit).ToArray());
+
             return new GroupViewModel
             {
                 Id = Management.GetValue<int>(reader, "management_group_ID"),
                 CareerId = Management.GetValue<int?>(reader, "management_group_CareerID"),
+                Cuatrimestre = int.TryParse(digits, out var cuatrimestre) ? cuatrimestre : null,
                 Carrera = Management.GetValue<string>(reader, "management_career_Name") ?? "Sin carrera",
-                Codigo = Management.GetValue<string>(reader, "management_group_Code") ?? "",
+                Codigo = groupCode,
                 Nombre = Management.GetValue<string>(reader, "management_group_Name") ?? "",
                 Turno = Management.GetValue<string>(reader, "management_group_Shift") ?? "",
                 EsActivo = Management.GetValue<bool>(reader, "management_group_status")

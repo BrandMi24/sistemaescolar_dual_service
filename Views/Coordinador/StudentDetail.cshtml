@@ -4,6 +4,8 @@
     Layout = "_LayoutCoordinador";
 
     var statusBadgeClass = Model.IsActive ? "status-aceptado" : "status-rechazado";
+    var moduleScopeLabel = ViewBag.ModuleScopeLabel as string ?? "Todos los módulos";
+    string ModuleLabel(string programType) => programType == "SERVICIO_SOCIAL" ? "Servicio Social" : "Módulo Dual";
 }
 
 <div class="fade-in d-flex flex-column gap-4">
@@ -15,6 +17,9 @@
                 <span><i class="bi bi-hash me-1 text-primary"></i>@Model.Matricula</span>
                 <span><i class="bi bi-envelope me-1 text-primary"></i>@Model.Email</span>
                 <span><i class="bi bi-telephone me-1 text-primary"></i>@Model.Phone</span>
+            </div>
+            <div class="mt-3">
+                <span class="badge bg-app border border-theme text-dark px-2 py-1">Alcance visible: @moduleScopeLabel</span>
             </div>
         </div>
         <div class="text-end d-flex flex-column align-items-md-end gap-2">
@@ -128,7 +133,7 @@
                             var itemBadgeClass = item.StatusCode == "COMPLETED" ? "status-aceptado" : "bg-warning text-dark";
                             <tr class="border-bottom border-theme">
                                 <td class="px-4 py-3 txt-title fw-bold text-sm">@item.ProgramName</td>
-                                <td><span class="badge bg-app border border-theme text-dark text-xxs px-2 py-1">@item.ProgramType</span></td>
+                                <td><span class="badge bg-app border border-theme text-dark text-xxs px-2 py-1">@ModuleLabel(item.ProgramType)</span></td>
                                 <td class="txt-body text-xs">@item.TeacherName</td>
                                 <td class="text-center">
                                     <span class="badge @itemBadgeClass text-xxs px-2 py-1 shadow-sm">@item.StatusCode</span>
@@ -136,7 +141,9 @@
                                 <td class="text-center txt-title fw-bold text-xs">@item.ApprovedHours / @item.RequiredHours</td>
                                 <td class="txt-body text-xs">@item.CreatedDate.ToString("dd/MM/yyyy")</td>
                                 <td class="text-center px-4">
-                                    <span class="txt-body text-xs fw-semibold">@item.ProgressPercent%</span>
+                                    <a href="@Url.Action("SeguimientoAlumno", "Coordinador", new { studentId = Model.StudentId, assignmentId = item.AssignmentId })" class="btn btn-sm btn-ghost-sep px-2 py-1">
+                                        <i class="bi bi-journal-text me-1"></i> Ver seguimiento
+                                    </a>
                                 </td>
                             </tr>
                         }
@@ -159,6 +166,7 @@
                         <thead class="admin-table-header">
                             <tr>
                                 <th class="py-2 px-3">Título</th>
+                                <th class="py-2">Programa</th>
                                 <th class="py-2">Tipo</th>
                                 <th class="py-2 text-center">Estado</th>
                                 <th class="py-2">Fecha</th>
@@ -168,7 +176,7 @@
                             @if (Model.Documents.Count == 0)
                             {
                                 <tr>
-                                    <td colspan="4" class="text-center py-4 txt-body">No hay documentos registrados.</td>
+                                    <td colspan="5" class="text-center py-4 txt-body">No hay documentos registrados.</td>
                                 </tr>
                             }
                             else
@@ -177,10 +185,34 @@
                                 {
                                     var docBadgeClass = item.StatusCode == "APPROVED" ? "status-aceptado" : item.StatusCode == "REJECTED" ? "status-rechazado" : "bg-warning text-dark";
                                     <tr class="border-bottom border-theme">
-                                        <td class="px-3 fw-semibold txt-title text-xs">@item.Title</td>
+                                        <td class="px-3">
+                                            <div class="fw-semibold txt-title text-xs">@item.Title</div>
+                                            @if (!string.IsNullOrWhiteSpace(item.OriginalFileName))
+                                            {
+                                                <div class="txt-body text-xxs">Archivo: @item.OriginalFileName</div>
+                                            }
+                                            @if (!string.IsNullOrWhiteSpace(item.Notes))
+                                            {
+                                                <div class="txt-body text-xxs mt-1">Alumno: @item.Notes</div>
+                                            }
+                                            @if (!string.IsNullOrWhiteSpace(item.ReviewComments))
+                                            {
+                                                <div class="txt-body text-xxs mt-1">Revisión: @item.ReviewComments</div>
+                                            }
+                                        </td>
+                                        <td>
+                                            <div class="txt-title text-xs fw-semibold">@item.ProgramName</div>
+                                            <div class="txt-body text-xxs">@ModuleLabel(item.ProgramType)</div>
+                                        </td>
                                         <td><span class="badge bg-app border border-theme text-dark text-xxs">@item.DocumentType</span></td>
                                         <td class="text-center"><span class="badge @docBadgeClass text-xxs px-2 py-1 shadow-sm">@item.StatusCode</span></td>
-                                        <td class="txt-body text-xs">@item.UploadDate.ToString("dd/MM/yy")</td>
+                                        <td class="txt-body text-xs">
+                                            <div>@item.UploadDate.ToString("dd/MM/yy")</div>
+                                            @if (item.ReviewDate.HasValue)
+                                            {
+                                                <div class="text-xxs">Rev: @item.ReviewDate.Value.ToString("dd/MM/yy")</div>
+                                            }
+                                        </td>
                                     </tr>
                                 }
                             }
@@ -219,7 +251,7 @@
                                 {
                                     <tr class="border-bottom border-theme">
                                         <td class="px-3"><span class="badge bg-app border border-theme text-dark text-xxs">EVALUACIÓN</span></td>
-                                        <td class="txt-body text-xs fw-bold">@item.ProgramType</td>
+                                        <td class="txt-body text-xs fw-bold">@ModuleLabel(item.ProgramType)</td>
                                         <td class="text-center txt-title fw-bold">@item.EvaluationScore <span class="text-muted fw-normal text-xs">/ 10</span></td>
                                         <td class="txt-body text-xs">@item.CreatedDate.ToString("dd/MM/yy")</td>
                                     </tr>

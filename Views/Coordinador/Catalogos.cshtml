@@ -10,6 +10,13 @@
     {
         activeTab = "tab-personas";
     }
+
+    var cuatrimestres = (ViewBag.Cuatrimestres as IEnumerable<ControlEscolar.Models.ManagementOperational.CuatrimestreCatalog>)
+        ?? Enumerable.Empty<ControlEscolar.Models.ManagementOperational.CuatrimestreCatalog>();
+    var moduleConfigs = (ViewBag.ModuleFlowConfigs as IEnumerable<ControlEscolar.Models.Operational.OperationalModuleFlowConfig>)
+        ?? Enumerable.Empty<ControlEscolar.Models.Operational.OperationalModuleFlowConfig>();
+    var moduleStepRules = (ViewBag.ModuleStepRules as IEnumerable<ControlEscolar.Models.Operational.OperationalModuleStepRule>)
+        ?? Enumerable.Empty<ControlEscolar.Models.Operational.OperationalModuleStepRule>();
 }
 
 <div class="d-flex flex-column gap-4 fade-in">
@@ -21,6 +28,7 @@
         <a href="#" class="nav-tab-item text-decoration-none @(activeTab == "tab-grupos" ? "active" : "")" data-target="#tab-grupos">Grupos</a>
         <a href="#" class="nav-tab-item text-decoration-none @(activeTab == "tab-career" ? "active" : "")" data-target="#tab-career">Carreras</a>
         <a href="#" class="nav-tab-item text-decoration-none @(activeTab == "tab-bajas" ? "active" : "")" data-target="#tab-bajas">Histórico de Bajas</a>
+        <a href="#" class="nav-tab-item text-decoration-none @(activeTab == "tab-flujo-modulos" ? "active" : "")" data-target="#tab-flujo-modulos">Flujo Módulos</a>
         <a href="#" class="nav-tab-item text-decoration-none @(activeTab == "tab-roles" ? "active" : "")" data-target="#tab-roles">Roles</a>
         <a href="#" class="nav-tab-item text-decoration-none @(activeTab == "tab-cuentas" ? "active" : "")" data-target="#tab-cuentas">Creación y Gestión de cuentas</a>
     </div>
@@ -494,6 +502,130 @@
             </div>
         </div>
 
+    </div>
+
+    <div id="tab-flujo-modulos" class="tab-content-pane" style="display:@(activeTab == "tab-flujo-modulos" ? "block" : "none");">
+        <div class="bg-surface p-4 rounded-4 border-theme shadow-sm mb-4">
+            <h5 class="txt-title fw-bold mb-1">Configuración Dinámica de Módulos</h5>
+            <p class="txt-body text-xs mb-0">Administra cuatrimestres disponibles, configuración base de Dual/Servicio Social y reglas de visibilidad por estatus.</p>
+        </div>
+
+        <div class="admin-card-white p-4 rounded-4 border-theme shadow-sm mb-4 bg-white">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <div>
+                    <h6 class="txt-title fw-bold mb-1">Catálogo de Cuatrimestres</h6>
+                    <p class="txt-body text-xs mb-0">Crear, editar y borrar cuatrimestres habilitados para flujos de alumnos.</p>
+                </div>
+                <a href="@Url.Action("CreateCuatrimestre", "Coordinador", new { tab = "tab-flujo-modulos" })" class="btn btn-primary-sep shadow-sm">Nuevo Cuatrimestre</a>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table table-borderless align-middle mb-0 w-100">
+                    <thead class="admin-table-header border-bottom border-theme">
+                        <tr>
+                            <th class="px-3 py-3">Número</th>
+                            <th class="py-3">Nombre</th>
+                            <th class="py-3 text-center">Activo</th>
+                            <th class="py-3 text-end px-3">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in cuatrimestres)
+                        {
+                            <tr>
+                                <td class="px-3 fw-bold txt-primary-dark">@item.Number</td>
+                                <td>@item.Name</td>
+                                <td class="text-center">
+                                    <span class="badge @(item.IsActive ? "status-aceptado" : "status-rechazado") text-xxs px-2 py-1">@(item.IsActive ? "Sí" : "No")</span>
+                                </td>
+                                <td class="text-end px-3">
+                                    <a href="@Url.Action("EditCuatrimestre", "Coordinador", new { id = item.Id, tab = "tab-flujo-modulos" })" class="btn btn-sm btn-ghost-sep text-primary px-2"><i class="bi bi-pencil"></i></a>
+                                    <button type="button" class="btn btn-sm btn-ghost-sep text-danger px-2" onclick="deleteCuatrimestre(@item.Id)"><i class="bi bi-trash"></i></button>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="admin-card-white p-4 rounded-4 border-theme shadow-sm mb-4 bg-white">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <div>
+                    <h6 class="txt-title fw-bold mb-1">Configuración por Módulo</h6>
+                    <p class="txt-body text-xs mb-0">Define cuatrimestre de apertura de portal y de etapa de seguimiento.</p>
+                </div>
+                <a href="@Url.Action("CreateModuleFlowConfig", "Coordinador", new { tab = "tab-flujo-modulos" })" class="btn btn-primary-sep shadow-sm">Nueva Configuración</a>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table table-borderless align-middle mb-0 w-100">
+                    <thead class="admin-table-header border-bottom border-theme">
+                        <tr>
+                            <th class="px-3 py-3">Módulo</th>
+                            <th class="py-3">Inicio Portal</th>
+                            <th class="py-3">Inicio Seguimiento</th>
+                            <th class="py-3 text-end px-3">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in moduleConfigs)
+                        {
+                            <tr>
+                                <td class="px-3 fw-bold txt-primary-dark">@item.ModuleType</td>
+                                <td>@item.PortalStartCuatrimestre</td>
+                                <td>@item.TrackingStartCuatrimestre</td>
+                                <td class="text-end px-3">
+                                    <a href="@Url.Action("EditModuleFlowConfig", "Coordinador", new { id = item.Id, tab = "tab-flujo-modulos" })" class="btn btn-sm btn-ghost-sep text-primary px-2"><i class="bi bi-pencil"></i></a>
+                                    <button type="button" class="btn btn-sm btn-ghost-sep text-danger px-2" onclick="deleteModuleFlowConfig(@item.Id)"><i class="bi bi-trash"></i></button>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="admin-card-white p-4 rounded-4 border-theme shadow-sm bg-white">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <div>
+                    <h6 class="txt-title fw-bold mb-1">Reglas de Paso por Estatus</h6>
+                    <p class="txt-body text-xs mb-0">Controla visibilidad de cada paso usando cuatrimestre mínimo y lista de estatus permitidos.</p>
+                </div>
+                <a href="@Url.Action("CreateModuleStepRule", "Coordinador", new { tab = "tab-flujo-modulos" })" class="btn btn-primary-sep shadow-sm">Nueva Regla</a>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table table-borderless align-middle mb-0 w-100" style="min-width: 1080px;">
+                    <thead class="admin-table-header border-bottom border-theme">
+                        <tr>
+                            <th class="px-3 py-3">Módulo</th>
+                            <th class="py-3">Paso</th>
+                            <th class="py-3">Nombre</th>
+                            <th class="py-3">Min. Cuatrimestre</th>
+                            <th class="py-3">Estatus Permitidos</th>
+                            <th class="py-3 text-end px-3">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in moduleStepRules)
+                        {
+                            <tr>
+                                <td class="px-3 fw-bold txt-primary-dark">@item.ModuleType</td>
+                                <td>@item.StepCode</td>
+                                <td>@item.StepName</td>
+                                <td>@(item.MinCuatrimestre?.ToString() ?? "-")</td>
+                                <td class="text-xs">@(string.IsNullOrWhiteSpace(item.AllowedStatusesCsv) ? "Todos" : item.AllowedStatusesCsv)</td>
+                                <td class="text-end px-3">
+                                    <a href="@Url.Action("EditModuleStepRule", "Coordinador", new { id = item.Id, tab = "tab-flujo-modulos" })" class="btn btn-sm btn-ghost-sep text-primary px-2"><i class="bi bi-pencil"></i></a>
+                                    <button type="button" class="btn btn-sm btn-ghost-sep text-danger px-2" onclick="deleteModuleStepRule(@item.Id)"><i class="bi bi-trash"></i></button>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -1148,6 +1280,48 @@
                         throw new Error(txt || 'No fue posible eliminar definitivamente');
                     }
                     recargarTodo();
+                })
+                .catch(err => alert(err.message));
+            };
+
+            window.deleteCuatrimestre = function (id) {
+                if (!confirm('¿Deseas eliminar este cuatrimestre?')) return;
+
+                fetch(`/Coordinador/DeleteCuatrimestre/${id}`, {
+                    method: 'POST',
+                    headers: { 'RequestVerificationToken': csrfToken }
+                })
+                .then(r => {
+                    if (!r.ok) throw new Error('No fue posible eliminar el cuatrimestre');
+                    window.location.href = '@Url.Action("Catalogos", "Coordinador", new { tab = "tab-flujo-modulos" })';
+                })
+                .catch(err => alert(err.message));
+            };
+
+            window.deleteModuleFlowConfig = function (id) {
+                if (!confirm('¿Deseas eliminar esta configuración de módulo?')) return;
+
+                fetch(`/Coordinador/DeleteModuleFlowConfig/${id}`, {
+                    method: 'POST',
+                    headers: { 'RequestVerificationToken': csrfToken }
+                })
+                .then(r => {
+                    if (!r.ok) throw new Error('No fue posible eliminar la configuración');
+                    window.location.href = '@Url.Action("Catalogos", "Coordinador", new { tab = "tab-flujo-modulos" })';
+                })
+                .catch(err => alert(err.message));
+            };
+
+            window.deleteModuleStepRule = function (id) {
+                if (!confirm('¿Deseas eliminar esta regla de paso?')) return;
+
+                fetch(`/Coordinador/DeleteModuleStepRule/${id}`, {
+                    method: 'POST',
+                    headers: { 'RequestVerificationToken': csrfToken }
+                })
+                .then(r => {
+                    if (!r.ok) throw new Error('No fue posible eliminar la regla');
+                    window.location.href = '@Url.Action("Catalogos", "Coordinador", new { tab = "tab-flujo-modulos" })';
                 })
                 .catch(err => alert(err.message));
             };

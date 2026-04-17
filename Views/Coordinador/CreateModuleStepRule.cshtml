@@ -1,0 +1,96 @@
+@model ModuleStepRuleViewModel
+@{
+    ViewData["Title"] = "Regla de Paso";
+    Layout = "_LayoutCoordinador";
+
+    var isEdit = ViewBag.IsEdit as bool? ?? false;
+    var returnTab = ViewBag.ReturnTab as string ?? "tab-flujo-modulos";
+}
+
+<div class="fade-in d-flex flex-column gap-4">
+    <div class="bg-surface p-4 rounded-4 border-theme shadow-sm d-flex justify-content-between align-items-center">
+        <div>
+            <h3 class="txt-title fw-bold mb-1">@(isEdit ? "Editar Regla de Paso" : "Nueva Regla de Paso")</h3>
+            <span class="txt-body text-xs">Define visibilidad de pasos por cuatrimestre y estatus del proceso.</span>
+        </div>
+
+        <a href="@Url.Action("Catalogos", "Coordinador", new { tab = returnTab })" class="btn btn-sm btn-ghost-sep border border-theme shadow-sm fw-semibold">
+            Volver a Catálogos
+        </a>
+    </div>
+
+    <form asp-action="@(isEdit ? "EditModuleStepRule" : "CreateModuleStepRule")" asp-controller="Coordinador" method="post" novalidate>
+        @Html.AntiForgeryToken()
+        <input type="hidden" name="returnTab" value="@returnTab" />
+        <input type="hidden" asp-for="Id" />
+
+        <div class="row g-4">
+            <div class="col-lg-8">
+                <div class="admin-card-white p-4 rounded-4 border-theme shadow-sm bg-white">
+                    <h6 class="txt-title fw-bold mb-4 border-bottom border-theme pb-2">DATOS DE LA REGLA</h6>
+
+                    <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+                    <div class="mb-3">
+                        <label asp-for="ModuleType" class="fw-bold text-xs">MÓDULO</label>
+                        <select asp-for="ModuleType" class="form-select search-input-custom">
+                            <option value="">Selecciona...</option>
+                            <option value="PRACTICAS_PROFESIONALES">PRACTICAS_PROFESIONALES</option>
+                            <option value="SERVICIO_SOCIAL">SERVICIO_SOCIAL</option>
+                        </select>
+                        <span asp-validation-for="ModuleType" class="text-danger text-xs"></span>
+                    </div>
+
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label asp-for="StepCode" class="fw-bold text-xs">CÓDIGO PASO</label>
+                            <input asp-for="StepCode" class="form-control search-input-custom" placeholder="PASO1" />
+                            <span asp-validation-for="StepCode" class="text-danger text-xs"></span>
+                        </div>
+                        <div class="col-md-6">
+                            <label asp-for="SortOrder" class="fw-bold text-xs">ORDEN</label>
+                            <input asp-for="SortOrder" class="form-control search-input-custom" type="number" min="1" max="50" />
+                            <span asp-validation-for="SortOrder" class="text-danger text-xs"></span>
+                        </div>
+                    </div>
+
+                    <div class="mb-3 mt-3">
+                        <label asp-for="StepName" class="fw-bold text-xs">NOMBRE PASO</label>
+                        <input asp-for="StepName" class="form-control search-input-custom" />
+                        <span asp-validation-for="StepName" class="text-danger text-xs"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="MinCuatrimestre" class="fw-bold text-xs">CUATRIMESTRE MÍNIMO</label>
+                        <input asp-for="MinCuatrimestre" class="form-control search-input-custom" type="number" min="1" max="20" />
+                        <span asp-validation-for="MinCuatrimestre" class="text-danger text-xs"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="AllowedStatusesCsv" class="fw-bold text-xs">ESTATUS PERMITIDOS (CSV)</label>
+                        <textarea asp-for="AllowedStatusesCsv" class="form-control search-input-custom" rows="3" placeholder="REGISTERED,PLACEMENT,IN_PROGRESS"></textarea>
+                        <span asp-validation-for="AllowedStatusesCsv" class="text-danger text-xs"></span>
+                    </div>
+
+                    <div class="form-check mt-3">
+                        <input asp-for="IsActive" class="form-check-input" />
+                        <label asp-for="IsActive" class="form-check-label fw-semibold text-xs">Regla activa</label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-4">
+                <div class="admin-card-white p-4 rounded-4 shadow-sm h-100 d-flex flex-column bg-white border-theme">
+                    <div class="mt-auto">
+                        <button type="submit" class="btn btn-primary-sep w-100 fw-bold py-2">@(isEdit ? "Guardar Cambios" : "Crear Regla")</button>
+                        <a href="@Url.Action("Catalogos", "Coordinador", new { tab = returnTab })" class="btn btn-ghost-sep border border-theme w-100 mt-2">Cancelar</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

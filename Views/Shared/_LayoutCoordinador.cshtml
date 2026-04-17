@@ -40,6 +40,11 @@
             </div>
 
             <nav class="sidebar-nav mt-1">
+                @{
+                    var isAdminRole = User.IsInRole("Admin") || User.IsInRole("ADMIN") || User.IsInRole("Administrator") || User.IsInRole("Master");
+                    var hasDualCoordinatorRole = User.IsInRole("Coordinador") || User.IsInRole("CoordinadorDual");
+                    var hasServiceCoordinatorRole = User.IsInRole("Coordinador") || User.IsInRole("CoordinadorServicioSocial");
+                }
                 <a class="nav-link active" href="@Url.Action("Index", "Coordinador")">
                     <i class="bi bi-grid-1x2"></i> Panel Principal
                 </a>
@@ -59,9 +64,24 @@
                 <a class="nav-link" href="@Url.Action("Grupos", "Coordinador")">
                     <i class="bi bi-collection-fill"></i> Control de Grupos
                 </a>
-                <a class="nav-link" href="@Url.Action("SeguimientoDualEstadias", "Coordinador")">
-                    <i class="bi bi-collection-fill"></i> Seguimiento Estadias/Dual
-                </a>
+                @if (isAdminRole || hasDualCoordinatorRole || hasServiceCoordinatorRole)
+                {
+                    <a class="nav-link" href="@Url.Action("SeguimientoDualEstadias", "Coordinador")">
+                        <i class="bi bi-collection-fill"></i> Seguimiento General
+                    </a>
+                }
+                @if (isAdminRole || hasDualCoordinatorRole)
+                {
+                    <a class="nav-link" href="@Url.Action("SeguimientoDualEstadias", "Coordinador", new { module = "PRACTICAS_PROFESIONALES" })">
+                        <i class="bi bi-mortarboard-fill"></i> Coordinador módulo dual
+                    </a>
+                }
+                @if (isAdminRole || hasServiceCoordinatorRole)
+                {
+                    <a class="nav-link" href="@Url.Action("SeguimientoDualEstadias", "Coordinador", new { module = "SERVICIO_SOCIAL" })">
+                        <i class="bi bi-heart-pulse-fill"></i> Coordinador servicio social
+                    </a>
+                }
 
                 <div class="nav-group-label">Analítica</div>
                 <a class="nav-link" href="@Url.Action("Reportes", "Coordinador")">

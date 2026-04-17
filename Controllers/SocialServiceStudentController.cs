@@ -16,12 +16,18 @@ public class SocialServiceStudentController : Controller
 {
     private readonly ApplicationDbContext _context;
     private readonly ISocialServiceService _socialService;
+    private readonly IModuleFlowConfigurationService _moduleFlowConfigurationService;
     private readonly IWebHostEnvironment _env;
 
-    public SocialServiceStudentController(ApplicationDbContext context, ISocialServiceService socialService, IWebHostEnvironment env)
+    public SocialServiceStudentController(
+        ApplicationDbContext context,
+        ISocialServiceService socialService,
+        IModuleFlowConfigurationService moduleFlowConfigurationService,
+        IWebHostEnvironment env)
     {
         _context = context;
         _socialService = socialService;
+        _moduleFlowConfigurationService = moduleFlowConfigurationService;
         _env = env;
     }
 
@@ -36,23 +42,24 @@ public class SocialServiceStudentController : Controller
             return RedirectToAction("ServicioSocial", "Alumno");
         }
 
+        var assignment = await _socialService.EnsureAssignmentAsync(student.Id);
+        var currentCuatrimestre = await _moduleFlowConfigurationService.ExtractCuatrimestreFromGroupCodeAsync(student.Group?.Code);
+        var access = await _moduleFlowConfigurationService.BuildAccessAsync(
+            ProgramTypes.SERVICIO_SOCIAL,
+            currentCuatrimestre,
+            assignment.StatusCode);
+
+        if (!access.CanAccessPortal || !access.IsStepVisible("PASO1"))
+        {
+            TempData["ErrorMessage"] = "El paso 1 de servicio social no está habilitado para tu cuatrimestre o estatus actual.";
+            return RedirectToAction("ServicioSocial", "Alumno");
+        }
+
         student.Person.Email = vm.InstitutionalEmail ?? student.Person.Email;
         student.Person.Phone = vm.MobilePhone ?? student.Person.Phone;
 
-        if (!string.IsNullOrWhiteSpace(vm.GroupCode) && student.Group != null)
-        {
-            student.Group.Code = vm.GroupCode;
-        }
-
-        if (!string.IsNullOrWhiteSpace(vm.Shift) && student.Group != null)
-        {
-            student.Group.Shift = vm.Shift;
-        }
-
-        var assignment = await _socialService.EnsureAssignmentAsync(student.Id);
-
         var profileMetadata = ParseMetadata(assignment.EvaluationNotes);
-        UpsertMetadata(profileMetadata, "Perfil.Grado", vm.Grade);
+        UpsertMetadata(profileMetadata, "Perfil.Grado", currentCuatrimestre?.ToString());
         UpsertMetadata(profileMetadata, "Perfil.PeriodoServicio", vm.ServicePeriod);
         UpsertMetadata(profileMetadata, "Perfil.AnioServicio", vm.ServiceYear?.ToString());
         assignment.EvaluationNotes = BuildMetadata(profileMetadata);
@@ -75,6 +82,17 @@ public class SocialServiceStudentController : Controller
         }
 
         var assignment = await _socialService.EnsureAssignmentAsync(student.Id);
+        var currentCuatrimestre = await _moduleFlowConfigurationService.ExtractCuatrimestreFromGroupCodeAsync(student.Group?.Code);
+        var access = await _moduleFlowConfigurationService.BuildAccessAsync(
+            ProgramTypes.SERVICIO_SOCIAL,
+            currentCuatrimestre,
+            assignment.StatusCode);
+
+        if (!access.CanAccessPortal || !access.IsStepVisible("PASO2"))
+        {
+            TempData["ErrorMessage"] = "El paso 2 de servicio social no está habilitado para tu cuatrimestre o estatus actual.";
+            return RedirectToAction("ServicioSocial", "Alumno");
+        }
         var selectedOrganizationId = vm.SelectedOrganizationId ?? vm.SelectedInstitutionId ?? vm.SelectedZoneId;
 
         var organization = await _socialService.UpsertOrganizationAsync(
@@ -105,6 +123,17 @@ public class SocialServiceStudentController : Controller
         }
 
         var assignment = await _socialService.EnsureAssignmentAsync(student.Id);
+        var currentCuatrimestre = await _moduleFlowConfigurationService.ExtractCuatrimestreFromGroupCodeAsync(student.Group?.Code);
+        var access = await _moduleFlowConfigurationService.BuildAccessAsync(
+            ProgramTypes.SERVICIO_SOCIAL,
+            currentCuatrimestre,
+            assignment.StatusCode);
+
+        if (!access.CanAccessPortal || !access.IsStepVisible("PASO3"))
+        {
+            TempData["ErrorMessage"] = "El paso 3 de servicio social no está habilitado para tu cuatrimestre o estatus actual.";
+            return RedirectToAction("ServicioSocial", "Alumno");
+        }
 
         await _socialService.SaveDocumentAsync(new OperationalDocument
         {
@@ -132,13 +161,39 @@ public class SocialServiceStudentController : Controller
             return RedirectToAction("ServicioSocial", "Alumno");
         }
 
+        var assignment = await _socialService.EnsureAssignmentAsync(student.Id);
+        var currentCuatrimestre = await _moduleFlowConfigurationService.ExtractCuatrimestreFromGroupCodeAsync(student.Group?.Code);
+        var access = await _moduleFlowConfigurationService.BuildAccessAsync(
+            ProgramTypes.SERVICIO_SOCIAL,
+            currentCuatrimestre,
+            assignment.StatusCode);
+
+        if (!access.CanAccessPortal || !access.IsStepVisible("PASO3"))
+        {
+            TempData["ErrorMessage"] = "El paso 3 de servicio social no está habilitado para tu cuatrimestre o estatus actual.";
+            return RedirectToAction("ServicioSocial", "Alumno");
+        }
+
         if (vm.AcceptanceLetterFile == null || vm.AcceptanceLetterFile.Length == 0)
         {
             TempData["ErrorMessage"] = "Debes adjuntar la carta de aceptacion en PDF.";
             return RedirectToAction("ServicioSocial", "Alumno");
         }
 
-        var assignment = await _socialService.EnsureAssignmentAsync(student.Id);
+        var existingAcceptance = await _context.OperationalDocuments
+            .AsNoTracking()
+            .Where(x => x.Status
+                && x.AssignmentId == assignment.Id
+                && x.DocumentType == "ACCEPTANCE_LETTER")
+            .OrderByDescending(x => x.UploadDate)
+            .FirstOrDefaultAsync();
+
+        if (existingAcceptance != null && !string.Equals(existingAcceptance.StatusCode, DocumentStatusCodes.REJECTED, StringComparison.OrdinalIgnoreCase))
+        {
+            TempData["ErrorMessage"] = "La carta de aceptación ya fue enviada y solo puede volver a cargarse si el tutor la rechaza.";
+            return RedirectToAction("ServicioSocial", "Alumno");
+        }
+
         var uploadsDir = Path.Combine(_env.WebRootPath, "uploads", "social", student.Id.ToString(), "acceptance");
         Directory.CreateDirectory(uploadsDir);
 
@@ -180,13 +235,40 @@ public class SocialServiceStudentController : Controller
             return RedirectToAction("ServicioSocial", "Alumno");
         }
 
+        var assignment = await _socialService.EnsureAssignmentAsync(student.Id);
+        var currentCuatrimestre = await _moduleFlowConfigurationService.ExtractCuatrimestreFromGroupCodeAsync(student.Group?.Code);
+        var access = await _moduleFlowConfigurationService.BuildAccessAsync(
+            ProgramTypes.SERVICIO_SOCIAL,
+            currentCuatrimestre,
+            assignment.StatusCode);
+
+        if (!access.CanAccessTracking || !access.IsStepVisible("PASO5"))
+        {
+            TempData["ErrorMessage"] = $"Los reportes semanales de servicio social se habilitan desde el cuatrimestre {access.TrackingStartCuatrimestre} y según tu estatus actual.";
+            return RedirectToAction("ServicioSocial", "Alumno");
+        }
+
         if (vm.ReportFile == null || vm.ReportFile.Length == 0)
         {
             TempData["ErrorMessage"] = "Debes adjuntar el reporte semanal en PDF.";
             return RedirectToAction("ServicioSocial", "Alumno");
         }
 
-        var assignment = await _socialService.EnsureAssignmentAsync(student.Id);
+        var existingReportForWeek = await _context.OperationalDocuments
+            .AsNoTracking()
+            .Where(x => x.Status
+                && x.AssignmentId == assignment.Id
+                && x.DocumentType == "WEEKLY_REPORT")
+            .OrderByDescending(x => x.UploadDate)
+            .ToListAsync();
+
+        if (existingReportForWeek.Any(x => GetWeekNumberFromNotes(x.Notes) == vm.WeekNumber
+            && !string.Equals(x.StatusCode, DocumentStatusCodes.REJECTED, StringComparison.OrdinalIgnoreCase)))
+        {
+            TempData["ErrorMessage"] = $"La semana {vm.WeekNumber} ya fue enviada. Solo puedes volver a subirla si el tutor la rechaza.";
+            return RedirectToAction("ServicioSocial", "Alumno");
+        }
+
         var uploadsDir = Path.Combine(_env.WebRootPath, "uploads", "social", student.Id.ToString(), "reports");
         Directory.CreateDirectory(uploadsDir);
 
@@ -231,13 +313,38 @@ public class SocialServiceStudentController : Controller
         }
 
         var assignment = await _socialService.EnsureAssignmentAsync(student.Id);
+        var currentCuatrimestre = await _moduleFlowConfigurationService.ExtractCuatrimestreFromGroupCodeAsync(student.Group?.Code);
+        var access = await _moduleFlowConfigurationService.BuildAccessAsync(
+            ProgramTypes.SERVICIO_SOCIAL,
+            currentCuatrimestre,
+            assignment.StatusCode);
+
+        if (!access.CanAccessTracking || !access.IsStepVisible("PASO5"))
+        {
+            TempData["ErrorMessage"] = $"Las bitácoras de servicio social se habilitan desde el cuatrimestre {access.TrackingStartCuatrimestre} y según tu estatus actual.";
+            return RedirectToAction("ServicioSocial", "Alumno");
+        }
+        var existingHoursLog = await _context.OperationalDocuments
+            .AsNoTracking()
+            .Where(x => x.Status
+                && x.AssignmentId == assignment.Id
+                && x.DocumentType == "HOURS_LOG")
+            .OrderByDescending(x => x.UploadDate)
+            .ToListAsync();
+
+        if (existingHoursLog.Any(x => GetLogDateFromNotes(x.Notes) == vm.LogDate.Date
+            && !string.Equals(x.StatusCode, DocumentStatusCodes.REJECTED, StringComparison.OrdinalIgnoreCase)))
+        {
+            TempData["ErrorMessage"] = $"Ya registraste una bitácora para la fecha {vm.LogDate:dd/MM/yyyy}. Solo puede reemplazarse si el tutor la rechaza.";
+            return RedirectToAction("ServicioSocial", "Alumno");
+        }
 
         await _socialService.SaveDocumentAsync(new OperationalDocument
         {
             AssignmentId = assignment.Id,
             DocumentType = "HOURS_LOG",
             Title = $"Bitacora {vm.LogDate:yyyy-MM-dd}",
-            Notes = $"Horas: {vm.HoursWorked}; Actividad: {vm.ActivityDescription}"
+            Notes = $"Fecha: {vm.LogDate:yyyy-MM-dd}; Horas: {vm.HoursWorked}; Actividad: {vm.ActivityDescription}"
         });
 
         assignment.TotalHours += vm.HoursWorked;
@@ -324,5 +431,19 @@ public class SocialServiceStudentController : Controller
         }
 
         return string.Join("; ", metadata.Select(x => $"{x.Key}: {x.Value}"));
+    }
+
+    private static int? GetWeekNumberFromNotes(string? notes)
+    {
+        var metadata = ParseMetadata(notes);
+        return metadata.TryGetValue("Semana", out var value) && int.TryParse(value, out var week) ? week : null;
+    }
+
+    private static DateTime? GetLogDateFromNotes(string? notes)
+    {
+        var metadata = ParseMetadata(notes);
+        return metadata.TryGetValue("Fecha", out var value) && DateTime.TryParse(value, out var logDate)
+            ? logDate.Date
+            : null;
     }
 }

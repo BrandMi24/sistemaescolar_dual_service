@@ -36,10 +36,18 @@ public class CoordinadorStudentAssignmentRowViewModel
 
 public class CoordinadorStudentDocumentRowViewModel
 {
+    public int Id { get; set; }
+    public int AssignmentId { get; set; }
     public string Title { get; set; } = string.Empty;
     public string DocumentType { get; set; } = string.Empty;
+    public string ProgramName { get; set; } = string.Empty;
+    public string ProgramType { get; set; } = string.Empty;
     public string StatusCode { get; set; } = string.Empty;
     public DateTime UploadDate { get; set; }
+    public string? OriginalFileName { get; set; }
+    public string? Notes { get; set; }
+    public string? ReviewComments { get; set; }
+    public DateTime? ReviewDate { get; set; }
 }
 
 public class CoordinadorTeacherDetailViewModel
