@@ -35,6 +35,12 @@ namespace ControlEscolar.Data
         public DbSet<ConfiguracionFichasEntity> ConfiguracionFichas { get; set; }
         public DbSet<PeriodoInscripcionEntity> PeriodosInscripcion { get; set; }
 
+        // ==========================================
+        // NUEVO: Módulo de Salud (Enfermería y Psicología)
+        // ==========================================
+        public DbSet<VisitaMedica> Visitas { get; set; }
+        public DbSet<VisitaPsicologica> VisitasPsicologicas { get; set; }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
@@ -401,6 +407,43 @@ namespace ControlEscolar.Data
             modelBuilder.Entity<ArchivoDescargaViewModel>().HasNoKey();
             modelBuilder.Entity<RequisitoRevisionViewModel>().HasNoKey();
             modelBuilder.Entity<RequisitoSolicitudViewModel>().HasNoKey();
+            modelBuilder.Entity<ConfiguracionFichasEntity>(entity =>
+            {
+                entity.ToTable("ConfiguracionFichas");
+                entity.HasKey(e => e.Id);
+                entity.Property(e => e.Carrera).IsRequired().HasMaxLength(200);
+                entity.Property(e => e.FechaCreacion).HasDefaultValueSql("CURRENT_TIMESTAMP");
+                entity.Property(e => e.FechaActualizacion).HasDefaultValueSql("CURRENT_TIMESTAMP");
+            });
+
+            modelBuilder.Entity<PeriodoInscripcionEntity>(entity =>
+            {
+                entity.ToTable("PeriodoInscripcion");
+                entity.HasKey(e => e.Id);
+                entity.Property(e => e.Nombre).IsRequired().HasMaxLength(100);
+                entity.Property(e => e.FechaCreacion).HasDefaultValueSql("CURRENT_TIMESTAMP");
+            });
+
+            // ==========================================
+            // NUEVO: Configuración de Tablas de Salud
+            // ==========================================
+            modelBuilder.Entity<VisitaMedica>(entity =>
+            {
+                entity.ToTable("Visitas"); // Nombre físico de la tabla en SQL
+                entity.HasKey(e => e.Id);
+                entity.Property(e => e.Matricula).IsRequired().HasMaxLength(20);
+                entity.Property(e => e.FechaVisita).HasDefaultValueSql("CURRENT_TIMESTAMP");
+                entity.Property(e => e.Diagnostico).IsRequired();
+            });
+
+            modelBuilder.Entity<VisitaPsicologica>(entity =>
+            {
+                entity.ToTable("VisitasPsicologicas"); // Nombre físico de la tabla en SQL
+                entity.HasKey(e => e.Id);
+                entity.Property(e => e.Matricula).IsRequired().HasMaxLength(20);
+                entity.Property(e => e.FechaVisita).HasDefaultValueSql("CURRENT_TIMESTAMP");
+                entity.Property(e => e.MotivoConsulta).IsRequired();
+            });
         }
     }
 }
