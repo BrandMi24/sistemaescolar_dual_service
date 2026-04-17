@@ -37,15 +37,15 @@
                         <li class="nav-item">
                             <a class="nav-link txt-title fw-600 px-3 header-link" asp-controller="Aspirantes" asp-action="Create">Inscripción</a>
                         </li>
-                        <li class="nav-item">
+                        @* <li class="nav-item">
                             <a class="nav-link txt-title fw-600 px-3 header-link" asp-controller="ControlEscolar" asp-action="Index">Control Escolar</a>
-                        </li>
+                        </li> *@
 
                         @if (User.Identity?.IsAuthenticated == true)
                         {
                             <div class="vr mx-2 d-none d-lg-block border-theme"></div>
 
-                            <li class="nav-item">
+                         @*    <li class="nav-item">
                                 <a class="nav-link txt-body fw-600 px-3 header-link d-flex align-items-center gap-2" asp-controller="Preinscripciones" asp-action="Index">
                                     <i class="bi bi-clipboard-check"></i> Preinscripciones
                                 </a>
@@ -53,6 +53,11 @@
                             <li class="nav-item">
                                 <a class="nav-link txt-body fw-600 px-3 header-link d-flex align-items-center gap-2" asp-controller="Aspirantes" asp-action="Index">
                                     <i class="bi bi-person-badge"></i> Inscripciones
+                                </a>
+                            </li> *@
+                            <li class="nav-item">
+                                <a class="nav-link txt-body fw-600 px-3 header-link d-flex align-items-center gap-2" asp-controller="ControlEscolar" asp-action="Historial">
+                                    <i class="bi bi-person-badge"></i> Historial
                                 </a>
                             </li>
                             <li class="nav-item">

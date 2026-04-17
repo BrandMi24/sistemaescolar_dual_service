@@ -15,9 +15,9 @@
         <table class="table table-modern align-middle">
             <thead>
                 <tr>
-                    <th>Folio</th>
-                    <th>Nombre</th>
-                    <th>Apellido Paterno</th>
+                    <th>Matrícula / ID</th>
+                    <th>Nombre Completo</th>
+                    <th>CURP</th>
                     <th>Carrera</th>
                     <th>Email</th>
                     <th>Estado</th>
@@ -29,22 +29,38 @@
                 @foreach (var item in Model)
                 {
                     <tr>
-                        <td class="fw-semibold">@item.Id</td>
-                        <td>@item.Nombre @item.ApellidoPaterno @item.ApellidoMaterno</td>
-                        <td>@item.ApellidoPaterno</td>
-                        <td class="text-truncate" style="max-width:220px;">@item.CarreraSolicitada</td>
-                        <td class="text-truncate" style="max-width:200px;"><a href="mailto:@item.Email">@item.Email</a></td>
+                        <td class="fw-semibold text-primary">
+                            @(item.academiccontrol_inscription_enrollment ?? $"#{item.academiccontrol_inscription_ID}")
+                        </td>
                         <td>
-                            @await Html.PartialAsync("_StatusBadge", null, new ViewDataDictionary(ViewData) { { "StatusValue", item.EstadoRegistro.ToString() }, { "StatusType", "registro" } })
+                            @item.academiccontrol_preinscription_personaldata_name
+                            @item.academiccontrol_preinscription_personaldata_paternalSurname
+                            @item.academiccontrol_preinscription_personaldata_maternalSurname
                         </td>
-                        <td>@item.FechaRegistro.ToString("dd/MM/yyyy HH:mm")</td>
-                        <td class="d-flex gap-2">
-                            <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-info">Ver</a>
-                            <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-warning">Editar</a>
-                            <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-sm btn-danger">Eliminar</a>
+                        <td class="small">@item.academiccontrol_preinscription_personaldata_CURP</td>
+                        <td class="text-truncate" style="max-width:220px;">
+                            @item.academiccontrol_inscription_careerRequested
                         </td>
-                    </tr>
-                }
+                        <td class="text-truncate" style="max-width:200px;">
+                            <a href="mailto:@item.academiccontrol_preinscription_personaldata_email">
+                                @item.academiccontrol_preinscription_personaldata_email
+                            </a>
+                        </td>
+                        <td>
+                            @await Html.PartialAsync("_StatusBadge", null, new ViewDataDictionary(ViewData)
+                            {
+                                { "StatusValue", item.academiccontrol_inscription_state },
+                                                { "StatusType", "inscripcion" }
+                            })
+                    </td>
+                    <td>@item.academiccontrol_inscription_registrationDate.ToString("dd/MM/yyyy HH:mm")</td>
+                    <td class="d-flex gap-2">
+                        <a asp-action="Details" asp-route-id="@item.academiccontrol_inscription_ID" class="btn btn-sm btn-info">Ver</a>
+                        <a asp-action="Edit" asp-route-id="@item.academiccontrol_inscription_ID" class="btn btn-sm btn-warning">Editar</a>
+                        <a asp-action="Delete" asp-route-id="@item.academiccontrol_inscription_ID" class="btn btn-sm btn-danger">Eliminar</a>
+                    </td>
+                </tr>
+                                }
             </tbody>
         </table>
     </div>

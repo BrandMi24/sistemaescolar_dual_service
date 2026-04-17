@@ -8,32 +8,38 @@
 <div class="main-container">
     <div class="page-header">
         <h1>Comprobante de Preinscripción</h1>
-        <p>Folio: @Model.Id</p>
+        <p>Folio: @(Model.academiccontrol_preinscription_folio ?? Model.academiccontrol_preinscription_ID.ToString())</p>
     </div>
 
     <div class="form-container">
         <div class="d-flex justify-content-between align-items-center mb-3">
-            @await Html.PartialAsync("_StatusBadge", null, new ViewDataDictionary(ViewData) { { "StatusValue", Model.EstadoPreinscripcion.ToString() }, { "StatusType", "preinscripcion" } })
-            <small class="text-muted">Registrado el @Model.FechaPreinscripcion.ToString("dd/MM/yyyy HH:mm")</small>
+            @await Html.PartialAsync("_StatusBadge", null, new ViewDataDictionary(ViewData) { { "StatusValue", Model.academiccontrol_preinscription_state }, { "StatusType", "preinscripcion" } })
+            <small class="text-muted">Registrado el @Model.academiccontrol_preinscription_registrationDate.ToString("dd/MM/yyyy HH:mm")</small>
         </div>
 
         <div class="form-section">
             <h3 class="form-section-title">Datos personales</h3>
             <dl class="row">
                 <dt class="col-sm-4">Nombre</dt>
-                <dd class="col-sm-8">@Model.Nombre @Model.ApellidoPaterno @Model.ApellidoMaterno</dd>
+                <dd class="col-sm-8">
+                    @Model.academiccontrol_preinscription_personaldata_name
+                    @Model.academiccontrol_preinscription_personaldata_paternalSurname
+                    @Model.academiccontrol_preinscription_personaldata_maternalSurname
+                </dd>
 
                 <dt class="col-sm-4">CURP</dt>
-                <dd class="col-sm-8">@Model.CURP</dd>
+                <dd class="col-sm-8">@Model.academiccontrol_preinscription_personaldata_CURP</dd>
 
                 <dt class="col-sm-4">Fecha de nacimiento</dt>
-                <dd class="col-sm-8">@Model.FechaNacimiento.ToString("dd/MM/yyyy") (@Model.Edad años)</dd>
+                <dd class="col-sm-8">
+                    @Model.academiccontrol_preinscription_personaldata_birthDate.ToString("dd/MM/yyyy") (@Model.Edad años)
+                </dd>
 
                 <dt class="col-sm-4">Sexo</dt>
-                <dd class="col-sm-8">@Model.Sexo</dd>
+                <dd class="col-sm-8">@Model.academiccontrol_preinscription_personaldata_gender</dd>
 
                 <dt class="col-sm-4">Estado civil</dt>
-                <dd class="col-sm-8">@Model.EstadoCivil</dd>
+                <dd class="col-sm-8">@Model.academiccontrol_preinscription_personaldata_maritalStatus</dd>
             </dl>
         </div>
 
@@ -41,19 +47,18 @@
             <h3 class="form-section-title">Contacto y domicilio</h3>
             <dl class="row">
                 <dt class="col-sm-4">Correo</dt>
-                <dd class="col-sm-8">@Model.Email</dd>
+                <dd class="col-sm-8">@Model.academiccontrol_preinscription_personaldata_email</dd>
 
                 <dt class="col-sm-4">Teléfonos</dt>
-                <dd class="col-sm-8">@Model.Telefono <br /><small class="text-muted">Emergencia: @Model.TelefonoEmergencia</small></dd>
+                <dd class="col-sm-8">
+                    @Model.academiccontrol_preinscription_personaldata_phone
+                    <br /><small class="text-muted">Emergencia (Tutor): @Model.academiccontrol_preinscription_tutor_phone</small>
+                </dd>
 
                 <dt class="col-sm-4">Dirección</dt>
                 <dd class="col-sm-8">
-                    @Model.Calle @Model.NumeroExterior, @Model.Colonia<br />
-                    @Model.Municipio, @Model.Estado @Model.CodigoPostal
-                    @if (!string.IsNullOrEmpty(Model.Localidad))
-                    {
-                        <div><small class="text-muted">Localidad: @Model.Localidad</small></div>
-                    }
+                    @Model.academiccontrol_preinscription_address_street #@Model.academiccontrol_preinscription_address_exteriorNumber, @Model.academiccontrol_preinscription_address_neighborhood<br />
+                    @Model.academiccontrol_preinscription_address_municipality, @Model.academiccontrol_preinscription_address_state C.P. @Model.academiccontrol_preinscription_address_zipCode
                 </dd>
             </dl>
         </div>
@@ -62,22 +67,32 @@
             <h3 class="form-section-title">Salud y otros</h3>
             <dl class="row">
                 <dt class="col-sm-4">Institución médica</dt>
-                <dd class="col-sm-8">@Model.ServicioMedico</dd>
+                <dd class="col-sm-8">@Model.academiccontrol_preinscription_health_medicalService</dd>
 
                 <dt class="col-sm-4">Comunidad indígena</dt>
-                <dd class="col-sm-8">@((Model.ComunidadIndigena ? "Sí" : "No") + (string.IsNullOrWhiteSpace(Model.ComunidadIndigenaDescripcion) ? string.Empty : $" - {Model.ComunidadIndigenaDescripcion}"))</dd>
+                <dd class="col-sm-8">
+                    @(Model.academiccontrol_preinscription_health_indigenousCommunity ? "Sí" : "No")
+                    @if (!string.IsNullOrWhiteSpace(Model.academiccontrol_preinscription_health_indigenousCommunityDescription))
+                    {
+                        <span> - @Model.academiccontrol_preinscription_health_indigenousCommunityDescription</span>
+                    }
+                </dd>
 
                 <dt class="col-sm-4">Discapacidad</dt>
-                <dd class="col-sm-8">@((Model.TieneDiscapacidad ? Model.DiscapacidadDescripcion : "Ninguna"))</dd>
+                <dd class="col-sm-8">
+                    @(Model.academiccontrol_preinscription_health_hasDisability
+                                        ? Model.academiccontrol_preinscription_health_disabilityDescription
+                                        : "Ninguna")
+                </dd>
 
                 <dt class="col-sm-4">¿Tiene hijos?</dt>
-                <dd class="col-sm-8">@((Model.TieneHijos ? "Sí" : "No"))</dd>
+                <dd class="col-sm-8">@(Model.academiccontrol_preinscription_health_hasChildren ? "Sí" : "No")</dd>
 
                 <dt class="col-sm-4">Cómo se enteró</dt>
-                <dd class="col-sm-8">@Model.MedioDifusion</dd>
+                <dd class="col-sm-8">@Model.academiccontrol_preinscription_diffusionMedia</dd>
 
                 <dt class="col-sm-4">Comentarios</dt>
-                <dd class="col-sm-8">@Model.Comentarios</dd>
+                <dd class="col-sm-8">@Model.academiccontrol_preinscription_health_comments</dd>
             </dl>
         </div>
 
@@ -85,50 +100,28 @@
             <h3 class="form-section-title">Académicos y carrera</h3>
             <dl class="row">
                 <dt class="col-sm-4">Escuela de egreso</dt>
-                <dd class="col-sm-8">@Model.EscuelaProcedencia (@Model.MunicipioEscuela, @Model.EstadoEscuela)</dd>
+                <dd class="col-sm-8">
+                    @Model.academiccontrol_preinscription_academic_originSchool
+                    (@Model.academiccontrol_preinscription_academic_schoolMunicipality, @Model.academiccontrol_preinscription_academic_schoolState)
+                </dd>
 
                 <dt class="col-sm-4">Promedio</dt>
-                <dd class="col-sm-8">@Model.Promedio?.ToString("0.00")</dd>
+                <dd class="col-sm-8">@(Model.academiccontrol_preinscription_average?.ToString("0.00") ?? "0.00")</dd>
 
-                <dt class="col-sm-4">Periodo de bachillerato</dt>
-                <dd class="col-sm-8">@Model.InicioBachillerato?.ToString("dd/MM/yyyy") - @Model.FinBachillerato?.ToString("dd/MM/yyyy")</dd>
+                <dt class="col-sm-4">Periodo de secundaria</dt>
+                <dd class="col-sm-8">
+                    @Model.academiccontrol_preinscription_academic_startDate?.ToString("dd/MM/yyyy") -
+                    @Model.academiccontrol_preinscription_academic_endDate?.ToString("dd/MM/yyyy")
+                </dd>
 
                 <dt class="col-sm-4">Carrera solicitada</dt>
-                <dd class="col-sm-8">
-                    @Model.CarreraSolicitada
-                    @if (!string.IsNullOrWhiteSpace(Model.OpcionEducativa))
-                    {
-                        <div><small class="text-muted">Opción: @Model.OpcionEducativa</small></div>
-                    }
-                    @if (!string.IsNullOrWhiteSpace(Model.Division))
-                    {
-                        <div><small class="text-muted">División / área: @Model.Division</small></div>
-                    }
-                </dd>
+                <dd class="col-sm-8">@Model.academiccontrol_preinscription_careerRequested</dd>
             </dl>
         </div>
 
-        <div class="form-section">
-            <h3 class="form-section-title">Documentos</h3>
-            <ul class="list-unstyled">
-                @if (!string.IsNullOrEmpty(Model.ActaNacimientoPath))
-                {
-                    <li><a href="@Model.ActaNacimientoPath" target="_blank">Acta de nacimiento</a></li>
-                }
-                @if (!string.IsNullOrEmpty(Model.CurpPdfPath))
-                {
-                    <li><a href="@Model.CurpPdfPath" target="_blank">CURP</a></li>
-                }
-                @if (!string.IsNullOrEmpty(Model.BoletaPdfPath))
-                {
-                    <li><a href="@Model.BoletaPdfPath" target="_blank">Certificado / boleta</a></li>
-                }
-            </ul>
-        </div>
-
         <div class="d-flex justify-content-between mt-4">
-            <a asp-controller="Home" asp-action="Index" class="btn btn-secondary">Volver al inicio</a>
-            <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-warning">Editar</a>
+            @* <a asp-controller="Preinscripciones" asp-action="Index" class="btn btn-secondary">Volver al listado</a> *@
+            @* <a asp-action="Edit" asp-route-id="@Model.academiccontrol_preinscription_ID" class="btn btn-warning">Editar</a> *@
         </div>
     </div>
 </div>
