@@ -660,35 +660,37 @@
 
     .tab-content-pane { animation: catFadeIn .25s ease both; }
 
-    /* ---------- Navegación de pestañas ---------- */
-    .nav-tabs-custom {
-        border-bottom: 2px solid rgba(26, 43, 107, .08);
-        gap: .15rem;
-    }
+  /* ---------- Navegación de pestañas ---------- */
+   /* ---------- Navegación de pestañas ---------- */
+.nav-tabs-custom {
+    border-bottom: 2px solid #E5E7EB;
+    gap: .15rem;
+}
 
-    .nav-tab-item {
-        display: inline-flex;
-        align-items: center;
-        padding: .9rem 1.35rem;
-        font-size: .78rem;
-        font-weight: 700;
-        letter-spacing: .02em;
-        color: var(--text-body, #6a6f7a);
-        background: transparent;
-        border: 0;
-        border-bottom: 2px solid transparent;
-        margin-bottom: -2px;
-        transition: color .2s ease, border-color .2s ease;
-        white-space: nowrap;
-    }
+.nav-tab-item {
+    display: inline-flex;
+    align-items: center;
+    padding: .9rem 1.35rem;
+    font-size: .78rem;
+    font-weight: 700;
+    letter-spacing: .02em;
+    color: #6B7280;
+    background: transparent;
+    border: 0;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -2px;
+    transition: color .2s ease, border-color .2s ease;
+    white-space: nowrap;
+}
 
-        .nav-tab-item:hover { color: var(--primary-dark, #1a2b6b); }
+.nav-tab-item:hover { 
+    color: #13322B; 
+}
 
-        .nav-tab-item.active {
-            color: var(--primary-dark, #1a2b6b);
-            border-bottom-color: var(--primary-dark, #1a2b6b);
-        }
-
+.nav-tab-item.active {
+    color: #13322B;
+    border-bottom-color: #13322B;
+}
     /* ---------- Cards ---------- */
     .catalog-filter-card {
         background: var(--bg-surface, #ffffff);
