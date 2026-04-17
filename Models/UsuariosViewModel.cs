@@ -20,4 +20,9 @@ namespace ControlEscolar.Models
         public int UserId { get; set; }
         public int RolId { get; set; }
     }
+
+    public class QuitarRolRequest
+    {
+        public int UserId { get; set; }
+    }
 }

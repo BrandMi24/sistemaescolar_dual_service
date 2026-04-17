@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 
 namespace ControlEscolar.Controllers
 {
+    [Authorize(Roles = "Nurse,Head Nurse")]
     public class VisitaMedicaController : Controller
     {
         private readonly ApplicationDbContext _context;
@@ -66,7 +67,6 @@ namespace ControlEscolar.Controllers
             if (request == null || request.UserId <= 0 || request.RolId <= 0)
                 return Json(new { success = false, message = "Datos inválidos." });
 
-            // Solo permitir roles del módulo de salud: 4=Head Nurse, 5=Nurse, 6=Psychologist
             var rolesPermitidos = new[] { 4, 5, 6 };
             if (!rolesPermitidos.Contains(request.RolId))
                 return Json(new { success = false, message = "Rol no permitido." });
@@ -77,7 +77,6 @@ namespace ControlEscolar.Controllers
                 {
                     await connection.OpenAsync();
 
-                    // Desactivar roles de salud existentes para ese usuario
                     var queryDesactivar = @"
                   UPDATE management_userrole_table
                   SET management_userrole_status = 0
@@ -92,7 +91,6 @@ namespace ControlEscolar.Controllers
                         await cmd.ExecuteNonQueryAsync();
                     }
 
-                    // Verificar si ya existe el registro (aunque inactivo) para hacer UPDATE en vez de INSERT
                     var queryCheck = @"
                   SELECT COUNT(1) FROM management_userrole_table
                   WHERE management_userrole_UserID = @userId AND management_userrole_RoleID = @rolId";
@@ -108,7 +106,6 @@ namespace ControlEscolar.Controllers
 
                     if (existe > 0)
                     {
-                        // Reactivar el registro existente
                         var queryActivar = @"
                       UPDATE management_userrole_table
                       SET management_userrole_status = 1
@@ -123,7 +120,6 @@ namespace ControlEscolar.Controllers
                     }
                     else
                     {
-                        // Insertar nuevo registro
                         var queryInsertar = @"
                       INSERT INTO management_userrole_table 
                           (management_userrole_UserID, management_userrole_RoleID, management_userrole_status)
@@ -146,6 +142,40 @@ namespace ControlEscolar.Controllers
             }
         }
 
+        [HttpPost]
+        [Authorize(Roles = "Head Nurse")]
+        public async Task<IActionResult> QuitarRol([FromBody] QuitarRolRequest request)
+        {
+            if (request == null || request.UserId <= 0)
+                return Json(new { success = false, message = "Datos inválidos." });
+
+            try
+            {
+                using (var connection = _context.Database.GetDbConnection())
+                {
+                    await connection.OpenAsync();
+                    var query = @"
+                        UPDATE management_userrole_table
+                        SET management_userrole_status = 0
+                        WHERE management_userrole_UserID = @userId
+                          AND management_userrole_RoleID IN (4, 5, 6)";
+
+                    using (var cmd = connection.CreateCommand())
+                    {
+                        cmd.CommandText = query;
+                        var p = cmd.CreateParameter(); p.ParameterName = "@userId"; p.Value = request.UserId;
+                        cmd.Parameters.Add(p);
+                        await cmd.ExecuteNonQueryAsync();
+                    }
+                }
+                return Json(new { success = true });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
         [HttpGet]
         public IActionResult Register() => View();
 
@@ -153,7 +183,6 @@ namespace ControlEscolar.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Register(VisitaMedica model)
         {
-            // Removemos los campos no mapeados de la validación para que no estorben
             ModelState.Remove("NombreCompleto");
             ModelState.Remove("Carrera");
 
@@ -162,8 +191,6 @@ namespace ControlEscolar.Controllers
                 return View(model);
             }
 
-            // Lógica original: Si hay matrícula, se podrían recuperar datos, 
-            // pero el SaveChanges solo guardará lo que sí está en la tabla Visitas.
             model.FechaVisita = DateTime.Now;
             _context.Visitas.Add(model);
             await _context.SaveChangesAsync();
@@ -222,12 +249,14 @@ namespace ControlEscolar.Controllers
                 await connection.OpenAsync();
                 var query = @"
                 SELECT 
-                    v.*,
+                    v.Matricula,
+                    MAX(v.FechaVisita) AS FechaVisita,
                     ISNULL(NULLIF(LTRIM(RTRIM(dp.academiccontrol_preinscription_personaldata_name + ' ' + dp.academiccontrol_preinscription_personaldata_paternalSurname + ' ' + dp.academiccontrol_preinscription_personaldata_maternalSurname)), ''), 'FALTA NOMBRE EN BD') AS NombreCompleto,
                     ISNULL(NULLIF(LTRIM(RTRIM(i.academiccontrol_inscription_careerRequested)), ''), 'FALTA CARRERA EN BD') AS Carrera
                 FROM Visitas v
                 LEFT JOIN academiccontrol_inscription_table i ON v.Matricula = i.academiccontrol_inscription_enrollment
-                LEFT JOIN academiccontrol_preinscription_personaldata_table dp ON i.academiccontrol_inscription_preinscriptionID = dp.academiccontrol_preinscription_personaldata_preinscriptionID";
+                LEFT JOIN academiccontrol_preinscription_personaldata_table dp ON i.academiccontrol_inscription_preinscriptionID = dp.academiccontrol_preinscription_personaldata_preinscriptionID
+                GROUP BY v.Matricula, dp.academiccontrol_preinscription_personaldata_name, dp.academiccontrol_preinscription_personaldata_paternalSurname, dp.academiccontrol_preinscription_personaldata_maternalSurname, i.academiccontrol_inscription_careerRequested";
 
                 using (var command = connection.CreateCommand())
                 {
@@ -236,16 +265,13 @@ namespace ControlEscolar.Controllers
                     {
                         while (await reader.ReadAsync())
                         {
-                            var v = new VisitaMedica
+                            lista.Add(new VisitaMedica
                             {
-                                Id = (int)reader["Id"],
                                 Matricula = reader["Matricula"].ToString(),
                                 NombreCompleto = reader["NombreCompleto"].ToString(),
                                 Carrera = reader["Carrera"].ToString(),
-                                Diagnostico = reader["Diagnostico"].ToString(),
                                 FechaVisita = (DateTime)reader["FechaVisita"]
-                            };
-                            lista.Add(v);
+                            });
                         }
                     }
                 }

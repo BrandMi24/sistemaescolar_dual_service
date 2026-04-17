@@ -6,7 +6,7 @@
 
 <div class="admin-card-white shadow-sm border-0 p-0 rounded-4 overflow-hidden fade-in mb-5">
     @* Cabecera de la Tarjeta *@
-    <div class="bg-surface p-4 border-bottom border-theme d-flex justify-content-between align-items-center">
+    <div class="bg-surface p-4 border-bottom border-theme d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
         <div>
             <h5 class="txt-primary-dark fw-bold mb-1">
                 <i class="bi bi-person-gear me-2"></i>Control de Accesos Médicos
@@ -14,6 +14,12 @@
             <p class="text-muted text-xxs text-uppercase tracking-wide mb-0">
                 Administración de permisos para Enfermería y Psicología
             </p>
+        </div>
+        <div class="position-relative" style="max-width: 320px; width: 100%;">
+            <i class="bi bi-search position-absolute text-muted" style="top: 50%; left: 14px; transform: translateY(-50%); pointer-events:none;"></i>
+            <input type="text" id="searchInput" class="form-control ps-5"
+                   placeholder="Buscar por nombre..."
+                   style="height: 40px; border-radius: 8px; border: 1px solid var(--border-color); box-shadow: none; background-color: var(--app-bg);">
         </div>
     </div>
 
@@ -33,25 +39,21 @@
                 {
                     @foreach (var usuario in Model.Users)
                     {
-                        // Lógica de colores basada en el texto del rol
-                        var statusClass = "status-pendiente"; // Default (Enfermeros/Psicólogos)
+                        var tieneRolSalud = usuario.Rol == "Nurse" || usuario.Rol == "Head Nurse" || usuario.Rol == "Psychologist";
 
+                        var statusClass = "status-pendiente";
                         if (usuario.Rol.Contains("Head") || usuario.Rol.Contains("Jefe"))
-                        {
-                            statusClass = "status-aceptado"; // Verde
-                        }
+                            statusClass = "status-aceptado";
                         else if (usuario.Rol.Contains("Sin") || string.IsNullOrEmpty(usuario.Rol))
-                        {
-                            statusClass = "status-rechazado"; // Rojo
-                        }
+                            statusClass = "status-rechazado";
 
-                        <tr class="border-bottom border-theme hover-bg-app">
+                        <tr class="border-bottom border-theme hover-bg-app fila-usuario">
                             <td class="ps-4 py-3">
                                 <div class="d-flex align-items-center gap-3">
                                     <div class="avatar-sm bg-primary-100 txt-primary-dark fw-bold d-flex align-items-center justify-content-center rounded-circle">
                                         @(string.IsNullOrEmpty(usuario.Nombre) ? "?" : usuario.Nombre.Substring(0, 1).ToUpper())
                                     </div>
-                                    <span class="fw-semibold txt-title">@usuario.Nombre</span>
+                                    <span class="fw-semibold txt-title nombre-celda">@usuario.Nombre</span>
                                 </div>
                             </td>
                             <td class="text-muted text-xs">@usuario.Email</td>
@@ -61,10 +63,20 @@
                                 </span>
                             </td>
                             <td class="text-end pe-4">
-                                <button type="button" class="btn btn-sm btn-ghost-sep border-theme text-primary fw-bold text-xxs py-2"
-                                        onclick="abrirModalRol(@usuario.Id, '@usuario.Nombre')">
-                                    <i class="bi bi-pencil-square me-1"></i> EDITAR ROL
-                                </button>
+                                <div class="d-flex justify-content-end gap-2">
+                                    <button type="button" class="btn btn-sm btn-ghost-sep border-theme text-primary fw-bold text-xxs py-2"
+                                            onclick="abrirModalRol(@usuario.Id, '@usuario.Nombre')">
+                                        <i class="bi bi-pencil-square me-1"></i> EDITAR ROL
+                                    </button>
+                                    @if (tieneRolSalud)
+                                    {
+                                        <button type="button" class="btn btn-sm fw-bold text-xxs py-2"
+                                                style="background-color:#fff0f0; border:1px solid #f87171; color:#dc2626; border-radius:6px;"
+                                                onclick="confirmarQuitarRol(@usuario.Id, '@usuario.Nombre', '@usuario.Rol')">
+                                            <i class="bi bi-x-lg"></i>
+                                        </button>
+                                    }
+                                </div>
                             </td>
                         </tr>
                     }
@@ -77,10 +89,14 @@
                 }
             </tbody>
         </table>
+        <div id="sinResultados" class="text-center py-5 text-muted d-none">
+            <i class="bi bi-search fs-3 mb-2 d-block"></i>
+            <span class="text-sm fw-bold">No se encontraron resultados</span>
+        </div>
     </div>
 </div>
 
-@* --- MODAL DE ACTUALIZACIÓN --- *@
+@* Modal Asignar/Editar Rol *@
 <div class="modal fade" id="modalRol" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0 shadow-lg rounded-4">
@@ -96,9 +112,7 @@
                         <strong id="modalUserName" class="txt-title text-sm"></strong>
                     </div>
                 </div>
-
                 <input type="hidden" id="inputUsuarioId" />
-
                 <div class="mb-2">
                     <label class="section-label text-muted mb-2 d-block text-xxs fw-bold">NUEVA ASIGNACIÓN</label>
                     <select id="selectRolId" class="form-select form-select-lg fw-semibold text-sm border-theme">
@@ -108,11 +122,41 @@
                     </select>
                 </div>
             </div>
-            <div class="modal-footer border-0 p-4 pt-0">
-                <button type="button" class="btn btn-ghost-sep text-xxs px-4 fw-bold" data-bs-dismiss="modal">CANCELAR</button>
-                <button type="button" class="btn btn-primary-sep text-xxs px-4 fw-bold" id="btnGuardarRol" onclick="guardarCambioRol()">
-                    <i class="bi bi-check-lg me-1"></i> GUARDAR CAMBIOS
-                </button>
+            <div class="modal-footer border-0 p-4 pt-0 d-flex justify-content-between align-items-center">
+                <span id="modalMsg" class="text-xs fw-bold"></span>
+                <div class="d-flex gap-2">
+                    <button type="button" class="btn btn-ghost-sep text-xxs px-4 fw-bold" data-bs-dismiss="modal">CANCELAR</button>
+                    <button type="button" class="btn btn-primary-sep text-xxs px-4 fw-bold" id="btnGuardarRol" onclick="guardarCambioRol()">
+                        <i class="bi bi-check-lg me-1"></i> GUARDAR CAMBIOS
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@* Modal Confirmar Quitar Rol *@
+<div class="modal fade" id="modalQuitarRol" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" style="max-width: 420px;">
+        <div class="modal-content border-0 shadow-lg rounded-4">
+            <div class="modal-header border-0 ps-4 pt-4">
+                <h5 class="txt-primary-dark fw-bold mb-0">Quitar Rol</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4">
+                <p class="text-sm mb-1">¿Seguro que deseas quitar el rol de <strong id="quitarRolNombre"></strong> a <strong id="quitarRolUsuario"></strong>?</p>
+                <p class="text-xs text-muted mb-0">Esta acción revocará su acceso al módulo correspondiente.</p>
+            </div>
+            <div class="modal-footer border-0 p-4 pt-0 d-flex justify-content-between align-items-center">
+                <span id="modalQuitarMsg" class="text-xs fw-bold"></span>
+                <div class="d-flex gap-2">
+                    <button type="button" class="btn btn-ghost-sep text-xxs px-4 fw-bold" data-bs-dismiss="modal">CANCELAR</button>
+                    <button type="button" class="btn fw-bold text-xxs px-4" id="btnConfirmarQuitar"
+                            style="background-color:#dc2626; color:white; border-radius:6px;"
+                            onclick="ejecutarQuitarRol()">
+                        QUITAR ROL
+                    </button>
+                </div>
             </div>
         </div>
     </div>
@@ -120,53 +164,102 @@
 
 @section Scripts {
     <script>
-        // Función para cargar datos en el modal y mostrarlo
+        let usuarioIdQuitar = null;
+
+        // Buscador
+        document.getElementById('searchInput').addEventListener('input', function () {
+            const term = this.value.toLowerCase().trim();
+            const filas = document.querySelectorAll('.fila-usuario');
+            let visibles = 0;
+            filas.forEach(fila => {
+                const nombre = fila.querySelector('.nombre-celda').textContent.toLowerCase();
+                if (nombre.includes(term)) { fila.style.display = ''; visibles++; }
+                else { fila.style.display = 'none'; }
+            });
+            document.getElementById('sinResultados').classList.toggle('d-none', visibles > 0);
+        });
+
+        // Modal Asignar Rol
         function abrirModalRol(id, nombre) {
             document.getElementById('inputUsuarioId').value = id;
             document.getElementById('modalUserName').innerText = nombre;
-
-            const modalElement = document.getElementById('modalRol');
-            const modalInstance = new bootstrap.Modal(modalElement);
-            modalInstance.show();
+            document.getElementById('modalMsg').innerText = '';
+            const btn = document.getElementById('btnGuardarRol');
+            btn.disabled = false;
+            btn.innerHTML = '<i class="bi bi-check-lg me-1"></i> GUARDAR CAMBIOS';
+            new bootstrap.Modal(document.getElementById('modalRol')).show();
         }
 
-        // Función para enviar la petición al Controller
         async function guardarCambioRol() {
             const btn = document.getElementById('btnGuardarRol');
             const userId = document.getElementById('inputUsuarioId').value;
             const rolId = document.getElementById('selectRolId').value;
 
-            // Bloquear botón para evitar doble clic
             btn.disabled = true;
             btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> PROCESANDO...';
 
             try {
                 const response = await fetch('@Url.Action("AsignarRol", "VisitaMedica")', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        userId: parseInt(userId),
-                        rolId: parseInt(rolId)
-                    })
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ userId: parseInt(userId), rolId: parseInt(rolId) })
                 });
-
                 const result = await response.json();
-
                 if (result.success) {
-                    // Recarga la página para mostrar los cambios
                     window.location.reload();
                 } else {
-                    alert("Error al asignar rol: " + result.message);
+                    document.getElementById('modalMsg').innerText = result.message || 'Error al asignar rol.';
+                    document.getElementById('modalMsg').className = 'text-xs fw-bold text-danger';
                     btn.disabled = false;
                     btn.innerHTML = '<i class="bi bi-check-lg me-1"></i> GUARDAR CAMBIOS';
                 }
             } catch (error) {
-                console.error("Error en la petición:", error);
-                alert("Ocurrió un error en el servidor.");
+                document.getElementById('modalMsg').innerText = 'Error de conexión.';
+                document.getElementById('modalMsg').className = 'text-xs fw-bold text-danger';
                 btn.disabled = false;
                 btn.innerHTML = '<i class="bi bi-check-lg me-1"></i> GUARDAR CAMBIOS';
+            }
+        }
+
+        // Modal Quitar Rol
+        function confirmarQuitarRol(userId, nombre, rol) {
+            usuarioIdQuitar = userId;
+            document.getElementById('quitarRolUsuario').innerText = nombre;
+            document.getElementById('quitarRolNombre').innerText = rol;
+            document.getElementById('modalQuitarMsg').innerText = '';
+            const btn = document.getElementById('btnConfirmarQuitar');
+            btn.disabled = false;
+            btn.innerText = 'QUITAR ROL';
+            new bootstrap.Modal(document.getElementById('modalQuitarRol')).show();
+        }
+
+        async function ejecutarQuitarRol() {
+            const btn = document.getElementById('btnConfirmarQuitar');
+            btn.disabled = true;
+            btn.innerText = 'Quitando...';
+
+            try {
+                const response = await fetch('/VisitaMedica/QuitarRol', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ userId: usuarioIdQuitar })
+                });
+                const data = await response.json();
+                if (data.success) {
+                    document.getElementById('modalQuitarMsg').innerText = '✓ Rol eliminado correctamente.';
+                    document.getElementById('modalQuitarMsg').className = 'text-xs fw-bold text-success';
+                    setTimeout(() => location.reload(), 1000);
+                } else {
+                    document.getElementById('modalQuitarMsg').innerText = data.message || 'Error al quitar el rol.';
+                    document.getElementById('modalQuitarMsg').className = 'text-xs fw-bold text-danger';
+                    btn.disabled = false;
+                    btn.innerText = 'QUITAR ROL';
+                }
+            } catch {
+                document.getElementById('modalQuitarMsg').innerText = 'Error de conexión.';
+                document.getElementById('modalQuitarMsg').className = 'text-xs fw-bold text-danger';
+                btn.disabled = false;
+                btn.innerText = 'QUITAR ROL';
             }
         }
     </script>
