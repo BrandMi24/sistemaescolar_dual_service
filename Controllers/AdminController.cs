@@ -20,6 +20,8 @@ namespace ControlEscolar.Controllers
             var preinscripciones = await _context.Preinscripciones
                 .Include(p => p.DatosPersonales)
                 .Include(p => p.Domicilio)
+                .OrderBy(p => p.academiccontrol_preinscription_state == "Pendiente" ? 0 : 1)
+                .ThenByDescending(p => p.academiccontrol_preinscription_registrationDate)
                 .ToListAsync();
 
             var aspirantes = await _context.Inscripciones

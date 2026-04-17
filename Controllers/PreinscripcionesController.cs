@@ -24,6 +24,8 @@ namespace ControlEscolar.Controllers
         {
             var entidades = await _context.Preinscripciones
                 .Include(p => p.DatosPersonales)
+                .OrderBy(p => p.academiccontrol_preinscription_state == "Pendiente" ? 0 : 1)
+                .ThenByDescending(p => p.academiccontrol_preinscription_registrationDate)
                 .ToListAsync();
 
             return View(entidades.Select(e => MapToViewModel(e)).ToList());
