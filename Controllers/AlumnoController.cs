@@ -1,5 +1,6 @@
 ﻿using ControlEscolar.Data;
 using ControlEscolar.Models;
+using ControlEscolar.ViewModels.StudentPortal;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -49,7 +50,9 @@ namespace ControlEscolar.Controllers
         {
             ViewData["Title"] = "Modelo DUAL";
             ViewData["ShowBackButton"] = true;
-            return View();
+
+            var model = new DualPortalViewModel();
+            return View(model);
         }
 
         public IActionResult ServicioSocial()

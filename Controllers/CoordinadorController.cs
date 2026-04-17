@@ -1087,7 +1087,12 @@ namespace ControlEscolar.Controllers
         [HttpGet]
         public IActionResult StudentDetail(int id)
         {
-            return View();
+            var model = new CoordinadorStudentDetailViewModel
+            {
+                StudentId = id
+            };
+
+            return View(model);
         }
 
         [HttpGet]
@@ -1458,7 +1463,12 @@ namespace ControlEscolar.Controllers
         [HttpGet]
         public IActionResult TeacherDetail(int id)
         {
-            return View();
+            var model = new CoordinadorTeacherDetailViewModel
+            {
+                TeacherId = id
+            };
+
+            return View(model);
         }
 
         [HttpGet]
