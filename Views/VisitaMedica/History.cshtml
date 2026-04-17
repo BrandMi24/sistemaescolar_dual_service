@@ -2,169 +2,256 @@
 @{
     ViewData["Title"] = "Expediente Médico";
     Layout = "_LayoutSalud";
+    var primerRegistro = Model.FirstOrDefault();
 }
 
-<div class="scroll-area custom-scroll">
-    <div class="max-w-1050 mx-auto px-lg-3 py-2 pb-5">
-        
-        <div class="admin-card-white mb-4 d-flex flex-column flex-md-row justify-content-between align-items-center gap-3">
-            <a asp-action="Index" class="btn-ghost-sep text-decoration-none text-xs">
-                <i class="bi bi-arrow-left me-2"></i> Directorio
-            </a>
-            
-            <div class="d-flex align-items-center gap-3">
-                <div class="icon-circle-lg bg-accent-light txt-primary-dark shadow-sm">
-                    <i class="bi bi-file-medical-fill fs-3"></i>
-                </div>
-                <div class="text-center text-md-start">
-                    <div class="section-label text-muted mb-1">Historial Clínico</div>
-                    <h5 class="mb-0 fw-bold txt-title text-uppercase">ID: @ViewData["Matricula"]</h5>
+<div class="mx-auto d-flex flex-column gap-4 fade-in" style="max-width: 1100px; min-height: 82vh;">
+
+    <div class="admin-card-white d-flex flex-column flex-lg-row justify-content-between align-items-center gap-4" style="transform: none !important; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03) !important;">
+        <div class="d-flex align-items-center gap-3 w-100 w-lg-auto">
+            <div class="avatar-md shadow-sm border border-theme" 
+                 style="background-color: var(--accent-100); color: var(--primary-900); width: 65px; height: 65px; font-size: 1.5rem;">
+                @(primerRegistro?.NombreCompleto?.Substring(0, 1).ToUpper() ?? "P")
+            </div>
+            <div>
+                <h5 class="fw-bold mb-1 txt-title text-uppercase tracking-tight">
+                    @(primerRegistro?.NombreCompleto ?? "PACIENTE")
+                </h5>
+                <div class="d-flex flex-wrap align-items-center gap-2">
+                    <span class="section-label">MATRÍCULA: <span class="txt-primary-dark">@ViewData["Matricula"]</span></span>
+                    <span class="opacity-25 d-none d-md-block">|</span>
+                    <span class="text-xxs fw-bold text-uppercase tracking-tighter txt-body">@(primerRegistro?.Carrera ?? "PROGRAMA EDUCATIVO")</span>
                 </div>
             </div>
         </div>
 
-        @if (!Model.Any())
-        {
-            <div class="admin-card-white text-center py-5">
-                <div class="icon-circle-lg bg-app text-muted mx-auto mb-3">
-                    <i class="bi bi-folder-x fs-2"></i>
-                </div>
-                <h6 class="txt-title">Sin registros médicos</h6>
-                <p class="txt-body text-sm mb-0">El estudiante no cuenta con visitas previas al departamento.</p>
+        <div class="d-flex gap-2 w-100 w-lg-auto justify-content-lg-end">
+            <a asp-action="Index" class="btn-ghost-sep px-4 py-2 d-flex align-items-center text-decoration-none text-xxs tracking-widest">
+                <i class="bi bi-arrow-left me-2"></i> VOLVER AL DIRECTORIO
+            </a>
+        </div>
+    </div>
+
+    <div class="bg-surface rounded-4 border border-theme shadow-sm overflow-hidden d-flex flex-column flex-grow-1">
+        
+        <div class="bg-app p-3 border-bottom border-theme">
+            <span class="section-label txt-primary-dark">Registros Clínicos Recientes</span>
+        </div>
+
+        <div class="table-responsive flex-grow-1">
+            <table class="table table-borderless align-middle mb-0">
+                <thead class="bg-app border-bottom border-theme">
+                    <tr>
+                        <th class="py-3 px-4 section-label text-muted" width="15%">Fecha</th>
+                        <th class="py-3 px-4 section-label text-muted" width="65%">Diagnóstico y Observaciones</th>
+                        <th class="py-3 px-4 section-label text-muted text-end" width="20%">Expediente</th>
+                    </tr>
+                </thead>
+                <tbody id="historialBody">
+                    @if (!Model.Any())
+                    {
+                        <tr>
+                            <td colspan="3" class="text-center py-5">
+                                <div class="opacity-50 py-4">
+                                    <i class="bi bi-folder-x fs-1 d-block mb-2"></i>
+                                    <span class="section-label">Sin antecedentes registrados</span>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+
+                    @foreach (var visita in Model)
+                    {
+                        <tr class="border-bottom border-theme data-row transition-none">
+                            <td class="px-4 py-4">
+                                <div class="txt-primary-dark fw-bold text-sm text-uppercase">@visita.FechaVisita.ToString("dd MMM")</div>
+                                <div class="section-label" style="font-size: 0.6rem;">@visita.FechaVisita.ToString("yyyy")</div>
+                            </td>
+                            <td class="px-4">
+                                <div class="txt-title text-sm fw-bold text-truncate" style="max-width: 550px;">
+                                    @visita.Diagnostico
+                                </div>
+                                <div class="text-xxs fw-bold text-muted text-uppercase tracking-tighter mt-1">
+                                    Edad: @visita.Edad años | Talla: @(visita.Talla)cm | Peso: @(visita.Peso)kg
+                                </div>
+                            </td>
+                            <td class="px-4 text-end">
+                                <button class="btn-primary-sep py-2 px-3 text-xxs tracking-widest" 
+                                        data-bs-toggle="modal" data-bs-target="#modal-@visita.Id">
+                                    VER DETALLE
+                                </button>
+                            </td>
+                        </tr>
+
+                        <div class="modal fade" id="modal-@visita.Id" tabindex="-1" aria-hidden="true">
+                            <div class="modal-dialog modal-dialog-centered modal-lg">
+                                <div class="modal-content border-0 rounded-4 shadow-lg overflow-hidden">
+                                    
+                                    <div class="modal-header bg-primary-dark text-white p-4 border-0">
+                                        <div>
+                                            <h6 class="modal-title fw-bold text-uppercase tracking-widest text-white">Ficha Médica Digital</h6>
+                                            <div class="txt-white opacity-75 text-xxs fw-bold mt-1 text-uppercase">
+                                                Atención del @visita.FechaVisita.ToString("f")
+                                            </div>
+                                        </div>
+                                        <button type="button" class="btn-close btn-close-white shadow-none" data-bs-dismiss="modal"></button>
+                                    </div>
+
+                                    <div class="modal-body p-4 bg-app custom-scroll" style="max-height: 75vh; overflow-y: auto;">
+                                                
+                                        <div class="section-label mb-3 ms-1">Constantes Vitales</div>
+                                        <div class="row g-2 mb-4">
+                                            <div class="col-4 col-md-2">
+                                                <div class="bg-surface p-2 rounded-3 border border-theme text-center shadow-sm">
+                                                    <div class="section-label text-muted" style="font-size: 0.55rem;">TEMP</div>
+                                                    <div class="txt-primary-dark fw-bold text-xs mt-1">@(visita.Temperatura > 0 ? visita.Temperatura + "°C" : "-")</div>
+                                                </div>
+                                            </div>
+                                            <div class="col-4 col-md-2">
+                                                <div class="bg-surface p-2 rounded-3 border border-theme text-center shadow-sm">
+                                                    <div class="section-label text-muted" style="font-size: 0.55rem;">PESO</div>
+                                                    <div class="txt-primary-dark fw-bold text-xs mt-1">@(visita.Peso > 0 ? visita.Peso + "kg" : "-")</div>
+                                                </div>
+                                            </div>
+                                            <div class="col-4 col-md-2">
+                                                <div class="bg-surface p-2 rounded-3 border border-theme text-center shadow-sm">
+                                                    <div class="section-label text-muted" style="font-size: 0.55rem;">TALLA</div>
+                                                    <div class="txt-primary-dark fw-bold text-xs mt-1">@(visita.Talla > 0 ? visita.Talla + "cm" : "-")</div>
+                                                </div>
+                                            </div>
+                                            <div class="col-6 col-md-3">
+                                                <div class="bg-surface p-2 rounded-3 border border-theme text-center shadow-sm">
+                                                    <div class="section-label text-muted" style="font-size: 0.55rem;">PRESIÓN</div>
+                                                    <div class="txt-primary-dark fw-bold text-xs mt-1">@(string.IsNullOrEmpty(visita.PresionArterial) ? "-" : visita.PresionArterial)</div>
+                                                </div>
+                                            </div>
+                                            <div class="col-6 col-md-3">
+                                                <div class="bg-surface p-2 rounded-3 border border-theme text-center shadow-sm">
+                                                    <div class="section-label text-muted" style="font-size: 0.55rem;">SAT. O2</div>
+                                                    <div class="txt-primary-dark fw-bold text-xs mt-1">@(string.IsNullOrEmpty(visita.Saturacion) ? "-" : visita.Saturacion + "%")</div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="row g-3 mb-4">
+                                            <div class="col-md-6">
+                                                <div class="bg-surface p-3 rounded-4 border border-theme h-100 shadow-sm">
+                                                    <span class="section-label d-block mb-2">Alergias</span>
+                                                    <div class="text-sm fw-bold @(visita.TieneAlergias ? "txt-error" : "txt-title")">
+                                                        @(visita.TieneAlergias ? visita.EspecificarAlergia.ToUpper() : "NINGUNA REPORTADA")
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="bg-surface p-3 rounded-4 border border-theme h-100 shadow-sm">
+                                                    <span class="section-label d-block mb-2">Enfermedades Crónicas</span>
+                                                    <div class="text-sm fw-bold txt-title text-uppercase">
+                                                        @(string.IsNullOrEmpty(visita.EnfermedadesCronicas) ? "NINGUNA REPORTADA" : visita.EnfermedadesCronicas)
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="bg-surface p-4 rounded-4 border border-theme shadow-sm">
+                                            <span class="section-label d-block mb-3 border-bottom border-theme pb-2 txt-primary-dark">Observaciones y Tratamiento</span>
+                                            <div class="txt-title text-sm fw-medium" style="white-space: pre-wrap; line-height: 1.7;">
+                                                @visita.Diagnostico
+                                            </div>
+                                        </div>
+                                    </div>
+                                            
+                                    <div class="modal-footer bg-surface border-top border-theme p-3">
+                                        <button type="button" class="btn-ghost-sep px-4 py-2 text-xxs tracking-widest text-uppercase" data-bs-dismiss="modal">Cerrar Expediente</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <div class="bg-app p-3 border-top border-theme d-flex flex-column flex-md-row justify-content-between align-items-center gap-3">
+            <div class="d-flex align-items-center gap-3">
+                <span class="section-label" style="font-size: 0.6rem;">Mostrar:</span>
+                <select id="rowsPerPage" class="form-select form-select-sm border-theme bg-surface fw-bold text-xs shadow-none" style="width: 70px; cursor: pointer;">
+                    <option value="5" selected>5</option>
+                    <option value="10">10</option>
+                </select>
+                <div id="tableInfo" class="section-label txt-primary-dark" style="font-size: 0.6rem; opacity: 0.8;"></div>
             </div>
-        }
-
-        <div class="d-flex flex-column gap-3">
-            @foreach (var visita in Model)
-            {
-                <div class="admin-card-white border-start border-4 transition-all" style="border-left-color: var(--primary-900) !important; padding: 1.25rem 1.5rem;">
-                    <div class="row align-items-center">
-                        
-                        <div class="col-md-3 border-end border-theme text-center text-md-start mb-3 mb-md-0">
-                            <div class="stat-value">@visita.FechaVisita.ToString("dd MMM")</div>
-                            <div class="stat-label">@visita.FechaVisita.ToString("yyyy") • @visita.FechaVisita.ToString("HH:mm") hrs</div>
-                        </div>
-                        
-                        <div class="col-md-6 ps-md-4 mb-3 mb-md-0">
-                            <div class="section-label text-muted mb-2">Motivo / Diagnóstico</div>
-                            <div class="txt-title text-sm fw-bold text-truncate">@visita.Diagnostico</div>
-                        </div>
-                        
-                        <div class="col-md-3 text-end">
-                            <button class="btn-primary-sep w-100 w-md-auto text-xs tracking-wide" data-bs-toggle="modal" data-bs-target="#modal-@visita.Id">
-                                VER FICHA CLÍNICA
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="modal fade" id="modal-@visita.Id" tabindex="-1" aria-hidden="true">
-                    <div class="modal-dialog modal-dialog-centered modal-lg">
-                        <div class="modal-content admin-card-white p-0 border-0">
-                            
-                            <div class="modal-header bg-app border-bottom border-theme px-4 py-3">
-                                <div>
-                                    <h6 class="txt-title mb-0">Ficha de Enfermería</h6>
-                                    <div class="txt-body text-xs fw-bold mt-1">@visita.FechaVisita.ToString("f")</div>
-                                </div>
-                                <button type="button" class="btn-close shadow-none" data-bs-dismiss="modal"></button>
-                            </div>
-
-                            <div class="modal-body p-4 bg-surface custom-scroll" style="max-height: 70vh; overflow-y: auto;">
-                                
-                                <div class="section-label text-muted mb-3 border-bottom border-theme pb-2">SOMATOMETRÍA Y SIGNOS VITALES</div>
-                                <div class="row g-2 mb-4">
-                                    <div class="col-4 col-md-3 col-lg-2">
-                                        <div class="stat-card-sep p-2 text-center bg-app">
-                                            <div class="stat-label">EDAD</div>
-                                            <div class="txt-title fw-bold text-sm mt-1">@visita.Edad a</div>
-                                        </div>
-                                    </div>
-                                    <div class="col-4 col-md-3 col-lg-2">
-                                        <div class="stat-card-sep p-2 text-center bg-app">
-                                            <div class="stat-label">TALLA</div>
-                                            <div class="txt-title fw-bold text-sm mt-1">@(visita.Talla > 0 ? visita.Talla + " cm" : "-")</div>
-                                        </div>
-                                    </div>
-                                    <div class="col-4 col-md-3 col-lg-2">
-                                        <div class="stat-card-sep p-2 text-center bg-app">
-                                            <div class="stat-label">PESO</div>
-                                            <div class="txt-title fw-bold text-sm mt-1">@(visita.Peso > 0 ? visita.Peso + " kg" : "-")</div>
-                                        </div>
-                                    </div>
-                                    <div class="col-4 col-md-3 col-lg-2">
-                                        <div class="stat-card-sep p-2 text-center bg-app border-error">
-                                            <div class="stat-label txt-error">TEMP.</div>
-                                            <div class="txt-title fw-bold text-sm mt-1">@(visita.Temperatura > 0 ? visita.Temperatura + "°C" : "-")</div>
-                                        </div>
-                                    </div>
-                                    <div class="col-4 col-md-3 col-lg-2">
-                                        <div class="stat-card-sep p-2 text-center bg-app">
-                                            <div class="stat-label">F. CARD.</div>
-                                            <div class="txt-title fw-bold text-sm mt-1">@(string.IsNullOrEmpty(visita.FrecuenciaCardiaca) ? "-" : visita.FrecuenciaCardiaca)</div>
-                                        </div>
-                                    </div>
-                                    <div class="col-4 col-md-3 col-lg-2">
-                                        <div class="stat-card-sep p-2 text-center bg-app">
-                                            <div class="stat-label">F. RESP.</div>
-                                            <div class="txt-title fw-bold text-sm mt-1">@(string.IsNullOrEmpty(visita.FrecuenciaRespiratoria) ? "-" : visita.FrecuenciaRespiratoria)</div>
-                                        </div>
-                                    </div>
-                                    <div class="col-6 col-md-3 col-lg-2">
-                                        <div class="stat-card-sep p-2 text-center bg-app">
-                                            <div class="stat-label">PRESIÓN</div>
-                                            <div class="txt-title fw-bold text-sm mt-1">@(string.IsNullOrEmpty(visita.PresionArterial) ? "-" : visita.PresionArterial)</div>
-                                        </div>
-                                    </div>
-                                    <div class="col-6 col-md-3 col-lg-2">
-                                        <div class="stat-card-sep p-2 text-center bg-app">
-                                            <div class="stat-label">SAT. O2</div>
-                                            <div class="txt-title fw-bold text-sm mt-1">@(string.IsNullOrEmpty(visita.Saturacion) ? "-" : visita.Saturacion)</div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div class="section-label text-muted mb-3 border-bottom border-theme pb-2">ANTECEDENTES CLÍNICOS</div>
-                                <div class="admin-card-white bg-app p-3 mb-4 border-0">
-                                    <div class="row g-3">
-                                        <div class="col-md-6 border-end-md border-theme">
-                                            <div class="stat-label mb-1">ALERGIAS REPORTADAS</div>
-                                            <div class="text-sm fw-bold @(visita.TieneAlergias ? "txt-error" : "txt-title")">
-                                                @(visita.TieneAlergias? visita.EspecificarAlergia: "Ninguna reportada")
-                                            </div>
-                                        </div>
-                                        <div class="col-md-6">
-                                            <div class="stat-label mb-1">ENFERMEDADES CRÓNICAS</div>
-                                            <div class="text-sm fw-bold txt-title">
-                                                @(string.IsNullOrEmpty(visita.EnfermedadesCronicas) ? "Ninguna reportada" : visita.EnfermedadesCronicas)
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div class="section-label text-muted mb-3 border-bottom border-theme pb-2">NOTAS MÉDICAS Y TRATAMIENTO</div>
-                                <div class="bg-white border border-theme rounded-3 p-3 shadow-sm">
-                                    <p class="text-sm txt-title mb-0" style="white-space: pre-wrap; line-height: 1.6;">@visita.Diagnostico</p>
-                                </div>
-
-                            </div>
-                            
-                            <div class="modal-footer bg-app border-top border-theme p-3" style="border-bottom-left-radius: var(--border-radius-xl); border-bottom-right-radius: var(--border-radius-xl);">
-                                <button type="button" class="btn-ghost-sep w-100 text-xs tracking-wide text-uppercase" data-bs-dismiss="modal">Cerrar Ficha</button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            }
+            <nav>
+                <ul class="pagination pagination-sm mb-0 gap-1" id="paginationControls"></ul>
+            </nav>
         </div>
     </div>
 </div>
 
 <style>
-    /* Utilidad extra para el borde responsivo del modal */
-    @@media (min-width: 768px) {
-        .border-end-md {
-            border-right: 1px solid var(--border-color) !important;
-        }
+    /* DESHABILITAR TRANSFORMACIONES INNECESARIAS */
+    .admin-card-white:hover { transform: none !important; }
+    
+    /* ESTILO DE FILA SIN MOVIMIENTO */
+    .data-row:hover { background-color: var(--accent-100) !important; }
+
+    /* PAGINACIÓN DESIGN SYSTEM */
+    .page-link-custom {
+        display: flex; align-items: center; justify-content: center;
+        min-width: 32px; height: 32px; padding: 0 12px;
+        font-size: 0.7rem; font-weight: 700; border-radius: var(--border-radius-md) !important;
+        border: 1px solid var(--border-color); background-color: var(--white); color: var(--primary-900);
+        text-decoration: none;
     }
+    .page-item.active .page-link-custom {
+        background-color: var(--primary-900) !important; 
+        border-color: var(--primary-900) !important;
+        color: var(--white) !important;
+    }
+    .page-item.disabled .page-link-custom { opacity: 0.4; cursor: not-allowed; }
+
+    .text-truncate { max-width: 100%; display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 </style>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            let currentPage = 1;
+
+            function updateTable() {
+                const rowsPerPage = parseInt($('#rowsPerPage').val());
+                const $allRows = $('.data-row');
+                const totalRecords = $allRows.length;
+                const totalPages = Math.ceil(totalRecords / rowsPerPage) || 1;
+
+                if (currentPage > totalPages) currentPage = totalPages;
+                const start = (currentPage - 1) * rowsPerPage;
+                const end = start + rowsPerPage;
+
+                $allRows.hide().slice(start, end).show();
+                $('#tableInfo').text(totalRecords === 0 ? '0 REGISTROS' : `${start + 1} - ${Math.min(end, totalRecords)} DE ${totalRecords}`);
+                renderPagination(totalPages);
+            }
+
+            function renderPagination(totalPages) {
+                let html = `<li class="page-item ${currentPage === 1 ? 'disabled' : ''}"><a class="page-link page-link-custom" href="#" data-page="${currentPage - 1}"><i class="bi bi-chevron-left"></i></a></li>`;
+                for (let i = 1; i <= totalPages; i++) {
+                    html += `<li class="page-item ${i === currentPage ? 'active' : ''}"><a class="page-link page-link-custom" href="#" data-page="${i}">${i}</a></li>`;
+                }
+                html += `<li class="page-item ${currentPage === totalPages || totalPages === 0 ? 'disabled' : ''}"><a class="page-link page-link-custom" href="#" data-page="${currentPage + 1}"><i class="bi bi-chevron-right"></i></a></li>`;
+                $('#paginationControls').html(html);
+            }
+
+            $(document).on('click', '.page-link', function (e) {
+                e.preventDefault();
+                const page = parseInt($(this).data('page'));
+                if (page && page !== currentPage) {
+                    currentPage = page;
+                    updateTable();
+                }
+            });
+
+            $('#rowsPerPage').on('change', () => { currentPage = 1; updateTable(); });
+            updateTable();
+        });
+    </script>
+}

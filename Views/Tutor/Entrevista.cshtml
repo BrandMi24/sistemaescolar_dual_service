@@ -3,63 +3,151 @@
     Layout = "_LayoutTutor";
 }
 
-<div class="d-flex flex-column gap-4">
-    <div class="bg-surface p-4 rounded-4 border-theme shadow-sm d-flex flex-column gap-3">
+<div class="d-flex flex-column gap-4" style="min-height: 82vh;">
+
+    <div class="bg-surface p-4 rounded-4 border border-light shadow-sm d-flex flex-column gap-3">
         <div class="d-flex flex-column flex-xl-row justify-content-between align-items-xl-center gap-3">
-            <div class="position-relative search-wrapper flex-grow-1" style="max-width: 600px;">
-                <i class="bi bi-search position-absolute search-icon-left txt-body"></i>
-                <input type="text" id="alumnoSearch" class="form-control search-input-custom" placeholder="Buscar por nombre o matrícula...">
+            
+            <div class="position-relative flex-grow-1" style="max-width: 600px;">
+                <i class="bi bi-search position-absolute top-50 start-0 translate-middle-y ms-3 text-secondary"></i>
+                <input type="text" id="alumnoSearch" class="form-control border-0 bg-app py-2 ps-5 text-sm fw-medium" placeholder="Buscar por nombre o matrícula...">
             </div>
+
             <div class="d-flex gap-2 flex-wrap">
-                <select id="filterEntrevista" class="form-select bg-app border-theme txt-title fw-bold text-xs" style="width: auto; cursor: pointer;">
-                    <option value="todos">Todas las Entrevistas</option>
-                    <option value="completa">Completas</option>
-                    <option value="pendiente">Pendientes</option>
+                <select id="filterEntrevista" class="form-select border-0 bg-app txt-title fw-bold text-xs" style="width: auto; min-width: 180px;">
+                    <option value="todos">TODAS LAS ENTREVISTAS</option>
+                    <option value="completa">COMPLETAS</option>
+                    <option value="pendiente">PENDIENTES</option>
                 </select>
-                <select id="filterAcademico" class="form-select bg-app border-theme txt-title fw-bold text-xs" style="width: auto; cursor: pointer;">
-                    <option value="todos">Todos los Niveles</option>
-                    <option value="regular">Regulares</option>
-                    <option value="riesgo">En Riesgo</option>
+
+                <select id="filterAcademico" class="form-select border-0 bg-app txt-title fw-bold text-xs" style="width: auto; min-width: 180px;">
+                    <option value="todos">TODOS LOS NIVELES</option>
+                    <option value="regular">REGULARES</option>
+                    <option value="riesgo">EN RIESGO</option>
                 </select>
             </div>
         </div>
-        <div class="txt-body text-xs fw-bold border-top border-theme pt-2 mt-1">
-            <i class="bi bi-info-circle me-1"></i> Mostrando <span id="visibleCount" class="txt-title">3</span> alumnos en el grupo 7º A
+
+        <div class="border-top border-light pt-2 mt-1">
+            <span class="text-secondary fw-bold text-uppercase tracking-widest" style="font-size: 0.65rem;">
+                MOSTRANDO <span id="visibleCount" class="txt-primary-dark">3</span> ALUMNOS EN EL GRUPO 7º A
+            </span>
         </div>
     </div>
 
     <div class="row g-4" id="alumnosGrid">
+        
         <div class="col-12 col-md-6 col-xxl-4 alumno-card-wrapper" data-entrevista="completa" data-academico="regular">
-            <div class="admin-card-white p-4 rounded-4 border-theme shadow-sm hover-shadow-md transition-all h-100 border-top border-4" style="border-top-color: var(--primary-900) !important;">
+            <div class="bg-white p-4 rounded-4 border border-light shadow-sm transition-all h-100 border-top border-4" style="border-top-color: var(--primary-900) !important;">
                 <div class="d-flex flex-column align-items-center text-center mb-4">
-                    <div class="avatar-container mb-3 position-relative">
-                        <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Roberto" class="avatar-xl-img rounded-circle shadow-sm">
-                        <div class="status-indicator bg-success"></div>
+                    
+                    <div class="user-initial-avatar mb-3 shadow-sm" style="width: 60px; height: 60px; font-size: 1.5rem; background-color: var(--accent-100); color: var(--primary-900);">
+                        RC
                     </div>
-                    <h5 class="txt-title fw-bold mb-1 alumno-nombre">Roberto Carlos Perez Cadena</h5>
-                    <div class="txt-body text-xs mb-3"><i class="bi bi-hash"></i> <span class="alumno-matricula">26001504</span></div>
-                    <span class="badge status-aceptado text-xxs px-2 py-1">Entrevista Completa</span>
+
+                    <h6 class="txt-title fw-bold mb-1 text-uppercase alumno-nombre">Roberto Carlos Perez Cadena</h6>
+                    <div class="text-secondary fw-bold text-xxs mb-3 tracking-widest text-uppercase">
+                        MATRÍCULA: <span class="alumno-matricula">26001504</span>
+                    </div>
+
+                    <span class="badge rounded-pill px-3 py-2 text-xxs fw-bold status-aceptado">ENTREVISTA COMPLETA</span>
                 </div>
+
                 <div class="d-grid gap-2">
-                    <button class="btn btn-primary-sep btn-sm py-2 shadow-sm" onclick="verEntrevista('26001504')">Ver Entrevista</button>
+                    <button class="btn-primary-sep border-0 py-2 text-xxs fw-bold tracking-widest shadow-sm" onclick="verEntrevista('26001504')">
+                        VER ENTREVISTA
+                    </button>
+                    
                     <div class="d-flex gap-2">
-                        <button class="btn btn-ghost-sep btn-sm flex-grow-1 py-2" onclick="verSeguimiento('26001504')"><i class="bi bi-journal-text"></i></button>
-                        <button class="btn btn-ghost-sep btn-sm flex-grow-1 py-2" data-bs-toggle="modal" data-bs-target="#modalEditar"><i class="bi bi-pencil"></i></button>
-                        <button class="btn btn-ghost-sep btn-sm flex-grow-1 py-2" data-bs-toggle="dropdown"><i class="bi bi-three-dots"></i></button>
-                        <ul class="dropdown-menu border-theme shadow-sm text-xs">
-                            <li><a class="dropdown-item fw-bold" href="#" data-bs-toggle="modal" data-bs-target="#modalCambiarGrupo">Cambiar Grupo</a></li>
-                            <li><a class="dropdown-item fw-bold text-danger" href="#" data-bs-toggle="modal" data-bs-target="#modalBaja">Tramitar Baja</a></li>
-                            <li><hr class="dropdown-divider border-theme"></li>
-                            <li><a class="dropdown-item fw-bold text-danger" href="#" onclick="removerAlumno('26001504')">Remover del Grupo</a></li>
-                        </ul>
+                        <button class="btn btn-sm bg-app text-secondary border-0 flex-grow-1 py-2 rounded-3" onclick="verSeguimiento('26001504')" title="Bitácora">
+                            <i class="bi bi-journal-text"></i>
+                        </button>
+                        <button class="btn btn-sm bg-app text-secondary border-0 flex-grow-1 py-2 rounded-3" data-bs-toggle="modal" data-bs-target="#modalEditar" title="Editar">
+                            <i class="bi bi-pencil-square"></i>
+                        </button>
+                        
+                        <div class="dropdown flex-grow-1">
+                            <button class="btn btn-sm bg-app text-secondary border-0 w-100 py-2 rounded-3" data-bs-toggle="dropdown">
+                                <i class="bi bi-three-dots"></i>
+                            </button>
+                            <ul class="dropdown-menu border-light shadow-sm text-xxs p-2">
+                                <li><a class="dropdown-item fw-bold text-uppercase py-2" href="#">Cambiar Grupo</a></li>
+                                <li><a class="dropdown-item fw-bold text-uppercase py-2 text-danger" href="#">Tramitar Baja</a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item fw-bold text-uppercase py-2 text-danger" href="#">Remover del Grupo</a></li>
+                            </ul>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
+
+        <div class="col-12 col-md-6 col-xxl-4 alumno-card-wrapper" data-entrevista="pendiente" data-academico="riesgo">
+            <div class="bg-white p-4 rounded-4 border border-light shadow-sm transition-all h-100 border-top border-4" style="border-top-color: var(--error-700) !important;">
+                <div class="d-flex flex-column align-items-center text-center mb-4">
+                    
+                    <div class="user-initial-avatar mb-3 shadow-sm" style="width: 60px; height: 60px; font-size: 1.5rem; background-color: var(--error-100); color: var(--error-700);">
+                        MA
+                    </div>
+
+                    <h6 class="txt-title fw-bold mb-1 text-uppercase alumno-nombre">Miguel Ángel Torres</h6>
+                    <div class="text-secondary fw-bold text-xxs mb-3 tracking-widest text-uppercase">
+                        MATRÍCULA: <span class="alumno-matricula">26001892</span>
+                    </div>
+
+                    <span class="badge rounded-pill px-3 py-2 text-xxs fw-bold bg-app text-secondary border">ENTREVISTA PENDIENTE</span>
+                </div>
+
+                <div class="d-grid gap-2">
+                    <button class="btn btn-sm bg-app text-dark fw-bold border-0 py-2 text-xxs tracking-widest" onclick="verEntrevista('26001892')">
+                        REALIZAR ENTREVISTA
+                    </button>
+                    
+                    <div class="d-flex gap-2">
+                        <button class="btn btn-sm bg-app text-secondary border-0 flex-grow-1 py-2 rounded-3" onclick="verSeguimiento('26001892')">
+                            <i class="bi bi-journal-text"></i>
+                        </button>
+                        <button class="btn btn-sm bg-app text-secondary border-0 flex-grow-1 py-2 rounded-3" data-bs-toggle="modal" data-bs-target="#modalEditar">
+                            <i class="bi bi-pencil-square"></i>
+                        </button>
+                        <button class="btn btn-sm bg-app text-secondary border-0 flex-grow-1 py-2 rounded-3">
+                            <i class="bi bi-three-dots"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
     </div>
 </div>
 
-<div class="modal fade" id="modalEditar" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content border-theme rounded-4 shadow-lg"><div class="modal-header border-bottom border-theme p-4"><h5 class="modal-title txt-title fw-bold">Editar Alumno</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body p-4"><div class="row g-3"><div class="col-md-6"><label class="form-label text-xs fw-bold">NOMBRE</label><input type="text" class="form-control bg-app border-theme" value="Roberto Carlos"></div><div class="col-md-6"><label class="form-label text-xs fw-bold">APELLIDOS</label><input type="text" class="form-control bg-app border-theme" value="Perez Cadena"></div></div></div><div class="modal-footer"><button class="btn btn-primary-sep px-4" onclick="ejecutarAccion('Actualizado')">Guardar</button></div></div></div></div>
+<div class="modal fade" id="modalEditar" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 rounded-4 shadow-lg">
+            <div class="modal-header border-bottom border-light p-4">
+                <h6 class="modal-title txt-title fw-bold text-uppercase tracking-widest">Editar Datos del Alumno</h6>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="text-xxs fw-bold text-secondary text-uppercase mb-2 d-block">Nombre(s)</label>
+                        <input type="text" class="form-control border-0 bg-app py-2 text-xs fw-bold txt-title" value="Roberto Carlos">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="text-xxs fw-bold text-secondary text-uppercase mb-2 d-block">Apellidos</label>
+                        <input type="text" class="form-control border-0 bg-app py-2 text-xs fw-bold txt-title" value="Perez Cadena">
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer border-top border-light p-3">
+                <button class="btn-primary-sep border-0 px-4 py-2 text-xxs fw-bold tracking-widest shadow-sm" onclick="ejecutarAccion('Datos actualizados correctamente')">
+                    GUARDAR CAMBIOS
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
 
 @section Scripts {
     <script>
@@ -69,18 +157,32 @@
                 var ent = $("#filterEntrevista").val();
                 var acad = $("#filterAcademico").val();
                 var count = 0;
+
                 $(".alumno-card-wrapper").each(function() {
                     var $card = $(this);
                     var txt = $card.find(".alumno-nombre").text().toLowerCase() + $card.find(".alumno-matricula").text().toLowerCase();
-                    var match = txt.indexOf(search) > -1 && (ent === "todos" || $card.data("entrevista") === ent) && (acad === "todos" || $card.data("academico") === acad);
-                    if (match) { $card.show(); count++; } else { $card.hide(); }
+                    
+                    var match = txt.indexOf(search) > -1 &&
+                                (ent === "todos" || $card.data("entrevista") === ent) &&
+                                (acad === "todos" || $card.data("academico") === acad);
+                    
+                    if (match) {
+                        $card.show();
+                        count++;
+                    } else {
+                        $card.hide();
+                    }
                 });
                 $("#visibleCount").text(count);
             }
-            $("#alumnoSearch").on("keyup", applyFilters);
+
+            $("#alumnoSearch").on("input", applyFilters);
             $("#filterEntrevista, #filterAcademico").on("change", applyFilters);
+            
+            applyFilters();
         });
-        function verEntrevista(m) { alert("Entrevista: " + m); }
+
+        function verEntrevista(m) { alert("Visualizando expediente de entrevista: " + m); }
         function verSeguimiento(m) { location.href = '@Url.Action("Seguimiento", "Tutor")?m=' + m; }
         function ejecutarAccion(msg) { alert(msg); $('.modal').modal('hide'); }
     </script>
