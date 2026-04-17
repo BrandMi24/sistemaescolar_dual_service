@@ -23,7 +23,6 @@
         <!-- HEADER MOBILE -->
         <div class="bg-primary-dark p-3 d-flex d-lg-none justify-content-between align-items-center">
             <div class="d-flex align-items-center gap-2">
-                <div class="brand-logo avatar-sm text-xs">UT</div>
                 <span class="txt-white fw-bold fs-6">Portal Coordinador</span>
             </div>
             <button id="btnMobileMenu" class="btn btn-link text-white p-0 fs-2">
@@ -57,7 +56,7 @@
             <!-- NAV -->
             <nav class="sidebar-nav mt-2">
 
-                <!-- PANEL PRINCIPAL (ahora Catalogos) -->
+                <!-- PANEL PRINCIPAL (CATÁLOGOS) -->
                 <a class="nav-link @(currentAction == "Catalogos" ? "active" : "")"
                        href="@Url.Action("Catalogos", "Coordinador")">
                     <i class="bi bi-grid-1x2"></i> Panel Principal
@@ -70,62 +69,33 @@
                        href="@Url.Action("Ciclos", "Coordinador")">
                     <i class="bi bi-calendar-range"></i> Ciclos Escolares
                 </a>
-                <a class="nav-link" href="@Url.Action("Catalogos", "Coordinador")">
-                    <i class="bi bi-folder2-open"></i> Catálogos Generales
-                </a>
-                <a href="@Url.Action("ImportStudentsCsv", "Coordinador", new { tab = "tab-alumnos" })"
-                   class="btn btn-outline-primary rounded-3 px-4">
-                    Carga masiva CSV
-                </a>
-                <div class="nav-group-label">Gestión Operativa</div>
 
-                <!-- ASIGNACIONES -->
-                <a class="nav-link @(currentAction == "Asignaciones" ? "active" : "")"
-                       href="@Url.Action("Asignaciones", "Coordinador")">
-                    <i class="bi bi-table"></i> Matriz de Asignaciones
-                </a>
-
-                <!-- GRUPOS -->
-                <a class="nav-link @(currentAction == "Grupos" ? "active" : "")"
-                       href="@Url.Action("Grupos", "Coordinador")">
-                    <i class="bi bi-collection-fill"></i> Control de Grupos
-                </a>
-
-                <!-- SEGUIMIENTO -->
-                <a class="nav-link @(currentAction == "SeguimientoDualEstadias" ? "active" : "")"
-                       href="@Url.Action("SeguimientoDualEstadias", "Coordinador")">
-                    <i class="bi bi-collection-fill"></i> Seguimiento Estadias/Dual
-                </a>
-
-                <div class="nav-group-label">Analítica</div>
-
-                <!-- REPORTES -->
-                <a class="nav-link @(currentAction == "Reportes" ? "active" : "")"
-                       href="@Url.Action("Reportes", "Coordinador")">
-                    <i class="bi bi-graph-up-arrow"></i> Reportes y Deserción
+                <!-- CARGA MASIVA CSV -->
+                <a class="nav-link @(currentAction == "ImportStudentsCsv" ? "active" : "")"
+                       href="@Url.Action("ImportStudentsCsv", "Coordinador", new { tab = "tab-alumnos" })">
+                    <i class="bi bi-upload"></i> Carga masiva CSV
                 </a>
 
             </nav>
 
             <!-- FOOTER -->
             <div class="sidebar-footer">
-                <div class="d-flex align-items-center gap-2">
-                    <div class="avatar-sm bg-accent-light txt-primary-dark fw-bold">
-                        @User.Identity.Name?.Substring(0, 1).ToUpper()
+                <div class="d-flex flex-column gap-1 px-2">
+
+                    <!-- USUARIO -->
+                    <div class="fw-semibold text-white" style="font-size: 0.95rem;">
+                        @User.Identity.Name
                     </div>
 
-                    <div class="overflow-hidden">
-                        <div class="fw-bold small text-white text-truncate">
-                            @User.Identity.Name
-                        </div>
+                    <!-- LOGOUT -->
+                    <form asp-controller="Account" asp-action="Logout" method="post">
+                        <button type="submit"
+                                class="btn btn-link p-0 text-white text-decoration-none border-0"
+                                style="font-size: 0.85rem; opacity: 0.8;">
+                            Cerrar Sesión
+                        </button>
+                    </form>
 
-                        <form asp-controller="Account" asp-action="Logout" method="post">
-                            <button type="submit"
-                                    class="btn btn-link p-0 opacity-50 text-xxs text-white text-decoration-none border-0">
-                                Cerrar Sesión
-                            </button>
-                        </form>
-                    </div>
                 </div>
             </div>
 
