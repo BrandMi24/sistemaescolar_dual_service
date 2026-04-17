@@ -6,28 +6,39 @@
 
 <div class="main-container">
     <div class="form-container">
-        <h2>Confirmar eliminación</h2>
-        <p class="text-muted">Esta acción eliminará el preregistro y sus archivos cargados.</p>
+        <h2 class="txt-primary-dark fw-bold">Confirmar eliminación</h2>
+        <p class="text-muted">Esta acción eliminará el preregistro y sus archivos cargados permanentemente.</p>
         <hr />
         <dl class="row">
             <dt class="col-sm-3">Folio:</dt>
-            <dd class="col-sm-9">@Model.Id</dd>
+            <dd class="col-sm-9 fw-bold">@(Model.academiccontrol_preinscription_folio ?? $"#{Model.academiccontrol_preinscription_ID}")</dd>
 
             <dt class="col-sm-3">Nombre:</dt>
-            <dd class="col-sm-9">@Model.Nombre @Model.ApellidoPaterno @Model.ApellidoMaterno</dd>
+            <dd class="col-sm-9">
+                @Model.academiccontrol_preinscription_personaldata_name
+                @Model.academiccontrol_preinscription_personaldata_paternalSurname
+                @Model.academiccontrol_preinscription_personaldata_maternalSurname
+            </dd>
 
             <dt class="col-sm-3">Carrera:</dt>
-            <dd class="col-sm-9">@Model.CarreraSolicitada</dd>
+            <dd class="col-sm-9">@Model.academiccontrol_preinscription_careerRequested</dd>
 
             <dt class="col-sm-3">Correo:</dt>
-            <dd class="col-sm-9">@Model.Email</dd>
+            <dd class="col-sm-9">@Model.academiccontrol_preinscription_personaldata_email</dd>
         </dl>
 
         <form asp-action="Delete">
-            <input type="hidden" asp-for="Id" />
+            @Html.AntiForgeryToken()
+            @* Se actualiza el campo oculto al nuevo ID de preinscripción *@
+            <input type="hidden" asp-for="academiccontrol_preinscription_ID" />
+
             <div class="d-flex justify-content-between mt-4">
-                <a asp-action="Index" class="btn btn-secondary">Cancelar</a>
-                <button type="submit" class="btn btn-danger">Eliminar</button>
+                <a asp-action="Index" class="btn btn-ghost-sep px-4">
+                    <i class="bi bi-arrow-left me-2"></i>Cancelar
+                </a>
+                <button type="submit" class="btn btn-danger px-4">
+                    <i class="bi bi-trash me-2"></i>Eliminar Definitivamente
+                </button>
             </div>
         </form>
     </div>

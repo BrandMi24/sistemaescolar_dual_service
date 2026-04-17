@@ -8,30 +8,54 @@
 <div class="main-container">
     <div class="page-header">
         <h1>Editar Aspirante</h1>
-        <p>Folio: @Model.Id</p>
+        <p>Matrícula / ID: @(Model.academiccontrol_inscription_enrollment ?? Model.academiccontrol_inscription_ID.ToString())</p>
     </div>
 
     <div class="form-container">
         <form asp-action="Edit">
+            @Html.AntiForgeryToken()
             <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
-            <input type="hidden" asp-for="Id" />
-            
+
+            @* Identificador oculto con el nuevo nombre *@
+            <input type="hidden" asp-for="academiccontrol_inscription_ID" />
+
             <div class="form-section">
-                <h3 class="form-section-title">Datos del Aspirante</h3>
+                <h3 class="form-section-title">Datos de la Inscripción</h3>
                 <div class="row">
                     <div class="col-md-6 mb-3">
-                        <label asp-for="CarreraSolicitada" class="form-label"><strong>Carrera Solicitada (1ª opción) *</strong></label>
-                        <select asp-for="CarreraSolicitada" class="form-select" required>
+                        <label asp-for="academiccontrol_inscription_careerRequested" class="form-label"><strong>Carrera Solicitada *</strong></label>
+                        <select asp-for="academiccontrol_inscription_careerRequested" class="form-select" required>
                             <option value="">SIN SELECCION</option>
-                            <option value="INGENIERÍA MECATRÓNICA">INGENIERÍA MECATRÓNICA</option>
-                            <option value="INGENIERÍA EN DESARROLLO Y GESTIÓN DE SOFTWARE">INGENIERÍA EN DESARROLLO Y GESTIÓN DE SOFTWARE</option>
-                            <option value="INGENIERÍA EN PROCESOS Y OPERACIONES INDUSTRIALES">INGENIERÍA EN PROCESOS Y OPERACIONES INDUSTRIALES</option>
+                            @foreach (var c in ControlEscolar.Helpers.CatalogosHelper.Carreras)
+                            {
+                                <option value="@c">@c</option>
+                            }
                         </select>
-                        <span asp-validation-for="CarreraSolicitada" class="text-danger"></span>
+                        <span asp-validation-for="academiccontrol_inscription_careerRequested" class="text-danger"></span>
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label asp-for="academiccontrol_inscription_state" class="form-label"><strong>Estado del Registro</strong></label>
+                        <select asp-for="academiccontrol_inscription_state" class="form-select">
+                            @foreach (var e in Enum.GetNames(typeof(EstadoInscripcion)))
+                            {
+                                <option value="@e">@e</option>
+                            }
+                        </select>
+                        <span asp-validation-for="academiccontrol_inscription_state" class="text-danger"></span>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label asp-for="academiccontrol_inscription_TSUEnrollment" class="form-label"><strong>Matrícula TSU (Opcional)</strong></label>
+                        <input asp-for="academiccontrol_inscription_TSUEnrollment" class="form-control" placeholder="Ingrese matrícula previa si aplica" />
                     </div>
                     <div class="col-md-6 mb-3">
-                        <label asp-for="EstadoRegistro" class="form-label"><strong>Estado del Registro</strong></label>
-                        <select asp-for="EstadoRegistro" class="form-select" asp-items="Html.GetEnumSelectList<EstadoRegistro>()"></select>
+                        <div class="form-check mt-4">
+                            <input asp-for="academiccontrol_inscription_hasTSUEnrollment" class="form-check-input" type="checkbox" />
+                            <label asp-for="academiccontrol_inscription_hasTSUEnrollment" class="form-check-label">¿Cuenta con TSU?</label>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -45,5 +69,7 @@
 </div>
 
 @section Scripts {
-    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
 }

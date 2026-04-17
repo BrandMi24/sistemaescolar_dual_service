@@ -16,7 +16,7 @@
         <div style="height: 4px; background-color: var(--primary-900); width: 100%;"></div>
 
         <nav class="navbar navbar-expand-lg navbar-light bg-surface border-bottom border-theme shadow-sm py-3">
-            <div class="container">
+            <div class="container-fluid container-lg">
                 <a class="navbar-brand d-flex align-items-center gap-2" asp-area="" asp-controller="Home" asp-action="Index">
                     <div class="brand-logo" style="width: 35px; height: 35px; font-size: 0.8rem;">UT</div>
                     <span class="txt-primary-dark fw-800 tracking-wide mb-0" style="font-size: 1.1rem;">Control Escolar</span>
@@ -26,8 +26,8 @@
                     <i class="bi bi-list fs-1 txt-primary-dark"></i>
                 </button>
 
-                <div class="navbar-collapse collapse d-lg-inline-flex justify-content-between mt-3 mt-lg-0">
-                    <ul class="navbar-nav flex-grow-1 mx-lg-3 gap-1">
+                <div class="navbar-collapse collapse d-lg-flex align-items-lg-center mt-3 mt-lg-0">
+                    <ul class="navbar-nav mx-lg-3 gap-1">
                         <li class="nav-item">
                             <a class="nav-link txt-title fw-600 px-3 header-link" asp-area="" asp-controller="Home" asp-action="Index">Inicio</a>
                         </li>
@@ -37,15 +37,15 @@
                         <li class="nav-item">
                             <a class="nav-link txt-title fw-600 px-3 header-link" asp-controller="Aspirantes" asp-action="Create">Inscripción</a>
                         </li>
-                        <li class="nav-item">
+                        @* <li class="nav-item">
                             <a class="nav-link txt-title fw-600 px-3 header-link" asp-controller="ControlEscolar" asp-action="Index">Control Escolar</a>
-                        </li>
+                        </li> *@
 
                         @if (User.Identity?.IsAuthenticated == true)
                         {
                             <div class="vr mx-2 d-none d-lg-block border-theme"></div>
 
-                            <li class="nav-item">
+                         @*    <li class="nav-item">
                                 <a class="nav-link txt-body fw-600 px-3 header-link d-flex align-items-center gap-2" asp-controller="Preinscripciones" asp-action="Index">
                                     <i class="bi bi-clipboard-check"></i> Preinscripciones
                                 </a>
@@ -53,6 +53,11 @@
                             <li class="nav-item">
                                 <a class="nav-link txt-body fw-600 px-3 header-link d-flex align-items-center gap-2" asp-controller="Aspirantes" asp-action="Index">
                                     <i class="bi bi-person-badge"></i> Inscripciones
+                                </a>
+                            </li> *@
+                            <li class="nav-item">
+                                <a class="nav-link txt-body fw-600 px-3 header-link d-flex align-items-center gap-2" asp-controller="ControlEscolar" asp-action="Historial">
+                                    <i class="bi bi-person-badge"></i> Historial
                                 </a>
                             </li>
                             <li class="nav-item">
@@ -68,7 +73,7 @@
                         }
                     </ul>
 
-                    <div class="d-flex align-items-center gap-3 border-top border-lg-0 pt-3 pt-lg-0 border-theme mt-3 mt-lg-0">
+                    <div class="ms-lg-auto d-flex align-items-center gap-3 border-top border-lg-0 pt-3 pt-lg-0 border-theme mt-3 mt-lg-0">
                         @if (User.Identity?.IsAuthenticated == true)
                         {
                             <div class="d-flex align-items-center gap-2 me-2">
@@ -78,7 +83,7 @@
                                 <span class="txt-title fw-600 small d-none d-xl-block">@User.Identity?.Name</span>
                             </div>
                             <form asp-controller="Account" asp-action="Logout" method="post" class="m-0">
-                                <button type="submit" class="btn btn-ghost-sep btn-sm border-theme txt-title d-flex align-items-center gap-2 px-3">
+                                <button type="submit" class="btn btn-ghost-sep btn-sm border-theme txt-title d-flex align-items-center gap-2 px-2 px-lg-3 text-nowrap">
                                     <i class="bi bi-box-arrow-right"></i> <span class="fw-bold">Salir</span>
                                 </button>
                             </form>

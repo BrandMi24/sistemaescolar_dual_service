@@ -23,7 +23,7 @@ namespace ControlEscolar.Controllers
         private readonly ApplicationDbContext _context;
         private readonly IWebHostEnvironment _webHostEnvironment;
 
-        public TramitesController(ApplicationDbContext context, IWebHostEnvironment webHostEnvironment)
+        public TramitesController(ApplicationDbContext context, IWebHostEnvironment webHostEnvironment, UserManager<IdentityUser> userManager)
         {
             _context = context;
             _webHostEnvironment = webHostEnvironment;

@@ -1,49 +1,93 @@
 @model ControlEscolar.Models.LoginViewModel
 
 @{
-    ViewData["Title"] = "Iniciar Sesión";
+    ViewData["Title"] = "Acceso Institucional";
+    // Nota: Puedes usar un Layout vacío para que no cargue menús laterales aquí
+    // Layout = "_LayoutVacio"; 
 }
 
-<div class="main-container">
-    <div class="row justify-content-center mt-5">
-        <div class="col-md-5">
-            <div class="card shadow-sm border-0">
-                <div class="card-body p-4">
-                    <h3 class="text-center mb-4">
-                        <span style="font-size:1.6rem;">🔐</span> Iniciar Sesión
-                    </h3>
-                    <p class="text-muted text-center mb-4">Acceso exclusivo para administradores</p>
+<div class="d-flex flex-column justify-content-center align-items-center fade-in px-3" style="min-height: 85vh;">
+    
+    <div class="w-100" style="max-width: 450px;">
 
-                    <form asp-action="Login" asp-route-returnUrl="@ViewData["ReturnUrl"]" method="post">
-                        <div asp-validation-summary="ModelOnly" class="alert alert-danger" style="display:@(ViewData.ModelState.ErrorCount > 0 ? "block" : "none")"></div>
+        <div class="admin-card-white p-4 p-md-5 border-0 shadow-lg rounded-4">
+            
+            <div class="text-center mb-4 pb-3 border-bottom border-theme">
+                <h5 class="txt-title fw-bold text-sm mb-1 text-uppercase tracking-wide">Iniciar Sesión</h5>
+                <p class="txt-body text-xxs mb-0">Acceso exclusivo para personal y alumnos</p>
+            </div>
 
-                        <div class="mb-3">
-                            <label asp-for="Email" class="form-label"></label>
-                            <input asp-for="Email" class="form-control" autofocus placeholder="admin@uttn.mx" />
-                            <span asp-validation-for="Email" class="text-danger"></span>
-                        </div>
+            <form asp-action="Login" asp-route-returnUrl="@ViewData["ReturnUrl"]" method="post">
+                
+                <div asp-validation-summary="ModelOnly" class="alert bg-error-100 border border-error border-opacity-25 txt-error text-xs fw-bold rounded-3 shadow-sm" style="display:@(ViewData.ModelState.ErrorCount > 0 ? "block" : "none")"></div>
 
-                        <div class="mb-3">
-                            <label asp-for="Password" class="form-label"></label>
-                            <input asp-for="Password" class="form-control" placeholder="••••••••" />
-                            <span asp-validation-for="Password" class="text-danger"></span>
-                        </div>
-
-                        <div class="mb-3 form-check">
-                            <input asp-for="RememberMe" class="form-check-input" />
-                            <label asp-for="RememberMe" class="form-check-label"></label>
-                        </div>
-
-                        <button type="submit" class="btn btn-primary w-100 btn-lg">Ingresar</button>
-                    </form>
+                <div class="mb-4">
+                    <label asp-for="Email" class="txt-body text-xxs fw-bold tracking-wide mb-2 d-block text-uppercase">CORREO INSTITUCIONAL</label>
+                    <div class="position-relative">
+                        <i class="bi bi-envelope-fill position-absolute top-50 start-0 translate-middle-y ms-3 text-muted"></i>
+                        <input asp-for="Email" class="form-control border-0 bg-app py-3 ps-5 text-sm fw-medium custom-input" autofocus placeholder="usuario@uttn.mx" />
+                    </div>
+                    <span asp-validation-for="Email" class="text-danger text-xxs fw-bold mt-1 d-block"></span>
                 </div>
-            </div>
-            <div class="text-center mt-3">
-                <a asp-controller="Home" asp-action="Index" class="text-muted">← Regresar al inicio</a>
-            </div>
+
+                <div class="mb-4">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <label asp-for="Password" class="txt-body text-xxs fw-bold tracking-wide m-0 d-block text-uppercase">CONTRASEÑA</label>
+                        <a href="#" class="txt-primary-dark text-xxs fw-bold text-decoration-none transition-all" style="opacity: 0.8;">¿Olvidaste tu clave?</a>
+                    </div>
+                    <div class="position-relative">
+                        <i class="bi bi-lock-fill position-absolute top-50 start-0 translate-middle-y ms-3 text-muted"></i>
+                        <input asp-for="Password" type="password" class="form-control border-0 bg-app py-3 ps-5 text-sm fw-medium custom-input" placeholder="••••••••" />
+                    </div>
+                    <span asp-validation-for="Password" class="text-danger text-xxs fw-bold mt-1 d-block"></span>
+                </div>
+
+                <div class="mb-4">
+                    <div class="form-check d-flex align-items-center gap-2">
+                        <input asp-for="RememberMe" class="form-check-input mt-0 border-theme shadow-none" style="width: 18px; height: 18px; cursor: pointer;" />
+                        <label asp-for="RememberMe" class="form-check-label txt-body text-xs fw-medium pt-1" style="cursor: pointer;">Mantener sesión iniciada</label>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn-primary-sep border-0 w-100 py-3 text-xs tracking-wide shadow-sm d-flex align-items-center justify-content-center gap-2 mt-2">
+                    INGRESAR AL SISTEMA <i class="bi bi-arrow-right-circle-fill fs-6"></i>
+                </button>
+            </form>
         </div>
+
+        <div class="text-center mt-4">
+            <a asp-controller="Home" asp-action="Index" class="btn-text-action text-muted d-inline-flex align-items-center gap-2 fw-bold text-xs">
+                <i class="bi bi-arrow-left"></i> REGRESAR AL PORTAL PÚBLICO
+            </a>
+        </div>
+
     </div>
 </div>
+
+<style>
+    /* Efecto suave para los inputs al hacer clic (Focus) */
+    .custom-input {
+        transition: all 0.3s ease;
+    }
+    .custom-input:focus {
+        background-color: var(--white) !important;
+        box-shadow: 0 0 0 4px var(--accent-100) !important;
+    }
+    
+    /* Botón flotante para regresar */
+    .btn-text-action {
+        text-decoration: none;
+        padding: 8px 16px;
+        transition: all 0.2s ease;
+        border-radius: 6px;
+        background: transparent;
+        border: none;
+    }
+    .btn-text-action:hover {
+        background-color: var(--bg-main);
+        color: var(--primary-900) !important;
+    }
+</style>
 
 @section Scripts {
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
