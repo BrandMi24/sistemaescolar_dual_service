@@ -25,7 +25,7 @@ namespace ControlEscolar.Helpers
 
         #region Datos Personales
 
-        public static readonly string[] Sexos = { "MASCULINO", "FEMENINO" };
+        public static readonly string[] Sexos = { "MASCULINO", "FEMENINO", "OTRO" };
 
         public static readonly string[] EstadosCiviles =
         {

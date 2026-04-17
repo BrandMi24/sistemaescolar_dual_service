@@ -497,6 +497,9 @@
 
             // Submit con manejo de PDF y redirección
             submitBtn.addEventListener('click', async function () {
+
+                if (!validarPasoActual()) return;
+
                 const form = document.getElementById('preinscripcionForm');
                 const formData = new FormData(form);
 
