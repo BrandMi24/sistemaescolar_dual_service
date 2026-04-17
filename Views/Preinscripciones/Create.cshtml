@@ -363,7 +363,7 @@
     @{
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
-
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             const nextBtn = document.getElementById('nextStep');
@@ -386,7 +386,60 @@
                 submitBtn.classList.toggle('d-none', currentStep !== totalSteps);
             }
 
-            nextBtn.addEventListener('click', () => { if (currentStep < totalSteps) { currentStep++; updateUI(); } });
+            // ── Validación por paso antes de avanzar ───────────────────────────────
+            function validarPasoActual() {
+                const stepEl = document.querySelector(`.wizard-step[data-step="${currentStep}"]`);
+                if (!stepEl) return true;
+
+                // Recopilar todos los campos requeridos visibles en este paso
+                const campos = stepEl.querySelectorAll('input[required], select[required], textarea[required]');
+                let valido = true;
+                const faltantes = [];
+
+                campos.forEach(campo => {
+                    // Limpiar estilo previo
+                    campo.style.borderColor = '';
+                    campo.style.boxShadow = '';
+
+                    const vacio = campo.value.trim() === '' ||
+                        (campo.tagName === 'SELECT' && campo.value === '');
+
+                    if (vacio) {
+                        valido = false;
+                        campo.style.borderColor = 'var(--error-500, #dc3545)';
+                        campo.style.boxShadow = '0 0 0 3px rgba(220,53,69,.2)';
+                        // Obtener etiqueta
+                        const label = campo.closest('.col-md-1, .col-md-2, .col-md-3, .col-md-4, .col-md-5, .col-md-6, .col-md-7, .col-md-8, .col-md-9, .col-md-10, .col-md-11, .col-md-12, .col')?.querySelector('label');
+                        faltantes.push(label ? label.textContent.replace('*', '').trim() : 'Campo requerido');
+                    } else {
+                        // Restaurar si ya tiene valor
+                        campo.addEventListener('input', () => {
+                            campo.style.borderColor = '';
+                            campo.style.boxShadow = '';
+                        }, { once: true });
+                    }
+                });
+
+                if (!valido) {
+                    const lista = faltantes.map(f => `• ${f}`).join('<br>');
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Campos obligatorios incompletos',
+                        html: `Por favor completa los siguientes campos antes de continuar:<br><br><span style="text-align:left; display:block;">${lista}</span>`,
+                        confirmButtonText: 'Entendido',
+                        confirmButtonColor: '#13322B'
+                    });
+                }
+                return valido;
+            }
+            // ─────────────────────────────────────────────────────────────────────
+
+            nextBtn.addEventListener('click', () => {
+                if (currentStep < totalSteps && validarPasoActual()) {
+                    currentStep++;
+                    updateUI();
+                }
+            });
             prevBtn.addEventListener('click', () => { if (currentStep > 1) { currentStep--; updateUI(); } });
 
             // Lógica para mostrar/ocultar descripción de comunidad indígena
@@ -439,11 +492,23 @@
                     const diffDias = (endD - startD) / (1000 * 60 * 60 * 24);
 
                     if (endD <= startD) {
-                        alert('⚠️ La fecha de egreso de secundaria debe ser posterior a la de inicio.');
+                        await Swal.fire({
+                            icon: 'warning',
+                            title: 'Fecha de egreso inválida',
+                            text: 'La fecha de egreso de secundaria debe ser posterior a la fecha de inicio.',
+                            confirmButtonText: 'Entendido',
+                            confirmButtonColor: '#13322B'
+                        });
                         return;
                     }
                     if (diffDias < 1065 || diffDias > 1125) {
-                        alert('⚠️ El intervalo entre inicio y egreso de secundaria debe ser de exactamente 3 años.');
+                        await Swal.fire({
+                            icon: 'warning',
+                            title: 'Intervalo de secundaria inválido',
+                            text: 'El intervalo entre inicio y egreso de secundaria debe ser de exactamente 3 años (se permite un margen de ±30 días).',
+                            confirmButtonText: 'Entendido',
+                            confirmButtonColor: '#13322B'
+                        });
                         return;
                     }
                 }
