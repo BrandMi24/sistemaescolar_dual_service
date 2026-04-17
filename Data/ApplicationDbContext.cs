@@ -407,22 +407,6 @@ namespace ControlEscolar.Data
             modelBuilder.Entity<ArchivoDescargaViewModel>().HasNoKey();
             modelBuilder.Entity<RequisitoRevisionViewModel>().HasNoKey();
             modelBuilder.Entity<RequisitoSolicitudViewModel>().HasNoKey();
-            modelBuilder.Entity<ConfiguracionFichasEntity>(entity =>
-            {
-                entity.ToTable("ConfiguracionFichas");
-                entity.HasKey(e => e.Id);
-                entity.Property(e => e.Carrera).IsRequired().HasMaxLength(200);
-                entity.Property(e => e.FechaCreacion).HasDefaultValueSql("CURRENT_TIMESTAMP");
-                entity.Property(e => e.FechaActualizacion).HasDefaultValueSql("CURRENT_TIMESTAMP");
-            });
-
-            modelBuilder.Entity<PeriodoInscripcionEntity>(entity =>
-            {
-                entity.ToTable("PeriodoInscripcion");
-                entity.HasKey(e => e.Id);
-                entity.Property(e => e.Nombre).IsRequired().HasMaxLength(100);
-                entity.Property(e => e.FechaCreacion).HasDefaultValueSql("CURRENT_TIMESTAMP");
-            });
 
             // ==========================================
             // NUEVO: Configuración de Tablas de Salud
