@@ -247,6 +247,45 @@ namespace ControlEscolar.Data
             return results;
         }
 
+        public async Task<List<T>> ExecuteRawStoredProcedureAsync<T>(
+            string storedProcedureName,
+            IEnumerable<SqlParameter>? parameters,
+            Func<DbDataReader, T> mapFunction)
+        {
+            var results = new List<T>();
+            var conn = _context.Database.GetDbConnection();
+
+            using var cmd = conn.CreateCommand();
+            cmd.CommandText = storedProcedureName;
+            cmd.CommandType = CommandType.StoredProcedure;
+
+            if (parameters != null)
+            {
+                foreach (var param in parameters)
+                {
+                    cmd.Parameters.Add(param);
+                }
+            }
+
+            if (conn.State != ConnectionState.Open)
+                await conn.OpenAsync();
+
+            try
+            {
+                using var reader = await cmd.ExecuteReaderAsync();
+                while (await reader.ReadAsync())
+                {
+                    results.Add(mapFunction(reader));
+                }
+            }
+            finally
+            {
+                await conn.CloseAsync();
+            }
+
+            return results;
+        }
+
         public async Task<List<T>> ExecuteQueryAsync<T>(
             string sql,
             Dictionary<string, object>? parameters,
@@ -393,6 +432,68 @@ namespace ControlEscolar.Data
                 parameters,
                 reader => 0
             );
+        }
+
+        public async Task<List<ImportStudentCsvResultViewModel>> ImportStudentsBulkAsync(DataTable studentsTable)
+        {
+            var results = new List<ImportStudentCsvResultViewModel>();
+            var conn = _context.Database.GetDbConnection();
+
+            using var cmd = conn.CreateCommand();
+            cmd.CommandText = "dbo.sp_management_student_import";
+            cmd.CommandType = CommandType.StoredProcedure;
+
+            cmd.Parameters.Add(new SqlParameter("@Students", SqlDbType.Structured)
+            {
+                TypeName = "dbo.management_student_import_type",
+                Value = studentsTable
+            });
+
+            if (conn.State != ConnectionState.Open)
+                await conn.OpenAsync();
+
+            try
+            {
+                using var reader = await cmd.ExecuteReaderAsync();
+
+                do
+                {
+                    bool hasRowNumberColumn = false;
+
+                    for (int i = 0; i < reader.FieldCount; i++)
+                    {
+                        if (string.Equals(reader.GetName(i), "RowNumber", StringComparison.OrdinalIgnoreCase))
+                        {
+                            hasRowNumberColumn = true;
+                            break;
+                        }
+                    }
+
+                    if (!hasRowNumberColumn)
+                        continue;
+
+                    while (await reader.ReadAsync())
+                    {
+                        results.Add(new ImportStudentCsvResultViewModel
+                        {
+                            RowNumber = GetValue<int>(reader, "RowNumber"),
+                            IsSuccess = GetValue<bool>(reader, "IsSuccess"),
+                            Message = GetValue<string>(reader, "Message") ?? string.Empty,
+                            PersonId = GetValue<int?>(reader, "PersonId"),
+                            StudentId = GetValue<int?>(reader, "StudentId"),
+                            Matricula = GetValue<string>(reader, "Matricula"),
+                            Folio = GetValue<string>(reader, "Folio")
+                        });
+                    }
+
+                } while (await reader.NextResultAsync());
+            }
+            finally
+            {
+                await conn.CloseAsync();
+            }
+
+            return results;
         }
 
         public async Task<Dictionary<int, string>> GetRolesAsync()
