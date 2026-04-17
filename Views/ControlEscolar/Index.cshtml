@@ -78,7 +78,7 @@
                     </button>
                 </div>
                 <div class="col-md-2">
-                    <a href="@Url.Action("Index", new { tab = Model.Tab })" class="btn btn-ghost-sep w-100">
+                    <a href="@Url.Action("Index", new { tab = Model.Tab, estado = "Pendiente" })" class="btn btn-ghost-sep w-100">
                         <i class="bi bi-x-circle me-2"></i> Limpiar
                     </a>
                 </div>
@@ -231,31 +231,6 @@
                                             <small class="txt-body">Folio: @item.Preinscripcion?.academiccontrol_preinscription_folio</small>
                                         </td>
                                         <td class="txt-body">@item.academiccontrol_inscription_careerRequested</td>
-                                        @* <td>
-                                            <div class="d-flex gap-1">
-                                                @if (!string.IsNullOrEmpty(item.academiccontrol_inscription_birthCertificatePath))
-                                                {
-                                                    <a href="@item.academiccontrol_inscription_birthCertificatePath" target="_blank"
-                                                       class="btn btn-sm btn-ghost-sep px-2" title="Ver Acta de Nacimiento">
-                                                        <i class="bi bi-file-earmark-pdf text-danger"></i> Acta
-                                                    </a>
-                                                }
-                                                @if (!string.IsNullOrEmpty(item.academiccontrol_inscription_curpPdfPath))
-                                                {
-                                                    <a href="@item.academiccontrol_inscription_curpPdfPath" target="_blank"
-                                                       class="btn btn-sm btn-ghost-sep px-2" title="Ver CURP">
-                                                        <i class="bi bi-file-earmark-pdf text-danger"></i> CURP
-                                                    </a>
-                                                }
-                                                @if (!string.IsNullOrEmpty(item.academiccontrol_inscription_transcriptPath))
-                                                {
-                                                    <a href="@item.academiccontrol_inscription_transcriptPath" target="_blank"
-                                                       class="btn btn-sm btn-ghost-sep px-2" title="Ver Boleta/Certificado">
-                                                        <i class="bi bi-file-earmark-pdf text-danger"></i> Certificado
-                                                    </a>
-                                                }
-                                            </div>
-                                        </td> *@
                                         <td>
                                             <div class="d-flex flex-column gap-1">
 

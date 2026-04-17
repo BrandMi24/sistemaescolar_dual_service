@@ -21,9 +21,15 @@ namespace ControlEscolar.Controllers
         }
 
         public async Task<IActionResult> Index(string tab = "preinscripciones",
-                                               string? carrera = null,
-                                               string? estado = null)
+                                       string? carrera = null,
+                                       string? estado = null)
         {
+
+            if (!Request.Query.ContainsKey("estado") && estado == null)
+                estado = "Pendiente";
+            else
+                estado = string.IsNullOrEmpty(estado) ? null : estado;
+
             var preinscripciones = await _context.Preinscripciones
                 .Include(p => p.DatosPersonales)
                 .Include(p => p.Domicilio)
@@ -270,14 +276,6 @@ namespace ControlEscolar.Controllers
             }
 
             entidad.academiccontrol_inscription_state = EstadoInscripcion.Aprobada.ToString();
-            
-            //_context.AuditLogs.Add(new AuditLogEntity
-            //{
-            //    academiccontrol_audit_action = "Aprobar",
-            //    academiccontrol_audit_entityName = "Inscripcion",
-            //    academiccontrol_audit_entityID = entidad.academiccontrol_inscription_ID,
-            //    academiccontrol_audit_user = User.Identity?.Name ?? "Sistema"
-            //});
 
             await _context.SaveChangesAsync();
 
@@ -306,15 +304,6 @@ namespace ControlEscolar.Controllers
             if (entidad == null) return NotFound();
 
             entidad.academiccontrol_inscription_state = EstadoInscripcion.Rechazada.ToString();
-            
-            //_context.AuditLogs.Add(new AuditLogEntity
-            //{
-            //    academiccontrol_audit_action = "Rechazar",
-            //    academiccontrol_audit_entityName = "Inscripcion",
-            //    academiccontrol_audit_entityID = entidad.academiccontrol_inscription_ID,
-            //    academiccontrol_audit_user = User.Identity?.Name ?? "Sistema",
-            //    academiccontrol_audit_details = motivo
-            //});
 
             await _context.SaveChangesAsync();
 
@@ -375,33 +364,6 @@ namespace ControlEscolar.Controllers
             TempData["SuccessMessage"] = "Periodo guardado correctamente.";
             return RedirectToAction(nameof(ConfigurarFichas));
         }
-
-        //[HttpPost]
-        //public async Task<IActionResult> GuardarConfiguracionFichas(ConfiguracionFichasEntity config)
-        //{
-        //    if (config.academiccontrol_inscription_ticketconfig_ID == 0)
-        //    {
-        //        config.academiccontrol_inscription_ticketconfig_createdDate = DateTime.Now;
-        //        config.academiccontrol_inscription_ticketconfig_updatedDate = DateTime.Now;
-        //        _context.ConfiguracionFichas.Add(config);
-        //    }
-        //    else
-        //    {
-        //        var existing = await _context.ConfiguracionFichas.FindAsync(config.academiccontrol_inscription_ticketconfig_ID);
-        //        if (existing == null) return NotFound();
-
-        //        existing.academiccontrol_inscription_ticketconfig_career = config.academiccontrol_inscription_ticketconfig_career;
-        //        existing.academiccontrol_inscription_ticketconfig_limit = config.academiccontrol_inscription_ticketconfig_limit;
-        //        existing.academiccontrol_inscription_ticketconfig_startDate = config.academiccontrol_inscription_ticketconfig_startDate;
-        //        existing.academiccontrol_inscription_ticketconfig_endDate = config.academiccontrol_inscription_ticketconfig_endDate;
-        //        existing.academiccontrol_inscription_ticketconfig_status = config.academiccontrol_inscription_ticketconfig_status;
-        //        existing.academiccontrol_inscription_ticketconfig_updatedDate = DateTime.Now;
-        //    }
-
-        //    await _context.SaveChangesAsync();
-        //    TempData["SuccessMessage"] = "Configuración guardada correctamente.";
-        //    return RedirectToAction(nameof(ConfigurarFichas));
-        //}
 
         [HttpPost]
         public async Task<IActionResult> GuardarConfiguracionFichas(ConfiguracionFichasEntity config)
