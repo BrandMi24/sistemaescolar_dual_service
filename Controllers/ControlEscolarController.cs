@@ -446,19 +446,141 @@ namespace ControlEscolar.Controllers
             return RedirectToAction(nameof(ConfigurarFichas));
         }
 
-        public async Task<IActionResult> Historial(string? carrera = null)
+        public async Task<IActionResult> ExportarHistorialExcel(
+    string? carrera = null,
+    string? estado = null,
+    string? municipio = null,
+    int? anio = null,
+    string? fechaInicio = null,
+    string? fechaFin = null)
         {
+            // Normalizar vacíos a null
+            carrera = string.IsNullOrEmpty(carrera) ? null : carrera;
+            estado = string.IsNullOrEmpty(estado) ? null : estado;
+            municipio = string.IsNullOrEmpty(municipio) ? null : municipio;
+
+            DateTime? fechaInicioDate = string.IsNullOrEmpty(fechaInicio) ? null : DateTime.Parse(fechaInicio);
+            DateTime? fechaFinDate = string.IsNullOrEmpty(fechaFin) ? null : DateTime.Parse(fechaFin);
+
             var query = _context.Preinscripciones
                 .Include(p => p.DatosPersonales)
                 .Include(p => p.Domicilio)
+                .Include(p => p.DatosEscolares)
                 .AsQueryable();
 
-            if (!string.IsNullOrEmpty(carrera))
+            if (carrera != null)
                 query = query.Where(p => p.academiccontrol_preinscription_careerRequested == carrera);
+            if (estado != null)
+                query = query.Where(p => p.academiccontrol_preinscription_state == estado);
+            if (municipio != null)
+                query = query.Where(p => p.Domicilio!.academiccontrol_preinscription_address_municipality == municipio);
+            if (anio.HasValue)
+                query = query.Where(p => p.academiccontrol_preinscription_registrationDate.Year == anio.Value);
+            if (fechaInicioDate.HasValue)
+                query = query.Where(p => p.academiccontrol_preinscription_registrationDate >= fechaInicioDate.Value);
+            if (fechaFinDate.HasValue)
+                query = query.Where(p => p.academiccontrol_preinscription_registrationDate <= fechaFinDate.Value);
+
+            var datos = await query.OrderByDescending(p => p.academiccontrol_preinscription_registrationDate).ToListAsync();
+
+            using var workbook = new ClosedXML.Excel.XLWorkbook();
+            var ws = workbook.Worksheets.Add("Historial");
+
+            // Encabezados
+            var headers = new[]
+            {
+        "Folio", "Apellido Paterno", "Apellido Materno", "Nombre",
+        "CURP", "Fecha Nacimiento", "Género", "Email", "Teléfono",
+        "Carrera", "Promedio", "Estado", "Municipio",
+        "Escuela Procedencia", "Estado Registro", "Fecha Registro"
+    };
+
+            for (int i = 0; i < headers.Length; i++)
+            {
+                ws.Cell(1, i + 1).Value = headers[i];
+                ws.Cell(1, i + 1).Style.Font.Bold = true;
+                ws.Cell(1, i + 1).Style.Fill.BackgroundColor = ClosedXML.Excel.XLColor.FromHtml("#13322B");
+                ws.Cell(1, i + 1).Style.Font.FontColor = ClosedXML.Excel.XLColor.White;
+            }
+
+            // Datos
+            int row = 2;
+            foreach (var item in datos)
+            {
+                ws.Cell(row, 1).Value = item.academiccontrol_preinscription_folio ?? $"#{item.academiccontrol_preinscription_ID}";
+                ws.Cell(row, 2).Value = item.DatosPersonales?.academiccontrol_preinscription_personaldata_paternalSurname ?? "";
+                ws.Cell(row, 3).Value = item.DatosPersonales?.academiccontrol_preinscription_personaldata_maternalSurname ?? "";
+                ws.Cell(row, 4).Value = item.DatosPersonales?.academiccontrol_preinscription_personaldata_name ?? "";
+                ws.Cell(row, 5).Value = item.DatosPersonales?.academiccontrol_preinscription_personaldata_CURP ?? "";
+                ws.Cell(row, 6).Value = item.DatosPersonales?.academiccontrol_preinscription_personaldata_birthDate.ToString("dd/MM/yyyy") ?? "";
+                ws.Cell(row, 7).Value = item.DatosPersonales?.academiccontrol_preinscription_personaldata_gender ?? "";
+                ws.Cell(row, 8).Value = item.DatosPersonales?.academiccontrol_preinscription_personaldata_email ?? "";
+                ws.Cell(row, 9).Value = item.DatosPersonales?.academiccontrol_preinscription_personaldata_phone ?? "";
+                ws.Cell(row, 10).Value = item.academiccontrol_preinscription_careerRequested;
+                ws.Cell(row, 11).Value = item.academiccontrol_preinscription_average;
+                ws.Cell(row, 12).Value = item.Domicilio?.academiccontrol_preinscription_address_state ?? "";
+                ws.Cell(row, 13).Value = item.Domicilio?.academiccontrol_preinscription_address_municipality ?? "";
+                ws.Cell(row, 14).Value = item.DatosEscolares?.academiccontrol_preinscription_academic_originSchool ?? "";
+                ws.Cell(row, 15).Value = item.academiccontrol_preinscription_state;
+                ws.Cell(row, 16).Value = item.academiccontrol_preinscription_registrationDate.ToString("dd/MM/yyyy HH:mm");
+                row++;
+            }
+
+            ws.Columns().AdjustToContents();
+
+            using var stream = new MemoryStream();
+            workbook.SaveAs(stream);
+            stream.Position = 0;
+
+            var fileName = $"Historial_Preinscripciones_{DateTime.Now:yyyyMMdd_HHmm}.xlsx";
+            return File(stream.ToArray(), "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
+        }
+
+        public async Task<IActionResult> Historial(
+    string? carrera = null,
+    string? estado = null,
+    string? municipio = null,
+    int? anio = null,
+    DateTime? fechaInicio = null,
+    DateTime? fechaFin = null)
+        {
+            carrera = string.IsNullOrEmpty(carrera) ? null : carrera;
+            estado = string.IsNullOrEmpty(estado) ? null : estado;
+            municipio = string.IsNullOrEmpty(municipio) ? null : municipio;
+
+            var query = _context.Preinscripciones
+                .Include(p => p.DatosPersonales)
+                .Include(p => p.Domicilio)
+                .Include(p => p.DatosEscolares)
+                .AsQueryable();
+
+            if (carrera != null)
+                query = query.Where(p => p.academiccontrol_preinscription_careerRequested == carrera);
+            if (estado != null)
+                query = query.Where(p => p.academiccontrol_preinscription_state == estado);
+            if (municipio != null)
+                query = query.Where(p => p.Domicilio!.academiccontrol_preinscription_address_municipality == municipio);
+            if (anio.HasValue)
+                query = query.Where(p => p.academiccontrol_preinscription_registrationDate.Year == anio.Value);
+            if (fechaInicio.HasValue)
+                query = query.Where(p => p.academiccontrol_preinscription_registrationDate >= fechaInicio.Value);
+            if (fechaFin.HasValue)
+                query = query.Where(p => p.academiccontrol_preinscription_registrationDate <= fechaFin.Value);
 
             var vm = new HistorialViewModel
             {
-                Preinscripciones = await query.ToListAsync()
+                Preinscripciones = await query.OrderByDescending(p => p.academiccontrol_preinscription_registrationDate).ToListAsync(),
+                FiltroCarrera = carrera,
+                FiltroEstado = estado,
+                FiltroMunicipio = municipio,
+                FiltroAnio = anio,
+                FiltroFechaInicio = fechaInicio,
+                FiltroFechaFin = fechaFin,
+                AniosDisponibles = await _context.Preinscripciones
+                    .Select(p => p.academiccontrol_preinscription_registrationDate.Year)
+                    .Distinct()
+                    .OrderByDescending(y => y)
+                    .ToListAsync()
             };
 
             return View(vm);
