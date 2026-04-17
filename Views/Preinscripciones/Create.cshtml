@@ -126,13 +126,13 @@
                         </div>
                         <div class="col-md-4">
                             <label class="form-label txt-body text-xs fw-bold tracking-wide">ESTADO *</label>
-                            <select name="academiccontrol_preinscription_address_state" class="form-select bg-app border-theme txt-title fw-bold" data-estado data-municipio-target="Municipio">
+                            <select name="academiccontrol_preinscription_address_state" class="form-select bg-app border-theme txt-title fw-bold" required data-estado data-municipio-target="Municipio">
                                 <option value="">Selecciona un estado</option>
                             </select>
                         </div>
                         <div class="col-md-5">
                             <label class="form-label txt-body text-xs fw-bold tracking-wide">MUNICIPIO *</label>
-                            <select name="academiccontrol_preinscription_address_municipality" id="Municipio" class="form-select bg-app border-theme txt-title fw-bold" data-municipio="Municipio">
+                            <select name="academiccontrol_preinscription_address_municipality" id="Municipio" class="form-select bg-app border-theme txt-title fw-bold" required data-municipio="Municipio">
                                 <option value="">Seleccione un municipio</option>
                             </select>
                         </div>
@@ -258,13 +258,13 @@
                         </div>
                         <div class="col-md-3">
                             <label class="form-label txt-body text-xs fw-bold tracking-wide">ESTADO ESCUELA *</label>
-                            <select name="academiccontrol_preinscription_academic_schoolState" class="form-select bg-app border-theme txt-title fw-bold" data-estado data-municipio-target="MunicipioEscuela">
+                            <select name="academiccontrol_preinscription_academic_schoolState" class="form-select bg-app border-theme txt-title fw-bold" required data-estado data-municipio-target="MunicipioEscuela">
                                 <option value="">Seleccione</option>
                             </select>
                         </div>
                         <div class="col-md-3">
                             <label class="form-label txt-body text-xs fw-bold tracking-wide">MUNICIPIO ESCUELA *</label>
-                            <select name="academiccontrol_preinscription_academic_schoolMunicipality" id="MunicipioEscuela" class="form-select bg-app border-theme txt-title fw-bold" data-municipio="MunicipioEscuela">
+                            <select name="academiccontrol_preinscription_academic_schoolMunicipality" id="MunicipioEscuela" class="form-select bg-app border-theme txt-title fw-bold" required data-municipio="MunicipioEscuela">
                                 <option value="">Seleccione</option>
                             </select>
                         </div>
@@ -321,7 +321,7 @@
                         </div>
                         <div class="col-md-3">
                             <label class="form-label txt-body text-xs fw-bold tracking-wide">PROMEDIO FINAL *</label>
-                            <input name="academiccontrol_preinscription_average" type="number" step="0.01" min="0" max="10" class="form-control bg-app border-theme txt-title fw-bold" required placeholder="Ej. 8.5" />
+                            <input name="academiccontrol_preinscription_average" type="number" step="0.01" min="7" max="10" class="form-control bg-app border-theme txt-title fw-bold" required placeholder="Mín. 7.0" />
                         </div>
                         <div class="col-md-3">
                             <label class="form-label txt-body text-xs fw-bold tracking-wide">¿CÓMO SE ENTERÓ?</label>
@@ -401,16 +401,34 @@
                     campo.style.borderColor = '';
                     campo.style.boxShadow = '';
 
-                    const vacio = campo.value.trim() === '' ||
-                        (campo.tagName === 'SELECT' && campo.value === '');
+                    let campoInvalido = false;
+                    let mensajeExtra = '';
 
-                    if (vacio) {
+                    if (campo.type === 'number') {
+                        const val = parseFloat(campo.value);
+                        const min = campo.min !== '' ? parseFloat(campo.min) : null;
+                        const max = campo.max !== '' ? parseFloat(campo.max) : null;
+                        if (campo.value.trim() === '' || isNaN(val)) {
+                            campoInvalido = true;
+                        } else if (min !== null && val < min) {
+                            campoInvalido = true;
+                            mensajeExtra = ` (mínimo: ${min})`;
+                        } else if (max !== null && val > max) {
+                            campoInvalido = true;
+                            mensajeExtra = ` (máximo: ${max})`;
+                        }
+                    } else {
+                        campoInvalido = campo.value.trim() === '' ||
+                            (campo.tagName === 'SELECT' && campo.value === '');
+                    }
+
+                    if (campoInvalido) {
                         valido = false;
                         campo.style.borderColor = 'var(--error-500, #dc3545)';
                         campo.style.boxShadow = '0 0 0 3px rgba(220,53,69,.2)';
                         // Obtener etiqueta
                         const label = campo.closest('.col-md-1, .col-md-2, .col-md-3, .col-md-4, .col-md-5, .col-md-6, .col-md-7, .col-md-8, .col-md-9, .col-md-10, .col-md-11, .col-md-12, .col')?.querySelector('label');
-                        faltantes.push(label ? label.textContent.replace('*', '').trim() : 'Campo requerido');
+                        faltantes.push((label ? label.textContent.replace('*', '').trim() : 'Campo requerido') + mensajeExtra);
                     } else {
                         // Restaurar si ya tiene valor
                         campo.addEventListener('input', () => {
