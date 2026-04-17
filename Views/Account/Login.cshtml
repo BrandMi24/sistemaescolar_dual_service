@@ -1,7 +1,7 @@
 @model ControlEscolar.Models.LoginViewModel
 
 @{
-    ViewData["Title"] = "Acceso Institucional";
+    ViewData["Title"] = "Acceso Institucional";    
     // Nota: Puedes usar un Layout vacío para que no cargue menús laterales aquí
     // Layout = "_LayoutVacio"; 
 }
@@ -23,10 +23,7 @@
 
                 <div class="mb-4">
                     <label asp-for="Email" class="txt-body text-xxs fw-bold tracking-wide mb-2 d-block text-uppercase">CORREO INSTITUCIONAL</label>
-                    <div class="position-relative">
-                        <i class="bi bi-envelope-fill position-absolute top-50 start-0 translate-middle-y ms-3 text-muted"></i>
-                        <input asp-for="Email" class="form-control border-0 bg-app py-3 ps-5 text-sm fw-medium custom-input" autofocus placeholder="usuario@uttn.mx" />
-                    </div>
+                    <input asp-for="Email" class="form-control border-0 bg-app py-3 px-4 text-sm fw-medium custom-input shadow-none" autofocus placeholder="usuario@uttn.mx" />
                     <span asp-validation-for="Email" class="text-danger text-xxs fw-bold mt-1 d-block"></span>
                 </div>
 
@@ -35,10 +32,7 @@
                         <label asp-for="Password" class="txt-body text-xxs fw-bold tracking-wide m-0 d-block text-uppercase">CONTRASEÑA</label>
                         <a href="#" class="txt-primary-dark text-xxs fw-bold text-decoration-none transition-all" style="opacity: 0.8;">¿Olvidaste tu clave?</a>
                     </div>
-                    <div class="position-relative">
-                        <i class="bi bi-lock-fill position-absolute top-50 start-0 translate-middle-y ms-3 text-muted"></i>
-                        <input asp-for="Password" type="password" class="form-control border-0 bg-app py-3 ps-5 text-sm fw-medium custom-input" placeholder="••••••••" />
-                    </div>
+                    <input asp-for="Password" type="password" class="form-control border-0 bg-app py-3 px-4 text-sm fw-medium custom-input shadow-none" placeholder="••••••••" />
                     <span asp-validation-for="Password" class="text-danger text-xxs fw-bold mt-1 d-block"></span>
                 </div>
 
@@ -49,14 +43,14 @@
                     </div>
                 </div>
 
-                <button type="submit" class="btn-primary-sep border-0 w-100 py-3 text-xs tracking-wide shadow-sm d-flex align-items-center justify-content-center gap-2 mt-2">
-                    INGRESAR AL SISTEMA <i class="bi bi-arrow-right-circle-fill fs-6"></i>
+                <button type="submit" class="btn-primary-sep border-0 w-100 py-3 text-xs tracking-widest fw-bold shadow-sm mt-2">
+                    INGRESAR AL SISTEMA
                 </button>
             </form>
         </div>
 
         <div class="text-center mt-4">
-            <a asp-controller="Home" asp-action="Index" class="btn-text-action text-muted d-inline-flex align-items-center gap-2 fw-bold text-xs">
+            <a asp-controller="Home" asp-action="Index" class="btn-text-action text-muted d-inline-flex align-items-center gap-2 fw-bold text-xxs tracking-widest">
                 <i class="bi bi-arrow-left"></i> REGRESAR AL PORTAL PÚBLICO
             </a>
         </div>
@@ -68,10 +62,12 @@
     /* Efecto suave para los inputs al hacer clic (Focus) */
     .custom-input {
         transition: all 0.3s ease;
+        border-radius: 8px;
     }
     .custom-input:focus {
         background-color: var(--white) !important;
-        box-shadow: 0 0 0 4px var(--accent-100) !important;
+        /* Cambiado a Verde Institucional para consistencia técnica */
+        box-shadow: 0 0 0 2px var(--primary-900) !important;
     }
     
     /* Botón flotante para regresar */
