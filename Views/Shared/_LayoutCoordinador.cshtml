@@ -52,7 +52,10 @@
                 <a class="nav-link" href="@Url.Action("Catalogos", "Coordinador")">
                     <i class="bi bi-folder2-open"></i> Catálogos Generales
                 </a>
-
+                <a href="@Url.Action("ImportStudentsCsv", "Coordinador", new { tab = "tab-alumnos" })"
+                   class="btn btn-outline-primary rounded-3 px-4">
+                    Carga masiva CSV
+                </a>
                 <div class="nav-group-label">Gestión Operativa</div>
                 <a class="nav-link" href="@Url.Action("Asignaciones", "Coordinador")">
                     <i class="bi bi-table"></i> Matriz de Asignaciones

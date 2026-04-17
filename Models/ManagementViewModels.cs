@@ -1,5 +1,7 @@
 using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using Microsoft.AspNetCore.Http;
 
 namespace ControlEscolar.Models
 {
@@ -42,7 +44,7 @@ namespace ControlEscolar.Models
         public int Id { get; set; }
         public string Usuario { get; set; } = string.Empty;
 
-        [ EmailAddress]
+        [EmailAddress]
         public string Email { get; set; } = string.Empty;
 
         public string NombreCompleto { get; set; } = string.Empty;
@@ -56,7 +58,7 @@ namespace ControlEscolar.Models
         public int PersonId { get; set; }
         public int UserId { get; set; }
 
-        [ EmailAddress]
+        [EmailAddress]
         public string Email { get; set; } = string.Empty;
 
         public string Nombre { get; set; } = string.Empty;
@@ -97,10 +99,7 @@ namespace ControlEscolar.Models
 
     public class CreateCareerViewModel
     {
-        
         public string Code { get; set; } = string.Empty;
-
-        
         public string Name { get; set; } = string.Empty;
     }
 
@@ -108,29 +107,17 @@ namespace ControlEscolar.Models
     {
         public int? UserId { get; set; }
         public int? PersonId { get; set; }
-
-        
         public string FirstName { get; set; } = string.Empty;
-
-        
         public string LastNamePaternal { get; set; } = string.Empty;
-
         public string? LastNameMaternal { get; set; }
 
-        [ EmailAddress]
+        [EmailAddress]
         public string Email { get; set; } = string.Empty;
 
         public string? Department { get; set; }
-
-        
         public string Role { get; set; } = string.Empty;
-
-        
         public string Username { get; set; } = string.Empty;
-
         public string? Password { get; set; }
-
-        // NUEVO: vincular a un alumno existente
         public int? ExistingStudentId { get; set; }
     }
 
@@ -138,44 +125,69 @@ namespace ControlEscolar.Models
     {
         public int? StudentId { get; set; }
         public int? PersonId { get; set; }
-
-        
         public string FirstName { get; set; } = string.Empty;
 
-        [ EmailAddress]
+        [EmailAddress]
         public string Email { get; set; } = string.Empty;
 
         public string LastNamePaternal { get; set; } = string.Empty;
         public string? LastNameMaternal { get; set; }
         public string? Phone { get; set; }
-
         public string? CURP { get; set; }
         public string? Matricula { get; set; }
         public string StatusCode { get; set; } = "INSCRITO";
-
-        
         public int CareerId { get; set; }
-
         public int? GroupId { get; set; }
-
         public string? Username { get; set; }
         public string? Password { get; set; }
-
-        // NUEVO: vincular cuenta existente
         public int? ExistingUserId { get; set; }
+    }
+
+    public class ImportStudentsCsvViewModel
+    {
+        [Display(Name = "Archivo CSV")]
+        public IFormFile? CsvFile { get; set; }
+
+        public string ReturnTab { get; set; } = "tab-alumnos";
+
+        public List<ImportStudentCsvResultViewModel> Results { get; set; } = new();
+
+        public int TotalRows { get; set; }
+        public int SuccessCount { get; set; }
+        public int ErrorCount { get; set; }
+    }
+
+    public class ImportStudentCsvRowViewModel
+    {
+        public int RowNumber { get; set; }
+        public string FirstName { get; set; } = string.Empty;
+        public string LastNamePaternal { get; set; } = string.Empty;
+        public string? LastNameMaternal { get; set; }
+        public string? Email { get; set; }
+        public string? Phone { get; set; }
+        public string? CURP { get; set; }
+        public int CareerId { get; set; }
+        public int? GroupId { get; set; }
+        public string StatusCode { get; set; } = "INSCRITO";
+    }
+
+    public class ImportStudentCsvResultViewModel
+    {
+        public int RowNumber { get; set; }
+        public bool IsSuccess { get; set; }
+        public string Message { get; set; } = string.Empty;
+        public int? PersonId { get; set; }
+        public int? StudentId { get; set; }
+        public string? Matricula { get; set; }
+        public string? Folio { get; set; }
     }
 
     public class CreateTeacherViewModel
     {
         public int? TeacherId { get; set; }
         public int? PersonId { get; set; }
-
-        
         public string FirstName { get; set; } = string.Empty;
-
-        
         public string LastNamePaternal { get; set; } = string.Empty;
-
         public string? LastNameMaternal { get; set; }
         public string? Email { get; set; }
         public string? Phone { get; set; }
@@ -188,33 +200,19 @@ namespace ControlEscolar.Models
     public class CreateGroupViewModel
     {
         public int? Id { get; set; }
-        
         public string GroupCode { get; set; } = string.Empty;
-
         public string GroupName { get; set; } = string.Empty;
-
         public int? CareerId { get; set; }
-
-        
         public string Shift { get; set; } = "MATUTINO";
-
         public bool IsActive { get; set; } = true;
     }
 
     public class CycleViewModel
     {
         public int Id { get; set; }
-
-        
         public string Name { get; set; } = string.Empty;
-
-        
         public DateTime StartDate { get; set; }
-
-        
         public DateTime EndDate { get; set; }
-
-        
         public string StatusCode { get; set; } = "ACTIVO";
     }
 
@@ -227,9 +225,7 @@ namespace ControlEscolar.Models
     public class CreateRoleViewModel
     {
         public int? RoleId { get; set; }
-
         public string RoleName { get; set; } = string.Empty;
-
         public string? RoleDescription { get; set; }
     }
 
