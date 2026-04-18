@@ -1,0 +1,122 @@
+@{
+    ViewData["Title"] = "Portal de Registro";
+}
+
+<div class="text-center py-5 mb-2 mt-3 fade-in">
+    <h1 class="display-5 fw-bold mb-3 text-dark text-uppercase tracking-tight" style="letter-spacing: -1px;">Portal de Ingreso a Preparatoria</h1>
+    <p class="fs-6 mx-auto text-muted fw-medium" style="max-width: 600px; line-height: 1.6;">
+        Bienvenidos a la Universidad Tecnológica de Tamaulipas Norte. Realiza tu proceso de admisión de forma rápida, guiada y segura siguiendo los pasos a continuación.
+    </p>
+</div>
+
+<div class="container pb-5" style="max-width: 1100px;">
+
+    <div class="bg-white rounded-4 p-4 shadow-sm border border-light mb-5 d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-4">
+        <div class="d-flex align-items-start gap-3">
+            <i class="bi bi-info-circle text-warning fs-3"></i>
+            <div>
+                <h6 class="fw-bold mb-1 text-dark uppercase tracking-wide">Antes de iniciar tu registro</h6>
+                <p class="mb-0 text-muted text-sm fw-medium">
+                    Asegúrate de tener a la mano tu <strong>CURP</strong>. Todos los campos marcados con (*) son obligatorios para evaluar tu solicitud de ingreso.
+                </p>
+            </div>
+        </div>
+        <div class="flex-shrink-0">
+            <button class="btn btn-sm bg-light text-dark fw-bold px-3 py-2 text-xxs tracking-widest border">
+                VER REQUISITOS
+            </button>
+        </div>
+    </div>
+
+    <div class="row g-4">
+
+        <div class="col-lg-6">
+            <div class="bg-white h-100 d-flex flex-column p-4 p-lg-5 rounded-4 shadow-sm border border-light border-top-0 position-relative" style="border-top: 4px solid #D4C19C !important;">
+                
+                <div class="flex-grow-1">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h3 class="fw-bold m-0 text-dark">Preinscripción</h3>
+                        <span class="badge bg-light text-dark border px-3 py-2 text-xxs fw-bold tracking-widest">PASO 1</span>
+                    </div>
+                    
+                    <p class="text-muted mb-4 text-sm fw-medium" style="line-height: 1.7;">
+                        Inicia tu proceso de ingreso. Registra tu información personal y datos de la institución de procedencia para generar tu folio de seguimiento.
+                    </p>
+
+                    <ul class="list-unstyled mb-5 d-flex flex-column gap-3">
+                        <li class="d-flex align-items-center text-dark text-sm fw-bold">
+                            <i class="bi bi-check2-square me-3 text-warning fs-5"></i> DATOS PERSONALES Y TUTOR
+                        </li>
+                        <li class="d-flex align-items-center text-dark text-sm fw-bold">
+                            <i class="bi bi-check2-square me-3 text-warning fs-5"></i> INFORMACIÓN ACADÉMICA
+                        </li>
+                        <li class="d-flex align-items-center text-dark text-sm fw-bold">
+                            <i class="bi bi-check2-square me-3 text-warning fs-5"></i> GENERACIÓN DE FOLIO OFICIAL
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="mt-auto">
+                    <a asp-controller="Preinscripciones" asp-action="Create" class="btn btn-dark w-100 py-3 fw-bold text-xxs tracking-widest rounded-3 shadow-sm" style="background-color: #13322B; border: none;">
+                        COMENZAR REGISTRO <i class="bi bi-chevron-right ms-2"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-6">
+            <div class="bg-white h-100 d-flex flex-column p-4 p-lg-5 rounded-4 shadow-sm border border-light border-top-0" style="border-top: 4px solid #13322B !important;">
+
+                <div class="flex-grow-1">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h3 class="fw-bold m-0 text-dark">Inscripción</h3>
+                        <span class="badge bg-light text-dark border px-3 py-2 text-xxs fw-bold tracking-widest">PASO 2</span>
+                    </div>
+
+                    <p class="text-muted mb-4 text-sm fw-medium" style="line-height: 1.7;">
+                        ¿Ya fuiste aceptado? Finaliza tu ingreso cargando tus documentos digitales en formato PDF para obtener tu matrícula oficial de alumno.
+                    </p>
+
+                    <ul class="list-unstyled mb-5 d-flex flex-column gap-3">
+                        <li class="d-flex align-items-center text-dark text-sm fw-bold">
+                            <i class="bi bi-check2-square me-3 text-success fs-5"></i> ACCESO CON FOLIO RECIBIDO
+                        </li>
+                        <li class="d-flex align-items-center text-dark text-sm fw-bold">
+                            <i class="bi bi-check2-square me-3 text-success fs-5"></i> CARGA DE DOCUMENTACIÓN PDF
+                        </li>
+                        <li class="d-flex align-items-center text-dark text-sm fw-bold">
+                            <i class="bi bi-check2-square me-3 text-success fs-5"></i> GENERACIÓN DE MATRÍCULA
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="mt-auto">
+                    <a asp-controller="Aspirantes" asp-action="Create" class="btn btn-outline-dark w-100 py-3 fw-bold text-xxs tracking-widest rounded-3 border-2">
+                        CONTINUAR PROCESO <i class="bi bi-box-arrow-in-right ms-2"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="text-center mt-5 py-4 border-top border-light">
+        <p class="text-muted fw-bold text-xxs tracking-widest mb-0 opacity-50 uppercase">
+            Sistema Integral Escolar &copy; 2026 • Universidad Tecnológica de Tamaulipas Norte
+        </p>
+    </div>
+</div>
+
+<style>
+    .text-xxs { font-size: 0.65rem; }
+    .tracking-widest { letter-spacing: 0.15em; }
+    .uppercase { text-transform: uppercase; }
+    
+    /* Animación sutil de hover en tarjetas */
+    .col-lg-6 .bg-white {
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .col-lg-6 .bg-white:hover {
+        box-shadow: 0 10px 30px rgba(0,0,0,0.08) !important;
+    }
+</style>

@@ -1,0 +1,141 @@
+﻿/* =========================================
+   ESTILOS EXCLUSIVOS ADMIN / COORDINADOR
+   Archivo: wwwroot/css/admin-styles.css
+   ========================================= */
+
+/* 1. DASHBOARD ANALÍTICO (Grid de Tarjetas) */
+.admin-grid-dashboard {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.admin-stat-card {
+    background-color: var(--white);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius-lg);
+    padding: 1.5rem;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+    .admin-stat-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.05);
+    }
+
+.admin-stat-number {
+    font-size: 2.2rem;
+    font-weight: 800;
+    color: var(--primary-900);
+    line-height: 1;
+    letter-spacing: -1px;
+}
+
+/* 2. MATRIZ DE ASIGNACIONES (Layout de 2 Columnas) */
+.admin-matrix-container {
+    display: grid;
+    grid-template-columns: 320px 1fr;
+    gap: 1.5rem;
+    align-items: start;
+}
+
+.admin-filter-panel {
+    background-color: var(--white);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius-lg);
+    padding: 1.5rem;
+    position: sticky;
+    top: 100px;
+}
+
+.admin-assignment-row {
+    background-color: var(--bg-main);
+    border-radius: var(--border-radius-md);
+    padding: 1rem 1.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.75rem;
+    border: 1px solid transparent;
+    transition: border-color 0.2s ease;
+}
+
+    .admin-assignment-row:hover {
+        border-color: var(--border-color);
+        background-color: var(--white);
+    }
+
+/* 3. SELECTORES ESPECIALES (Zonas de asignación) */
+.admin-select-dashed {
+    border: 2px dashed var(--accent-500);
+    background-color: var(--white);
+    color: var(--text-title);
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+    .admin-select-dashed:hover,
+    .admin-select-dashed:focus {
+        border-style: solid;
+        border-color: var(--primary-900);
+        box-shadow: 0 4px 10px rgba(19, 50, 43, 0.1);
+    }
+
+/* 4. TABLAS DE ALTA DENSIDAD (DataGrids) */
+.admin-table-header {
+    background-color: var(--bg-main);
+}
+
+    .admin-table-header th {
+        text-transform: uppercase;
+        font-size: 0.70rem;
+        letter-spacing: 1px;
+        color: var(--text-body);
+        font-weight: 700;
+        border-bottom: 2px solid var(--border-color) !important;
+    }
+
+/* 5. BUSCADOR GLOBAL DEL HEADER */
+.search-wrapper input {
+    border: 1px solid var(--border-color);
+    border-radius: 20px;
+    background-color: var(--bg-main);
+    font-size: 0.9rem;
+    width: 300px;
+    transition: width 0.3s ease, border-color 0.3s ease;
+}
+
+    .search-wrapper input:focus {
+        width: 350px;
+        outline: none;
+        border-color: var(--accent-500);
+        background-color: var(--white);
+    }
+
+/* 6. ADAPTACIÓN PARA MÓVILES */
+@media (max-width: 991.98px) {
+    .admin-matrix-container {
+        grid-template-columns: 1fr;
+    }
+
+    .admin-filter-panel {
+        position: relative;
+        top: 0;
+    }
+
+    .admin-assignment-row {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+
+        .admin-assignment-row > div:last-child {
+            width: 100% !important;
+        }
+}

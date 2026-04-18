@@ -1,0 +1,194 @@
+﻿@{
+    ViewData["Title"] = "Matriz de Asignaciones";
+    Layout = "_LayoutCoordinador";
+}
+
+<div class="container-fluid d-flex flex-column gap-3 p-0 fade-in" style="height: 82vh;">
+    
+    <div class="row g-4 flex-grow-1 overflow-hidden">
+        
+        <div class="col-lg-3 d-flex flex-column">
+            <div class="admin-card-white p-4 shadow-sm border-0 d-flex flex-column h-100">
+                <h6 class="txt-title fw-bold text-xxs text-uppercase tracking-widest mb-4 border-bottom border-light pb-2">
+                    Filtros de Asignación
+                </h6>
+
+                <div class="d-flex flex-column gap-3 flex-grow-1">
+                    <div>
+                        <label class="section-label text-muted mb-2 d-block">CICLO ESCOLAR</label>
+                        <select class="form-select border-0 bg-app txt-title fw-bold text-xs py-2">
+                            <option>Enero - Abril 2026</option>
+                            <option>Septiembre - Diciembre 2025</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="section-label text-muted mb-2 d-block">PROGRAMA EDUCATIVO</label>
+                        <select class="form-select border-0 bg-app txt-title fw-bold text-xs py-2">
+                            <option>Ing. Desarrollo y Gestión de Software</option>
+                            <option>Ing. Mecatrónica</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="section-label text-muted mb-2 d-block">GRUPO</label>
+                        <select class="form-select border-0 bg-app txt-title fw-bold text-xs py-2">
+                            <option>7º A - Matutino</option>
+                            <option>7º B - Vespertino</option>
+                        </select>
+                    </div>
+
+                    <button id="btnCargarReticula" class="btn-primary-sep border-0 w-100 mt-3 py-2 text-xxs tracking-wide">
+                        CARGAR RETÍCULA
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-9 d-flex flex-column">
+            <div class="admin-card-white p-0 shadow-sm border-0 d-flex flex-column h-100 overflow-hidden">
+                
+                <div id="emptyState" class="d-flex flex-column align-items-center justify-content-center flex-grow-1 py-5">
+                    <div class="bg-app rounded-circle d-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px;">
+                        <i class="bi bi-layers text-muted fs-3"></i>
+                    </div>
+                    <h6 class="txt-title fw-bold text-xs text-uppercase tracking-widest">Selecciona un grupo</h6>
+                    <p class="text-muted text-xxs fw-medium">Configura los filtros para gestionar la carga docente.</p>
+                </div>
+
+                <div id="matrixContent" style="display: none;" class="flex-column flex-grow-1 overflow-hidden">
+                    
+                    <div class="p-4 border-bottom border-light bg-light bg-opacity-25 d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="txt-title fw-bold text-sm mb-1 text-uppercase">Materias para Grupo 7º A</h6>
+                            <div class="text-xxs fw-bold text-muted tracking-tighter">DESARROLLO Y GESTIÓN DE SOFTWARE • ENE-ABR 2026</div>
+                        </div>
+                        <span class="badge bg-primary-dark text-white rounded-pill px-3 py-2 text-xxs fw-bold shadow-sm">
+                            5 MATERIAS ACTIVAS
+                        </span>
+                    </div>
+
+                    <div class="p-4 overflow-auto flex-grow-1 custom-scroll">
+                        <div class="d-flex flex-column gap-3">
+
+                            <div class="assignment-row bg-app p-3 rounded-3 border border-transparent transition-all d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+                                <div>
+                                    <div class="txt-title fw-bold text-xs text-uppercase">Arquitectura N-Capas (C#)</div>
+                                    <div class="text-xxs text-muted fw-medium">Clave: SW-401 • 6 HRS/SEMANA • ESPECIALIDAD</div>
+                                </div>
+                                <div class="w-100" style="max-width: 300px;">
+                                    <select class="form-select border-0 bg-white shadow-sm text-xs fw-bold py-2 select-assignment">
+                                        <option value="">+ ASIGNAR DOCENTE</option>
+                                        <option value="1">Ing. Juan Pérez Martínez</option>
+                                        <option value="2">Mtra. Ana Martínez Ruiz</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="assignment-row bg-app p-3 rounded-3 border border-transparent transition-all d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+                                <div>
+                                    <div class="txt-title fw-bold text-xs text-uppercase">Desarrollo Móvil Multiplataforma</div>
+                                    <div class="text-xxs text-muted fw-medium">Clave: SW-502 • 6 HRS/SEMANA • ESPECIALIDAD</div>
+                                </div>
+                                <div class="w-100" style="max-width: 300px;">
+                                    <select class="form-select border-0 bg-white shadow-sm text-xs fw-bold py-2 select-assignment">
+                                        <option value="">+ ASIGNAR DOCENTE</option>
+                                        <option value="1">Ing. Juan Pérez Martínez</option>
+                                        <option value="2">Mtra. Ana Martínez Ruiz</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="assignment-row bg-success-100 border-success p-3 rounded-3 border d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 shadow-sm">
+                                <div>
+                                    <div class="txt-success-700 fw-bold text-xs text-uppercase">Bases de Datos Avanzadas</div>
+                                    <div class="text-xxs text-success-700 opacity-75 fw-medium">Clave: SW-405 • 5 HRS/SEMANA • ESPECIALIDAD</div>
+                                </div>
+                                <div class="w-100" style="max-width: 300px;">
+                                    <select class="form-select border-0 bg-white text-success-700 fw-bold text-xs py-2 shadow-sm select-assignment border border-success">
+                                        <option value="3" selected>DR. GABRIEL LÓPEZ</option>
+                                        <option value="1">Ing. Juan Pérez Martínez</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+
+                    <div class="p-4 bg-light bg-opacity-25 border-top border-light d-flex justify-content-end">
+                        <button class="btn-primary-sep border-0 px-4 py-2 text-xxs tracking-widest shadow-sm d-flex align-items-center gap-2" onclick="confirmSave()">
+                            GUARDAR ASIGNACIONES
+                        </button>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<style>
+    /* Estilos sutiles para las filas de asignación */
+    .assignment-row {
+        border: 1px solid transparent;
+        transition: all 0.2s ease;
+    }
+    
+    .border-success {
+        border-color: var(--success-700) !important;
+    }
+
+    .form-select:focus {
+        box-shadow: 0 0 0 3px var(--accent-100) !important;
+        border: 1px solid var(--accent-500) !important;
+    }
+
+    .transition-all {
+        transition: all 0.3s ease;
+    }
+</style>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            // Acción de carga con spinner profesional
+            $('#btnCargarReticula').click(function() {
+                var $btn = $(this);
+                var originalHtml = $btn.html();
+                
+                $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm" role="status"></span>');
+
+                setTimeout(function() {
+                    $('#emptyState').hide();
+                    $('#matrixContent').css('display', 'flex').hide().fadeIn(300);
+                    $btn.prop('disabled', false).html('RETÍCULA ACTUALIZADA');
+                    $btn.removeClass('btn-primary-sep').addClass('btn-ghost-sep bg-app border-0');
+                }, 800);
+            });
+
+            // Cambio dinámico de estado en la fila al asignar docente
+            $(document).on('change', '.select-assignment', function() {
+                let $row = $(this).closest('.assignment-row');
+                let $textElements = $row.find('.txt-title, .text-xxs');
+
+                if($(this).val() !== "") {
+                    $row.removeClass('bg-app border-transparent').addClass('bg-success-100 border-success shadow-sm');
+                    $(this).addClass('text-success-700 border-success');
+                    $textElements.removeClass('txt-title text-muted').addClass('text-success-700 fw-bold');
+                } else {
+                    $row.addClass('bg-app border-transparent').removeClass('bg-success-100 border-success shadow-sm');
+                    $(this).removeClass('text-success-700 border-success');
+                    $row.find('.text-xs').addClass('txt-title').removeClass('text-success-700');
+                    $row.find('.text-xxs').addClass('text-muted').removeClass('text-success-700');
+                }
+            });
+        });
+
+        function confirmSave() {
+            // Reemplazo del alert por una lógica silenciosa o aviso limpio
+            console.log("Asignaciones guardadas");
+            alert("Los cambios se han guardado exitosamente.");
+        }
+    </script>
+}

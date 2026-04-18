@@ -1,0 +1,148 @@
+﻿@{
+    ViewData["Title"] = "Bitácora de Seguimiento";
+    Layout = "_LayoutTutor";
+}
+
+<div class="row g-4" style="min-height: 82vh;">
+
+    <aside class="col-lg-4 col-xl-3">
+        <div class="bg-white p-4 rounded-4 border border-light shadow-sm text-center sticky-top" style="top: 2rem; z-index: 10;">
+            
+            <div class="user-initial-avatar mx-auto mb-3 shadow-sm"
+                 style="width: 80px; height: 80px; font-size: 2rem; background-color: var(--accent-100); color: var(--primary-900);">
+                RC
+            </div>
+
+            <h6 class="txt-title fw-bold mb-1 text-uppercase tracking-wide">Roberto Carlos Perez Cadena</h6>
+            <div class="text-secondary fw-bold text-xxs mb-4 tracking-widest text-uppercase">
+                MATRÍCULA: 26001504
+            </div>
+
+            <div class="d-flex flex-column gap-3 border-top border-light pt-4 text-start">
+                <div class="d-flex justify-content-between align-items-center">
+                    <span class="text-secondary fw-bold text-xxs tracking-widest text-uppercase">Carrera</span>
+                    <span class="txt-title fw-bold text-xs text-uppercase">IDGS</span>
+                </div>
+                <div class="d-flex justify-content-between align-items-center">
+                    <span class="text-secondary fw-bold text-xxs tracking-widest text-uppercase">Grupo</span>
+                    <span class="txt-title fw-bold text-xs text-uppercase">7º A</span>
+                </div>
+                <div class="d-flex justify-content-between align-items-center">
+                    <span class="text-secondary fw-bold text-xxs tracking-widest text-uppercase">Promedio</span>
+                    <span class="text-success fw-bold text-xs">9.2</span>
+                </div>
+                <div class="d-flex justify-content-between align-items-center">
+                    <span class="text-secondary fw-bold text-xxs tracking-widest text-uppercase">Estatus</span>
+                    <span class="badge status-aceptado text-xxs px-2">REGULAR</span>
+                </div>
+            </div>
+
+            <div class="d-grid gap-2 mt-4">
+                <button class="btn-primary-sep border-0 py-2 text-xxs fw-bold tracking-widest shadow-sm"
+                        data-bs-toggle="modal" data-bs-target="#modalNuevaNota">
+                    <i class="bi bi-plus-lg me-1"></i> NUEVA NOTA
+                </button>
+                <a href="@Url.Action("Entrevista", "Tutor")"
+                       class="btn btn-sm bg-app text-secondary border-0 py-2 text-xxs fw-bold tracking-widest text-decoration-none">
+                    <i class="bi bi-arrow-left me-1"></i> REGRESAR
+                </a>
+            </div>
+        </div>
+    </aside>
+
+    <main class="col-lg-8 col-xl-9">
+        
+        <div class="bg-surface p-3 rounded-4 border border-light shadow-sm d-flex flex-column flex-md-row justify-content-between align-items-center gap-3 mb-4">
+            <h6 class="txt-title fw-bold mb-0 text-xs text-uppercase tracking-widest">Historial Cronológico</h6>
+            
+            <div class="position-relative" style="width: 300px;">
+                <i class="bi bi-search position-absolute top-50 start-0 translate-middle-y ms-3 text-secondary"></i>
+                <input type="text" class="form-control border-0 bg-app py-2 ps-5 text-xs fw-medium" placeholder="Filtrar notas o incidencias...">
+            </div>
+        </div>
+
+        <div class="position-relative ps-4 border-start border-light ms-3">
+            
+            <div class="mb-5 position-relative">
+                <div class="position-absolute translate-middle-x bg-primary-dark rounded-circle"
+                     style="width: 12px; height: 12px; left: -25px; top: 10px; border: 3px solid #fff; box-shadow: 0 0 0 1px #eee;"></div>
+                
+                <div class="bg-white p-4 rounded-4 border border-light shadow-sm">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <div>
+                            <span class="badge status-aceptado text-xxs px-3 py-1 mb-2">ACADÉMICO</span>
+                            <h6 class="txt-title fw-bold text-uppercase mb-0 tracking-wide">Solicitud de Asesoría Especializada</h6>
+                        </div>
+                        <span class="text-secondary fw-bold text-xxs text-uppercase tracking-widest">15 MARZO, 2026</span>
+                    </div>
+                    <p class="text-secondary text-sm mb-3">
+                        El alumno solicita apoyo extra en la materia de Integración de Seguridad. Se le canaliza con el Ing. García para sesiones de reforzamiento los días jueves en horario extraescolar.
+                    </p>
+                    <div class="border-top border-light pt-3 d-flex align-items-center gap-2">
+                        <div class="user-initial-avatar" style="width: 24px; height: 24px; font-size: 0.6rem; background-color: var(--bg-app); color: var(--text-body);">JP</div>
+                        <span class="text-secondary text-xxs fw-bold text-uppercase">Registrado por: <span class="txt-primary-dark">Ing. Juan Pérez (Tutor)</span></span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mb-5 position-relative">
+                <div class="position-absolute translate-middle-x bg-danger rounded-circle"
+                     style="width: 12px; height: 12px; left: -25px; top: 10px; border: 3px solid #fff; box-shadow: 0 0 0 1px #eee;"></div>
+                
+                <div class="bg-white p-4 rounded-4 border border-light shadow-sm">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <div>
+                            <span class="badge bg-error-100 text-danger text-xxs px-3 py-1 mb-2 border border-danger border-opacity-10">INCIDENCIA</span>
+                            <h6 class="txt-title fw-bold text-uppercase mb-0 tracking-wide">Inasistencia Injustificada Reiterada</h6>
+                        </div>
+                        <span class="text-secondary fw-bold text-xxs text-uppercase tracking-widest">10 MARZO, 2026</span>
+                    </div>
+                    <p class="text-secondary text-sm mb-3">
+                        Se detectaron 3 faltas consecutivas sin previo aviso ni justificante médico. Se realizó contacto telefónico con el tutor legal para verificar la situación y programar una cita de seguimiento.
+                    </p>
+                    <div class="border-top border-light pt-3 d-flex align-items-center gap-2">
+                        <div class="user-initial-avatar" style="width: 24px; height: 24px; font-size: 0.6rem; background-color: var(--bg-app); color: var(--text-body);">JP</div>
+                        <span class="text-secondary text-xxs fw-bold text-uppercase">Registrado por: <span class="txt-primary-dark">Ing. Juan Pérez (Tutor)</span></span>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </main>
+</div>
+
+<div class="modal fade" id="modalNuevaNota" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 rounded-4 shadow-lg">
+            <div class="modal-header border-bottom border-light p-4">
+                <h6 class="modal-title txt-title fw-bold text-uppercase tracking-widest">Registrar Nota de Seguimiento</h6>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4">
+                <div class="row g-3">
+                    <div class="col-12">
+                        <label class="text-xxs fw-bold text-secondary text-uppercase mb-2 d-block">Categoría del Registro</label>
+                        <select class="form-select border-0 bg-app py-2 text-xs fw-bold txt-title cursor-pointer">
+                            <option>ACADÉMICO</option>
+                            <option>CONDUCTUAL</option>
+                            <option>MÉDICO / PSICOLÓGICO</option>
+                            <option>PERSONAL</option>
+                        </select>
+                    </div>
+                    <div class="col-12">
+                        <label class="text-xxs fw-bold text-secondary text-uppercase mb-2 d-block">Asunto / Título Corto</label>
+                        <input type="text" class="form-control border-0 bg-app py-2 text-xs fw-bold txt-title" placeholder="Ej. Reporte de entrevista bimestral">
+                    </div>
+                    <div class="col-12">
+                        <label class="text-xxs fw-bold text-secondary text-uppercase mb-2 d-block">Descripción de los hechos</label>
+                        <textarea class="form-control border-0 bg-app py-3 text-xs fw-medium" rows="5" placeholder="Describa detalladamente la situación o el acuerdo..."></textarea>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer border-top border-light p-3">
+                <button type="button" class="btn btn-sm bg-app text-secondary border-0 px-4 py-2 text-xxs fw-bold tracking-widest" data-bs-dismiss="modal">CANCELAR</button>
+                <button type="button" class="btn-primary-sep border-0 px-4 py-2 text-xxs fw-bold tracking-widest shadow-sm" onclick="location.reload()">GUARDAR NOTA</button>
+            </div>
+        </div>
+    </div>
+</div>

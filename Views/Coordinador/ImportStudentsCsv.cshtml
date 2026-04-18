@@ -1,0 +1,181 @@
+﻿@model ControlEscolar.Models.ImportStudentsCsvViewModel
+
+@{
+    ViewData["Title"] = "Importación de Alumnos";
+    Layout = "_LayoutCoordinador";
+    var returnTab = ViewBag.ReturnTab as string ?? Model.ReturnTab ?? "tab-alumnos";
+}
+
+<div class="container-fluid d-flex flex-column gap-4 p-0 fade-in">
+    
+    <div class="bg-surface p-4 rounded-4 border-theme shadow-sm d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+        <div style="max-width: 800px;">
+            <p class="txt-body text-xs mb-0 fw-medium">
+                Importa registros masivos mediante archivos <span class="fw-bold txt-primary-dark">CSV</span>. El sistema procesará la validación de integridad para carreras, grupos y CURP únicos.
+            </p>
+        </div>
+        <a href="@Url.Action("Catalogos", "Coordinador", new { tab = returnTab })"
+               class="btn-ghost-sep border-0 bg-app px-4 py-2 fw-bold text-xxs d-flex align-items-center text-decoration-none shadow-none">
+            REGRESAR A CATÁLOGOS
+        </a>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-lg-6">
+            <div class="admin-card-white p-4 shadow-sm border-0 h-100">
+                <div class="mb-4">
+                    <h6 class="txt-title fw-bold text-xs text-uppercase tracking-widest mb-1">Subir Archivo de Datos</h6>
+                    <div class="text-xxs text-muted fw-bold">CONFIGURACIÓN DE CARGA</div>
+                </div>
+
+                <form asp-action="ImportStudentsCsv" asp-controller="Coordinador" method="post" enctype="multipart/form-data" class="d-flex flex-column gap-4">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="returnTab" value="@returnTab" />
+                    <input asp-for="ReturnTab" type="hidden" />
+
+                    @if (!ViewData.ModelState.IsValid)
+                    {
+                        <div asp-validation-summary="ModelOnly" class="bg-error-100 border border-error border-opacity-25 text-danger text-xs fw-bold rounded-3 p-3"></div>
+                    }
+
+                    <div class="form-group">
+                        <label asp-for="CsvFile" class="section-label text-muted mb-2 d-block">SELECCIONAR ARCHIVO .CSV</label>
+                        <input asp-for="CsvFile" type="file" accept=".csv,text/csv" class="form-control border-0 bg-app py-2 text-xs fw-medium shadow-none" />
+                        <span asp-validation-for="CsvFile" class="text-danger text-xxs fw-bold mt-1 d-block"></span>
+                    </div>
+
+                    <div class="d-flex flex-column flex-sm-row gap-2 pt-2">
+                        <button type="submit" class="btn-primary-sep border-0 px-4 py-2 text-xxs tracking-wide shadow-sm flex-grow-1">
+                            INICIAR IMPORTACIÓN
+                        </button>
+                        <button type="button" class="btn-ghost-sep border-0 bg-app px-4 py-2 text-xxs fw-bold" onclick="downloadTemplate()">
+                            DESCARGAR PLANTILLA
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div class="col-lg-6">
+            <div class="admin-card-white p-4 shadow-sm border-0 h-100">
+                <h6 class="txt-title fw-bold text-xs text-uppercase tracking-widest mb-3">Requisitos del Formato</h6>
+                
+                <div class="mb-3">
+                    <span class="text-xxs fw-bold text-muted d-block mb-2">ENCABEZADOS ESPERADOS:</span>
+                    <div class="p-3 bg-app rounded-3 border border-theme">
+                        <code class="text-xs fw-bold txt-primary-dark" style="word-break: break-all;">FirstName,LastNamePaternal,LastNameMaternal,Email,Phone,CURP,CareerId,GroupId,StatusCode</code>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <span class="text-xxs fw-bold text-muted d-block mb-2">EJEMPLO DE FILA:</span>
+                    <div class="p-3 bg-app rounded-3 border border-theme">
+                        <code class="text-xs fw-bold text-secondary" style="word-break: break-all;">Juan,Perez,Lopez,juan@correo.com,8991234567,PELJ010101HTSRPN01,1,2,INSCRITO</code>
+                    </div>
+                </div>
+
+                <ul class="list-unstyled mb-0 mt-3 pt-2 border-top border-theme">
+                    <li class="d-flex align-items-start gap-2 mb-2 text-xxs txt-body fw-medium">
+                        <div class="bg-accent-500 rounded-circle mt-1" style="width:5px; height:5px; flex-shrink:0;"></div>
+                        <span><strong>FirstName</strong>, <strong>LastNamePaternal</strong> y <strong>CareerId</strong> son campos obligatorios.</span>
+                    </li>
+                    <li class="d-flex align-items-start gap-2 mb-2 text-xxs txt-body fw-medium">
+                        <div class="bg-accent-500 rounded-circle mt-1" style="width:5px; height:5px; flex-shrink:0;"></div>
+                        <span><strong>StatusCode</strong> admite: <span class="fw-bold">INSCRITO</span> o <span class="fw-bold">PREINSCRITO</span>.</span>
+                    </li>
+                    <li class="d-flex align-items-start gap-2 text-xxs txt-body fw-medium">
+                        <div class="bg-accent-500 rounded-circle mt-1" style="width:5px; height:5px; flex-shrink:0;"></div>
+                        <span>CURP duplicadas o IDs inexistentes generarán error en la fila.</span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    @if (Model.TotalRows > 0)
+    {
+        <div class="row g-3">
+            <div class="col-md-4">
+                <div class="admin-card-white p-3 shadow-sm border-0 d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="text-xxs fw-bold text-muted text-uppercase">Procesadas</div>
+                        <div class="fs-4 fw-bold txt-primary-dark">@Model.TotalRows</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="admin-card-white p-3 shadow-sm border-0 d-flex justify-content-between align-items-center border-start border-4 border-success" style="border-left-color: var(--success-700) !important;">
+                    <div>
+                        <div class="text-xxs fw-bold text-muted text-uppercase">Correctas</div>
+                        <div class="fs-4 fw-bold text-success">@Model.SuccessCount</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="admin-card-white p-3 shadow-sm border-0 d-flex justify-content-between align-items-center border-start border-4 border-danger" style="border-left-color: var(--error-700) !important;">
+                    <div>
+                        <div class="text-xxs fw-bold text-muted text-uppercase">Con Error</div>
+                        <div class="fs-4 fw-bold text-danger">@Model.ErrorCount</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="admin-card-white p-0 shadow-sm border-0 overflow-hidden d-flex flex-column">
+            <div class="table-responsive bg-surface">
+                <table class="table align-middle mb-0 w-100" style="min-width:1100px;">
+                    <thead class="bg-app border-0">
+                        <tr>
+                            <th class="py-3 px-4 text-xxs fw-bold text-uppercase tracking-wider">Fila</th>
+                            <th class="py-3 text-center text-xxs fw-bold text-uppercase tracking-wider">Resultado</th>
+                            <th class="py-3 text-xxs fw-bold text-uppercase tracking-wider">Mensaje</th>
+                            <th class="py-3 text-center text-xxs fw-bold text-uppercase tracking-wider">PersonID</th>
+                            <th class="py-3 text-center text-xxs fw-bold text-uppercase tracking-wider">StudentID</th>
+                            <th class="py-3 text-center text-xxs fw-bold text-uppercase tracking-wider">Matrícula</th>
+                            <th class="py-3 px-4 text-end text-xxs fw-bold text-uppercase tracking-wider">Folio</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model.Results.OrderBy(x => x.RowNumber))
+                        {
+                            <tr class="border-bottom border-light">
+                                <td class="px-4 py-3 fw-bold text-xs text-muted">@item.RowNumber</td>
+                                <td class="text-center">
+                                    <span class="badge rounded-pill text-xxs px-3 py-2 fw-bold @(item.IsSuccess ? "bg-success-100 text-success-700" : "bg-error-100 text-error-700")">
+                                        @(item.IsSuccess ? "ÉXITO" : "ERROR")
+                                    </span>
+                                </td>
+                                <td class="text-xs fw-medium @(item.IsSuccess ? "" : "text-danger")">@item.Message</td>
+                                <td class="text-center text-xs text-muted">@(item.PersonId?.ToString() ?? "-")</td>
+                                <td class="text-center text-xs text-muted">@(item.StudentId?.ToString() ?? "-")</td>
+                                <td class="text-center fw-bold text-xs txt-primary-dark">@(!string.IsNullOrWhiteSpace(item.Matricula) ? item.Matricula : "-")</td>
+                                <td class="px-4 text-end text-xs fw-medium text-muted">@(!string.IsNullOrWhiteSpace(item.Folio) ? item.Folio : "-")</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    }
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+                function downloadTemplate() {
+                    const csvContent = `FirstName,LastNamePaternal,LastNameMaternal,Email,Phone,CURP,CareerId,GroupId,StatusCode
+        Juan,Perez,Lopez,juan@correo.com,8991234567,PELJ010101HTSRPN01,1,2,INSCRITO
+        Maria,Gomez,Ruiz,maria@correo.com,8995556677,GORM020202MTSMRA02,1,,PREINSCRITO`;
+
+                    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+                    const url = URL.createObjectURL(blob);
+                    const link = document.createElement('a');
+                    link.setAttribute('href', url);
+                    link.setAttribute('download', 'plantilla_importacion_alumnos.csv');
+                    link.style.visibility = 'hidden';
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                }
+    </script>
+}

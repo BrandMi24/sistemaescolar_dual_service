@@ -1,0 +1,143 @@
+@model ControlEscolar.Models.AdminDashboardViewModel
+
+@{
+    ViewData["Title"] = "Panel de Control Central";
+    Layout = "_LayoutAdmin"; 
+}
+
+<div class="fade-in">
+    <div class="mb-5">
+        <h4 class="fw-bold txt-primary-dark mb-1">BIENVENIDO AL SISTEMA INTEGRAL</h4>
+        <p class="text-muted text-xs fw-bold text-uppercase tracking-widest">Seleccione el módulo al que desea dirigirse</p>
+    </div>
+
+    <div class="row g-4 mb-5">
+        
+        <div class="col-md-6 col-lg-4">
+            <a href="@Url.Action("Catalogos", "Coordinador")" class="text-decoration-none">
+                <div class="module-card bg-surface p-4 shadow-sm border border-light h-100 d-flex flex-column align-items-center text-center">
+                    <div class="icon-box mb-3 shadow-sm">
+                        <i class="bi bi-folder-fill fs-2"></i>
+                    </div>
+                    <h6 class="fw-bold text-uppercase tracking-wide mb-2">Coordinación</h6>
+                    <p class="text-muted text-xxs fw-semibold px-3 uppercase opacity-75">Gestión de catálogos, infraestructura y organización escolar.</p>
+                </div>
+            </a>
+        </div>
+
+        <div class="col-md-6 col-lg-4">
+            <a href="@Url.Action("Index", "Maestro")" class="text-decoration-none">
+                <div class="module-card bg-surface p-4 shadow-sm border border-light h-100 d-flex flex-column align-items-center text-center">
+                    <div class="icon-box mb-3 shadow-sm">
+                        <i class="bi bi-mortarboard-fill fs-2"></i>
+                    </div>
+                    <h6 class="fw-bold text-uppercase tracking-wide mb-2">Maestros</h6>
+                    <p class="text-muted text-xxs fw-semibold px-3 uppercase opacity-75">Panel de control docente, pase de lista y calificaciones.</p>
+                </div>
+            </a>
+        </div>
+
+        <div class="col-md-6 col-lg-4">
+            <a href="@Url.Action("Index", "Tutor")" class="text-decoration-none">
+                <div class="module-card bg-surface p-4 shadow-sm border border-light h-100 d-flex flex-column align-items-center text-center">
+                    <div class="icon-box mb-3 shadow-sm">
+                        <i class="bi bi-shield-check fs-2"></i>
+                    </div>
+                    <h6 class="fw-bold text-uppercase tracking-wide mb-2">Tutorías</h6>
+                    <p class="text-muted text-xxs fw-semibold px-3 uppercase opacity-75">Acompañamiento académico y seguimiento grupal.</p>
+                </div>
+            </a>
+        </div>
+
+        <div class="col-md-6 col-lg-4">
+            <a href="@Url.Action("Index", "VisitaMedica")" class="text-decoration-none">
+                <div class="module-card bg-surface p-4 shadow-sm border border-light h-100 d-flex flex-column align-items-center text-center">
+                    <div class="icon-box mb-3 shadow-sm">
+                        <i class="bi bi-heart-pulse-fill fs-2"></i>
+                    </div>
+                    <h6 class="fw-bold text-uppercase tracking-wide mb-2">Servicio Médico</h6>
+                    <p class="text-muted text-xxs fw-semibold px-3 uppercase opacity-75">Atención en enfermería y expedientes clínicos.</p>
+                </div>
+            </a>
+        </div>
+
+        <div class="col-md-6 col-lg-4">
+            <a href="@Url.Action("Index", "VisitaPsicologica")" class="text-decoration-none">
+                <div class="module-card bg-surface p-4 shadow-sm border border-light h-100 d-flex flex-column align-items-center text-center">
+                    <div class="icon-box mb-3 shadow-sm">
+                        <i class="bi bi-person-heart fs-2"></i>
+                    </div>
+                    <h6 class="fw-bold text-uppercase tracking-wide mb-2">Psicología</h6>
+                    <p class="text-muted text-xxs fw-semibold px-3 uppercase opacity-75">Seguimiento psicopedagógico y salud mental.</p>
+                </div>
+            </a>
+        </div>
+
+        <div class="col-md-6 col-lg-4">
+            <a href="@Url.Action("Index", "Alumno")" class="text-decoration-none">
+                <div class="module-card bg-surface p-4 shadow-sm border border-light h-100 d-flex flex-column align-items-center text-center">
+                    <div class="icon-box mb-3 shadow-sm">
+                        <i class="bi bi-person-circle fs-2"></i>
+                    </div>
+                    <h6 class="fw-bold text-uppercase tracking-wide mb-2">Vista Estudiante</h6>
+                    <p class="text-muted text-xxs fw-semibold px-3 uppercase opacity-75">Consulta de calificaciones, asistencias y trámites.</p>
+                </div>
+            </a>
+        </div>
+
+    </div>
+</div>
+
+<style>
+    /* VARIABLES DEL DESIGN SYSTEM APLICADAS */
+    :root {
+        --primary-900: #13322B;
+        --accent-500: #D4C19C;
+    }
+
+    /* ESTILO DE LA TARJETA DEL HUB */
+    .module-card {
+        border-radius: 20px;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        cursor: pointer;
+    }
+
+    /* ICON BOX POR DEFECTO (Gris/Cuerpo) */
+    .icon-box {
+        width: 70px;
+        height: 70px;
+        background-color: var(--bg-main, #f3f4f6);
+        color: var(--text-body, #6B7280);
+        border-radius: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.3s ease;
+    }
+
+    /* TEXTO POR DEFECTO */
+    .module-card h6 {
+        color: var(--text-title, #1F2937);
+        letter-spacing: 1px;
+    }
+
+    /* HOVER EFECTO: REPLICANDO EL PEDIDO */
+    .module-card:hover {
+        background-color: #ffffff !important; /* Mantiene el blanco */
+        border-color: var(--primary-900) !important; /* Borde se vuelve verde */
+        transform: translateY(-5px);
+        box-shadow: 0 10px 25px rgba(19, 50, 43, 0.1) !important;
+    }
+
+    .module-card:hover .icon-box {
+        background-color: var(--primary-900); /* Fondo icono verde oscuro */
+        color: #ffffff; /* Icono blanco */
+    }
+
+    .module-card:hover h6 {
+        color: var(--primary-900); /* Texto del título verde oscuro */
+    }
+
+    .tracking-wide { letter-spacing: 1.2px; }
+    .uppercase { text-transform: uppercase; }
+</style>

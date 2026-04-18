@@ -1,0 +1,234 @@
+﻿/* =========================================
+   ESTILOS EXCLUSIVOS - MÓDULO ALUMNO
+   Archivo: wwwroot/css/alumno-styles.css
+   ========================================= */
+
+body.alumno-portal {
+    background-color: #F8F9FA;
+    -webkit-font-smoothing: antialiased;
+}
+
+.alumno-app-bar {
+    background-color: var(--primary-900);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    position: sticky;
+    top: 0;
+    z-index: 1030;
+}
+
+/* CREDENCIAL DIGITAL (Ajustada para Desktop) */
+.digital-id-card {
+    background: linear-gradient(135deg, var(--primary-900) 0%, #0d241f 100%);
+    border-radius: 1.5rem;
+    position: relative;
+    overflow: hidden;
+    color: #ffffff;
+    border: 2px solid var(--accent-500);
+    box-shadow: 0 15px 35px -10px rgba(19, 50, 43, 0.5);
+    max-width: 400px;
+    margin: 0 auto;
+    height: 100%; /* Permite que se estire en desktop */
+    min-height: 500px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.digital-id-pattern {
+    position: absolute;
+    right: -30px;
+    top: 10%;
+    font-size: 15rem;
+    opacity: 0.06;
+    pointer-events: none;
+    color: #ffffff;
+}
+
+.student-avatar-wrapper {
+    width: 120px;
+    height: 120px;
+    margin: 0 auto;
+    border-radius: 50%;
+    padding: 4px;
+    background: linear-gradient(135deg, var(--accent-500), #ffffff);
+    box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.qr-box {
+    background: #ffffff;
+    padding: 1rem;
+    border-radius: 1rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+/* MENÚ DE OPCIONES */
+.student-menu-card {
+    background: var(--white);
+    border-radius: 1.25rem;
+    padding: 2rem 1rem;
+    text-align: center;
+    text-decoration: none !important;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    height: 100%;
+    min-height: 180px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.03);
+    border: 1px solid rgba(0,0,0,0.05);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+}
+
+    .student-menu-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 25px -5px rgba(0,0,0,0.1);
+        border-color: var(--accent-500);
+    }
+
+.menu-icon-wrapper {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.75rem;
+    transition: transform 0.3s ease;
+}
+
+.student-menu-card:hover .menu-icon-wrapper {
+    transform: scale(1.1);
+}
+
+.icon-orange {
+    background-color: #fff7ed;
+    color: #ea580c;
+}
+
+.icon-green {
+    background-color: #f0fdf4;
+    color: #059669;
+}
+
+.icon-blue {
+    background-color: #eff6ff;
+    color: #4f46e5;
+}
+
+.icon-cyan {
+    background-color: #ecfeff;
+    color: #0891b2;
+}
+
+.icon-purple {
+    background-color: #faf5ff;
+    color: #db2777;
+}
+
+.icon-red {
+    background-color: #fef2f2;
+    color: #dc2626;
+}
+
+
+/* 5. FORMULARIOS Y TABS (Entrevista responsiva) */
+.editable-avatar-wrapper {
+    position: relative;
+    width: 120px;
+    height: 120px;
+    margin: 0 auto;
+    border-radius: 50%;
+    border: 3px solid var(--primary-900);
+    overflow: hidden;
+    background-color: var(--white);
+    cursor: pointer;
+}
+
+    .editable-avatar-wrapper img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+.avatar-edit-overlay {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: rgba(19, 50, 43, 0.8);
+    color: var(--white);
+    text-align: center;
+    padding: 6px 0;
+    font-size: 0.75rem;
+    font-weight: bold;
+    transition: opacity 0.2s;
+}
+
+.nav-pills-custom {
+    gap: 0.5rem;
+}
+
+    .nav-pills-custom .nav-link {
+        color: var(--text-body);
+        font-weight: 600;
+        border-radius: 1rem;
+        padding: 0.8rem 1.25rem;
+        background-color: var(--white);
+        border: 1px solid var(--border-color);
+        text-align: left;
+        transition: all 0.2s;
+    }
+
+        .nav-pills-custom .nav-link.active {
+            background-color: var(--primary-900);
+            color: var(--white);
+            border-color: var(--primary-900);
+            box-shadow: 0 4px 10px rgba(19, 50, 43, 0.2);
+        }
+
+.form-label-custom {
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--text-title);
+    margin-bottom: 0.3rem;
+}
+
+.custom-input {
+    border-radius: 0.75rem;
+    border: 1px solid var(--border-color);
+    padding: 0.7rem 1rem;
+    font-size: 0.9rem;
+    background-color: var(--white);
+    transition: all 0.2s;
+}
+
+    .custom-input:focus {
+        border-color: var(--accent-500);
+        box-shadow: 0 0 0 0.25rem rgba(212, 193, 156, 0.25);
+        outline: none;
+    }
+
+@media (max-width: 991.98px) {
+    .nav-pills-custom {
+        display: flex;
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        padding-bottom: 0.5rem;
+        -webkit-overflow-scrolling: touch;
+        flex-direction: row !important;
+    }
+
+        .nav-pills-custom .nav-link {
+            white-space: nowrap;
+            text-align: center;
+            border-radius: 2rem;
+        }
+}

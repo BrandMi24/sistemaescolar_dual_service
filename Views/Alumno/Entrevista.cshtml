@@ -1,0 +1,345 @@
+﻿@{
+    ViewData["Title"] = "Entrevista Inicial";
+    Layout = "_LayoutAlumno";
+    ViewData["ShowBackButton"] = true;
+}
+
+<form action="#" method="post" enctype="multipart/form-data">
+    <div class="row g-4 align-items-start">
+        
+        <div class="col-12 col-lg-4 col-xl-3 position-lg-sticky" style="top: 80px;">
+            <div class="bg-white p-4 rounded-4 shadow-sm border border-light d-flex flex-column gap-4">
+                
+                <div class="text-center">
+                    <label for="fotoPerfil" class="editable-avatar-wrapper shadow-sm mb-3">
+                        <img id="previewFoto" src="https://ui-avatars.com/api/?name=Roberto+Perez&background=f1f5f9&color=13322B" alt="Foto Editable">
+                        <div class="avatar-edit-overlay"><i class="bi bi-camera-fill"></i> Editar</div>
+                    </label>
+                    <input type="file" id="fotoPerfil" class="d-none" accept="image/*">
+                    <h5 class="fw-bold mb-1 txt-title">Roberto Carlos Perez Cadena</h5>
+                    <span class="badge bg-app text-dark rounded-pill px-3 py-1 fw-bold text-xs shadow-sm mb-2 border border-theme">26001504</span>
+                    <p class="txt-body text-xs mb-0 fw-bold">TSU IDGS - 7º A</p>
+                </div>
+
+                <div class="border-top border-bottom py-3">
+                    <label class="form-label-custom text-muted mb-1">Correo Institucional</label>
+                    <input type="email" class="form-control custom-input bg-light text-sm mb-3" value="26001504@uttn.mx" readonly>
+                    
+                    <label class="form-label-custom mb-1">Teléfono de Contacto</label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-white border-end-0 text-muted"><i class="bi bi-telephone"></i></span>
+                        <input type="tel" class="form-control custom-input border-start-0 ps-0 text-sm" value="899-123-4567">
+                    </div>
+                </div>
+
+                <ul class="nav flex-column nav-pills-custom" id="entrevistaTabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link w-100 active" data-bs-toggle="pill" data-bs-target="#personales" type="button">
+                            <i class="bi bi-person-heart me-2"></i> Aspectos Personales
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link w-100" data-bs-toggle="pill" data-bs-target="#academicos" type="button">
+                            <i class="bi bi-journal-bookmark me-2"></i> Aspectos Académicos
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link w-100" data-bs-toggle="pill" data-bs-target="#economicos" type="button">
+                            <i class="bi bi-cash-coin me-2"></i> Aspectos Económicos
+                        </button>
+                    </li>
+                </ul>
+
+            </div>
+        </div>
+
+        <div class="col-12 col-lg-8 col-xl-9">
+            <div class="tab-content bg-white p-4 p-md-5 rounded-4 shadow-sm border border-light">
+                
+                <div class="tab-pane fade show active" id="personales" role="tabpanel">
+                    <div class="mb-4 pb-3 border-bottom">
+                        <h4 class="fw-bold txt-title mb-1">Aspectos Personales</h4>
+                        <p class="text-muted text-sm mb-0">Información sobre tu salud y entorno familiar.</p>
+                    </div>
+
+                    <div class="row g-4">
+                        <div class="col-md-6">
+                            <label class="form-label-custom">¿Padece alguna enfermedad?</label>
+                            <div class="d-flex gap-3 mt-1">
+                                <div class="form-check"><input class="form-check-input toggle-trigger" type="radio" name="enfermedad" value="si" data-target="#divEnfermedad"><label class="form-check-label text-sm">Sí</label></div>
+                                <div class="form-check"><input class="form-check-input toggle-trigger" type="radio" name="enfermedad" value="no" data-target="#divEnfermedad" checked><label class="form-check-label text-sm">No</label></div>
+                            </div>
+                            <div class="mt-2 d-none" id="divEnfermedad"><input type="text" class="form-control custom-input" placeholder="Especifique enfermedad(es)"></div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label-custom">¿Cómo es su estado de salud en general?</label>
+                            <select class="form-select custom-input"><option>Excelente</option><option>Bueno</option><option>Regular</option><option>Malo</option></select>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label-custom">¿Fuma?</label>
+                            <div class="d-flex gap-3 mt-1">
+                                <div class="form-check"><input class="form-check-input toggle-trigger" type="radio" name="fuma" value="si" data-target="#divFuma"><label class="form-check-label text-sm">Sí</label></div>
+                                <div class="form-check"><input class="form-check-input toggle-trigger" type="radio" name="fuma" value="no" data-target="#divFuma" checked><label class="form-check-label text-sm">No</label></div>
+                            </div>
+                            <div class="mt-2 d-none" id="divFuma"><select class="form-select custom-input"><option>Diario</option><option>Ocasionalmente</option><option>Fines de semana</option></select></div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label-custom">¿Ingiere bebidas alcohólicas?</label>
+                            <div class="d-flex gap-3 mt-1">
+                                <div class="form-check"><input class="form-check-input toggle-trigger" type="radio" name="alcohol" value="si" data-target="#divAlcohol"><label class="form-check-label text-sm">Sí</label></div>
+                                <div class="form-check"><input class="form-check-input toggle-trigger" type="radio" name="alcohol" value="no" data-target="#divAlcohol" checked><label class="form-check-label text-sm">No</label></div>
+                            </div>
+                            <div class="mt-2 d-none" id="divAlcohol"><select class="form-select custom-input"><option>Frecuentemente</option><option>Socialmente</option><option>Rara vez</option></select></div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label-custom">¿En su familia ha observado que hay violencia?</label>
+                            <div class="d-flex gap-3 mt-1">
+                                <div class="form-check"><input class="form-check-input toggle-trigger" type="radio" name="violencia" value="si" data-target="#divViolencia"><label class="form-check-label text-sm">Sí</label></div>
+                                <div class="form-check"><input class="form-check-input toggle-trigger" type="radio" name="violencia" value="no" data-target="#divViolencia" checked><label class="form-check-label text-sm">No</label></div>
+                            </div>
+                            <div class="mt-2 d-none" id="divViolencia"><input type="text" class="form-control custom-input" placeholder="Especifique la situación"></div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label-custom">¿Ha pensado que la vida no tiene sentido?</label>
+                            <div class="d-flex gap-3 mt-1">
+                                <div class="form-check"><input class="form-check-input toggle-trigger" type="radio" name="sentido" value="si" data-target="#divSentido"><label class="form-check-label text-sm">Sí</label></div>
+                                <div class="form-check"><input class="form-check-input toggle-trigger" type="radio" name="sentido" value="no" data-target="#divSentido" checked><label class="form-check-label text-sm">No</label></div>
+                            </div>
+                            <div class="mt-2 d-none" id="divSentido"><textarea class="form-control custom-input" rows="2" placeholder="Describa cómo se ha sentido"></textarea></div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label-custom">¿El apoyo de su familia es adecuado cuando tiene problemas?</label>
+                            <select class="form-select custom-input mb-2"><option>Sí</option><option>No</option><option>A veces</option></select>
+                            <textarea class="form-control custom-input" rows="2" placeholder="¿Por qué?"></textarea>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label-custom">¿Los problemas económicos le desconcentran?</label>
+                            <select class="form-select custom-input mb-2"><option>Sí</option><option>No</option><option>A veces</option></select>
+                            <textarea class="form-control custom-input" rows="2" placeholder="¿Por qué?"></textarea>
+                        </div>
+
+                        <div class="col-12">
+                            <label class="form-label-custom">¿Qué hace en un día común?</label>
+                            <textarea class="form-control custom-input" rows="2" placeholder="Describe tu rutina"></textarea>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label-custom">¿Cómo se lleva con sus padres y hermanos?</label>
+                            <textarea class="form-control custom-input" rows="2"></textarea>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label-custom">¿Qué es lo que más le gusta de la escuela?</label>
+                            <textarea class="form-control custom-input" rows="2"></textarea>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label-custom">¿Tiene algún pasatiempo?</label>
+                            <input type="text" class="form-control custom-input" placeholder="Ej. Deportes, música, lectura">
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label-custom text-danger">¿Hay algo que le preocupe que afecte su desempeño?</label>
+                            <textarea class="form-control custom-input" rows="2"></textarea>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-4 mt-md-5 text-end border-top pt-4 d-grid d-md-block">
+                        <button type="button" class="btn btn-primary-sep px-4" onclick="$('#entrevistaTabs button[data-bs-target=\'#academicos\']').tab('show'); window.scrollTo(0,0);">
+                            Continuar <i class="bi bi-arrow-right ms-2"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="tab-pane fade" id="academicos" role="tabpanel">
+                    <div class="mb-4 pb-3 border-bottom">
+                        <h4 class="fw-bold txt-title mb-1">Aspectos Académicos</h4>
+                        <p class="text-muted text-sm mb-0">Información sobre tu historial de aprendizaje e infraestructura.</p>
+                    </div>
+
+                    <div class="row g-4">
+                        <div class="col-md-4">
+                            <label class="form-label-custom">Promedio general anterior</label>
+                            <input type="number" step="0.1" class="form-control custom-input" placeholder="Ej. 8.5">
+                        </div>
+
+                        <div class="col-md-8">
+                            <label class="form-label-custom">¿Cuenta con equipo de cómputo para estudiar?</label>
+                            <div class="d-flex gap-3 mt-1">
+                                <div class="form-check"><input class="form-check-input toggle-trigger" type="radio" name="pc" value="si" data-target="#divPc"><label class="form-check-label text-sm">Sí</label></div>
+                                <div class="form-check"><input class="form-check-input toggle-trigger" type="radio" name="pc" value="no" data-target="#divPc" checked><label class="form-check-label text-sm">No</label></div>
+                            </div>
+                            <div class="mt-2 d-none" id="divPc"><input type="text" class="form-control custom-input" placeholder="Especifique tipo (Laptop, Escritorio)"></div>
+                        </div>
+
+                        <div class="col-md-4">
+                            <label class="form-label-custom">¿Cuenta con internet en casa?</label>
+                            <select class="form-select custom-input"><option>Sí</option><option>No</option><option>Solo datos móviles</option></select>
+                        </div>
+
+                        <div class="col-md-4">
+                            <label class="form-label-custom">Rendimiento en clase</label>
+                            <select class="form-select custom-input"><option>Excelente</option><option>Bueno</option><option>Regular</option><option>Deficiente</option></select>
+                        </div>
+
+                        <div class="col-md-4">
+                            <label class="form-label-custom">Horas de estudio extra a la semana</label>
+                            <input type="number" class="form-control custom-input" placeholder="Cantidad de horas">
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label-custom">¿Cómo es la experiencia con los profesores?</label>
+                            <textarea class="form-control custom-input" rows="2"></textarea>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label-custom">¿Qué le dificulta más su aprendizaje?</label>
+                            <textarea class="form-control custom-input" rows="2"></textarea>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label-custom">¿Qué materias reprobó el periodo anterior?</label>
+                            <input type="text" class="form-control custom-input" placeholder="Si aplica, sepárelas por comas">
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label-custom">¿Qué materia se le dificulta más actualmente?</label>
+                            <input type="text" class="form-control custom-input" placeholder="Nombre de la materia">
+                        </div>
+                    </div>
+                    
+                    <div class="mt-4 mt-md-5 d-flex flex-column-reverse flex-md-row justify-content-md-between gap-3 border-top pt-4">
+                        <button type="button" class="btn btn-ghost-sep px-4" onclick="$('#entrevistaTabs button[data-bs-target=\'#personales\']').tab('show'); window.scrollTo(0,0);">
+                            <i class="bi bi-arrow-left me-2"></i> Regresar
+                        </button>
+                        <button type="button" class="btn btn-primary-sep px-4" onclick="$('#entrevistaTabs button[data-bs-target=\'#economicos\']').tab('show'); window.scrollTo(0,0);">
+                            Continuar <i class="bi bi-arrow-right ms-2"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="tab-pane fade" id="economicos" role="tabpanel">
+                    <div class="mb-4 pb-3 border-bottom">
+                        <h4 class="fw-bold txt-title mb-1">Aspectos Económicos</h4>
+                        <p class="text-muted text-sm mb-0">Información sobre ingresos, gastos y apoyos familiares.</p>
+                    </div>
+
+                    <div class="row g-4">
+                        <div class="col-md-6">
+                            <label class="form-label-custom">¿Reside en esta ciudad?</label>
+                            <select class="form-select custom-input"><option>Sí</option><option>No, soy foráneo</option></select>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label-custom">¿Con quién vive actualmente?</label>
+                            <select class="form-select custom-input"><option>Ambos padres</option><option>Solo mamá/papá</option><option>Familiares</option><option>Solo</option><option>Compañeros</option></select>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label-custom">¿Trabaja actualmente?</label>
+                            <div class="d-flex gap-3 mt-1">
+                                <div class="form-check"><input class="form-check-input toggle-trigger" type="radio" name="trabaja" value="si" data-target="#divTrabaja"><label class="form-check-label text-sm">Sí</label></div>
+                                <div class="form-check"><input class="form-check-input toggle-trigger" type="radio" name="trabaja" value="no" data-target="#divTrabaja" checked><label class="form-check-label text-sm">No</label></div>
+                            </div>
+                            <div class="mt-2 d-none" id="divTrabaja"><input type="text" class="form-control custom-input" placeholder="¿En qué trabaja?"></div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label-custom">¿Considera que necesita beca o apoyo?</label>
+                            <div class="d-flex gap-3 mt-1">
+                                <div class="form-check"><input class="form-check-input toggle-trigger" type="radio" name="beca" value="si" data-target="#divBeca"><label class="form-check-label text-sm">Sí</label></div>
+                                <div class="form-check"><input class="form-check-input toggle-trigger" type="radio" name="beca" value="no" data-target="#divBeca" checked><label class="form-check-label text-sm">No</label></div>
+                            </div>
+                            <div class="mt-2 d-none" id="divBeca"><input type="text" class="form-control custom-input" placeholder="Ej. Económico, Alimenticio, Transporte"></div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label-custom">¿A qué se dedica su papá?</label>
+                            <input type="text" class="form-control custom-input">
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label-custom">¿A qué se dedica su mamá?</label>
+                            <input type="text" class="form-control custom-input">
+                        </div>
+
+                        <div class="col-md-4">
+                            <label class="form-label-custom">Cantidad de hermanos</label>
+                            <input type="number" class="form-control custom-input" value="0">
+                        </div>
+                        
+                        <div class="col-md-4">
+                            <label class="form-label-custom">Personas viviendo en casa</label>
+                            <input type="number" class="form-control custom-input" value="1">
+                        </div>
+
+                        <div class="col-md-4">
+                            <label class="form-label-custom">Personas que aportan ingreso</label>
+                            <input type="number" class="form-control custom-input" value="1">
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label-custom">Ingreso mensual aprox. por familia</label>
+                            <select class="form-select custom-input"><option>Menos de $4,000</option><option>$4,000 a $8,000</option><option>$8,000 a $15,000</option><option>Más de $15,000</option></select>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label-custom">¿Cuenta con espacio adecuado para estudiar en casa?</label>
+                            <select class="form-select custom-input"><option>Sí</option><option>No</option><option>A veces</option></select>
+                        </div>
+                    </div>
+
+                    <div class="mt-4 mt-md-5 text-center bg-light p-4 rounded-4 border border-light">
+                        <p class="text-muted text-sm mb-3">Revisa que tu información sea correcta antes de enviarla.</p>
+                        
+                        <div class="d-flex flex-column-reverse flex-md-row justify-content-center gap-3">
+                            <button type="button" class="btn btn-ghost-sep px-4" onclick="$('#entrevistaTabs button[data-bs-target=\'#academicos\']').tab('show'); window.scrollTo(0,0);">
+                                <i class="bi bi-arrow-left me-2"></i> Regresar
+                            </button>
+                            <button type="submit" class="btn btn-primary-sep px-5 fw-bold shadow-sm" onclick="alert('Entrevista guardada con éxito.'); event.preventDefault(); location.href='@Url.Action("Index", "Alumno")'">
+                                <i class="bi bi-cloud-arrow-up-fill me-2"></i> Enviar Entrevista
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+</form>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            $("#fotoPerfil").change(function(e) {
+                if(e.target.files && e.target.files[0]) {
+                    var reader = new FileReader();
+                    reader.onload = function(e) {
+                        $('#previewFoto').attr('src', e.target.result);
+                    }
+                    reader.readAsDataURL(e.target.files[0]);
+                }
+            });
+
+            $(".toggle-trigger").change(function() {
+                var targetId = $(this).data("target");
+                if ($(this).val() === "si") {
+                    $(targetId).removeClass("d-none").hide().slideDown(200);
+                } else {
+                    $(targetId).slideUp(200, function() {
+                        $(this).addClass("d-none");
+                        $(this).find('input, select, textarea').val('');
+                    });
+                }
+            });
+        });
+    </script>
+}

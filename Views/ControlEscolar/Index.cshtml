@@ -1,0 +1,557 @@
+@using ControlEscolar.Helpers
+@using ControlEscolar.Enums
+@model ControlEscolar.Models.ControlEscolarViewModel
+
+@{
+    ViewData["Title"] = "Control Escolar";
+    Layout = "_Layout";
+}
+
+<div class="main-container pt-5 mb-5">
+    <div class="container">
+
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h2 class="fw-bold txt-primary-dark mb-1">Control Escolar</h2>
+                <p class="txt-body small mb-0">Gestión y validación de preinscripciones e inscripciones</p>
+            </div>
+            <a asp-action="ConfigurarFichas" class="btn btn-ghost-sep px-4">
+                <i class="bi bi-gear me-2"></i> Configurar Fichas
+            </a>
+        </div>
+
+        <ul class="nav nav-tabs border-theme mb-4" id="controlTab">
+            <li class="nav-item">
+                <a class="nav-link fw-bold @(Model.Tab == "preinscripciones" ? "active" : "")"
+                   href="@Url.Action("Index", new { tab = "preinscripciones", carrera = Model.FiltroCarrera, estado = Model.FiltroEstado })">
+                    <i class="bi bi-person-lines-fill me-2"></i>
+                    Preinscripciones
+                    <span class="badge bg-secondary ms-1">@Model.Preinscripciones.Count</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link fw-bold @(Model.Tab == "inscripciones" ? "active" : "")"
+                   href="@Url.Action("Index", new { tab = "inscripciones", carrera = Model.FiltroCarrera, estado = Model.FiltroEstado })">
+                    <i class="bi bi-person-check-fill me-2"></i>
+                    Inscripciones
+                    <span class="badge bg-secondary ms-1">@Model.Inscripciones.Count</span>
+                </a>
+            </li>
+        </ul>
+
+        <div class="bg-surface rounded-4 shadow-sm border-theme p-4 mb-4">
+            <form method="get" asp-action="Index" class="row g-3 align-items-end">
+                <input type="hidden" name="tab" value="@Model.Tab" />
+                <div class="col-md-4">
+                    <label class="form-label txt-body text-xs fw-bold tracking-wide">CARRERA</label>
+                    <select name="carrera" class="form-select bg-app border-theme txt-title fw-bold">
+                        <option value="">Todas las carreras</option>
+                        @foreach (var c in CatalogosHelper.Carreras)
+                        {
+                            <option value="@c" selected="@(Model.FiltroCarrera == c)">@c</option>
+                        }
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label txt-body text-xs fw-bold tracking-wide">ESTADO</label>
+                    <select name="estado" class="form-select bg-app border-theme txt-title fw-bold">
+                        <option value="">Todos los estados</option>
+                        @if (Model.Tab == "preinscripciones")
+                        {
+                            foreach (var e in Enum.GetNames(typeof(EstadoPreinscripcion)))
+                            {
+                                <option value="@e" selected="@(Model.FiltroEstado == e)">@e</option>
+                            }
+                        }
+                        else
+                        {
+                            foreach (var e in Enum.GetNames(typeof(EstadoInscripcion)))
+                            {
+                                <option value="@e" selected="@(Model.FiltroEstado == e)">@e</option>
+                            }
+                        }
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-primary-sep w-100">
+                        <i class="bi bi-funnel me-2"></i> Filtrar
+                    </button>
+                </div>
+                <div class="col-md-2">
+                    <a href="@Url.Action("Index", new { tab = Model.Tab, estado = "Pendiente" })" class="btn btn-ghost-sep w-100">
+                        <i class="bi bi-x-circle me-2"></i> Limpiar
+                    </a>
+                </div>
+            </form>
+        </div>
+
+        @if (Model.Tab == "preinscripciones")
+        {
+            <div class="bg-surface rounded-4 shadow-sm border-theme p-4">
+                @if (!Model.Preinscripciones.Any())
+                {
+                    <div class="text-center py-5">
+                        <i class="bi bi-inbox fs-1 txt-body opacity-50"></i>
+                        <p class="txt-body mt-3">No hay preinscripciones que mostrar.</p>
+                    </div>
+                }
+                else
+                {
+                    <div class="table-responsive">
+                        <table class="table align-middle mb-0" style="font-size: 0.875rem;">
+                            <thead>
+                                <tr class="txt-body border-bottom border-theme">
+                                    <th class="fw-bold pb-3">Folio</th>
+                                    <th class="fw-bold pb-3">Aspirante</th>
+                                    <th class="fw-bold pb-3">Carrera</th>
+                                    <th class="fw-bold pb-3">Promedio</th>
+                                    <th class="fw-bold pb-3">Fecha</th>
+                                    <th class="fw-bold pb-3">Estado</th>
+                                    <th class="fw-bold pb-3 text-end">Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var item in Model.Preinscripciones)
+                                {
+                                    <tr class="border-bottom border-theme">
+                                        <td class="fw-bold txt-primary-dark">@(item.academiccontrol_preinscription_folio ?? $"#{item.academiccontrol_preinscription_ID}")</td>
+                                        <td>
+                                            <div class="fw-bold txt-title">
+                                                @item.DatosPersonales?.academiccontrol_preinscription_personaldata_paternalSurname
+                                                @item.DatosPersonales?.academiccontrol_preinscription_personaldata_maternalSurname,
+                                                @item.DatosPersonales?.academiccontrol_preinscription_personaldata_name
+                                            </div>
+                                            <small class="txt-body">@item.DatosPersonales?.academiccontrol_preinscription_personaldata_email</small>
+                                        </td>
+                                        <td class="txt-body">@item.academiccontrol_preinscription_careerRequested</td>
+                                        <td class="txt-body">@item.academiccontrol_preinscription_average.ToString("F1")</td>
+                                        <td class="txt-body">@item.academiccontrol_preinscription_registrationDate.ToString("dd/MM/yyyy")</td>
+                                        <td>
+                                            @await Html.PartialAsync("_StatusBadge", null, new ViewDataDictionary(ViewData)
+                                            {
+                                                { "StatusValue", item.academiccontrol_preinscription_state },
+                                                                { "StatusType", "preinscripcion" }
+                                            })
+                            </td>
+                            <td class="text-end">
+                                <div class="d-flex justify-content-end gap-2">
+                                    <a asp-controller="Preinscripciones"
+                                       asp-action="Details"
+                                       asp-route-id="@item.academiccontrol_preinscription_ID"
+                                       class="btn btn-sm btn-ghost-sep px-3">
+                                        <i class="bi bi-eye me-1"></i> Ver
+                                    </a>
+
+                                    @if (item.academiccontrol_preinscription_state == EstadoPreinscripcion.Pendiente.ToString())
+                                                {
+                                                    <form asp-action="ValidarPreinscripcion" method="post" class="d-inline">
+                                                        @Html.AntiForgeryToken()
+                                                        <input type="hidden" name="id" value="@item.academiccontrol_preinscription_ID" />
+                                                        <button type="submit"
+                                                                class="btn btn-sm btn-primary-sep px-3 btn-validar-pre"
+                                                                data-folio="@item.academiccontrol_preinscription_folio">
+                                                            <i class="bi bi-check-lg me-1"></i> Validar
+                                                        </button>
+                                                    </form>
+                                                }
+
+                                                @if (item.academiccontrol_preinscription_state == EstadoPreinscripcion.Validada.ToString())
+                                                {
+                                                    <form asp-action="HabilitarInscripcion" method="post" class="d-inline">
+                                                        @Html.AntiForgeryToken()
+                                                        <input type="hidden" name="id" value="@item.academiccontrol_preinscription_ID" />
+                                                        <button type="submit"
+                                                                class="btn btn-sm px-3 btn-habilitar"
+                                                                style="background-color: var(--success-700); color: white;"
+                                                                data-folio="@item.academiccontrol_preinscription_folio">
+                                                            <i class="bi bi-unlock me-1"></i> Habilitar
+                                                        </button>
+                                                    </form>
+                                                }
+
+                                                @if (item.academiccontrol_preinscription_state == EstadoPreinscripcion.Pendiente.ToString()
+                                                                                    || item.academiccontrol_preinscription_state == EstadoPreinscripcion.Validada.ToString())
+                                                {
+                                                    <button type="button"
+                                                            class="btn btn-sm btn-danger px-3"
+                                                            data-bs-toggle="modal"
+                                                            data-bs-target="#modalRechazarPre"
+                                                            data-id="@item.academiccontrol_preinscription_ID"
+                                                            data-folio="@item.academiccontrol_preinscription_folio">
+                                                        <i class="bi bi-x-lg me-1"></i> Rechazar
+                                                    </button>
+                                                }
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+            </div>
+        }
+
+        @if (Model.Tab == "inscripciones")
+        {
+            <div class="bg-surface rounded-4 shadow-sm border-theme p-4">
+                @if (!Model.Inscripciones.Any())
+                {
+                    <div class="text-center py-5">
+                        <i class="bi bi-inbox fs-1 txt-body opacity-50"></i>
+                        <p class="txt-body mt-3">No hay inscripciones que mostrar.</p>
+                    </div>
+                }
+                else
+                {
+                    <div class="table-responsive">
+                        <table class="table align-middle mb-0" style="font-size: 0.875rem;">
+                            <thead>
+                                <tr class="txt-body border-bottom border-theme">
+                                    <th class="fw-bold pb-3">Matrícula</th>
+                                    <th class="fw-bold pb-3">Aspirante</th>
+                                    <th class="fw-bold pb-3">Carrera</th>
+                                    <th class="fw-bold pb-3">Documentos</th>
+                                    <th class="fw-bold pb-3">Fecha</th>
+                                    <th class="fw-bold pb-3">Estado</th>
+                                    <th class="fw-bold pb-3 text-end">Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var item in Model.Inscripciones)
+                                {
+                                    <tr class="border-bottom border-theme">
+                                        <td class="fw-bold txt-primary-dark">@(item.academiccontrol_inscription_enrollment ?? $"#{item.academiccontrol_inscription_ID}")</td>
+                                        <td>
+                                            <div class="fw-bold txt-title">
+                                                @item.Preinscripcion?.DatosPersonales?.academiccontrol_preinscription_personaldata_paternalSurname
+                                                @item.Preinscripcion?.DatosPersonales?.academiccontrol_preinscription_personaldata_maternalSurname,
+                                                @item.Preinscripcion?.DatosPersonales?.academiccontrol_preinscription_personaldata_name
+                                            </div>
+                                            <small class="txt-body">Folio: @item.Preinscripcion?.academiccontrol_preinscription_folio</small>
+                                        </td>
+                                        <td class="txt-body">@item.academiccontrol_inscription_careerRequested</td>
+                                        <td>
+                                            <div class="d-flex flex-column gap-1">
+
+                                                <div class="d-flex align-items-center gap-2">
+                                                    @if (!string.IsNullOrEmpty(item.academiccontrol_inscription_birthCertificatePath))
+                                                    {
+                                                        <a href="@item.academiccontrol_inscription_birthCertificatePath" target="_blank"
+                                                           class="btn btn-sm btn-ghost-sep px-2">
+                                                            <i class="bi bi-file-earmark-pdf text-danger me-1"></i> Acta
+                                                        </a>
+                                                        @if (!item.academiccontrol_inscription_actaValidada)
+                                                        {
+                                                            <form asp-action="ValidarActa" method="post" class="d-inline">
+                                                                @Html.AntiForgeryToken()
+                                                                <input type="hidden" name="id" value="@item.academiccontrol_inscription_ID" />
+                                                                <button type="submit" class="btn btn-sm btn-outline-success px-2 btn-validar-acta"
+                                                                        data-nombre="Acta de Nacimiento">
+                                                                    <i class="bi bi-check2"></i> Validar
+                                                                </button>
+                                                            </form>
+                                                        }
+                                                        else
+                                                        {
+                                                            <span class="badge bg-success">
+                                                                <i class="bi bi-check2-circle me-1"></i> OK
+                                                            </span>
+                                                        }
+                                                    }
+                                                    else
+                                                    {
+                                                        <span class="badge bg-secondary opacity-50">Sin Acta</span>
+                                                    }
+                                                </div>
+
+                                                <div class="d-flex align-items-center gap-2">
+                                                    @if (!string.IsNullOrEmpty(item.academiccontrol_inscription_curpPdfPath))
+                                                    {
+                                                        <a href="@item.academiccontrol_inscription_curpPdfPath" target="_blank"
+                                                           class="btn btn-sm btn-ghost-sep px-2">
+                                                            <i class="bi bi-file-earmark-pdf text-danger me-1"></i> CURP
+                                                        </a>
+                                                        @if (!item.academiccontrol_inscription_curpValidado)
+                                                        {
+                                                            <form asp-action="ValidarCurp" method="post" class="d-inline">
+                                                                @Html.AntiForgeryToken()
+                                                                <input type="hidden" name="id" value="@item.academiccontrol_inscription_ID" />
+                                                                <button type="submit" class="btn btn-sm btn-outline-success px-2 btn-validar-curp"
+                                                                        data-nombre="CURP">
+                                                                    <i class="bi bi-check2"></i> Validar
+                                                                </button>
+                                                            </form>
+                                                        }
+                                                        else
+                                                        {
+                                                            <span class="badge bg-success">
+                                                                <i class="bi bi-check2-circle me-1"></i> OK
+                                                            </span>
+                                                        }
+                                                    }
+                                                    else
+                                                    {
+                                                        <span class="badge bg-secondary opacity-50">Sin CURP</span>
+                                                    }
+                                                </div>
+
+                                                <div class="d-flex align-items-center gap-2">
+                                                    @if (!string.IsNullOrEmpty(item.academiccontrol_inscription_transcriptPath))
+                                                    {
+                                                        <a href="@item.academiccontrol_inscription_transcriptPath" target="_blank"
+                                                           class="btn btn-sm btn-ghost-sep px-2">
+                                                            <i class="bi bi-file-earmark-pdf text-danger me-1"></i> Boleta
+                                                        </a>
+                                                        @if (!item.academiccontrol_inscription_boletaValidada)
+                                                        {
+                                                            <form asp-action="ValidarBoleta" method="post" class="d-inline">
+                                                                @Html.AntiForgeryToken()
+                                                                <input type="hidden" name="id" value="@item.academiccontrol_inscription_ID" />
+                                                                <button type="submit" class="btn btn-sm btn-outline-success px-2 btn-validar-boleta"
+                                                                        data-nombre="Boleta">
+                                                                    <i class="bi bi-check2"></i> Validar
+                                                                </button>
+                                                            </form>
+                                                        }
+                                                        else
+                                                        {
+                                                            <span class="badge bg-success">
+                                                                <i class="bi bi-check2-circle me-1"></i> OK
+                                                            </span>
+                                                        }
+                                                    }
+                                                    else
+                                                    {
+                                                        <span class="badge bg-secondary opacity-50">Sin Boleta</span>
+                                                    }
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td class="txt-body">@item.academiccontrol_inscription_registrationDate.ToString("dd/MM/yyyy")</td>
+                                        <td>
+                                            @await Html.PartialAsync("_StatusBadge", null, new ViewDataDictionary(ViewData)
+                                            {
+                                                { "StatusValue", item.academiccontrol_inscription_state },
+                                                                { "StatusType", "inscripcion" }
+                                            })
+                            </td>
+                            <td class="text-end">
+                                <div class="d-flex justify-content-end gap-2">
+
+                                                @if (item.academiccontrol_inscription_state == EstadoInscripcion.PagoValidado.ToString())
+                                                {
+                                                    <form asp-action="AprobarInscripcion" method="post" class="d-inline">
+                                                        @Html.AntiForgeryToken()
+                                                        <input type="hidden" name="id" value="@item.academiccontrol_inscription_ID" />
+                                                        <button type="submit"
+                                                                class="btn btn-sm px-3 btn-aprobar"
+                                                                style="background-color: var(--success-700); color: white;"
+                                                                data-matricula="@item.academiccontrol_inscription_enrollment">
+                                                            <i class="bi bi-check-circle me-1"></i> Aprobar
+                                                        </button>
+                                                    </form>
+                                                }
+
+                                                @if (item.academiccontrol_inscription_state != EstadoInscripcion.Aprobada.ToString()
+                                                                                    && item.academiccontrol_inscription_state != EstadoInscripcion.Rechazada.ToString())
+                                                {
+                                                    <button type="button"
+                                                            class="btn btn-sm btn-danger px-3"
+                                                            data-bs-toggle="modal"
+                                                            data-bs-target="#modalRechazarIns"
+                                                            data-id="@item.academiccontrol_inscription_ID"
+                                                            data-matricula="@item.academiccontrol_inscription_enrollment">
+                                                        <i class="bi bi-x-lg me-1"></i> Rechazar
+                                                    </button>
+                                                }
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+            </div>
+        }
+    </div>
+</div>
+
+@* Modales y Scripts se mantienen igual en lógica, solo se vinculan a las propiedades corregidas *@
+<div class="modal fade" id="modalRechazarPre" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content bg-surface border-theme">
+            <div class="modal-header border-theme">
+                <h5 class="modal-title fw-bold txt-primary-dark">Rechazar Preinscripción</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form asp-action="RechazarPreinscripcion" method="post">
+                @Html.AntiForgeryToken()
+                <div class="modal-body">
+                    <input type="hidden" name="id" id="preRechazarId" />
+                    <p class="txt-body">¿Está seguro que desea rechazar el folio <strong id="preRechazarFolio"></strong>?</p>
+                    <div class="mb-3">
+                        <label class="form-label txt-body text-xs fw-bold tracking-wide">MOTIVO (OPCIONAL)</label>
+                        <textarea name="motivo" class="form-control bg-app border-theme txt-title" rows="3"
+                                  placeholder="Indique el motivo del rechazo..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer border-theme">
+                    <button type="button" class="btn btn-ghost-sep" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-danger">Confirmar Rechazo</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="modalRechazarIns" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content bg-surface border-theme">
+            <div class="modal-header border-theme">
+                <h5 class="modal-title fw-bold txt-primary-dark">Rechazar Inscripción</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form asp-action="RechazarInscripcion" method="post">
+                @Html.AntiForgeryToken()
+                <div class="modal-body">
+                    <input type="hidden" name="id" id="insRechazarId" />
+                    <p class="txt-body">¿Está seguro que desea rechazar la matrícula <strong id="insRechazarMatricula"></strong>?</p>
+                    <div class="mb-3">
+                        <label class="form-label txt-body text-xs fw-bold tracking-wide">MOTIVO (OPCIONAL)</label>
+                        <textarea name="motivo" class="form-control bg-app border-theme txt-title" rows="3"
+                                  placeholder="Indique el motivo del rechazo..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer border-theme">
+                    <button type="button" class="btn btn-ghost-sep" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-danger">Confirmar Rechazo</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+
+                // Validar documentos individuales
+        ['btn-validar-acta', 'btn-validar-curp', 'btn-validar-boleta'].forEach(cls => {
+            document.querySelectorAll(`.${cls}`).forEach(btn => {
+                btn.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    const form = this.closest('form');
+                    const nombre = this.dataset.nombre;
+                    Swal.fire({
+                        title: `¿Validar ${nombre}?`,
+                        text: `¿Confirma que el documento ${nombre} es correcto?`,
+                        icon: 'question',
+                        showCancelButton: true,
+                        confirmButtonText: 'Sí, validar',
+                        cancelButtonText: 'Cancelar',
+                        confirmButtonColor: '#13322B',
+                        cancelButtonColor: '#6c757d'
+                    }).then(result => {
+                        if (result.isConfirmed) form.submit();
+                    });
+                });
+            });
+        });
+
+        // Validar preinscripción
+        document.querySelectorAll('.btn-validar-pre').forEach(btn => {
+            btn.addEventListener('click', function (e) {
+                e.preventDefault();
+                const form = this.closest('form');
+                Swal.fire({
+                    title: '¿Validar preinscripción?',
+                    text: `¿Está seguro que desea validar el folio ${this.dataset.folio}?`,
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonText: 'Sí, validar',
+                    cancelButtonText: 'Cancelar',
+                    confirmButtonColor: '#13322B',
+                    cancelButtonColor: '#6c757d'
+                }).then(result => {
+                    if (result.isConfirmed) form.submit();
+                });
+            });
+        });
+
+        // Habilitar inscripción
+        document.querySelectorAll('.btn-habilitar').forEach(btn => {
+            btn.addEventListener('click', function (e) {
+                e.preventDefault();
+                const form = this.closest('form');
+                Swal.fire({
+                    title: '¿Habilitar inscripción?',
+                    text: `¿Está seguro que desea habilitar la inscripción para el folio ${this.dataset.folio}?`,
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonText: 'Sí, habilitar',
+                    cancelButtonText: 'Cancelar',
+                    confirmButtonColor: '#13322B',
+                    cancelButtonColor: '#6c757d'
+                }).then(result => {
+                    if (result.isConfirmed) form.submit();
+                });
+            });
+        });
+
+        // Validar documentos
+        document.querySelectorAll('.btn-validar-docs').forEach(btn => {
+            btn.addEventListener('click', function (e) {
+                e.preventDefault();
+                const form = this.closest('form');
+                Swal.fire({
+                    title: '¿Validar documentos?',
+                    text: '¿Confirma que los documentos presentados son correctos?',
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonText: 'Sí, validar',
+                    cancelButtonText: 'Cancelar',
+                    confirmButtonColor: '#13322B',
+                    cancelButtonColor: '#6c757d'
+                }).then(result => {
+                    if (result.isConfirmed) form.submit();
+                });
+            });
+        });
+
+        // Aprobar inscripción
+        document.querySelectorAll('.btn-aprobar').forEach(btn => {
+            btn.addEventListener('click', function (e) {
+                e.preventDefault();
+                const form = this.closest('form');
+                Swal.fire({
+                    title: '¿Aprobar inscripción?',
+                    text: `¿Está seguro que desea aprobar la matrícula ${this.dataset.matricula}?`,
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonText: 'Sí, aprobar',
+                    cancelButtonText: 'Cancelar',
+                    confirmButtonColor: '#13322B',
+                    cancelButtonColor: '#6c757d'
+                }).then(result => {
+                    if (result.isConfirmed) form.submit();
+                });
+            });
+        });
+
+        // Modal rechazar preinscripción
+        document.getElementById('modalRechazarPre')?.addEventListener('show.bs.modal', function (e) {
+            const btn = e.relatedTarget;
+            document.getElementById('preRechazarId').value = btn.dataset.id;
+            document.getElementById('preRechazarFolio').textContent = btn.dataset.folio || `#${btn.dataset.id}`;
+        });
+
+        // Modal rechazar inscripción
+        document.getElementById('modalRechazarIns')?.addEventListener('show.bs.modal', function (e) {
+            const btn = e.relatedTarget;
+            document.getElementById('insRechazarId').value = btn.dataset.id;
+            document.getElementById('insRechazarMatricula').textContent = btn.dataset.matricula || `#${btn.dataset.id}`;
+        });
+    </script>
+}

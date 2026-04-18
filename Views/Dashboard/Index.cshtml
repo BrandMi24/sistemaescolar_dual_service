@@ -1,0 +1,829 @@
+﻿@model ControlEscolar.Models.Dashboard.RectorateViewModel
+@{
+    ViewData["Title"] = "Inicio — Panorama Institucional";
+    Layout = "_LayoutDashboard";
+
+    var totalGender = Model.MaleCount + Model.FemaleCount + Model.OtherGenderCount;
+    var cuatNames = new Dictionary<int, string> { { 0, "Todo el año" }, { 1, "Ene — Abr" }, { 2, "May — Ago" }, { 3, "Sep — Dic" } };
+
+    // Conversion funnel calculations
+    var funnelTotal = Model.TotalPreinscripciones + Model.TotalInscripciones;
+    var funnelConvRate = Model.TotalPreinscripciones > 0
+        ? Math.Round((decimal)Model.TotalInscripciones / Model.TotalPreinscripciones * 100, 1)
+        : 0m;
+    var funnelActiveRate = Model.TotalInscripciones > 0
+        ? Math.Round((decimal)Model.ActiveStudents / Model.TotalInscripciones * 100, 1)
+        : 0m;
+
+    // Turno distribution from GroupsOverview
+    var turnoData = Model.GroupsOverview
+        .GroupBy(g => string.IsNullOrWhiteSpace(g.Shift) ? "Sin Turno" : g.Shift)
+        .Select(g => new { Turno = g.Key, Students = g.Sum(x => x.StudentCount), Groups = g.Count() })
+        .OrderByDescending(t => t.Students)
+        .ToList();
+    var turnoTotal = turnoData.Sum(t => t.Students);
+
+    // Alerts
+    var hasAlerts = Model.TramitesRetrasados > 0 || Model.BajasRecientes > 0
+                    || Model.VinculacionPendingDocs > 0 || Model.SaludCasosUrgentes > 0;
+}
+
+@if (ViewBag.Error != null)
+{
+    <div class="alert-box-sep mb-4 shadow-sm border-theme">
+        <i class="bi bi-exclamation-octagon-fill txt-error fs-5"></i>
+        <div class="txt-title text-sm"><strong>Error de Sistema:</strong> @ViewBag.Error</div>
+    </div>
+}
+
+@* ═══════════════════════════════════════════ *@
+@* ALERTS / ATTENTION BAR                      *@
+@* ═══════════════════════════════════════════ *@
+@if (hasAlerts)
+{
+    <div class="admin-card-white p-3 mb-4 shadow-sm" style="border-left: 4px solid var(--warning-700, #f59e0b) !important; background: linear-gradient(135deg, #fffbeb 0%, #ffffff 100%);">
+        <div class="d-flex align-items-center gap-2 mb-2">
+            <i class="bi bi-bell-fill" style="color: var(--warning-700, #f59e0b); font-size: 1.1rem;"></i>
+            <span class="fw-bold txt-title text-xs text-uppercase tracking-wide">Requiere Atención</span>
+        </div>
+        <div class="d-flex flex-wrap gap-3">
+            @if (Model.TramitesRetrasados > 0)
+            {
+                <a href="@Url.Action("Tramites", "Dashboard")" class="d-flex align-items-center gap-2 bg-surface p-2 px-3 rounded-3 border text-decoration-none" style="transition: transform .15s;" onmouseover="this.style.transform='translateY(-1px)'" onmouseout="this.style.transform='none'">
+                    <span class="badge bg-danger">@Model.TramitesRetrasados</span>
+                    <span class="text-xs txt-title fw-semibold">trámites retrasados</span>
+                    @if (Model.OldestTramiteDays > 0)
+                    {
+                        <span class="text-xxs text-muted">(máx. @Model.OldestTramiteDays días)</span>
+                    }
+                </a>
+            }
+            @if (Model.BajasRecientes > 0)
+            {
+                <div class="d-flex align-items-center gap-2 bg-surface p-2 px-3 rounded-3 border">
+                    <span class="badge bg-warning text-dark">@Model.BajasRecientes</span>
+                    <span class="text-xs txt-title fw-semibold">bajas recientes</span>
+                </div>
+            }
+            @if (Model.VinculacionPendingDocs > 0)
+            {
+                <a href="@Url.Action("Vinculacion", "Dashboard")" class="d-flex align-items-center gap-2 bg-surface p-2 px-3 rounded-3 border text-decoration-none" style="transition: transform .15s;" onmouseover="this.style.transform='translateY(-1px)'" onmouseout="this.style.transform='none'">
+                    <span class="badge" style="background: #8b5cf6;">@Model.VinculacionPendingDocs</span>
+                    <span class="text-xs txt-title fw-semibold">docs vinculación pendientes</span>
+                </a>
+            }
+            @if (Model.SaludCasosUrgentes > 0)
+            {
+                <a href="@Url.Action("Salud", "Dashboard")" class="d-flex align-items-center gap-2 bg-surface p-2 px-3 rounded-3 border text-decoration-none" style="transition: transform .15s;" onmouseover="this.style.transform='translateY(-1px)'" onmouseout="this.style.transform='none'">
+                    <span class="badge bg-danger">@Model.SaludCasosUrgentes</span>
+                    <span class="text-xs txt-title fw-semibold">casos salud urgentes</span>
+                </a>
+            }
+        </div>
+    </div>
+}
+
+@* ═══════════════════════════════════════════ *@
+@* FILTER BAR                                  *@
+@* ═══════════════════════════════════════════ *@
+<div class="admin-card-white p-4 mb-4 shadow-sm">
+    <form method="get" class="row g-3 align-items-end">
+        <div class="col-md-3">
+            <label class="section-label text-muted mb-2 d-block">Año Académico</label>
+            <select name="year" id="filterYear" class="form-select text-sm fw-semibold">
+                @foreach (var y in Model.AvailableYears)
+                {
+                    if (y == Model.SelectedYear)
+                    {
+                        <option value="@y" selected>@y</option>
+                    }
+                    else
+                    {
+                        <option value="@y">@y</option>
+                    }
+                }
+            </select>
+        </div>
+        <div class="col-md-3">
+            <label class="section-label text-muted mb-2 d-block">Periodo (Cuatrimestre)</label>
+            <select name="cuatrimestre" id="filterCuat" class="form-select text-sm fw-semibold">
+                @{
+                    var cuatOptions = new Dictionary<int, string> { { 0, "Todo el año" }, { 1, "Ene — Abr" }, { 2, "May — Ago" }, { 3, "Sep — Dic" } };
+                }
+                @foreach (var opt in cuatOptions)
+                {
+                    if (opt.Key == Model.SelectedCuatrimestre)
+                    {
+                        <option value="@opt.Key" selected>@opt.Value</option>
+                    }
+                    else
+                    {
+                        <option value="@opt.Key">@opt.Value</option>
+                    }
+                }
+            </select>
+        </div>
+        <div class="col-md-6 d-flex gap-2 flex-wrap">
+            <button type="submit" class="btn-primary-sep text-xs px-4">
+                <i class="bi bi-funnel me-2"></i> FILTRAR DATOS
+            </button>
+            <a href="@Url.Action("Index", "Dashboard")" class="btn-ghost-sep text-xs px-4 bg-surface">
+                LIMPIAR
+            </a>
+            <button type="button" class="btn-ghost-sep text-xs px-4" onclick="exportAllTablesToZip('inicio_panorama_institucional')" title="Descargar todas las tablas de esta página en un archivo ZIP respetando filtros actuales">
+                <i class="bi bi-file-earmark-zip me-2"></i> DESCARGAR TODO (ZIP)
+            </button>
+        </div>
+    </form>
+</div>
+
+@if (Model.SelectedCuatrimestre > 0)
+{
+    <div class="mb-4 d-inline-flex align-items-center bg-primary-dark txt-white text-xxs fw-bold tracking-wide px-3 py-2 rounded-pill shadow-sm">
+        <i class="bi bi-info-circle me-2"></i> VISTA ACTUAL: AÑO @Model.SelectedYear / @cuatNames[Model.SelectedCuatrimestre].ToUpper()
+    </div>
+}
+
+@* ═══════════════════════════════════════════ *@
+@* KPI CARDS                                   *@
+@* ═══════════════════════════════════════════ *@
+<div class="row g-3 mb-4">
+    <div class="col-12 col-md-6 col-xl-3">
+        <div class="stat-card-sep">
+            <div class="d-flex justify-content-between align-items-start mb-2">
+                <span class="stat-label">Estudiantes Registrados</span>
+                <div class="icon-circle bg-accent-light txt-primary-dark shadow-sm"><i class="bi bi-people fs-5"></i></div>
+            </div>
+            <div class="stat-value">@Model.TotalStudents</div>
+            <span class="text-xxs txt-body mt-1 fw-medium">@Model.ActiveStudents activos · @Model.TotalPreinscripciones preins.</span>
+        </div>
+    </div>
+    <div class="col-12 col-md-6 col-xl-3">
+        <div class="stat-card-sep" style="border-left: 3px solid var(--success-700);">
+            <div class="d-flex justify-content-between align-items-start mb-2">
+                <span class="stat-label">Carreras</span>
+                <div class="icon-circle bg-success-100 shadow-sm" style="color: var(--success-700);"><i class="bi bi-journal-album fs-5"></i></div>
+            </div>
+            <div class="stat-value">@Model.TotalCareers</div>
+            <span class="text-xxs txt-body mt-1 fw-medium">@Model.TotalGroups grupos en curso</span>
+        </div>
+    </div>
+    <div class="col-12 col-md-6 col-xl-3">
+        <div class="stat-card-sep" style="border-left: 3px solid var(--primary-700);">
+            <div class="d-flex justify-content-between align-items-start mb-2">
+                <span class="stat-label">Cuerpo Docente</span>
+                <div class="icon-circle bg-primary-100 txt-primary-dark shadow-sm"><i class="bi bi-person-video3 fs-5"></i></div>
+            </div>
+            <div class="stat-value">@Model.TotalTeachers</div>
+            <span class="text-xxs txt-body mt-1 fw-medium">Personal académico activo</span>
+        </div>
+    </div>
+    <div class="col-12 col-md-6 col-xl-3">
+        <div class="stat-card-sep" style="border-left: 3px solid var(--warning-700);">
+            <div class="d-flex justify-content-between align-items-start mb-2">
+                <span class="stat-label">Trámites Pendientes</span>
+                <div class="icon-circle bg-warning-100 shadow-sm" style="color: var(--warning-700);"><i class="bi bi-inboxes fs-5"></i></div>
+            </div>
+            <div class="stat-value">@Model.TotalTramitesPendientes</div>
+            <span class="text-xxs txt-body mt-1 fw-medium">@Model.TotalVisitasMedicas atenciones salud</span>
+        </div>
+    </div>
+</div>
+
+@* ═══════════════════════════════════════════ *@
+@* CONVERSION FUNNEL                           *@
+@* ═══════════════════════════════════════════ *@
+<div class="admin-card-white p-4 mb-4 shadow-sm">
+    <div class="d-flex align-items-center gap-2 mb-4 border-bottom pb-3">
+        <div style="width: 4px; height: 18px; background: var(--primary-900); border-radius: 2px;"></div>
+        <h6 class="txt-title fw-bold text-xs text-uppercase tracking-wide mb-0">Embudo de Captación</h6>
+    </div>
+    <div class="row g-0 align-items-center text-center">
+        <div class="col">
+            <div class="p-3">
+                <div class="text-xxs fw-bold text-muted text-uppercase tracking-wide mb-1">Preinscripciones</div>
+                <div class="fs-2 fw-bold txt-title">@Model.TotalPreinscripciones</div>
+                <div class="text-xxs text-muted">Registros en plataforma</div>
+            </div>
+        </div>
+        <div class="col-auto px-0">
+            <div class="d-flex flex-column align-items-center">
+                <i class="bi bi-chevron-double-right fs-4" style="color: var(--primary-700); opacity: 0.5;"></i>
+                <span class="badge bg-primary-100 txt-primary-dark text-xxs fw-bold mt-1">@funnelConvRate%</span>
+            </div>
+        </div>
+        <div class="col">
+            <div class="p-3" style="background: var(--bg-main); border-radius: 8px;">
+                <div class="text-xxs fw-bold text-muted text-uppercase tracking-wide mb-1">Inscripciones</div>
+                <div class="fs-2 fw-bold" style="color: var(--success-700);">@Model.TotalInscripciones</div>
+                <div class="text-xxs text-muted">Matrículas confirmadas</div>
+            </div>
+        </div>
+        <div class="col-auto px-0">
+            <div class="d-flex flex-column align-items-center">
+                <i class="bi bi-chevron-double-right fs-4" style="color: var(--success-700); opacity: 0.5;"></i>
+                <span class="badge bg-success-100 text-xxs fw-bold" style="color: var(--success-700);">@funnelActiveRate%</span>
+            </div>
+        </div>
+        <div class="col">
+            <div class="p-3">
+                <div class="text-xxs fw-bold text-muted text-uppercase tracking-wide mb-1">Activos</div>
+                <div class="fs-2 fw-bold txt-primary-dark">@Model.ActiveStudents</div>
+                <div class="text-xxs text-muted">Estudiantes cursando</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@* ═══════════════════════════════════════════ *@
+@* CHARTS ROW: Career Distribution + Gender    *@
+@* ═══════════════════════════════════════════ *@
+<div class="row g-4 mb-4">
+    <div class="col-12 col-lg-8">
+        <div class="admin-card-white h-100">
+            <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2 mb-4 border-bottom pb-3">
+                <div class="d-flex align-items-center gap-2">
+                    <div style="width: 4px; height: 18px; background: var(--primary-900); border-radius: 2px;"></div>
+                    <h6 class="txt-title fw-bold text-xs text-uppercase tracking-wide mb-0">Estudiantes por Carrera</h6>
+                </div>
+                @if (Model.StudentsByCareer.Count > 1)
+                {
+                    <select class="form-select form-select-sm text-xxs fw-bold bg-app border-0" style="width: auto;" id="careerChartFilter" onchange="filterCareerChart(this.value)">
+                        <option value="">Todas las carreras (@Model.StudentsByCareer.Count)</option>
+                        @foreach (var c in Model.StudentsByCareer)
+                        {
+                            <option value="@c.CareerName">@c.CareerName (@c.Count)</option>
+                        }
+                    </select>
+                }
+            </div>
+            @if (Model.StudentsByCareer.Any())
+            {
+                <div class="chart-container" style="height: @(Math.Max(180, Model.StudentsByCareer.Count * 45))px;" id="careerChartContainer">
+                    <canvas id="chartCareers"></canvas>
+                </div>
+            }
+            else
+            {
+                <div class="no-data">Sin datos poblacionales para este periodo</div>
+            }
+        </div>
+    </div>
+    <div class="col-12 col-lg-4">
+        <div class="admin-card-white h-100">
+            <div class="d-flex align-items-center gap-2 mb-4 border-bottom pb-3">
+                <div style="width: 4px; height: 18px; background: var(--accent-500); border-radius: 2px;"></div>
+                <h6 class="txt-title fw-bold text-xs text-uppercase tracking-wide mb-0">Distribución de Género</h6>
+            </div>
+            @if (totalGender > 0)
+            {
+                <div class="chart-container" style="height: 260px;">
+                    <canvas id="chartGender"></canvas>
+                </div>
+            }
+            else
+            {
+                <div class="no-data">Sin datos para este periodo</div>
+            }
+        </div>
+    </div>
+</div>
+
+@* ═══════════════════════════════════════════ *@
+@* CHARTS ROW: Enrollment Trend + Turno Dist.  *@
+@* ═══════════════════════════════════════════ *@
+<div class="row g-4 mb-4">
+    <div class="col-12 col-lg-8">
+        <div class="admin-card-white h-100">
+            <div class="d-flex align-items-center gap-2 mb-4 border-bottom pb-3">
+                <div style="width: 4px; height: 18px; background: var(--success-700, #0d9e7a); border-radius: 2px;"></div>
+                <h6 class="txt-title fw-bold text-xs text-uppercase tracking-wide mb-0">Tendencia de Inscripciones</h6>
+            </div>
+            @if (Model.EnrollmentTrend.Any())
+            {
+                <div class="chart-container" style="height: 280px;">
+                    <canvas id="chartTrend"></canvas>
+                </div>
+            }
+            else
+            {
+                <div class="no-data">Se mostrará la tendencia cuando existan datos de múltiples periodos</div>
+            }
+        </div>
+    </div>
+    <div class="col-12 col-lg-4">
+        <div class="admin-card-white h-100">
+            <div class="d-flex align-items-center gap-2 mb-4 border-bottom pb-3">
+                <div style="width: 4px; height: 18px; background: var(--primary-700); border-radius: 2px;"></div>
+                <h6 class="txt-title fw-bold text-xs text-uppercase tracking-wide mb-0">Distribución por Turno</h6>
+            </div>
+            @if (turnoData.Any() && turnoTotal > 0)
+            {
+                <div class="chart-container" style="height: 200px;">
+                    <canvas id="chartTurno"></canvas>
+                </div>
+                <div class="mt-3">
+                    @foreach (var t in turnoData)
+                    {
+                        var pct = turnoTotal > 0 ? Math.Round((decimal)t.Students / turnoTotal * 100, 1) : 0;
+                        <div class="d-flex justify-content-between align-items-center py-2 border-bottom" style="border-color: var(--bg-main) !important;">
+                            <span class="text-xs fw-semibold txt-title">@t.Turno</span>
+                            <div class="d-flex align-items-center gap-2">
+                                <span class="text-xxs text-muted">@t.Groups grupos</span>
+                                <span class="badge bg-primary-100 txt-primary-dark px-2">@t.Students</span>
+                                <span class="text-xxs text-muted">@pct%</span>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+            else
+            {
+                <div class="no-data">Sin datos de turnos disponibles</div>
+            }
+        </div>
+    </div>
+</div>
+
+@* ═══════════════════════════════════════════ *@
+@* CAREERS OVERVIEW TABLE                      *@
+@* ═══════════════════════════════════════════ *@
+@if (Model.CareersOverview.Any())
+{
+    <div class="admin-card-white mb-4 shadow-sm">
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center border-bottom pb-3 mb-4 gap-3">
+            <h6 class="txt-title fw-bold text-xs text-uppercase tracking-wide mb-0"><i class="bi bi-mortarboard me-2"></i>Estadísticas por Carrera</h6>
+            <div class="d-flex gap-2">
+                <select class="form-select form-select-sm text-xxs fw-bold bg-app border-0" style="width: auto;" onchange="filterTableByColumn(this.value, 'tblCarreras', 0)">
+                    <option value="">Todas las carreras</option>
+                    @foreach (var c in Model.CareersOverview)
+                    {
+                        <option value="@c.CareerName">@c.CareerName</option>
+                    }
+                </select>
+                <button class="btn-primary-sep text-xxs py-2 px-3" onclick="exportTableToCSV('tblCarreras', 'estadisticas_por_carrera.csv')">
+                    <i class="bi bi-file-earmark-excel me-2"></i> CSV
+                </button>
+            </div>
+        </div>
+
+        <div class="text-xxs text-muted mb-2 fw-bold" id="tblCarrerasCount">Mostrando 1 a @Model.CareersOverview.Count registros</div>
+
+        <div class="table-responsive custom-scroll" style="max-height: 350px;">
+            <table class="table table-hover align-middle text-sm mb-0 table-borderless" id="tblCarreras" data-export-name="estadisticas_por_carrera">
+
+                <!-- Tabla 2: Grupos -->>
+                <thead class="bg-app text-xxs fw-bold text-muted" style="position: sticky; top: 0; z-index: 1;">
+                    <tr>
+                        <th class="ps-3 border-0">Carrera</th>
+                        <th class="text-center border-0">Total</th>
+                        <th class="text-center border-0">Inscritos</th>
+                        <th class="text-center border-0">Preinscritos</th>
+                        <th class="text-center border-0">Bajas</th>
+                        <th class="text-center border-0">Grupos</th>
+                        <th class="text-center pe-3 border-0">%</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var c in Model.CareersOverview)
+                    {
+                        <tr>
+                            <td class="ps-3 fw-bold txt-title text-xs">@c.CareerName</td>
+                            <td class="text-center"><span class="badge bg-primary-100 txt-primary-dark px-3 py-1">@c.TotalStudents</span></td>
+                            <td class="text-center fw-bold" style="color: var(--success-700);">@c.Inscritos</td>
+                            <td class="text-center fw-bold" style="color: var(--warning-700);">@c.Preinscritos</td>
+                            <td class="text-center @(c.Bajas > 0 ? "fw-bold" : "text-muted")" style="@(c.Bajas > 0 ? "color: var(--error-700);" : "")">@c.Bajas</td>
+                            <td class="text-center"><span class="badge bg-primary-dark txt-white px-2">@c.Groups</span></td>
+                            <td class="text-center pe-3 text-muted text-xs">@c.Percentage%</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+}
+
+@* ═══════════════════════════════════════════ *@
+@* GROUPS OVERVIEW TABLE                       *@
+@* ═══════════════════════════════════════════ *@
+@if (Model.GroupsOverview.Any())
+{
+    <div class="admin-card-white mb-4 shadow-sm">
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center border-bottom pb-3 mb-4 gap-3">
+            <h6 class="txt-title fw-bold text-xs text-uppercase tracking-wide mb-0"><i class="bi bi-grid-3x3-gap me-2"></i>Estadísticas por Grupo</h6>
+            <div class="d-flex gap-2 flex-wrap">
+                <select class="form-select form-select-sm text-xxs fw-bold bg-app border-0" style="width: auto;" onchange="filterTableByColumn(this.value, 'tblGrupos', 1)">
+                    <option value="">Carrera (Todas)</option>
+                    @foreach (var c in Model.CareersOverview.Where(c => c.TotalStudents > 0))
+                    {
+                        <option value="@c.CareerName">@c.CareerName</option>
+                    }
+                </select>
+                <select class="form-select form-select-sm text-xxs fw-bold bg-app border-0" style="width: auto;" onchange="filterTableByColumn(this.value, 'tblGrupos', 2)">
+                    <option value="">Turno (Todos)</option>
+                    <option value="Matutino">Matutino</option>
+                    <option value="Vespertino">Vespertino</option>
+                </select>
+                <button class="btn-primary-sep text-xxs py-2 px-3" onclick="exportTableToCSV('tblGrupos', 'estadisticas_por_grupo.csv')">
+                    <i class="bi bi-file-earmark-excel me-2"></i> CSV
+                </button>
+            </div>
+        </div>
+
+        <div class="text-xxs text-muted mb-2 fw-bold" id="tblGruposCount">Mostrando 1 a @Model.GroupsOverview.Count registros</div>
+
+        <div class="table-responsive custom-scroll" style="max-height: 350px;">
+            <table class="table table-hover align-middle text-sm mb-0 table-borderless" id="tblGrupos" data-export-name="estadisticas_por_grupo">
+                <thead class="bg-app text-xxs fw-bold text-muted" style="position: sticky; top: 0; z-index: 1;">
+                    <tr>
+                        <th class="ps-3 border-0">Grupo</th>
+                        <th class="border-0">Carrera</th>
+                        <th class="border-0">Turno</th>
+                        <th class="text-center border-0">Cuat.</th>
+                        <th class="text-center pe-3 border-0">Estudiantes</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var g in Model.GroupsOverview)
+                    {
+                        var bc = g.StudentCount > 12 ? "status-aceptado" : g.StudentCount > 5 ? "status-pendiente" : "status-rechazado";
+                        var cuatNum = new string(g.GroupCode.TakeWhile(char.IsDigit).ToArray());
+                        <tr>
+                            <td class="ps-3"><span class="badge fw-bold px-3 py-2 bg-app txt-title" style="border-radius: 6px;">@g.GroupCode</span></td>
+                            <td class="fw-bold txt-title text-xs">@g.CareerName</td>
+                            <td class="text-muted text-xs">@g.Shift</td>
+                            <td class="text-center"><span class="badge bg-primary-100 txt-primary-dark">@cuatNum</span></td>
+                            <td class="text-center pe-3"><span class="badge badge-status @bc shadow-sm">@g.StudentCount</span></td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+}
+
+@* ═══════════════════════════════════════════ *@
+@* STATUS + PREINSCRIPCIONES TABLES            *@
+@* ═══════════════════════════════════════════ *@
+<div class="row g-4 mb-4">
+    @if (Model.StudentsByStatus.Any())
+    {
+        <div class="col-12 col-lg-6">
+            <div class="admin-card-white h-100">
+                <h6 class="txt-title fw-bold text-xs text-uppercase tracking-wide mb-4 border-bottom pb-3">Estudiantes por Estatus</h6>
+                <div class="table-responsive custom-scroll" style="max-height: 250px;">
+                    <table class="table table-hover align-middle text-sm mb-0 table-borderless" id="tblStatus" data-export-name="estudiantes_por_estatus">
+                        <thead class="bg-app text-xxs fw-bold text-muted" style="position: sticky; top: 0; z-index: 1;">
+                            <tr><th class="ps-3 border-0">Estatus</th><th class="text-center border-0">Total</th><th class="text-center border-0">%</th></tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var s in Model.StudentsByStatus)
+                            {
+                                var sc = s.Status switch { "INSCRITO" => "status-aceptado", "PREINSCRITO" => "status-pendiente", "BAJA" => "status-rechazado", _ => "status-pendiente" };
+                                <tr>
+                                    <td class="ps-3 fw-bold txt-title text-xs">@s.Status</td>
+                                    <td class="text-center"><span class="badge badge-status @sc shadow-sm">@s.Count</span></td>
+                                    <td class="text-center text-muted text-xs">@s.Percentage%</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    }
+    @if (Model.PreinscripcionesByCareer.Any())
+    {
+        <div class="col-12 col-lg-6">
+            <div class="admin-card-white h-100">
+                <div class="d-flex justify-content-between align-items-center border-bottom pb-3 mb-4">
+                    <h6 class="txt-title fw-bold text-xs text-uppercase tracking-wide mb-0">Preinscripciones Recientes</h6>
+                    <button class="btn btn-sm btn-light border text-xxs fw-bold px-3 py-1" onclick="exportTableToCSV('tblPreCarreras', 'preinscripciones_carrera.csv')"><i class="bi bi-download"></i></button>
+                </div>
+                <div class="table-responsive custom-scroll" style="max-height: 250px;">
+                    <table class="table table-hover align-middle text-sm mb-0 table-borderless" id="tblPreCarreras" data-export-name="preinscripciones_por_carrera">
+                        <thead class="bg-app text-xxs fw-bold text-muted" style="position: sticky; top: 0; z-index: 1;">
+                            <tr><th class="ps-3 border-0">Carrera</th><th class="text-center border-0">Total</th><th class="text-center border-0">%</th></tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var c in Model.PreinscripcionesByCareer)
+                            {
+                                <tr>
+                                    <td class="ps-3 fw-bold txt-title text-xs">@c.CareerName</td>
+                                    <td class="text-center"><span class="badge bg-primary-100 txt-primary-dark px-3 py-1">@c.Count</span></td>
+                                    <td class="text-center text-muted text-xs">@c.Percentage%</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@* ═══════════════════════════════════════════ *@
+@* HISTORY: Career & Group Changes             *@
+@* ═══════════════════════════════════════════ *@
+<h6 class="txt-title fw-bold text-uppercase mb-3 mt-5"><i class="bi bi-clock-history me-2"></i>Historial de Movimientos</h6>
+<div class="row g-4 mb-5">
+    @if (Model.CareerChanges.Any())
+    {
+        <div class="col-12 col-lg-6">
+            <div class="admin-card-white h-100 shadow-sm" style="border-top: 4px solid var(--success-700, #0d9e7a) !important;">
+                <div class="d-flex justify-content-between align-items-center border-bottom pb-3 mb-3">
+                    <h6 class="txt-title fw-bold text-xs text-uppercase tracking-wide mb-0">Cambios de Carrera</h6>
+                    <button class="btn btn-sm btn-light border text-xxs fw-bold px-3 py-1" onclick="exportTableToCSV('tblCareerHistory','historial_cambio_carrera.csv')"><i class="bi bi-download"></i></button>
+                </div>
+                <div class="table-responsive custom-scroll" style="max-height: 300px;">
+                    <table class="table table-hover align-middle text-sm mb-0 table-borderless" id="tblCareerHistory" data-export-name="historial_cambio_carrera">
+                        <thead class="bg-app text-xxs fw-bold text-muted" style="position: sticky; top: 0; z-index: 1;">
+                            <tr><th class="ps-3 border-0">Alumno</th><th class="border-0">Destino</th><th class="text-end pe-3 border-0">Fecha</th></tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var h in Model.CareerChanges)
+                            {
+                                <tr>
+                                    <td class="ps-3">
+                                        <div class="fw-bold txt-title text-xs">@h.StudentName</div>
+                                        <div class="text-xxs text-muted">@h.Matricula</div>
+                                    </td>
+                                    <td><span class="badge bg-primary-dark txt-white text-wrap text-start" style="max-width: 120px;">@h.CareerName</span></td>
+                                    <td class="text-end pe-3 text-muted text-xs">@h.StartDate.ToString("dd/MMM/yy")</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    }
+
+    @if (Model.GroupChanges.Any())
+    {
+        <div class="col-12 col-lg-6">
+            <div class="admin-card-white h-100 shadow-sm" style="border-top: 4px solid var(--warning-700, #f59e0b) !important;">
+                <div class="d-flex justify-content-between align-items-center border-bottom pb-3 mb-3">
+                    <h6 class="txt-title fw-bold text-xs text-uppercase tracking-wide mb-0">Cambios de Grupo</h6>
+                    <button class="btn btn-sm btn-light border text-xxs fw-bold px-3 py-1" onclick="exportTableToCSV('tblGroupHistory','historial_cambio_grupo.csv')"><i class="bi bi-download"></i></button>
+                </div>
+                <div class="table-responsive custom-scroll" style="max-height: 300px;">
+                    <table class="table table-hover align-middle text-sm mb-0 table-borderless" id="tblGroupHistory" data-export-name="historial_cambio_grupo">
+                        <thead class="bg-app text-xxs fw-bold text-muted" style="position: sticky; top: 0; z-index: 1;">
+                            <tr><th class="ps-3 border-0">Alumno</th><th class="border-0">Nuevo Grupo</th><th class="text-end pe-3 border-0">Fecha</th></tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var h in Model.GroupChanges)
+                            {
+                                <tr>
+                                    <td class="ps-3">
+                                        <div class="fw-bold txt-title text-xs">@h.StudentName</div>
+                                        <div class="text-xxs text-muted">@h.Matricula</div>
+                                    </td>
+                                    <td><span class="badge fw-bold px-2 py-1 bg-app txt-title">@h.GroupCode</span></td>
+                                    <td class="text-end pe-3 text-muted text-xs">@h.StartDate.ToString("dd/MMM/yy")</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
+
+    <script>
+        Chart.register(ChartDataLabels);
+        Chart.defaults.color = '#6B7280';
+        Chart.defaults.font.family = "'Montserrat', sans-serif";
+
+        // ── Students by Career (horizontal bar — filterable) ──
+        @if (Model.StudentsByCareer.Any())
+        {
+                <text>
+                    var careerAllLabels = [@Html.Raw(string.Join(",", Model.StudentsByCareer.Select(c => $"'{c.CareerName}'")))];
+                    var careerAllData = [@string.Join(",", Model.StudentsByCareer.Select(c => c.Count))];
+                    var careerChart = new Chart(document.getElementById('chartCareers'), {
+                    type: 'bar',
+                    data: {
+                    labels: careerAllLabels.slice(),
+                    datasets: [{
+                    data: careerAllData.slice(),
+                    backgroundColor: '#13322B',
+                    borderRadius: 4,
+                    maxBarThickness: 32
+                    }]
+                    },
+                    options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                    legend: { display: false },
+                    datalabels: { anchor: 'end', align: 'right', color: '#13322B', font: { weight: '800', size: 10 }, offset: 4 }
+                    },
+                    scales: {
+                    x: { display: false, grid: { display: false } },
+                    y: { grid: { display: false }, ticks: { font: { size: 10, weight: '600' } } }
+                    },
+                    layout: { padding: { right: 30 } }
+                    }
+                    });
+
+                    function filterCareerChart(value) {
+                    var container = document.getElementById('careerChartContainer');
+                    if (value === '') {
+                    careerChart.data.labels = careerAllLabels.slice();
+                    careerChart.data.datasets[0].data = careerAllData.slice();
+                    container.style.height = Math.max(180, careerAllLabels.length * 45) + 'px';
+                    } else {
+                    var idx = careerAllLabels.indexOf(value);
+                    if (idx >= 0) {
+                    careerChart.data.labels = [careerAllLabels[idx]];
+                    careerChart.data.datasets[0].data = [careerAllData[idx]];
+                    container.style.height = '120px';
+                    }
+                    }
+                    careerChart.resize();
+                    careerChart.update();
+                    }
+                </text>
+        }
+
+        // ── Gender Distribution (doughnut) ──
+        @if (totalGender > 0)
+        {
+                <text>
+                    new Chart(document.getElementById('chartGender'), {
+                    type: 'doughnut',
+                    data: {
+                    labels: ['Masculino','Femenino'@(Model.OtherGenderCount > 0 ? ",'Otro'" : "")],
+                    datasets: [{
+                    data: [@Model.MaleCount,@Model.FemaleCount@(Model.OtherGenderCount > 0 ? $",{Model.OtherGenderCount}" : "")],
+                    backgroundColor: ['#13322B', '#D4C19C'@(Model.OtherGenderCount > 0 ? ",'#95A5A6'" : "")],
+                    borderWidth: 2,
+                    borderColor: '#ffffff'
+                    }]
+                    },
+                    options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: '75%',
+                    plugins: {
+                    legend: { position: 'bottom', labels: { boxWidth: 10, padding: 15, font: { size: 10, weight: '600' } } },
+                    datalabels: { display: false }
+                    }
+                    }
+                    });
+                </text>
+        }
+
+        // ── Enrollment Trend (line chart) ──
+        @if (Model.EnrollmentTrend.Any())
+        {
+                <text>
+                    new Chart(document.getElementById('chartTrend'), {
+                    type: 'line',
+                    data: {
+                    labels: [@Html.Raw(string.Join(",", Model.EnrollmentTrend.Select(e => $"'{e.Period}'")))],
+                    datasets: [
+                    {
+                    label: 'Inscritos',
+                    data: [@string.Join(",", Model.EnrollmentTrend.Select(e => e.Inscritos))],
+                    borderColor: '#13322B',
+                    backgroundColor: 'rgba(19,50,43,0.08)',
+                    fill: true,
+                    tension: 0.35,
+                    borderWidth: 2.5,
+                    pointRadius: 4,
+                    pointBackgroundColor: '#13322B'
+                    },
+                    {
+                    label: 'Preinscritos',
+                    data: [@string.Join(",", Model.EnrollmentTrend.Select(e => e.Preinscritos))],
+                    borderColor: '#D4C19C',
+                    backgroundColor: 'rgba(212,193,156,0.08)',
+                    fill: true,
+                    tension: 0.35,
+                    borderWidth: 2,
+                    pointRadius: 3,
+                    pointBackgroundColor: '#D4C19C',
+                    borderDash: [5, 3]
+                    },
+                    {
+                    label: 'Bajas',
+                    data: [@string.Join(",", Model.EnrollmentTrend.Select(e => e.Bajas))],
+                    borderColor: '#991B1B',
+                    backgroundColor: 'transparent',
+                    fill: false,
+                    tension: 0.35,
+                    borderWidth: 1.5,
+                    pointRadius: 3,
+                    pointBackgroundColor: '#991B1B',
+                    borderDash: [3, 3]
+                    }
+                    ]
+                    },
+                    options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                    legend: { position: 'bottom', labels: { boxWidth: 10, padding: 15, font: { size: 10, weight: '600' } } },
+                    datalabels: { display: false }
+                    },
+                    scales: {
+                    x: { grid: { display: false }, ticks: { font: { size: 10 } } },
+                    y: { grid: { color: 'rgba(0,0,0,0.04)' }, ticks: { precision: 0, font: { size: 10 } } }
+                    }
+                    }
+                    });
+                </text>
+        }
+
+        // ── Turno Distribution (doughnut) ──
+        @if (turnoData.Any() && turnoTotal > 0)
+        {
+                <text>
+                    new Chart(document.getElementById('chartTurno'), {
+                    type: 'doughnut',
+                    data: {
+                    labels: [@Html.Raw(string.Join(",", turnoData.Select(t => $"'{t.Turno}'")))],
+                    datasets: [{
+                    data: [@string.Join(",", turnoData.Select(t => t.Students))],
+                    backgroundColor: ['#13322B', '#204A40', '#D4C19C', '#95A5A6'],
+                    borderWidth: 2,
+                    borderColor: '#ffffff'
+                    }]
+                    },
+                    options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: '70%',
+                    plugins: {
+                    legend: { display: false },
+                    datalabels: {
+                    color: '#fff',
+                    font: { weight: 'bold', size: 12 },
+                    formatter: function(v, ctx) {
+                    var t = ctx.dataset.data.reduce((a, b) => a + b, 0);
+                    var p = t > 0 ? Math.round(v / t * 100) : 0;
+                    return p > 5 ? p + '%' : '';
+                    }
+                    }
+                    }
+                    }
+                    });
+                </text>
+        }
+
+        // ── Shared utility functions ──
+        function filterTableByColumn(value, tableId, colIndex) {
+        var table = document.getElementById(tableId);
+        if (!table) return;
+        if (!window._filters) window._filters = {};
+        if (!window._filters[tableId]) window._filters[tableId] = {};
+
+        if (value) window._filters[tableId][colIndex] = value;
+        else delete window._filters[tableId][colIndex];
+
+        var rows = table.querySelectorAll('tbody tr');
+        var visible = 0;
+        rows.forEach(function(row) {
+        var show = true;
+        for (var ci in window._filters[tableId]) {
+        var filterVal = window._filters[tableId][ci];
+        var cell = row.cells[parseInt(ci)];
+        if (cell && cell.textContent.trim().indexOf(filterVal) === -1) { show = false; break; }
+        }
+        row.style.display = show ? '' : 'none';
+        if (show) visible++;
+        });
+
+        var countEl = document.getElementById(tableId + 'Count');
+        if (countEl) countEl.textContent = 'Mostrando 1 a ' + visible + ' registros';
+        }
+
+        function exportTableToCSV(tid, fn) {
+        var t = document.getElementById(tid);
+        var r = t.querySelectorAll('tr');
+        var c = [];
+        r.forEach(function(row) {
+        if (row.style.display === 'none') return;
+        var cols = row.querySelectorAll('th,td');
+        var d = [];
+        cols.forEach(function(col) { d.push('"' + col.textContent.trim().replace(/\n/g,' ').replace(/"/g,'""') + '"'); });
+        c.push(d.join(','));
+        });
+        var b = new Blob(['\uFEFF' + c.join('\n')], { type: 'text/csv;charset=utf-8;' });
+        var l = document.createElement('a');
+        l.href = URL.createObjectURL(b);
+        l.download = fn;
+        l.click();
+        }
+    </script>
+}

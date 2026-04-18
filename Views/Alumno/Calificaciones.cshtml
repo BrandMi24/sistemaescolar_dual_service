@@ -1,0 +1,147 @@
+﻿@{
+    ViewData["Title"] = "Mis Calificaciones";
+    Layout = "_LayoutAlumno";
+    ViewData["ShowBackButton"] = true;
+}
+
+<div class="mx-auto d-flex flex-column gap-4" style="max-width: 1100px; min-height: 82vh;">
+    
+    <div class="bg-white p-4 rounded-4 shadow-sm border border-light d-flex flex-column flex-lg-row justify-content-between align-items-center gap-4">
+        
+        <div class="d-flex align-items-center gap-3 w-100 w-lg-auto">
+            <div class="user-initial-avatar shadow-sm" style="width: 55px; height: 55px; font-size: 1.4rem; background-color: var(--accent-100); color: var(--primary-900);">
+                RC
+            </div>
+            <div>
+                <h6 class="fw-bold mb-1 txt-title text-uppercase tracking-tight">Roberto Carlos Perez Cadena</h6>
+                <div class="d-flex align-items-center gap-2">
+                    <span class="text-secondary fw-bold text-xxs tracking-widest">MATRÍCULA: <span class="txt-primary-dark">26001504</span></span>
+                    <span class="opacity-25">|</span>
+                    <span class="text-muted fw-bold text-xxs text-uppercase tracking-tighter">TSU IDGS - 7º A</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="d-flex flex-wrap gap-2 w-100 w-lg-auto justify-content-lg-end">
+            <div class="bg-app px-3 py-2 rounded-3 border border-light d-flex flex-column align-items-center min-w-100 shadow-none">
+                <span class="text-secondary fw-bold text-xxs tracking-widest opacity-75">PROMEDIO</span>
+                <span class="fw-bold text-sm txt-primary-dark">9.2</span>
+            </div>
+            <div class="bg-app px-3 py-2 rounded-3 border border-light d-flex flex-column align-items-center min-w-100 shadow-none">
+                <span class="text-secondary fw-bold text-xxs tracking-widest opacity-75">APROBADAS</span>
+                <span class="fw-bold text-sm text-success">05</span>
+            </div>
+            <div class="bg-error-100 px-3 py-2 rounded-3 border border-danger border-opacity-10 d-flex flex-column align-items-center min-w-100 shadow-none">
+                <span class="text-danger fw-bold text-xxs tracking-widest opacity-75">REPROBADAS</span>
+                <span class="fw-bold text-sm text-danger">01</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="bg-surface p-3 rounded-4 border border-light shadow-sm d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+        <div class="d-flex align-items-center gap-3 ps-2">
+            <div class="bg-app rounded-circle d-flex align-items-center justify-content-center border border-light" style="width: 40px; height: 40px;">
+                <i class="bi bi-calendar3 txt-primary-dark"></i>
+            </div>
+            <div>
+                <h6 class="fw-bold mb-0 txt-title text-xs text-uppercase tracking-wide">Periodo Actual</h6>
+                <p class="text-muted text-xxs fw-bold text-uppercase tracking-widest mb-0">Septiembre - Diciembre 2026</p>
+            </div>
+        </div>
+        
+        <button class="btn btn-sm bg-primary-dark text-white rounded-3 px-4 py-2 text-xxs fw-bold tracking-widest shadow-sm">
+            <i class="bi bi-file-earmark-pdf-fill me-2"></i> DESCARGAR BOLETA
+        </button>
+    </div>
+
+    <div class="bg-white p-0 rounded-4 border border-light shadow-sm overflow-hidden d-flex flex-column flex-grow-1">
+        <div class="bg-app p-3 border-bottom border-light">
+            <span class="txt-primary-dark fw-bold text-xxs text-uppercase tracking-widest">
+                <i class="bi bi-list-check me-2"></i> Detalle de Evaluación por Unidades
+            </span>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table table-borderless align-middle mb-0">
+                <thead class="bg-white border-bottom">
+                    <tr>
+                        <th class="py-3 px-4 text-xxs fw-bold text-uppercase tracking-wider" width="40%">Asignatura / Docente</th>
+                        <th class="py-3 text-center text-xxs fw-bold text-uppercase tracking-wider" width="12%">U1</th>
+                        <th class="py-3 text-center text-xxs fw-bold text-uppercase tracking-wider" width="12%">U2</th>
+                        <th class="py-3 text-center text-xxs fw-bold text-uppercase tracking-wider" width="12%">U3</th>
+                        <th class="py-3 text-center text-xxs fw-bold text-uppercase tracking-wider px-4" width="24%">Resultado Final</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr class="border-bottom border-light hover-bg-app">
+                        <td class="px-4 py-3">
+                            <div class="fw-bold text-xs text-uppercase txt-title mb-0">Desarrollo de Aplicaciones Web</div>
+                            <div class="text-muted text-xxs fw-bold tracking-tighter opacity-75">ING. JUAN PÉREZ</div>
+                        </td>
+                        <td class="text-center fw-bold text-xs">9.5</td>
+                        <td class="text-center fw-bold text-xs">10.0</td>
+                        <td class="text-center text-muted fw-bold text-xs">-</td>
+                        <td class="text-center px-4">
+                            <span class="badge rounded-pill status-aceptado px-3 py-2 text-xxs fw-bold">9.7 - ACREDITADA</span>
+                        </td>
+                    </tr>
+
+                    <tr class="border-bottom border-light hover-bg-app">
+                        <td class="px-4 py-3">
+                            <div class="fw-bold text-xs text-uppercase txt-title mb-0">Base de Datos Avanzadas</div>
+                            <div class="text-muted text-xxs fw-bold tracking-tighter opacity-75">MTRA. ANA GARCÍA</div>
+                        </td>
+                        <td class="text-center text-danger fw-bold text-xs bg-error-100 border-start border-end border-white">6.5</td>
+                        <td class="text-center fw-bold text-xs">8.5</td>
+                        <td class="text-center text-muted fw-bold text-xs">-</td>
+                        <td class="text-center px-4">
+                            <span class="badge rounded-pill bg-app text-secondary border px-3 py-2 text-xxs fw-bold">7.5 - REGULAR</span>
+                        </td>
+                    </tr>
+
+                    <tr class="border-bottom border-light hover-bg-app border-start border-4 border-danger">
+                        <td class="px-4 py-3">
+                            <div class="fw-bold text-xs text-uppercase text-danger mb-0">Estructura de Datos</div>
+                            <div class="text-muted text-xxs fw-bold tracking-tighter opacity-75">ING. CARLOS LÓPEZ</div>
+                        </td>
+                        <td class="text-center text-danger fw-bold text-xs">6.0</td>
+                        <td class="text-center text-danger fw-bold text-xs">6.5</td>
+                        <td class="text-center text-muted fw-bold text-xs">-</td>
+                        <td class="text-center px-4">
+                            <span class="badge rounded-pill bg-error-100 text-danger border border-danger border-opacity-10 px-3 py-2 text-xxs fw-bold">6.2 - NO ACREDITADA</span>
+                        </td>
+                    </tr>
+
+                    <tr class="border-bottom border-light hover-bg-app">
+                        <td class="px-4 py-3">
+                            <div class="fw-bold text-xs text-uppercase txt-title mb-0">Inglés VII</div>
+                            <div class="text-muted text-xxs fw-bold tracking-tighter opacity-75">LIC. MARÍA FERNÁNDEZ</div>
+                        </td>
+                        <td class="text-center fw-bold text-xs">10.0</td>
+                        <td class="text-center fw-bold text-xs">10.0</td>
+                        <td class="text-center text-muted fw-bold text-xs">-</td>
+                        <td class="text-center px-4">
+                            <span class="badge rounded-pill status-aceptado px-3 py-2 text-xxs fw-bold">10.0 - EXCELENTE</span>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        
+        <div class="bg-app p-3 text-center border-top border-light">
+            <span class="text-secondary fw-bold text-xxs text-uppercase tracking-widest">
+                <i class="bi bi-info-circle-fill me-1"></i> Calificación mínima aprobatoria: 7.0 | U: Unidad No Evaluada todavía
+            </span>
+        </div>
+    </div>
+</div>
+
+<style>
+    .hover-bg-app:hover { background-color: rgba(0,0,0,0.02); transition: background 0.2s ease; }
+    .min-w-100 { min-width: 100px; }
+    .user-initial-avatar { display: flex; align-items: center; justify-content: center; border-radius: 50%; font-weight: 800; }
+    
+    /* Ajuste de badges para que coincidan con Ciclos */
+    .badge { border-radius: 50px; padding: 6px 14px; font-size: 0.62rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; }
+    .status-aceptado { background-color: #E1F7E7; color: #15803D; border: 1px solid rgba(21, 128, 61, 0.1); }
+</style>

@@ -1,0 +1,783 @@
+﻿@model ControlEscolar.Models.Dashboard.AdmissionsViewModel
+@{
+    ViewData["Title"] = "Admisiones — Embudo de Captación";
+    Layout = "_LayoutDashboard";
+
+    var totalGender = Model.MaleCount + Model.FemaleCount + Model.OtherGenderCount;
+    var cuatNames = new Dictionary<int, string> { { 0, "Todo el año" }, { 1, "Ene — Abr" }, { 2, "May — Ago" }, { 3, "Sep — Dic" } };
+}
+
+@if (ViewBag.Error != null)
+{
+    <div class="alert-box-sep mb-4 shadow-sm border-theme">
+        <i class="bi bi-exclamation-octagon-fill txt-error fs-5"></i>
+        <div class="txt-title text-sm"><strong>Error de Sistema:</strong> @ViewBag.Error</div>
+    </div>
+}
+
+@* ═══════════ FILTER BAR ═══════════ *@
+<div class="admin-card-white p-4 mb-4 shadow-sm">
+    <form method="get" class="row g-3 align-items-end">
+        <div class="col-md-3">
+            <label class="section-label text-muted mb-2 d-block">Año Académico</label>
+            <select name="year" class="form-select text-sm fw-semibold">
+                @foreach (var y in Model.AvailableYears)
+                {
+                    if (y == Model.SelectedYear)
+                    {
+                        <option value="@y" selected>@y</option>
+                    }
+                    else
+                    {
+                        <option value="@y">@y</option>
+                    }
+                }
+            </select>
+        </div>
+        <div class="col-md-3">
+            <label class="section-label text-muted mb-2 d-block">Periodo (Cuatrimestre)</label>
+            <select name="cuatrimestre" class="form-select text-sm fw-semibold">
+                @{
+                    var cuatOptions = new Dictionary<int, string> { { 0, "Todo el año" }, { 1, "Ene — Abr" }, { 2, "May — Ago" }, { 3, "Sep — Dic" } };
+                }
+                @foreach (var opt in cuatOptions)
+                {
+                    if (opt.Key == Model.SelectedCuatrimestre)
+                    {
+                        <option value="@opt.Key" selected>@opt.Value</option>
+                    }
+                    else
+                    {
+                        <option value="@opt.Key">@opt.Value</option>
+                    }
+                }
+            </select>
+        </div>
+        <div class="col-md-6 d-flex gap-2 flex-wrap">
+            <button type="submit" class="btn-primary-sep text-xs px-4">
+                <i class="bi bi-funnel me-2"></i> FILTRAR DATOS
+            </button>
+            <a href="@Url.Action("Admisiones", "Dashboard")" class="btn-ghost-sep text-xs px-4 bg-surface">
+                LIMPIAR
+            </a>
+            <button type="button" class="btn-ghost-sep text-xs px-4" onclick="exportAllTablesToZip('admisiones_embudo_captacion')" title="Descargar todas las tablas en un ZIP (respeta filtros actuales)">
+                <i class="bi bi-file-earmark-zip me-2"></i> DESCARGAR TODO (ZIP)
+            </button>
+        </div>
+    </form>
+</div>
+
+@if (Model.SelectedCuatrimestre > 0)
+{
+    <div class="mb-4 d-inline-flex align-items-center bg-primary-dark txt-white text-xxs fw-bold tracking-wide px-3 py-2 rounded-pill shadow-sm">
+        <i class="bi bi-info-circle me-2"></i> VISTA ACTUAL: AÑO @Model.SelectedYear / @cuatNames[Model.SelectedCuatrimestre].ToUpper()
+    </div>
+}
+
+@* ═══════════ KPI CARDS ═══════════ *@
+<div class="row g-3 mb-4">
+    <div class="col-12 col-md-6 col-xl-3">
+        <div class="stat-card-sep">
+            <div class="d-flex justify-content-between align-items-start mb-2">
+                <span class="stat-label">Preinscripciones</span>
+                <div class="icon-circle bg-accent-light txt-primary-dark shadow-sm"><i class="bi bi-person-plus fs-5"></i></div>
+            </div>
+            <div class="stat-value">@Model.TotalPreinscripciones</div>
+            <span class="text-xxs txt-body mt-1 fw-medium">Registros en plataforma</span>
+        </div>
+    </div>
+    <div class="col-12 col-md-6 col-xl-3">
+        <div class="stat-card-sep" style="border-left: 3px solid var(--success-700);">
+            <div class="d-flex justify-content-between align-items-start mb-2">
+                <span class="stat-label">Inscripciones</span>
+                <div class="icon-circle bg-success-100 shadow-sm" style="color: var(--success-700);"><i class="bi bi-check2-square fs-5"></i></div>
+            </div>
+            <div class="stat-value">@Model.TotalInscripciones</div>
+            <span class="text-xxs txt-body mt-1 fw-medium">Matrículas confirmadas</span>
+        </div>
+    </div>
+    <div class="col-12 col-md-6 col-xl-3">
+        <div class="stat-card-sep" style="border-left: 3px solid var(--primary-700);">
+            <div class="d-flex justify-content-between align-items-start mb-2">
+                <span class="stat-label">Promedio Gral.</span>
+                <div class="icon-circle bg-primary-100 txt-primary-dark shadow-sm"><i class="bi bi-mortarboard fs-5"></i></div>
+            </div>
+            <div class="stat-value">@Model.PromedioGeneral</div>
+            <span class="text-xxs txt-body mt-1 fw-medium">Media de bachillerato</span>
+        </div>
+    </div>
+    <div class="col-12 col-md-6 col-xl-3">
+        <div class="stat-card-sep" style="border-left: 3px solid var(--warning-700);">
+            <div class="d-flex justify-content-between align-items-start mb-2">
+                <span class="stat-label">Tasa de Conversión</span>
+                <div class="icon-circle bg-warning-100 shadow-sm" style="color: var(--warning-700);"><i class="bi bi-graph-up-arrow fs-5"></i></div>
+            </div>
+            <div class="stat-value">@Model.ConversionRate%</div>
+            <div class="progress mt-2" style="height: 4px; background-color: var(--bg-main);">
+                <div class="progress-bar" style="width: @Model.ConversionRate%; background-color: var(--warning-700);"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@* ═══════════ CHARTS: Demanda por Carrera + Estatus ═══════════ *@
+<div class="row g-4 mb-4">
+    <div class="col-12 col-lg-8">
+        <div class="admin-card-white h-100">
+            <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2 mb-4 border-bottom pb-3">
+                <div class="d-flex align-items-center gap-2">
+                    <div style="width: 4px; height: 18px; background: var(--primary-900); border-radius: 2px;"></div>
+                    <h6 class="txt-title fw-bold text-xs text-uppercase tracking-wide mb-0">Preinscripciones por Programa Académico</h6>
+                </div>
+                @if (Model.PreinscripcionesByCareer.Count > 1)
+                {
+                    <select class="form-select form-select-sm text-xxs fw-bold bg-app border-0" style="width: auto;" id="careerChartFilter" onchange="filterCareerChart(this.value)">
+                        <option value="">Todas las carreras (@Model.PreinscripcionesByCareer.Count)</option>
+                        @foreach (var c in Model.PreinscripcionesByCareer)
+                        {
+                            <option value="@c.CareerName">@c.CareerName (@c.Count)</option>
+                        }
+                    </select>
+                }
+            </div>
+            @if (Model.PreinscripcionesByCareer.Any())
+            {
+                <div class="chart-container" style="height: @(Math.Max(180, Model.PreinscripcionesByCareer.Count * 45))px;" id="careerChartContainer">
+                    <canvas id="chartCareer"></canvas>
+                </div>
+            }
+            else
+            {
+                <div class="no-data">Sin información de demanda académica disponible.</div>
+            }
+        </div>
+    </div>
+    <div class="col-12 col-lg-4">
+        <div class="admin-card-white h-100">
+            <div class="d-flex align-items-center gap-2 mb-4 border-bottom pb-3">
+                <div style="width: 4px; height: 18px; background: var(--accent-500); border-radius: 2px;"></div>
+                <h6 class="txt-title fw-bold text-xs text-uppercase tracking-wide mb-0">Estatus de Solicitudes</h6>
+            </div>
+            @if (Model.PreinscripcionesByStatus.Any())
+            {
+                <div class="chart-container" style="height: 280px;">
+                    <canvas id="chartStatus"></canvas>
+                </div>
+            }
+            else
+            {
+                <div class="no-data">Sin registros de estatus.</div>
+            }
+        </div>
+    </div>
+</div>
+
+@* ═══════════ CHARTS: Tendencia Mensual + Género ═══════════ *@
+<div class="row g-4 mb-4">
+    <div class="col-12 col-lg-8">
+        <div class="admin-card-white h-100">
+            <div class="d-flex align-items-center gap-2 mb-4 border-bottom pb-3">
+                <div style="width: 4px; height: 18px; background: var(--success-700, #0d9e7a); border-radius: 2px;"></div>
+                <h6 class="txt-title fw-bold text-xs text-uppercase tracking-wide mb-0">Tendencia Mensual de Captación</h6>
+            </div>
+            @if (Model.MonthlyPreinscripciones.Any() || Model.MonthlyInscripciones.Any())
+            {
+                <div class="chart-container" style="height: 280px;">
+                    <canvas id="chartMonthly"></canvas>
+                </div>
+            }
+            else
+            {
+                <div class="no-data">Sin datos de tendencia para este periodo</div>
+            }
+        </div>
+    </div>
+    <div class="col-12 col-lg-4">
+        <div class="admin-card-white h-100">
+            <div class="d-flex align-items-center gap-2 mb-4 border-bottom pb-3">
+                <div style="width: 4px; height: 18px; background: var(--primary-700); border-radius: 2px;"></div>
+                <h6 class="txt-title fw-bold text-xs text-uppercase tracking-wide mb-0">Género de Aspirantes</h6>
+            </div>
+            @if (totalGender > 0)
+            {
+                <div class="chart-container" style="height: 200px;">
+                    <canvas id="chartGender"></canvas>
+                </div>
+                <div class="mt-3">
+                    <div class="d-flex justify-content-between align-items-center py-2 border-bottom" style="border-color: var(--bg-main) !important;">
+                        <span class="text-xs fw-semibold txt-title">Masculino</span>
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="badge bg-primary-100 txt-primary-dark px-2">@Model.MaleCount</span>
+                            <span class="text-xxs text-muted">@(totalGender > 0 ? Math.Round((decimal)Model.MaleCount / totalGender * 100, 1) : 0)%</span>
+                        </div>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center py-2 border-bottom" style="border-color: var(--bg-main) !important;">
+                        <span class="text-xs fw-semibold txt-title">Femenino</span>
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="badge bg-accent-light txt-primary-dark px-2">@Model.FemaleCount</span>
+                            <span class="text-xxs text-muted">@(totalGender > 0 ? Math.Round((decimal)Model.FemaleCount / totalGender * 100, 1) : 0)%</span>
+                        </div>
+                    </div>
+                    @if (Model.OtherGenderCount > 0)
+                    {
+                        <div class="d-flex justify-content-between align-items-center py-2">
+                            <span class="text-xs fw-semibold txt-title">Otro</span>
+                            <div class="d-flex align-items-center gap-2">
+                                <span class="badge bg-app txt-title px-2">@Model.OtherGenderCount</span>
+                                <span class="text-xxs text-muted">@(Math.Round((decimal)Model.OtherGenderCount / totalGender * 100, 1))%</span>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+            else
+            {
+                <div class="no-data">Sin datos de género disponibles</div>
+            }
+        </div>
+    </div>
+</div>
+
+@* ═══════════ TABLES: Desglose Académico + Inscripciones Confirmadas ═══════════ *@
+<div class="row g-4 mb-4">
+    <div class="col-12 col-lg-6">
+        <div class="admin-card-white">
+            <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-2">
+                <h6 class="txt-title fw-bold text-xs text-uppercase tracking-wide mb-0"><i class="bi bi-list-ul me-2"></i>Desglose por Carrera</h6>
+                <button class="btn btn-sm btn-light border text-xxs fw-bold px-3 py-1" onclick="exportTableToCSV('tblPreCarreras','demanda_carreras.csv')">
+                    <i class="bi bi-download"></i>
+                </button>
+            </div>
+            <div class="table-responsive custom-scroll" style="max-height: 350px;">
+                <table class="table table-hover align-middle text-sm table-borderless" id="tblPreCarreras" data-export-name="demanda_por_carrera">
+                    <thead class="bg-app text-xxs fw-bold text-muted">
+                        <tr>
+                            <th class="ps-3 border-0">Carrera</th>
+                            <th class="text-center border-0">Total</th>
+                            <th class="text-end pe-3 border-0">%</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var c in Model.PreinscripcionesByCareer)
+                        {
+                            <tr>
+                                <td class="ps-3 fw-bold txt-title text-xs">@c.CareerName</td>
+                                <td class="text-center"><span class="badge bg-primary-100 txt-primary-dark px-3 py-1">@c.Count</span></td>
+                                <td class="text-end pe-3 text-muted text-xs">@c.Percentage%</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12 col-lg-6">
+        <div class="admin-card-white">
+            <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-2">
+                <h6 class="txt-title fw-bold text-xs text-uppercase tracking-wide mb-0"><i class="bi bi-clipboard-check me-2"></i>Inscripciones Confirmadas</h6>
+                @if (Model.InscripcionesByStatus.Count > 1)
+                {
+                    <select class="form-select form-select-sm text-xxs fw-bold bg-app border-0" style="width: auto;" onchange="filterTableByColumn(this.value,'tblInscripciones',0)">
+                        <option value="">Estatus (Todos)</option>
+                        @foreach (var s in Model.InscripcionesByStatus)
+                        {
+                            <option value="@s.Status">@s.Status</option>
+                        }
+                    </select>
+                }
+            </div>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle text-sm table-borderless" id="tblInscripciones" data-export-name="inscripciones_por_estatus">
+                    <thead class="bg-app text-xxs fw-bold text-muted">
+                        <tr>
+                            <th class="ps-3 border-0">Estatus Confirmación</th>
+                            <th class="text-center border-0">Alumnos</th>
+                            <th class="text-end pe-3 border-0">Peso %</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var s in Model.InscripcionesByStatus)
+                        {
+                            var statusStyle = s.Status switch { "Aceptado" or "Confirmada" => "status-aceptado", "Rechazado" or "Rechazada" => "status-rechazado", _ => "status-pendiente" };
+                            <tr>
+                                <td class="ps-3 fw-semibold txt-title text-xs">@s.Status</td>
+                                <td class="text-center"><span class="badge badge-status @statusStyle shadow-sm">@s.Count</span></td>
+                                <td class="text-end pe-3 text-muted text-xs">@s.Percentage%</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+@* ═══════════ TABLES: Origen Geográfico (Estado + Municipio) + Medio de Difusión ═══════════ *@
+<div class="row g-4 mb-4">
+    <div class="col-12 col-lg-4">
+        <div class="admin-card-white h-100">
+            <h6 class="txt-title fw-bold text-xs text-uppercase tracking-wide mb-4"><i class="bi bi-pin-map me-2"></i>Origen por Estado</h6>
+            <div class="table-responsive custom-scroll" style="max-height: 280px;">
+                <table class="table table-sm table-hover table-borderless align-middle text-sm">
+                    <tbody>
+                        @foreach (var e in Model.ByEstado)
+                        {
+                            <tr>
+                                <td class="txt-title text-xs fw-semibold">@e.Name</td>
+                                <td class="text-end"><span class="badge bg-primary-100 txt-primary-dark px-2">@e.Count</span></td>
+                                <td class="text-end text-muted text-xxs">@e.Percentage%</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <div class="col-12 col-lg-4">
+        <div class="admin-card-white h-100">
+            <h6 class="txt-title fw-bold text-xs text-uppercase tracking-wide mb-4"><i class="bi bi-geo-alt me-2"></i>Origen por Municipio</h6>
+            <div class="table-responsive custom-scroll" style="max-height: 280px;">
+                <table class="table table-sm table-hover table-borderless align-middle text-sm">
+                    <tbody>
+                        @foreach (var m in Model.ByMunicipio)
+                        {
+                            <tr>
+                                <td class="txt-title text-xs fw-semibold">@m.Name</td>
+                                <td class="text-end"><span class="badge bg-accent-light txt-primary-dark px-2">@m.Count</span></td>
+                                <td class="text-end text-muted text-xxs">@m.Percentage%</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <div class="col-12 col-lg-4">
+        <div class="admin-card-white h-100">
+            <div class="d-flex align-items-center gap-2 mb-4">
+                <div style="width: 4px; height: 18px; background: var(--accent-500); border-radius: 2px;"></div>
+                <h6 class="txt-title fw-bold text-xs text-uppercase tracking-wide mb-0"><i class="bi bi-megaphone me-2"></i>Medio de Difusión</h6>
+            </div>
+            @if (Model.ByMedioDifusion.Any())
+            {
+                <div class="chart-container" style="height: 180px;">
+                    <canvas id="chartMedio"></canvas>
+                </div>
+                <div class="mt-3">
+                    @foreach (var m in Model.ByMedioDifusion)
+                    {
+                        <div class="d-flex justify-content-between align-items-center py-1 border-bottom" style="border-color: var(--bg-main) !important;">
+                            <span class="text-xxs fw-semibold txt-title">@m.Status</span>
+                            <div class="d-flex align-items-center gap-2">
+                                <span class="badge bg-app txt-title px-2" style="font-size: 10px;">@m.Count</span>
+                                <span class="text-xxs text-muted">@m.Percentage%</span>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+            else
+            {
+                <div class="no-data">Sin datos de difusión.</div>
+            }
+        </div>
+    </div>
+</div>
+
+@* ═══════════ Distribución Académica + Escuelas de Procedencia ═══════════ *@
+<div class="row g-4 mb-4">
+    <div class="col-12 col-lg-4">
+        <div class="admin-card-white h-100">
+            <h6 class="txt-title fw-bold text-xs text-uppercase tracking-wide mb-4"><i class="bi bi-bar-chart-steps me-2"></i>Distribución de Promedios</h6>
+            <div class="table-responsive">
+                <table class="table table-sm table-hover table-borderless align-middle text-sm">
+                    <tbody>
+                        @foreach (var p in Model.PromedioDistribution)
+                        {
+                            var rankColor = p.Range.StartsWith("9") ? "var(--success-700)" : p.Range.StartsWith("8") ? "var(--primary-700)" : "var(--warning-700)";
+                            <tr>
+                                <td class="txt-title text-xs fw-bold" style="color: @rankColor !important;">@p.Range</td>
+                                <td class="text-end"><span class="badge bg-app txt-title">@p.Count</span></td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <div class="col-12 col-lg-8">
+        <div class="admin-card-white h-100">
+            <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-2">
+                <h6 class="txt-title fw-bold text-xs text-uppercase tracking-wide mb-0"><i class="bi bi-buildings me-2"></i>Instituciones de Procedencia</h6>
+                @if (Model.TopEscuelas.Any())
+                {
+                    <div class="d-flex gap-2">
+                        <select class="form-select form-select-sm text-xxs fw-bold bg-app border-0" style="width: auto;" onchange="filterTableByColumn(this.value,'tblEscuelas',2)">
+                            <option value="">Estado (Todos)</option>
+                            @foreach (var estado in Model.TopEscuelas.Select(e => e.Estado).Distinct().OrderBy(e => e))
+                            {
+                                <option value="@estado">@estado</option>
+                            }
+                        </select>
+                        <button class="btn btn-sm btn-light border text-xxs fw-bold px-3 py-1" onclick="exportTableToCSV('tblEscuelas','escuelas_procedencia.csv')">
+                            <i class="bi bi-download"></i>
+                        </button>
+                    </div>
+                }
+            </div>
+            <div class="table-responsive custom-scroll" style="max-height: 300px;">
+                <table class="table table-hover align-middle text-xs table-borderless" id="tblEscuelas" data-export-name="escuelas_procedencia">
+                    <thead class="bg-app fw-bold text-xxs text-muted">
+                        <tr>
+                            <th class="ps-3 border-0">#</th>
+                            <th class="border-0">Institución</th>
+                            <th class="border-0">Estado</th>
+                            <th class="text-center pe-3 border-0">Aspirantes</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @{
+                            var rank = 1;
+                        }
+                        @foreach (var esc in Model.TopEscuelas)
+                        {
+                            <tr>
+                                <td class="ps-3 text-muted fw-bold">@rank</td>
+                                <td class="txt-title fw-semibold">@esc.EscuelaNombre</td>
+                                <td class="text-muted">@esc.Estado</td>
+                                <td class="text-center pe-3"><span class="badge bg-primary-dark txt-white px-3">@esc.Count</span></td>
+                            </tr>
+                            rank++;
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+@* ═══════════ Indicadores Sociales ═══════════ *@
+<div class="admin-card-white mb-4 shadow-sm bg-accent-light border-0">
+    <h6 class="txt-primary-dark fw-bold text-xs text-uppercase tracking-wide mb-4"><i class="bi bi-person-badge me-2"></i>Indicadores Sociales</h6>
+    <div class="row g-3">
+        <div class="col-12 col-md-4">
+            <div class="bg-surface p-3 rounded-3 border d-flex align-items-center gap-3">
+                <div class="icon-circle bg-primary-100 txt-primary-dark"><i class="bi bi-universal-access"></i></div>
+                <div>
+                    <div class="text-xxs fw-bold text-muted text-uppercase">Discapacidad</div>
+                    <div class="fw-bold txt-title">@Model.ConDiscapacidad <span class="text-xxs fw-normal">casos</span></div>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-md-4">
+            <div class="bg-surface p-3 rounded-3 border d-flex align-items-center gap-3">
+                <div class="icon-circle bg-primary-100 txt-primary-dark"><i class="bi bi-globe-americas"></i></div>
+                <div>
+                    <div class="text-xxs fw-bold text-muted text-uppercase">Etnicidad Indígena</div>
+                    <div class="fw-bold txt-title">@Model.ComunidadIndigena <span class="text-xxs fw-normal">casos</span></div>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-md-4">
+            <div class="bg-surface p-3 rounded-3 border d-flex align-items-center gap-3">
+                <div class="icon-circle bg-primary-100 txt-primary-dark"><i class="bi bi-house-door"></i></div>
+                <div>
+                    <div class="text-xxs fw-bold text-muted text-uppercase">Dependientes (Hijos)</div>
+                    <div class="fw-bold txt-title">@Model.ConHijos <span class="text-xxs fw-normal">casos</span></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@* ═══════════ Padrón de Preinscripciones ═══════════ *@
+<div class="admin-card-white mb-5 shadow-sm border-0">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center border-bottom pb-3 mb-4 gap-3">
+        <h6 class="txt-title fw-bold text-xs text-uppercase tracking-wide mb-0"><i class="bi bi-table me-2"></i>Padrón de Preinscripciones</h6>
+        <div class="d-flex gap-2 flex-wrap">
+            <select class="form-select form-select-sm text-xxs fw-bold bg-app border-0" style="width: auto;" onchange="filterTableByColumn(this.value,'tblRecent',5)">
+                <option value="">Estatus (Todos)</option>
+                @foreach (var s in Model.PreinscripcionesByStatus)
+                {
+                    <option value="@s.Status">@s.Status</option>
+                }
+            </select>
+            <select class="form-select form-select-sm text-xxs fw-bold bg-app border-0" style="width: auto;" onchange="filterTableByColumn(this.value,'tblRecent',2)">
+                <option value="">Carrera (Todas)</option>
+                @foreach (var c in Model.PreinscripcionesByCareer)
+                {
+                    <option value="@c.CareerName">@c.CareerName</option>
+                }
+            </select>
+            <select class="form-select form-select-sm text-xxs fw-bold bg-app border-0" style="width: auto;" onchange="filterTableByColumn(this.value,'tblRecent',4)">
+                <option value="">Estado (Todos)</option>
+                @foreach (var e in Model.ByEstado)
+                {
+                    <option value="@e.Name">@e.Name</option>
+                }
+            </select>
+            <button class="btn-primary-sep text-xxs py-2 px-3" onclick="exportTableToCSV('tblRecent','preinscripciones_detalladas.csv')">
+                <i class="bi bi-file-earmark-excel me-2"></i> EXPORTAR
+            </button>
+        </div>
+    </div>
+
+    <div class="text-xxs text-muted mb-2 fw-bold" id="tblRecentCount">Mostrando 1 a @Model.RecentPreinscripciones.Count registros</div>
+
+    <div class="table-responsive custom-scroll" style="max-height: 500px;">
+        <table class="table table-hover align-middle text-sm mb-0 table-borderless" id="tblRecent" data-export-name="padron_preinscripciones">
+            <thead class="bg-primary-dark txt-white text-xxs" style="position: sticky; top: 0; z-index: 10;">
+                <tr>
+                    <th class="ps-4 border-0">Folio</th>
+                    <th class="border-0">Aspirante</th>
+                    <th class="border-0">Carrera</th>
+                    <th class="text-center border-0">Promedio</th>
+                    <th class="text-center border-0">Estado</th>
+                    <th class="pe-4 text-end border-0">Estatus</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model.RecentPreinscripciones)
+                {
+                    var statusClass = item.Estatus switch { "Aceptado" => "status-aceptado", "Rechazado" => "status-rechazado", _ => "status-pendiente" };
+                    <tr>
+                        <td class="ps-4 fw-bold txt-primary-dark">@item.Folio</td>
+                        <td class="txt-title fw-semibold">@item.Nombre.ToUpper()</td>
+                        <td class="text-muted text-truncate" style="max-width: 250px;">@item.Carrera</td>
+                        <td class="text-center fw-bold">@item.Promedio</td>
+                        <td class="text-center txt-body text-xs">@item.Estado</td>
+                        <td class="pe-4 text-end">
+                            <span class="badge badge-status @statusClass shadow-sm">@item.Estatus</span>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
+
+    <script>
+        Chart.register(ChartDataLabels);
+        Chart.defaults.color = '#6B7280';
+        Chart.defaults.font.family = "'Montserrat', sans-serif";
+
+        // ── Preinscripciones by Career (filterable horizontal bar) ──
+        @if (Model.PreinscripcionesByCareer.Any())
+        {
+                <text>
+                    var careerAllLabels = [@Html.Raw(string.Join(",", Model.PreinscripcionesByCareer.Select(c => $"'{c.CareerName}'")))];
+                    var careerAllData = [@string.Join(",", Model.PreinscripcionesByCareer.Select(c => c.Count))];
+                    var careerChart = new Chart(document.getElementById('chartCareer'), {
+                    type: 'bar',
+                    data: {
+                    labels: careerAllLabels.slice(),
+                    datasets: [{
+                    data: careerAllData.slice(),
+                    backgroundColor: '#13322B',
+                    borderRadius: 4,
+                    maxBarThickness: 32
+                    }]
+                    },
+                    options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                    legend: { display: false },
+                    datalabels: { anchor: 'end', align: 'right', color: '#13322B', font: { weight: '800', size: 10 }, offset: 4 }
+                    },
+                    scales: {
+                    x: { display: false, grid: { display: false } },
+                    y: { grid: { display: false }, ticks: { font: { size: 10, weight: '600' } } }
+                    },
+                    layout: { padding: { right: 30 } }
+                    }
+                    });
+
+                    function filterCareerChart(value) {
+                    var container = document.getElementById('careerChartContainer');
+                    if (value === '') {
+                    careerChart.data.labels = careerAllLabels.slice();
+                    careerChart.data.datasets[0].data = careerAllData.slice();
+                    container.style.height = Math.max(180, careerAllLabels.length * 45) + 'px';
+                    } else {
+                    var idx = careerAllLabels.indexOf(value);
+                    if (idx >= 0) {
+                    careerChart.data.labels = [careerAllLabels[idx]];
+                    careerChart.data.datasets[0].data = [careerAllData[idx]];
+                    container.style.height = '120px';
+                    }
+                    }
+                    careerChart.resize();
+                    careerChart.update();
+                    }
+                </text>
+        }
+
+        // ── Status doughnut ──
+        @if (Model.PreinscripcionesByStatus.Any())
+        {
+                <text>
+                    new Chart(document.getElementById('chartStatus'), {
+                    type: 'doughnut',
+                    data: {
+                    labels: [@Html.Raw(string.Join(",", Model.PreinscripcionesByStatus.Select(s => $"'{s.Status}'")))],
+                    datasets: [{
+                    data: [@string.Join(",", Model.PreinscripcionesByStatus.Select(s => s.Count))],
+                    backgroundColor: ['#13322B', '#D4C19C', '#204A40', '#991B1B', '#E5E7EB'],
+                    borderWidth: 2, borderColor: '#ffffff'
+                    }]
+                    },
+                    options: {
+                    responsive: true, maintainAspectRatio: false, cutout: '75%',
+                    plugins: {
+                    legend: { position: 'bottom', labels: { boxWidth: 10, padding: 15, font: { size: 10, weight: '600' } } },
+                    datalabels: { display: false }
+                    }
+                    }
+                    });
+                </text>
+        }
+
+        // ── Monthly trend (line chart — Preinscripciones vs Inscripciones) ──
+        @if (Model.MonthlyPreinscripciones.Any() || Model.MonthlyInscripciones.Any())
+        {
+                // Merge month labels from both datasets
+                var allMonths = Model.MonthlyPreinscripciones.Select(m => m.Month)
+                        .Union(Model.MonthlyInscripciones.Select(m => m.Month)).Distinct().ToList();
+                <text>
+                    new Chart(document.getElementById('chartMonthly'), {
+                    type: 'line',
+                    data: {
+                    labels: [@Html.Raw(string.Join(",", allMonths.Select(m => $"'{m}'")))],
+                    datasets: [
+                    {
+                    label: 'Preinscripciones',
+                    data: [@Html.Raw(string.Join(",", allMonths.Select(m => { var item = Model.MonthlyPreinscripciones.FirstOrDefault(x => x.Month == m); return item?.Count ?? 0; })))],
+                    borderColor: '#13322B', backgroundColor: 'rgba(19,50,43,0.08)', fill: true,
+                    tension: 0.35, borderWidth: 2.5, pointRadius: 4, pointBackgroundColor: '#13322B'
+                    },
+                    {
+                    label: 'Inscripciones',
+                    data: [@Html.Raw(string.Join(",", allMonths.Select(m => { var item = Model.MonthlyInscripciones.FirstOrDefault(x => x.Month == m); return item?.Count ?? 0; })))],
+                    borderColor: '#D4C19C', backgroundColor: 'rgba(212,193,156,0.08)', fill: true,
+                    tension: 0.35, borderWidth: 2, pointRadius: 3, pointBackgroundColor: '#D4C19C', borderDash: [5, 3]
+                    }
+                    ]
+                    },
+                    options: {
+                    responsive: true, maintainAspectRatio: false,
+                    plugins: {
+                    legend: { position: 'bottom', labels: { boxWidth: 10, padding: 15, font: { size: 10, weight: '600' } } },
+                    datalabels: { display: false }
+                    },
+                    scales: {
+                    x: { grid: { display: false }, ticks: { font: { size: 10 } } },
+                    y: { grid: { color: 'rgba(0,0,0,0.04)' }, ticks: { precision: 0, font: { size: 10 } } }
+                    }
+                    }
+                    });
+                </text>
+        }
+
+        // ── Gender doughnut ──
+        @if (totalGender > 0)
+        {
+                <text>
+                    new Chart(document.getElementById('chartGender'), {
+                    type: 'doughnut',
+                    data: {
+                    labels: ['Masculino','Femenino'@(Model.OtherGenderCount > 0 ? ",'Otro'" : "")],
+                    datasets: [{
+                    data: [@Model.MaleCount,@Model.FemaleCount@(Model.OtherGenderCount > 0 ? $",{Model.OtherGenderCount}" : "")],
+                    backgroundColor: ['#13322B', '#D4C19C'@(Model.OtherGenderCount > 0 ? ",'#95A5A6'" : "")],
+                    borderWidth: 2, borderColor: '#ffffff'
+                    }]
+                    },
+                    options: {
+                    responsive: true, maintainAspectRatio: false, cutout: '70%',
+                    plugins: {
+                    legend: { display: false },
+                    datalabels: { display: false }
+                    }
+                    }
+                    });
+                </text>
+        }
+
+        // ── Medio de Difusión doughnut ──
+        @if (Model.ByMedioDifusion.Any())
+        {
+                <text>
+                    new Chart(document.getElementById('chartMedio'), {
+                    type: 'doughnut',
+                    data: {
+                    labels: [@Html.Raw(string.Join(",", Model.ByMedioDifusion.Select(m => $"'{m.Status}'")))],
+                    datasets: [{
+                    data: [@string.Join(",", Model.ByMedioDifusion.Select(m => m.Count))],
+                    backgroundColor: ['#13322B', '#D4C19C', '#204A40', '#A67C52', '#95A5A6', '#E5E7EB'],
+                    borderWidth: 2, borderColor: '#ffffff'
+                    }]
+                    },
+                    options: {
+                    responsive: true, maintainAspectRatio: false, cutout: '65%',
+                    plugins: {
+                    legend: { display: false },
+                    datalabels: { display: false }
+                    }
+                    }
+                    });
+                </text>
+        }
+
+        // ── Shared utility functions ──
+        function filterTableByColumn(value, tableId, colIndex) {
+        var table = document.getElementById(tableId);
+        if (!table) return;
+        if (!window._filters) window._filters = {};
+        if (!window._filters[tableId]) window._filters[tableId] = {};
+
+        if (value) window._filters[tableId][colIndex] = value;
+        else delete window._filters[tableId][colIndex];
+
+        var rows = table.querySelectorAll('tbody tr');
+        var visible = 0;
+        rows.forEach(function(row) {
+        var show = true;
+        for (var ci in window._filters[tableId]) {
+        var filterVal = window._filters[tableId][ci];
+        var cell = row.cells[parseInt(ci)];
+        if (cell && cell.textContent.trim().indexOf(filterVal) === -1) { show = false; break; }
+        }
+        row.style.display = show ? '' : 'none';
+        if (show) visible++;
+        });
+
+        var countEl = document.getElementById(tableId + 'Count');
+        if (countEl) countEl.textContent = 'Mostrando 1 a ' + visible + ' registros';
+        }
+
+        function exportTableToCSV(tid, fn) {
+        var t = document.getElementById(tid);
+        var r = t.querySelectorAll('tr');
+        var c = [];
+        r.forEach(function(row) {
+        if (row.style.display === 'none') return;
+        var cols = row.querySelectorAll('th,td');
+        var d = [];
+        cols.forEach(function(col) { d.push('"' + col.textContent.trim().replace(/\n/g,' ').replace(/"/g,'""') + '"'); });
+        c.push(d.join(','));
+        });
+        var b = new Blob(['\uFEFF' + c.join('\n')], { type: 'text/csv;charset=utf-8;' });
+        var l = document.createElement('a');
+        l.href = URL.createObjectURL(b);
+        l.download = fn;
+        l.click();
+        }
+    </script>
+}

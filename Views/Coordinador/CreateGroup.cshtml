@@ -1,0 +1,141 @@
+@model CreateGroupViewModel
+@{
+    // Declaración de variables para evitar errores de compilación
+    var isEdit = ViewBag.IsEdit as bool? ?? false;
+    var returnTab = ViewBag.ReturnTab as string ?? Context.Request.Query["tab"].ToString();
+
+    if (string.IsNullOrWhiteSpace(returnTab))
+    {
+        returnTab = "tab-grupos";
+    }
+
+    ViewData["Title"] = isEdit ? "Editar Grupo" : "Registrar Grupo";
+    Layout = "_LayoutCoordinador";
+}
+
+<div class="container-fluid d-flex flex-column gap-4 p-0 fade-in">
+
+    <div class="bg-white p-4 rounded-4 shadow-sm border-0 d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+        <div>
+            <h5 class="txt-title fw-bold mb-1 text-uppercase">@(isEdit ? "Modificar Estructura de Grupo" : "Nuevo Registro de Grupo")</h5>
+            <p class="txt-body text-xxs fw-bold text-uppercase tracking-widest mb-0 opacity-75">
+                @(isEdit
+                    ? "Actualice los detalles académicos del grupo utilizando catálogos vigentes."
+                    : "Configure los parámetros iniciales del grupo para la asignación de matrícula.")
+            </p>
+        </div>
+        <div class="flex-shrink-0">
+            <a href="@Url.Action("Catalogos", "Coordinador", new { tab = returnTab })"
+                   class="btn-ghost-sep bg-app border-0 px-4 py-2 fw-bold text-xxs d-flex align-items-center text-decoration-none shadow-none">
+                REGRESAR A CATÁLOGOS
+            </a>
+        </div>
+    </div>
+
+    <form asp-action="@(isEdit ? "EditGroup" : "CreateGroup")"
+          asp-controller="Coordinador"
+          method="post"
+          class="needs-validation"
+          novalidate>
+        @Html.AntiForgeryToken()
+
+        <input type="hidden" name="returnTab" value="@returnTab" />
+        
+        <div class="row justify-content-center">
+            <div class="col-lg-10 col-xl-8">
+                
+                @if (isEdit)
+                {
+                    <input asp-for="Id" type="hidden" />
+                }
+
+                <div class="admin-card-white p-4 p-md-5 rounded-4 border-0 shadow-sm bg-white">
+                    <div class="mb-4 pb-3 border-bottom border-light">
+                        <h6 class="txt-title fw-bold text-xs text-uppercase tracking-widest mb-0">
+                            CONFIGURACIÓN DEL GRUPO
+                        </h6>
+                    </div>
+
+                    @if (!ViewData.ModelState.IsValid)
+                    {
+                        <div asp-validation-summary="ModelOnly" class="bg-error-100 border-start border-4 text-danger text-xs fw-bold rounded-3 p-3 mb-4" style="border-left-color: var(--error-700) !important;"></div>
+                    }
+
+                    <div class="row g-4">
+                        <div class="col-md-6">
+                            <label asp-for="GroupCode" class="txt-body text-xxs fw-bold tracking-wide mb-2 d-block text-uppercase">
+                                CLAVE DEL GRUPO (ID) <span class="text-danger">*</span>
+                            </label>
+                            <input asp-for="GroupCode"
+                                   class="form-control border-0 bg-app py-2 px-3 text-xs fw-medium text-uppercase shadow-none"
+                                   placeholder="EJ. G-7A-SW" required />
+                            <span asp-validation-for="GroupCode" class="text-danger text-xxs fw-bold mt-1 d-block"></span>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label asp-for="GroupName" class="txt-body text-xxs fw-bold tracking-wide mb-2 d-block text-uppercase">
+                                NOMBRE DESCRIPTIVO <span class="text-danger">*</span>
+                            </label>
+                            <input asp-for="GroupName"
+                                   class="form-control border-0 bg-app py-2 px-3 text-xs fw-medium shadow-none"
+                                   placeholder="EJ. 7º A MATUTINO" required />
+                            <span asp-validation-for="GroupName" class="text-danger text-xxs fw-bold mt-1 d-block"></span>
+                        </div>
+
+                        <div class="col-md-8">
+                            <label asp-for="CareerId" class="txt-body text-xxs fw-bold tracking-wide mb-2 d-block text-uppercase">
+                                CARRERA / ESPECIALIDAD <span class="text-danger">*</span>
+                            </label>
+                            <select asp-for="CareerId"
+                                    class="form-select border-0 bg-app py-2 px-3 text-xs fw-bold txt-title shadow-none cursor-pointer" required>
+                                <option value="">-- SELECCIONAR CARRERA --</option>
+                                @if (ViewBag.Careers != null)
+                                {
+                                    foreach (var career in (Dictionary<int, string>)ViewBag.Careers)
+                                    {
+                                        <option value="@career.Key">@career.Value.ToUpper()</option>
+                                    }
+                                }
+                            </select>
+                            <span asp-validation-for="CareerId" class="text-danger text-xxs fw-bold mt-1 d-block"></span>
+                        </div>
+
+                        <div class="col-md-4">
+                            <label asp-for="Shift" class="txt-body text-xxs fw-bold tracking-wide mb-2 d-block text-uppercase">
+                                TURNO <span class="text-danger">*</span>
+                            </label>
+                            <select asp-for="Shift" class="form-select border-0 bg-app py-2 px-3 text-xs fw-bold txt-title shadow-none cursor-pointer" required>
+                                <option value="MATUTINO">MATUTINO</option>
+                                <option value="VESPERTINO">VESPERTINO</option>
+                            </select>
+                            <span asp-validation-for="Shift" class="text-danger text-xxs fw-bold mt-1 d-block"></span>
+                        </div>
+                    </div>
+
+                    <div class="mt-5 pt-4 border-top border-light d-flex flex-column flex-sm-row justify-content-end gap-3">
+                        <a href="@Url.Action("Catalogos", "Coordinador", new { tab = returnTab })"
+                               class="btn-ghost-sep bg-app border-0 px-5 py-2 fw-bold text-xxs text-muted text-center text-decoration-none shadow-none">
+                            CANCELAR
+                        </a>
+
+                        <button type="submit" class="btn-primary-sep border-0 px-5 py-2 fw-bold text-xxs tracking-widest shadow-sm">
+                            @(isEdit ? "GUARDAR CAMBIOS" : "GUARDAR GRUPO")
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <style>
+        /* Glow institucional en foco */
+        .form-control:focus, .form-select:focus {
+            background-color: var(--white) !important;
+            box-shadow: 0 0 0 4px var(--accent-100) !important;
+            border: 1px solid var(--accent-500) !important;
+        }
+    </style>
+}

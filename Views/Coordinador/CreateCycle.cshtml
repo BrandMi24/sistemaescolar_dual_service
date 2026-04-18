@@ -1,0 +1,133 @@
+﻿@model CycleViewModel
+@{
+    // Declaración inicial para evitar errores de compilación
+    var isEdit = ViewBag.IsEdit as bool? ?? false;
+
+    ViewData["Title"] = isEdit ? "Editar Ciclo" : "Registrar Ciclo";
+    Layout = "_LayoutCoordinador";
+}
+
+<div class="container-fluid d-flex flex-column gap-4 p-0 fade-in">
+
+    <div class="bg-white p-4 rounded-4 shadow-sm border-0 d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+        <div style="max-width: 800px;">
+            <h5 class="txt-title fw-bold mb-1 text-uppercase">@(isEdit ? "Editar Ciclo Escolar" : "Nuevo Ciclo Escolar")</h5>
+            <p class="txt-body text-xxs fw-bold text-uppercase tracking-widest mb-0 opacity-75">
+                @(isEdit ? "Modifique la información del ciclo activo en el sistema." : "Ingrese la información para la apertura de un nuevo periodo.")
+            </p>
+        </div>
+        <div class="flex-shrink-0">
+            <a href="@Url.Action("Ciclos", "Coordinador")"
+                   class="btn-ghost-sep bg-app border-0 px-4 py-2 fw-bold text-xxs d-flex align-items-center text-decoration-none shadow-none">
+                REGRESAR A CICLOS
+            </a>
+        </div>
+    </div>
+
+    <form asp-action="@(isEdit ? "EditCycle" : "CreateCycle")"
+          asp-controller="Coordinador"
+          method="post"
+          class="needs-validation"
+          novalidate>
+          
+        @Html.AntiForgeryToken()
+
+        @if (isEdit)
+        {
+            <input type="hidden" name="Id" value="@Model?.Id" />
+        }
+
+        <div class="row g-4">
+            
+            <div class="col-lg-8">
+                <div class="admin-card-white p-4 p-md-5 rounded-4 border-0 shadow-sm bg-white h-100">
+                    
+                    <div class="mb-4 pb-3 border-bottom border-light">
+                        <h6 class="txt-title fw-bold text-xs text-uppercase tracking-widest mb-0">DATOS DEL CICLO</h6>
+                    </div>
+
+                    @if (!ViewData.ModelState.IsValid)
+                    {
+                        <div class="bg-error-100 border-start border-4 text-danger text-xs fw-bold rounded-3 p-3 mb-4" style="border-left-color: var(--error-700) !important;">
+                            @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+                            {
+                                <div class="mb-1"><i class="bi bi-exclamation-circle me-1"></i> @error.ErrorMessage</div>
+                            }
+                        </div>
+                    }
+
+                    <div class="row g-4">
+                        <div class="col-12">
+                            <label class="txt-body text-xxs fw-bold tracking-wide mb-2 d-block text-uppercase">NOMBRE DEL CICLO <span class="text-danger">*</span></label>
+                            <input name="Name"
+                                   class="form-control border-0 bg-app py-2 px-3 text-xs fw-medium text-uppercase shadow-none"
+                                   placeholder="EJ. ENERO - ABRIL 2026"
+                                   value="@Model?.Name" />
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="txt-body text-xxs fw-bold tracking-wide mb-2 d-block text-uppercase">FECHA DE INICIO <span class="text-danger">*</span></label>
+                            <input name="StartDate"
+                                   type="date"
+                                   class="form-control border-0 bg-app py-2 px-3 text-xs fw-medium shadow-none cursor-pointer"
+                                   value="@(Model != null ? Model.StartDate.ToString("yyyy-MM-dd") : "")" />
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="txt-body text-xxs fw-bold tracking-wide mb-2 d-block text-uppercase">FECHA DE FIN <span class="text-danger">*</span></label>
+                            <input name="EndDate"
+                                   type="date"
+                                   class="form-control border-0 bg-app py-2 px-3 text-xs fw-medium shadow-none cursor-pointer"
+                                   value="@(Model != null ? Model.EndDate.ToString("yyyy-MM-dd") : "")" />
+                        </div>
+
+                        <div class="col-12">
+                            <label class="txt-body text-xxs fw-bold tracking-wide mb-2 d-block text-uppercase">ESTADO DEL CICLO <span class="text-danger">*</span></label>
+                            <select name="StatusCode" class="form-select border-0 bg-app py-2 px-3 text-xs fw-bold txt-title shadow-none cursor-pointer">
+                                <option value="ACTIVO" selected="@(Model?.StatusCode == "ACTIVO")">ACTIVO</option>
+                                <option value="FINALIZADO" selected="@(Model?.StatusCode == "FINALIZADO")">FINALIZADO</option>
+                                <option value="PROGRAMADO" selected="@(Model?.StatusCode == "PROGRAMADO")">PROGRAMADO</option>
+                            </select>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <div class="col-lg-4">
+                <div class="admin-card-white p-4 rounded-4 border-0 shadow-sm bg-white h-100 d-flex flex-column">
+                    
+                    <div class="mb-4 pb-3 border-bottom border-light">
+                        <h6 class="txt-title fw-bold text-xs text-uppercase tracking-widest mb-0">ACCIONES</h6>
+                    </div>
+                    
+                    <p class="text-muted text-xs mb-4">Asegúrese de revisar que las fechas no se traslapen con otros ciclos escolares antes de confirmar el registro.</p>
+
+                    <div class="mt-auto d-flex flex-column gap-3">
+                        <button type="submit" class="btn-primary-sep border-0 w-100 py-2 text-xxs fw-bold tracking-widest shadow-sm">
+                            @(isEdit ? "GUARDAR CAMBIOS" : "REGISTRAR CICLO")
+                        </button>
+
+                        <a href="@Url.Action("Ciclos", "Coordinador")"
+                               class="btn-ghost-sep bg-app border-0 w-100 py-2 text-xxs fw-bold text-muted text-center text-decoration-none shadow-none">
+                            CANCELAR
+                        </a>
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    <style>
+        /* Mantenemos el estilo limpio de foco en los inputs bg-app */
+        .form-control:focus, .form-select:focus {
+            background-color: var(--white) !important;
+            box-shadow: 0 0 0 4px var(--accent-100) !important;
+            border: 1px solid var(--accent-500) !important;
+        }
+    </style>
+}

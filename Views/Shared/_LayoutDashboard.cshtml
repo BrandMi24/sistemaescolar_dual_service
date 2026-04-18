@@ -1,0 +1,222 @@
+﻿@{
+    var currentAction = ViewContext.RouteData.Values["action"]?.ToString();
+}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Analítica UTTN</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="~/css/design-system.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/dashboard-styles.css" asp-append-version="true" />
+
+    <style>
+        body {
+            font-family: 'Montserrat', sans-serif !important;
+            background-color: #F3F4F6;
+        }
+
+        /* Navegación Estilo Institucional */
+        .nav-link {
+            font-size: 0.75rem;
+            letter-spacing: 0.8px;
+            text-transform: uppercase;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: rgba(255,255,255,0.7) !important;
+            transition: all 0.2s ease;
+            border-radius: 8px;
+            margin-bottom: 4px;
+        }
+
+        .nav-link i {
+            font-size: 1.1rem;
+            opacity: 0.8;
+        }
+
+        .nav-link:hover {
+            background: rgba(255,255,255,0.1) !important;
+            color: #fff !important;
+        }
+
+        .nav-link.active {
+            color: #13322B !important; /* Verde Institucional */
+        }
+
+        .nav-group-label {
+            font-size: 0.65rem;
+            text-transform: uppercase;
+            color: #fff;
+            opacity: 0.5;
+            font-weight: 800;
+            letter-spacing: 1.2px;
+            margin: 1.8rem 0 0.6rem 1rem;
+        }
+
+        /* Avatar de Usuario */
+        .user-initial-avatar {
+            width: 38px;
+            height: 38px;
+            background-color: #D4C19C;
+            color: #13322B;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            font-weight: 800;
+            font-size: 1rem;
+            flex-shrink: 0;
+        }
+
+        /* Personalización de Main Header */
+        .admin-header {
+            background-color: #fff;
+            border-bottom: 1px solid #E5E7EB;
+            padding: 1rem 2rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="admin-layout">
+
+        <div class="bg-primary-dark p-3 d-flex d-lg-none justify-content-between align-items-center flex-shrink-0 z-3 shadow-sm">
+            <div class="d-flex align-items-center gap-2">
+                <div class="bg-white text-dark fw-bold rounded-1 px-2 py-1" style="font-size: 0.7rem;">UT</div>
+                <span class="text-white fw-bold text-xs tracking-widest">ANALÍTICA</span>
+            </div>
+            <button id="btnMobileMenu" class="btn btn-link text-white p-0 text-decoration-none fw-bold text-xs border border-white border-opacity-25 px-2 py-1 rounded">
+                MENÚ
+            </button>
+        </div>
+
+        <div id="mobileOverlay" class="mobile-overlay"></div>
+
+        <aside id="sidebar" class="sidebar-sep bg-primary-dark border-end border-white border-opacity-10 shadow">
+            
+            <div class="sidebar-brand d-flex align-items-center p-4">
+                <div class="brand-logo bg-white text-primary-dark fw-bolder d-flex align-items-center justify-content-center rounded-2" style="width:35px; height:35px; font-size: 1.1rem; color: #13322B !important;">
+                    UT
+                </div>
+                <div class="ms-3">
+                    <div class="sidebar-brand-text fw-bold text-white fs-6 mb-0">UT TAMAULIPAS</div>
+                    <div class="opacity-50 text-white text-xxs fw-semibold text-uppercase tracking-wider">Módulo de Analítica</div>
+                </div>
+            </div>
+
+            <nav class="sidebar-nav custom-scroll mt-2 px-3">
+                <div class="nav-group-label">General</div>
+                <a class="nav-link px-3 py-2 @(currentAction == "Index" ? "active" : "")" href="@Url.Action("Index", "Dashboard")">
+                    <i class="bi bi-grid-fill"></i> Resumen
+                </a>
+
+                <div class="nav-group-label">Tableros Directivos</div>
+                <a class="nav-link px-3 py-2 @(currentAction == "Admisiones" ? "active" : "")" href="@Url.Action("Admisiones", "Dashboard")">
+                    <i class="bi bi-people-fill"></i> Admisiones
+                </a>
+                <a class="nav-link px-3 py-2 @(currentAction == "Tramites" ? "active" : "")" href="@Url.Action("Tramites", "Dashboard")">
+                    <i class="bi bi-file-earmark-check-fill"></i> Trámites
+                </a>
+                <a class="nav-link px-3 py-2 @(currentAction == "Vinculacion" ? "active" : "")" href="@Url.Action("Vinculacion", "Dashboard")">
+                    <i class="bi bi-briefcase-fill"></i> Vinculación
+                </a>
+                <a class="nav-link px-3 py-2 @(currentAction == "Calidad" ? "active" : "")" href="@Url.Action("Calidad", "Dashboard")">
+                    <i class="bi bi-journal-bookmark-fill"></i> Calidad
+                </a>
+                <a class="nav-link px-3 py-2 @(currentAction == "Salud" ? "active" : "")" href="@Url.Action("Salud", "Dashboard")">
+                    <i class="bi bi-heart-pulse-fill"></i> Salud Integral
+                </a>
+            </nav>
+
+            <div class="sidebar-footer p-4 mt-auto border-top border-white border-opacity-10 bg-black bg-opacity-10">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="user-initial-avatar shadow-sm">
+                        @(User.Identity.Name?.Substring(0, 1).ToUpper() ?? "A")
+                    </div>
+                    <div class="overflow-hidden">
+                        <div class="fw-bold text-white text-xs text-truncate">@User.Identity.Name</div>
+                        <a href="/Home/Index" class="text-white opacity-50 text-xxs text-decoration-none fw-bold tracking-tighter text-uppercase">
+                            Volver al Portal
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <main class="main-content d-flex flex-column">
+            <header class="admin-header d-flex align-items-center justify-content-between shadow-sm">
+                <div>
+                    <h5 class="fw-bold text-dark mb-0 text-uppercase tracking-tight" style="font-size: 1.1rem;">@ViewData["Title"]</h5>
+                    <div class="text-xxs fw-bold text-muted text-uppercase tracking-tighter">Business Intelligence • Control Escolar</div>
+                </div>
+
+                <button onclick="exportAllTablesToZip('Reporte_Analitica')" class="btn btn-sm btn-outline-dark fw-bold text-xxs tracking-widest px-3">
+                    <i class="bi bi-download me-1"></i> EXPORTAR DATOS
+                </button>
+            </header>
+
+            <div class="p-4 p-lg-5 flex-grow-1 bg-app">
+                @RenderBody()
+            </div>
+        </main>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+
+    <script>
+        $(document).ready(function() {
+            // Toggle Sidebar Móvil
+            const sidebar = $('#sidebar');
+            const overlay = $('#mobileOverlay');
+            $('#btnMobileMenu, #mobileOverlay').click(function() {
+                sidebar.toggleClass('show');
+                overlay.toggleClass('active');
+            });
+        });
+
+        // Función de Exportación ZIP (Mantenida de tu versión anterior)
+        async function exportAllTablesToZip(zipFilename) {
+            if (typeof JSZip === 'undefined') { alert('JSZip no está cargado.'); return; }
+            var tables = document.querySelectorAll('table[data-export-name]');
+            if (tables.length === 0) { alert('No hay tablas exportables en esta página.'); return; }
+
+            var zip = new JSZip();
+            var timestamp = new Date().toISOString().slice(0, 10);
+            tables.forEach(function (table) {
+                var exportName = table.getAttribute('data-export-name') || 'tabla';
+                var rows = table.querySelectorAll('tr');
+                var csv = [];
+                rows.forEach(function (row) {
+                    if (row.style.display === 'none') return;
+                    var cells = row.querySelectorAll('th, td');
+                    var data = [];
+                    cells.forEach(function (cell) {
+                        var text = cell.textContent.trim().replace(/\s+/g, ' ').replace(/"/g, '""');
+                        data.push('"' + text + '"');
+                    });
+                    csv.push(data.join(','));
+                });
+                if (csv.length > 0) { zip.file(exportName + '.csv', '\uFEFF' + csv.join('\n')); }
+            });
+
+            try {
+                var blob = await zip.generateAsync({ type: 'blob' });
+                var link = document.createElement('a');
+                link.href = URL.createObjectURL(blob);
+                link.download = (zipFilename || 'dashboard') + '_' + timestamp + '.zip';
+                link.click();
+            } catch (err) { alert('Error al generar el archivo ZIP.'); }
+        }
+    </script>
+    
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

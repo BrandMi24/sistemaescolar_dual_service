@@ -1,0 +1,1560 @@
+@inject Microsoft.AspNetCore.Antiforgery.IAntiforgery Antiforgery
+@{
+    ViewData["Title"] = "Gestión Académica y Usuarios";
+    Layout = "_LayoutCoordinador";
+
+    var token = Antiforgery.GetAndStoreTokens(Context).RequestToken;
+    var activeTab = Context.Request.Query["tab"].ToString();
+
+    if (string.IsNullOrWhiteSpace(activeTab))
+    {
+        activeTab = "tab-personas";
+    }
+}
+
+<input type="hidden" name="__RequestVerificationToken" value="@token" />
+
+<div class="d-flex flex-column gap-4 fade-in catalog-canvas">
+
+    @*  Navegación de pestañas  *@
+    <div class="nav-tabs-custom px-2 mb-1 overflow-auto d-flex flex-nowrap" style="white-space: nowrap;">
+        <a href="#" class="nav-tab-item text-decoration-none @(activeTab == "tab-personas" ? "active" : "")" data-target="#tab-personas">Personas Totales</a>
+        <a href="#" class="nav-tab-item text-decoration-none @(activeTab == "tab-alumnos" ? "active" : "")" data-target="#tab-alumnos">Alumnos</a>
+        <a href="#" class="nav-tab-item text-decoration-none @(activeTab == "tab-docentes" ? "active" : "")" data-target="#tab-docentes">Docentes</a>
+        <a href="#" class="nav-tab-item text-decoration-none @(activeTab == "tab-grupos" ? "active" : "")" data-target="#tab-grupos">Grupos</a>
+        <a href="#" class="nav-tab-item text-decoration-none @(activeTab == "tab-career" ? "active" : "")" data-target="#tab-career">Carreras</a>
+        <a href="#" class="nav-tab-item text-decoration-none @(activeTab == "tab-bajas" ? "active" : "")" data-target="#tab-bajas">Histórico de Bajas</a>
+        <a href="#" class="nav-tab-item text-decoration-none @(activeTab == "tab-roles" ? "active" : "")" data-target="#tab-roles">Roles</a>
+        <a href="#" class="nav-tab-item text-decoration-none @(activeTab == "tab-cuentas" ? "active" : "")" data-target="#tab-cuentas">Creación y Gestión de cuentas</a>
+    </div>
+
+    @*  =========================================================
+        TAB: PERSONAS
+        ========================================================= *@
+    <div id="tab-personas" class="tab-content-pane" style="display:@(activeTab == "tab-personas" ? "block" : "none");">
+        <div class="catalog-filter-card mb-4">
+            <div class="d-flex flex-column gap-3">
+                <div>
+                    <h5 class="fw-bold mb-1">Personas Totales</h5>
+                    <p class="text-xs mb-3">Vista consolidada de alumnos, docentes y cuentas del sistema. Incluye activos e inactivos según filtros.</p>
+                </div>
+
+                <div class="row g-3 align-items-end">
+                    <div class="col-lg-4">
+                        <label>BUSCAR</label>
+                        <div class="position-relative search-wrapper">
+                            <i class="bi bi-search position-absolute search-icon-left"></i>
+                            <input type="text" id="dtSearchPersonas" class="form-control search-input-custom" placeholder="Buscar nombre, correo o rol...">
+                        </div>
+                    </div>
+
+                    <div class="col-md-4 col-lg-3">
+                        <label>ROL</label>
+                        <select id="filterRolPersonas" class="form-select">
+                            <option value="">Todos</option>
+                        </select>
+                    </div>
+
+                    <div class="col-md-4 col-lg-2">
+                        <label>ESTADO</label>
+                        <select id="filterEstadoPersonas" class="form-select">
+                            <option value="">Todos</option>
+                            <option value="ACTIVO">Activo</option>
+                            <option value="INSCRITO">Inscrito</option>
+                            <option value="PREINSCRITO">Preinscrito</option>
+                            <option value="INACTIVO">Inactivo</option>
+                            <option value="BAJA">Baja</option>
+                            <option value="LICENCIA">Licencia</option>
+                        </select>
+                    </div>
+
+                    <div class="col-md-4 col-lg-3">
+                        <label>TIPO</label>
+                        <select id="filterTipoPersonas" class="form-select">
+                            <option value="">Todos</option>
+                            <option value="ADMIN">Administrativo</option>
+                            <option value="DOCENTE">Docente</option>
+                            <option value="ALUMNO">Alumno</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="catalog-table-card">
+            <div class="table-responsive">
+                <table class="table table-borderless align-middle mb-0">
+                    <thead>
+                        <tr>
+                            <th class="px-4">Identificador</th>
+                            <th>Nombre Completo</th>
+                            <th>Rol</th>
+                            <th>Tipo</th>
+                            <th>Carrera / Depto</th>
+                            <th>Correo</th>
+                            <th class="text-center">Estado</th>
+                            <th class="text-end px-4">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="personasBody"></tbody>
+                </table>
+            </div>
+
+            <div class="catalog-pagination-bar">
+                <div class="d-flex align-items-center gap-3">
+                    <span class="rows-label">MOSTRAR:</span>
+                    <select id="personasRpp" class="form-select form-select-sm rows-per-page">
+                        <option value="5">5</option>
+                        <option value="10" selected>10</option>
+                        <option value="20">20</option>
+                    </select>
+                    <div id="personasInfo" class="info-label"></div>
+                </div>
+                <nav aria-label="Paginación personas">
+                    <ul class="pagination pagination-sm mb-0" id="personasPagination"></ul>
+                </nav>
+            </div>
+        </div>
+    </div>
+
+    @*  =========================================================
+        TAB: ALUMNOS
+        ========================================================= *@
+    <div id="tab-alumnos" class="tab-content-pane" style="display:@(activeTab == "tab-alumnos" ? "block" : "none");">
+        <div class="catalog-filter-card mb-4">
+            <div class="d-flex flex-column gap-3">
+                <div class="d-flex flex-column flex-xl-row justify-content-between align-items-xl-center gap-3">
+                    <div style="max-width:700px;">
+                        <h5 class="fw-bold mb-1">Listado de Alumnos</h5>
+                        <p class="text-xs mb-3">Consulta, gestión y control de estudiantes.</p>
+                    </div>
+                    <div class="flex-shrink-0">
+                        <a href="@Url.Action("CreateStudent", "Coordinador", new { tab = "tab-alumnos" })" class="btn btn-primary-sep bg-primary-900 shadow-sm d-flex align-items-center gap-2">
+                            Nuevo Alumno
+                        </a>
+                    </div>
+                </div>
+
+                <div class="row g-3 align-items-end">
+                    <div class="col-lg-4">
+                        <label>BUSCAR</label>
+                        <div class="position-relative search-wrapper">
+                            <i class="bi bi-search position-absolute search-icon-left"></i>
+                            <input type="text" id="dtSearchAlumnos" class="form-control search-input-custom" placeholder="Buscar matrícula, folio o alumno...">
+                        </div>
+                    </div>
+
+                    <div class="col-md-4 col-lg-4">
+                        <label>CARRERA</label>
+                        <input type="text" id="filterCarreraAlumnos" class="form-control search-input-custom" placeholder="Filtrar por carrera...">
+                    </div>
+
+                    <div class="col-md-4 col-lg-4">
+                        <label>ESTADO</label>
+                        <select id="filterEstadoAlumnos" class="form-select">
+                            <option value="">Todos</option>
+                            <option value="INSCRITO">Inscrito</option>
+                            <option value="PREINSCRITO">Preinscrito</option>
+                            <option value="BAJA">Baja</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="catalog-table-card">
+            <div class="table-responsive">
+                <table class="table table-borderless align-middle mb-0">
+                    <thead>
+                        <tr>
+                            <th class="px-4">Matrícula / Folio</th>
+                            <th>Nombre Completo</th>
+                            <th>Carrera</th>
+                            <th>Grupo</th>
+                            <th class="text-center">Estado</th>
+                            <th class="text-end px-4">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="alumnosBody"></tbody>
+                </table>
+            </div>
+
+            <div class="catalog-pagination-bar">
+                <div class="d-flex align-items-center gap-3">
+                    <span class="rows-label">MOSTRAR:</span>
+                    <select id="alumnosRpp" class="form-select form-select-sm rows-per-page">
+                        <option value="5">5</option>
+                        <option value="10" selected>10</option>
+                        <option value="20">20</option>
+                    </select>
+                    <div id="alumnosInfo" class="info-label"></div>
+                </div>
+                <nav aria-label="Paginación alumnos">
+                    <ul class="pagination pagination-sm mb-0" id="alumnosPagination"></ul>
+                </nav>
+            </div>
+        </div>
+    </div>
+
+    @*  =========================================================
+        TAB: DOCENTES
+        ========================================================= *@
+    <div id="tab-docentes" class="tab-content-pane" style="display:@(activeTab == "tab-docentes" ? "block" : "none");">
+        <div class="catalog-filter-card mb-4">
+            <div class="d-flex flex-column gap-3">
+                <div class="d-flex flex-column flex-xl-row justify-content-between align-items-xl-center gap-3">
+                    <div style="max-width:700px;">
+                        <h5 class="fw-bold mb-1">Listado de Docentes</h5>
+                        <p class="text-xs mb-3">Administración del personal docente.</p>
+                    </div>
+                    <div class="flex-shrink-0">
+                        <a href="@Url.Action("CreateTeacher", "Coordinador", new { tab = "tab-docentes" })" class="btn btn-primary-sep bg-primary-900 shadow-sm d-flex align-items-center gap-2">
+                            Nuevo Docente
+                        </a>
+                    </div>
+                </div>
+
+                <div class="row g-3 align-items-end">
+                    <div class="col-lg-4">
+                        <label>BUSCAR</label>
+                        <div class="position-relative search-wrapper">
+                            <i class="bi bi-search position-absolute search-icon-left"></i>
+                            <input type="text" id="dtSearchDocentes" class="form-control search-input-custom" placeholder="Buscar docente...">
+                        </div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <label>ESTADO</label>
+                        <select id="filterEstadoDocentes" class="form-select">
+                            <option value="">Todos</option>
+                            <option value="ACTIVO">Activo</option>
+                            <option value="INACTIVO">Inactivo</option>
+                            <option value="LICENCIA">Licencia</option>
+                        </select>
+                    </div>
+
+                    <div class="col-md-4">
+                        <label>CORREO</label>
+                        <input type="text" id="filterCorreoDocentes" class="form-control search-input-custom" placeholder="Filtrar correo...">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="catalog-table-card">
+            <div class="table-responsive">
+                <table class="table table-borderless align-middle mb-0">
+                    <thead>
+                        <tr>
+                            <th class="px-4">No. Empleado</th>
+                            <th>Nombre Completo</th>
+                            <th>Correo</th>
+                            <th>Teléfono</th>
+                            <th class="text-center">Estatus</th>
+                            <th class="text-end px-4">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="docentesBody"></tbody>
+                </table>
+            </div>
+
+            <div class="catalog-pagination-bar">
+                <div class="d-flex align-items-center gap-3">
+                    <span class="rows-label">MOSTRAR:</span>
+                    <select id="docentesRpp" class="form-select form-select-sm rows-per-page">
+                        <option value="5">5</option>
+                        <option value="10" selected>10</option>
+                        <option value="20">20</option>
+                    </select>
+                    <div id="docentesInfo" class="info-label"></div>
+                </div>
+                <nav aria-label="Paginación docentes">
+                    <ul class="pagination pagination-sm mb-0" id="docentesPagination"></ul>
+                </nav>
+            </div>
+        </div>
+    </div>
+
+    @*  =========================================================
+        TAB: GRUPOS
+        ========================================================= *@
+    <div id="tab-grupos" class="tab-content-pane" style="display:@(activeTab == "tab-grupos" ? "block" : "none");">
+        <div class="catalog-filter-card mb-4">
+            <div class="d-flex flex-column gap-3">
+                <div class="d-flex flex-column flex-xl-row justify-content-between align-items-xl-center gap-3">
+                    <div style="max-width:700px;">
+                        <h5 class="fw-bold mb-1">Listado de Grupos</h5>
+                        <p class="text-xs mb-3">Estructura académica y grupos registrados.</p>
+                    </div>
+                    <div class="flex-shrink-0">
+                        <a href="@Url.Action("CreateGroup", "Coordinador", new { tab = "tab-grupos" })" class="btn btn-primary-sep bg-primary-900 shadow-sm d-flex align-items-center gap-2 text-white">
+                            Crear Grupo
+                        </a>
+                    </div>
+                </div>
+
+                <div class="row g-3 align-items-end">
+                    <div class="col-lg-4">
+                        <label>BUSCAR</label>
+                        <div class="position-relative search-wrapper">
+                            <i class="bi bi-search position-absolute search-icon-left"></i>
+                            <input type="text" id="dtSearchGrupos" class="form-control search-input-custom" placeholder="Buscar grupo...">
+                        </div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <label>CARRERA</label>
+                        <input type="text" id="filterCarreraGrupos" class="form-control search-input-custom" placeholder="Filtrar carrera...">
+                    </div>
+
+                    <div class="col-md-4">
+                        <label>ESTADO</label>
+                        <select id="filterEstadoGrupos" class="form-select">
+                            <option value="">Todos</option>
+                            <option value="Activo">Activo</option>
+                            <option value="Inactivo">Inactivo</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="catalog-table-card">
+            <div class="table-responsive">
+                <table class="table table-borderless align-middle mb-0">
+                    <thead>
+                        <tr>
+                            <th class="px-4">ID Grupo</th>
+                            <th>Nombre Grupo</th>
+                            <th>Carrera / Especialidad</th>
+                            <th class="text-center">Estado</th>
+                            <th class="text-end px-4">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="gruposBody"></tbody>
+                </table>
+            </div>
+
+            <div class="catalog-pagination-bar">
+                <div class="d-flex align-items-center gap-3">
+                    <span class="rows-label">MOSTRAR:</span>
+                    <select id="gruposRpp" class="form-select form-select-sm rows-per-page">
+                        <option value="5">5</option>
+                        <option value="10" selected>10</option>
+                        <option value="20">20</option>
+                    </select>
+                    <div id="gruposInfo" class="info-label"></div>
+                </div>
+                <nav aria-label="Paginación grupos">
+                    <ul class="pagination pagination-sm mb-0" id="gruposPagination"></ul>
+                </nav>
+            </div>
+        </div>
+    </div>
+
+    @*  =========================================================
+        TAB: CARRERAS
+        ========================================================= *@
+    <div id="tab-career" class="tab-content-pane" style="display:@(activeTab == "tab-career" ? "block" : "none");">
+        <div class="catalog-filter-card mb-4">
+            <div class="d-flex flex-column gap-3">
+                <div class="d-flex flex-column flex-xl-row justify-content-between align-items-xl-center gap-3">
+                    <div style="max-width:700px;">
+                        <h5 class="fw-bold mb-1">Carreras</h5>
+                        <p class="text-xs mb-3">Carreras registradas en el sistema.</p>
+                    </div>
+                    <div class="flex-shrink-0">
+                        <a href="@Url.Action("CreateCareer", "Coordinador", new { tab = "tab-career" })" class="btn btn-primary-sep bg-primary-900 shadow-sm d-flex align-items-center gap-2">
+                            Registrar Carrera
+                        </a>
+                    </div>
+                </div>
+
+                <div class="row g-3 align-items-end">
+                    <div class="col-lg-6">
+                        <label>BUSCAR</label>
+                        <div class="position-relative search-wrapper">
+                            <i class="bi bi-search position-absolute search-icon-left"></i>
+                            <input type="text" id="dtSearchCarreras" class="form-control search-input-custom" placeholder="Buscar carrera...">
+                        </div>
+                    </div>
+
+                    <div class="col-lg-6">
+                        <label>CÓDIGO</label>
+                        <input type="text" id="filterCodigoCarreras" class="form-control search-input-custom" placeholder="Filtrar por código...">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="catalog-table-card">
+            <div class="table-responsive">
+                <table class="table table-borderless align-middle mb-0">
+                    <thead>
+                        <tr>
+                            <th class="px-4">ID</th>
+                            <th>Código</th>
+                            <th>Nombre de la Carrera</th>
+                            <th class="text-end px-4">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="careerBody"></tbody>
+                </table>
+            </div>
+
+            <div class="catalog-pagination-bar">
+                <div class="d-flex align-items-center gap-3">
+                    <span class="rows-label">MOSTRAR:</span>
+                    <select id="careerRpp" class="form-select form-select-sm rows-per-page">
+                        <option value="5">5</option>
+                        <option value="10" selected>10</option>
+                        <option value="20">20</option>
+                    </select>
+                    <div id="careerInfo" class="info-label"></div>
+                </div>
+                <nav aria-label="Paginación carreras">
+                    <ul class="pagination pagination-sm mb-0" id="careerPagination"></ul>
+                </nav>
+            </div>
+        </div>
+    </div>
+
+    @*  =========================================================
+        TAB: BAJAS
+        ========================================================= *@
+    <div id="tab-bajas" class="tab-content-pane" style="display:@(activeTab == "tab-bajas" ? "block" : "none");">
+        <div class="catalog-filter-card mb-4">
+            <div class="d-flex flex-column gap-3">
+                <div>
+                    <h5 class="fw-bold mb-1">Histórico de Bajas</h5>
+                    <p class="text-xs mb-3">Registros inactivos o dados de baja. Desde aquí puede eliminarlos definitivamente.</p>
+                </div>
+
+                <div class="row g-3 align-items-end">
+                    <div class="col-lg-4">
+                        <label>BUSCAR</label>
+                        <div class="position-relative search-wrapper">
+                            <i class="bi bi-search position-absolute search-icon-left"></i>
+                            <input type="text" id="dtSearchBajas" class="form-control search-input-custom" placeholder="Buscar en bajas...">
+                        </div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <label>TIPO</label>
+                        <select id="filterTipoBajas" class="form-select">
+                            <option value="">Todos</option>
+                            <option value="ADMIN">Administrativo</option>
+                            <option value="ALUMNO">Alumno</option>
+                            <option value="DOCENTE">Docente</option>
+                        </select>
+                    </div>
+
+                    <div class="col-md-4">
+                        <label>ESTADO</label>
+                        <select id="filterEstadoBajas" class="form-select">
+                            <option value="">Todos</option>
+                            <option value="INACTIVO">Inactivo</option>
+                            <option value="BAJA">Baja</option>
+                            <option value="LICENCIA">Licencia</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="catalog-table-card">
+            <div class="table-responsive">
+                <table class="table table-borderless align-middle mb-0">
+                    <thead>
+                        <tr>
+                            <th class="px-4">Identificador</th>
+                            <th>Nombre Completo</th>
+                            <th>Tipo</th>
+                            <th>Correo</th>
+                            <th class="text-center">Estado</th>
+                            <th class="text-end px-4">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="bajasBody"></tbody>
+                </table>
+            </div>
+
+            <div class="catalog-pagination-bar">
+                <div class="d-flex align-items-center gap-3">
+                    <span class="rows-label">MOSTRAR:</span>
+                    <select id="bajasRpp" class="form-select form-select-sm rows-per-page">
+                        <option value="5">5</option>
+                        <option value="10" selected>10</option>
+                        <option value="20">20</option>
+                    </select>
+                    <div id="bajasInfo" class="info-label"></div>
+                </div>
+                <nav aria-label="Paginación bajas">
+                    <ul class="pagination pagination-sm mb-0" id="bajasPagination"></ul>
+                </nav>
+            </div>
+        </div>
+    </div>
+
+    @*  =========================================================
+        TAB: CUENTAS
+        ========================================================= *@
+    <div id="tab-cuentas" class="tab-content-pane" style="display:@(activeTab == "tab-cuentas" ? "block" : "none");">
+        <div class="catalog-filter-card mb-4">
+            <div class="d-flex flex-column gap-3">
+                <div class="d-flex flex-column flex-xl-row justify-content-between align-items-xl-center gap-3">
+                    <div style="max-width:850px;">
+                        <h5 class="fw-bold mb-1">Creación y Gestión de cuentas</h5>
+                        <p class="text-xs mb-3">Administración de accesos al sistema. Aquí se ven activas e inactivas.</p>
+                    </div>
+                    <div class="flex-shrink-0">
+                        <a href="@Url.Action("CreateUser", "Coordinador", new { tab = "tab-cuentas" })" class="btn btn-primary-sep bg-primary-900 shadow-sm d-flex align-items-center gap-2 text-white">
+                            Crear Cuenta
+                        </a>
+                    </div>
+                </div>
+
+                <div class="row g-3 align-items-end">
+                    <div class="col-lg-4">
+                        <label>BUSCAR</label>
+                        <div class="position-relative search-wrapper">
+                            <i class="bi bi-search position-absolute search-icon-left"></i>
+                            <input type="text" id="dtSearchCuentas" class="form-control search-input-custom" placeholder="Buscar cuenta...">
+                        </div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <label>ROL</label>
+                        <select id="filterRolCuentas" class="form-select">
+                            <option value="">Todos</option>
+                        </select>
+                    </div>
+
+                    <div class="col-md-4">
+                        <label>ESTADO</label>
+                        <select id="filterEstadoCuentas" class="form-select">
+                            <option value="">Todos</option>
+                            <option value="ACTIVO">Activo</option>
+                            <option value="INSCRITO">Inscrito</option>
+                            <option value="PREINSCRITO">Preinscrito</option>
+                            <option value="INACTIVO">Inactivo</option>
+                            <option value="BAJA">Baja</option>
+                            <option value="LICENCIA">Licencia</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="catalog-table-card">
+            <div class="table-responsive">
+                <table class="table table-borderless align-middle mb-0">
+                    <thead>
+                        <tr>
+                            <th class="px-4">Usuario</th>
+                            <th>Nombre Completo</th>
+                            <th>Rol</th>
+                            <th>Correo</th>
+                            <th class="text-center">Estado</th>
+                            <th class="text-end px-4">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="cuentasBody"></tbody>
+                </table>
+            </div>
+
+            <div class="catalog-pagination-bar">
+                <div class="d-flex align-items-center gap-3">
+                    <span class="rows-label">MOSTRAR:</span>
+                    <select id="cuentasRpp" class="form-select form-select-sm rows-per-page">
+                        <option value="5">5</option>
+                        <option value="10" selected>10</option>
+                        <option value="20">20</option>
+                    </select>
+                    <div id="cuentasInfo" class="info-label"></div>
+                </div>
+                <nav aria-label="Paginación cuentas">
+                    <ul class="pagination pagination-sm mb-0" id="cuentasPagination"></ul>
+                </nav>
+            </div>
+        </div>
+    </div>
+
+    @*  =========================================================
+        TAB: ROLES
+        ========================================================= *@
+    <div id="tab-roles" class="tab-content-pane" style="display:@(activeTab == "tab-roles" ? "block" : "none");">
+        <div class="catalog-filter-card mb-4">
+            <div class="d-flex flex-column gap-3">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h5 class="fw-bold mb-1">Roles</h5>
+                        <p class="text-xs mb-3">Gestión de roles del sistema.</p>
+                    </div>
+
+                    <a href="@Url.Action("CreateRole", "Coordinador", new { tab = "tab-roles" })"
+                           class="btn btn-primary-sep shadow-sm d-flex align-items-center gap-2">
+                        Crear Rol
+                    </a>
+                </div>
+
+                <div class="row g-3">
+                    <div class="col-lg-6">
+                        <label>BUSCAR</label>
+                        <div class="position-relative search-wrapper">
+                            <i class="bi bi-search position-absolute search-icon-left"></i>
+                            <input type="text" id="dtSearchRoles" class="form-control search-input-custom" placeholder="Buscar rol...">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="catalog-table-card">
+            <div class="table-responsive">
+                <table class="table table-borderless align-middle mb-0">
+                    <thead>
+                        <tr>
+                            <th class="px-4">Nombre</th>
+                            <th>Descripción</th>
+                            <th class="text-end px-4">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="rolesBody"></tbody>
+                </table>
+            </div>
+
+            <div class="catalog-pagination-bar">
+                <div class="d-flex align-items-center gap-3">
+                    <span class="rows-label">MOSTRAR:</span>
+                    <select id="rolesRpp" class="form-select form-select-sm rows-per-page">
+                        <option value="5">5</option>
+                        <option value="10" selected>10</option>
+                        <option value="20">20</option>
+                    </select>
+                    <div id="rolesInfo" class="info-label"></div>
+                </div>
+                <nav aria-label="Paginación roles">
+                    <ul class="pagination pagination-sm mb-0" id="rolesPagination"></ul>
+                </nav>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<style>
+    /* ==================================================================
+       CATÁLOGOS — DISEÑO INSTITUCIONAL (alineado a Ciclos.cshtml)
+       Canvas, Tabs, Filtros, Tabla, Badges, Acciones, Paginación
+       ================================================================== */
+
+    .catalog-canvas { min-height: 82vh; }
+
+    .fade-in { animation: catFadeIn .35s ease both; }
+
+    @@keyframes catFadeIn {
+        from { opacity: 0; transform: translateY(6px); }
+        to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .tab-content-pane { animation: catFadeIn .25s ease both; }
+
+  /* ---------- Navegación de pestañas ---------- */
+   /* ---------- Navegación de pestañas ---------- */
+.nav-tabs-custom {
+    border-bottom: 2px solid #E5E7EB;
+    gap: .15rem;
+}
+
+.nav-tab-item {
+    display: inline-flex;
+    align-items: center;
+    padding: .9rem 1.35rem;
+    font-size: .78rem;
+    font-weight: 700;
+    letter-spacing: .02em;
+    color: #6B7280;
+    background: transparent;
+    border: 0;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -2px;
+    transition: color .2s ease, border-color .2s ease;
+    white-space: nowrap;
+}
+
+.nav-tab-item:hover { 
+    color: #13322B; 
+}
+
+.nav-tab-item.active {
+    color: #13322B;
+    border-bottom-color: #13322B;
+}
+    /* ---------- Cards ---------- */
+    .catalog-filter-card {
+        background: var(--bg-surface, #ffffff);
+        border: 1px solid rgba(0, 0, 0, .06);
+        border-radius: 1rem;
+        padding: 1.5rem;
+        box-shadow: 0 2px 10px rgba(16, 24, 40, .03);
+    }
+
+        .catalog-filter-card h5 {
+            font-size: 1.05rem;
+            color: var(--text-title, #1a2b6b);
+        }
+
+        .catalog-filter-card p { color: var(--text-body, #6a6f7a); }
+
+        .catalog-filter-card label {
+            display: block;
+            font-size: .65rem;
+            font-weight: 700;
+            letter-spacing: .08em;
+            text-transform: uppercase;
+            color: var(--text-body, #6a6f7a);
+            margin-bottom: .4rem;
+        }
+
+    .catalog-table-card {
+        background: var(--bg-surface, #ffffff);
+        border: 1px solid rgba(0, 0, 0, .06);
+        border-radius: 1rem;
+        box-shadow: 0 2px 10px rgba(16, 24, 40, .03);
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+    }
+
+    /* ---------- Inputs ---------- */
+    .catalog-filter-card .search-wrapper { position: relative; }
+
+    .catalog-filter-card .search-icon-left {
+        left: .9rem;
+        top: 50%;
+        transform: translateY(-50%);
+        font-size: .9rem;
+        pointer-events: none;
+        color: var(--text-body, #6a6f7a);
+    }
+
+    .catalog-filter-card .search-input-custom {
+        padding-left: 2.5rem;
+        border-radius: .75rem;
+        border: 1px solid rgba(0, 0, 0, .08);
+        background: var(--bg-app, #f5f6fa);
+        font-size: .85rem;
+        font-weight: 500;
+        height: 2.5rem;
+    }
+
+        .catalog-filter-card .search-input-custom:focus {
+            border-color: var(--primary-dark, #1a2b6b);
+            box-shadow: 0 0 0 .15rem rgba(26, 43, 107, .12);
+            background: #fff;
+        }
+
+    .catalog-filter-card .form-select {
+        border-radius: .75rem;
+        border: 1px solid rgba(0, 0, 0, .08);
+        background-color: var(--bg-app, #f5f6fa);
+        height: 2.5rem;
+        font-size: .85rem;
+        font-weight: 600;
+        color: var(--text-title, #1a2b6b);
+    }
+
+        .catalog-filter-card .form-select:focus {
+            border-color: var(--primary-dark, #1a2b6b);
+            box-shadow: 0 0 0 .15rem rgba(26, 43, 107, .12);
+            background: #fff;
+        }
+
+    /* ---------- Tabla ---------- */
+    .catalog-table-card table {
+        margin-bottom: 0;
+        width: 100%;
+    }
+
+    .catalog-table-card thead { background: var(--bg-app, #f5f6fa); }
+
+        .catalog-table-card thead th {
+            font-size: .625rem;
+            font-weight: 700;
+            letter-spacing: .07em;
+            text-transform: uppercase;
+            color: var(--text-body, #6a6f7a);
+            border: 0 !important;
+            padding: .95rem .75rem;
+            white-space: nowrap;
+        }
+
+            .catalog-table-card thead th.px-4 {
+                padding-left: 1.5rem;
+                padding-right: 1.5rem;
+            }
+
+    .catalog-table-card tbody tr {
+        border-bottom: 1px solid rgba(0, 0, 0, .05);
+        transition: background .15s ease;
+    }
+
+        .catalog-table-card tbody tr:last-child { border-bottom: 0; }
+
+        .catalog-table-card tbody tr:hover { background: rgba(26, 43, 107, .025); }
+
+    .catalog-table-card tbody td {
+        padding: .95rem .75rem;
+        vertical-align: middle;
+        font-size: .8rem;
+        color: var(--text-body, #475467);
+        border: 0 !important;
+    }
+
+        .catalog-table-card tbody td.px-4 {
+            padding-left: 1.5rem;
+            padding-right: 1.5rem;
+        }
+
+    /* ---------- Badges (estado / rol) ---------- */
+    .catalog-table-card .badge {
+        display: inline-block;
+        border-radius: 50rem;
+        padding: .45rem .85rem;
+        font-size: .625rem;
+        font-weight: 700;
+        letter-spacing: .05em;
+        text-transform: uppercase;
+        line-height: 1;
+    }
+
+    /* ---------- Botones de acción ---------- */
+    .btn-action {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 2rem;
+        height: 2rem;
+        border: 0;
+        border-radius: .5rem;
+        font-size: .85rem;
+        line-height: 1;
+        transition: transform .1s ease, filter .15s ease;
+        padding: 0;
+        text-decoration: none;
+    }
+
+        .btn-action:hover {
+            transform: translateY(-1px);
+            filter: brightness(.96);
+        }
+
+    .btn-action-edit { background: var(--primary-100, #e7eaf6); color: var(--primary-dark, #1a2b6b) !important; }
+    .btn-action-delete { background: var(--error-100, #fde7e7); color: #c0392b !important; }
+    .btn-action-view { background: var(--bg-app, #f0f1f6); color: var(--text-body, #475467) !important; }
+    .btn-action-toggle-off { background: #fff4de; color: #b07500 !important; }
+    .btn-action-toggle-on { background: #e1f7e7; color: #1f7a3a !important; }
+
+    /* ---------- Footer paginación ---------- */
+    .catalog-pagination-bar {
+        background: #fff;
+        border-top: 1px solid rgba(0, 0, 0, .05);
+        padding: .85rem 1rem;
+        display: flex;
+        flex-direction: column;
+        gap: .75rem;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    @@media (min-width: 768px) {
+        .catalog-pagination-bar { flex-direction: row; }
+    }
+
+    .catalog-pagination-bar .rows-per-page {
+        width: 70px !important;
+        border: 0 !important;
+        background: var(--bg-app, #f5f6fa) !important;
+        font-weight: 700;
+        font-size: .75rem;
+        color: var(--text-title, #1a2b6b);
+        cursor: pointer;
+        height: 2.2rem;
+    }
+
+    .catalog-pagination-bar .rows-label {
+        font-size: .65rem;
+        letter-spacing: .08em;
+        text-transform: uppercase;
+        font-weight: 700;
+        color: var(--text-body, #6a6f7a);
+    }
+
+    .catalog-pagination-bar .info-label {
+        font-size: .65rem;
+        letter-spacing: .05em;
+        text-transform: uppercase;
+        font-weight: 700;
+        color: var(--primary-dark, #1a2b6b);
+        opacity: .85;
+    }
+
+    .catalog-pagination-bar .pagination { margin: 0; gap: .15rem; }
+
+        .catalog-pagination-bar .pagination .page-link {
+            border: 0;
+            background: var(--bg-app, #f5f6fa);
+            color: var(--text-title, #1a2b6b);
+            border-radius: .55rem;
+            min-width: 2.25rem;
+            height: 2.25rem;
+            padding: 0 .75rem;
+            font-size: .7rem;
+            font-weight: 700;
+            letter-spacing: .03em;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 .1rem;
+            transition: background .15s ease, color .15s ease;
+        }
+
+            .catalog-pagination-bar .pagination .page-link:hover {
+                background: var(--primary-100, #e7eaf6);
+                color: var(--primary-dark, #1a2b6b);
+            }
+
+        .catalog-pagination-bar .pagination .page-item.active .page-link {
+            background: var(--primary-dark, #1a2b6b);
+            color: #fff;
+            box-shadow: 0 2px 6px rgba(26, 43, 107, .15);
+        }
+
+        .catalog-pagination-bar .pagination .page-item.disabled .page-link {
+            opacity: .45;
+            cursor: not-allowed;
+        }
+
+    /* ---------- Empty state ---------- */
+    .catalog-empty { padding: 3rem 1rem; text-align: center; }
+
+        .catalog-empty i {
+            font-size: 2.5rem;
+            color: rgba(0, 0, 0, .22);
+            margin-bottom: .75rem;
+            display: block;
+        }
+
+        .catalog-empty span {
+            display: block;
+            font-size: .7rem;
+            font-weight: 700;
+            color: var(--text-body, #6a6f7a);
+            letter-spacing: .1em;
+            text-transform: uppercase;
+        }
+
+    /* ---------- Responsive ---------- */
+    @@media (max-width: 768px) {
+        .catalog-filter-card { padding: 1.15rem; }
+
+        .catalog-table-card thead th,
+        .catalog-table-card tbody td {
+            font-size: .72rem;
+            padding-left: .65rem;
+            padding-right: .65rem;
+        }
+
+        .catalog-pagination-bar {
+            padding: .75rem .85rem;
+            justify-content: center;
+        }
+
+            .catalog-pagination-bar .pagination .page-link {
+                min-width: 2rem;
+                height: 2rem;
+                padding: 0 .5rem;
+            }
+    }
+</style>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+
+            // =============================================================
+            // Navegación entre pestañas
+            // =============================================================
+            function setActiveTab(tabId) {
+                $('.nav-tab-item').removeClass('active');
+                $(`.nav-tab-item[data-target="#${tabId}"]`).addClass('active');
+                $('.tab-content-pane').hide();
+                $('#' + tabId).show();
+
+                const url = new URL(window.location.href);
+                url.searchParams.set('tab', tabId);
+                window.history.replaceState({}, '', url.toString());
+            }
+
+            $('.nav-tab-item').on('click', function (e) {
+                e.preventDefault();
+                const targetId = ($(this).data('target') || '').replace('#', '');
+                if (!targetId) return;
+                setActiveTab(targetId);
+            });
+
+            setActiveTab('@activeTab');
+
+            // =============================================================
+            // Helpers de presentación
+            // =============================================================
+            function estadoBadge(estado) {
+                const value = (estado || '').toString().toUpperCase();
+                const ok = (value === 'ACTIVO' || value === 'INSCRITO' || value === 'PREINSCRITO');
+                const cls = ok ? 'status-aceptado' : 'status-rechazado';
+                return `<span class="badge ${cls}">${estado || '-'}</span>`;
+            }
+
+            function rolBadge(roles) {
+                const value = (roles || 'Sin Rol').toString().toUpperCase();
+                let badgeClass = 'bg-app text-secondary border';
+                if (value.includes('ADMIN')) badgeClass = 'bg-primary-dark text-white';
+                else if (value.includes('TEACHER') || value.includes('DOCENTE')) badgeClass = 'bg-accent-light txt-primary-dark';
+                else if (value.includes('STUDENT') || value.includes('ALUMNO') || value.includes('ESTUDIANTE')) badgeClass = 'bg-app border';
+                return `<span class="badge ${badgeClass}">${value}</span>`;
+            }
+
+            function fillRoleSelect(selectId, rows) {
+                const select = $(selectId);
+                const current = select.val();
+                const roles = new Set();
+
+                rows.forEach(r => {
+                    (r.roles || '')
+                        .split(',')
+                        .map(x => x.trim())
+                        .filter(Boolean)
+                        .forEach(x => roles.add(x.toUpperCase()));
+                });
+
+                select.empty().append('<option value="">Todos</option>');
+                Array.from(roles).sort().forEach(role => {
+                    select.append(`<option value="${role}">${role}</option>`);
+                });
+
+                if (current && select.find(`option[value="${current}"]`).length) {
+                    select.val(current);
+                }
+            }
+
+            // =============================================================
+            // Factory de tabla paginada (patrón Ciclos)
+            // =============================================================
+            function createTable(cfg) {
+                let allData = [];
+                let currentPage = 1;
+                const api = {};
+
+                function loadData() {
+                    $.get(cfg.url, function (response) {
+                        const rows = (response && response.data !== undefined) ? response.data : (response || []);
+                        allData = cfg.transform ? cfg.transform(rows) : rows;
+                        if (cfg.onData) cfg.onData(allData);
+                        updateTable();
+                    });
+                }
+
+                function renderRows(data) {
+                    let html = '';
+                    if (!data || data.length === 0) {
+                        html = `<tr>
+                            <td colspan="${cfg.colspan}">
+                                <div class="catalog-empty">
+                                    <i class="bi bi-folder2-open"></i>
+                                    <span>Sin registros disponibles</span>
+                                </div>
+                            </td>
+                        </tr>`;
+                    } else {
+                        data.forEach(item => { html += cfg.renderRow(item); });
+                    }
+                    $(cfg.bodyId).html(html);
+                }
+
+                function updateTable() {
+                    const filters = cfg.getFilters ? cfg.getFilters() : {};
+                    const rowsPerPage = parseInt($(cfg.rowsPerPageId).val()) || 10;
+
+                    let filteredData = allData;
+                    if (cfg.filter) filteredData = allData.filter(row => cfg.filter(row, filters));
+
+                    const totalRecords = filteredData.length;
+                    const totalPages = Math.ceil(totalRecords / rowsPerPage) || 1;
+                    if (currentPage > totalPages) currentPage = totalPages;
+                    if (currentPage < 1) currentPage = 1;
+
+                    const startIndex = (currentPage - 1) * rowsPerPage;
+                    const endIndex = Math.min(startIndex + rowsPerPage, totalRecords);
+                    const pageData = filteredData.slice(startIndex, endIndex);
+
+                    renderRows(pageData);
+
+                    $(cfg.infoId).text(totalRecords === 0 ? '0 REGISTROS' : `${startIndex + 1} - ${endIndex} DE ${totalRecords}`);
+                    renderPagination(totalPages);
+                }
+
+                function renderPagination(totalPages) {
+                    let html = '';
+                    html += `<li class="page-item ${currentPage === 1 ? 'disabled' : ''}">
+                        <a class="page-link" href="#" data-page="${currentPage - 1}"><i class="bi bi-chevron-left"></i></a>
+                    </li>`;
+                    for (let i = 1; i <= totalPages; i++) {
+                        html += `<li class="page-item ${i === currentPage ? 'active' : ''}">
+                            <a class="page-link" href="#" data-page="${i}">${i}</a>
+                        </li>`;
+                    }
+                    html += `<li class="page-item ${currentPage === totalPages ? 'disabled' : ''}">
+                        <a class="page-link" href="#" data-page="${currentPage + 1}"><i class="bi bi-chevron-right"></i></a>
+                    </li>`;
+                    $(cfg.paginationId).html(html);
+                }
+
+                $(cfg.paginationId).on('click', '.page-link', function (e) {
+                    e.preventDefault();
+                    const page = parseInt($(this).data('page'));
+                    if (page && !$(this).parent().hasClass('disabled')) {
+                        currentPage = page;
+                        updateTable();
+                    }
+                });
+
+                $(cfg.rowsPerPageId).on('change', function () { currentPage = 1; updateTable(); });
+
+                api.reload = loadData;
+                api.redraw = function () { currentPage = 1; updateTable(); };
+                return api;
+            }
+
+            // =============================================================
+            // Tabla: PERSONAS
+            // =============================================================
+            const tblPersonas = createTable({
+                url: '@Url.Action("GetUsersJson", "Coordinador")',
+                bodyId: '#personasBody',
+                infoId: '#personasInfo',
+                paginationId: '#personasPagination',
+                rowsPerPageId: '#personasRpp',
+                colspan: 8,
+                onData: rows => fillRoleSelect('#filterRolPersonas', rows),
+                getFilters: () => ({
+                    search: ($('#dtSearchPersonas').val() || '').toLowerCase(),
+                    rol: ($('#filterRolPersonas').val() || '').toUpperCase(),
+                    estado: ($('#filterEstadoPersonas').val() || '').toUpperCase(),
+                    tipo: ($('#filterTipoPersonas').val() || '').toUpperCase()
+                }),
+                filter: (row, f) => {
+                    const haystack = `${row.identificador || ''} ${row.nombreCompleto || ''} ${row.correo || ''} ${row.roles || ''} ${row.tipoUsuario || ''} ${row.carrera || ''}`.toLowerCase();
+                    if (f.search && !haystack.includes(f.search)) return false;
+                    if (f.rol && !(row.roles || '').toUpperCase().includes(f.rol)) return false;
+                    if (f.estado && (row.estado || '').toUpperCase() !== f.estado) return false;
+                    if (f.tipo && (row.tipoUsuario || '').toUpperCase() !== f.tipo) return false;
+                    return true;
+                },
+                renderRow: item => {
+                    const tipo = (item.tipoUsuario || '').toUpperCase();
+                    let editBtn = '', delBtn = '';
+                    if (tipo === 'ADMIN') {
+                        editBtn = `<a href="/Coordinador/EditUser/${item.id}?tab=tab-personas" class="btn-action btn-action-edit" title="Editar"><i class="bi bi-pencil-square"></i></a>`;
+                        delBtn = `<button class="btn-action btn-action-delete" title="Eliminar" onclick="eliminarRegistro('Usuarios', ${item.id})"><i class="bi bi-trash3-fill"></i></button>`;
+                    } else if (tipo === 'DOCENTE' && item.teacherId) {
+                        editBtn = `<a href="/Coordinador/EditTeacher/${item.teacherId}?tab=tab-personas" class="btn-action btn-action-edit" title="Editar"><i class="bi bi-pencil-square"></i></a>`;
+                        delBtn = `<button class="btn-action btn-action-delete" title="Eliminar" onclick="eliminarRegistro('Docentes', ${item.teacherId})"><i class="bi bi-trash3-fill"></i></button>`;
+                    } else if (tipo === 'ALUMNO' && item.studentId) {
+                        editBtn = `<a href="/Coordinador/EditStudent/${item.studentId}?tab=tab-personas" class="btn-action btn-action-edit" title="Editar"><i class="bi bi-pencil-square"></i></a>`;
+                        delBtn = `<button class="btn-action btn-action-delete" title="Eliminar" onclick="eliminarRegistro('Alumnos', ${item.studentId})"><i class="bi bi-trash3-fill"></i></button>`;
+                    }
+                    return `<tr>
+                        <td class="px-4"><div class="txt-primary-dark fw-bold">${item.identificador || '-'}</div></td>
+                        <td><div class="txt-title fw-bold">${item.nombreCompleto || '-'}</div></td>
+                        <td>${rolBadge(item.roles)}</td>
+                        <td>${item.tipoUsuario || '-'}</td>
+                        <td>${item.carrera || '-'}</td>
+                        <td>${item.correo || '-'}</td>
+                        <td class="text-center">${estadoBadge(item.estado)}</td>
+                        <td class="text-end px-4">
+                            <div class="d-flex justify-content-end gap-2">${editBtn}${delBtn}</div>
+                        </td>
+                    </tr>`;
+                }
+            });
+
+            // =============================================================
+            // Tabla: ALUMNOS
+            // =============================================================
+            const tblAlumnos = createTable({
+                url: '@Url.Action("GetAlumnosJson", "Coordinador")',
+                bodyId: '#alumnosBody',
+                infoId: '#alumnosInfo',
+                paginationId: '#alumnosPagination',
+                rowsPerPageId: '#alumnosRpp',
+                colspan: 6,
+                getFilters: () => ({
+                    search: ($('#dtSearchAlumnos').val() || '').toLowerCase(),
+                    carrera: ($('#filterCarreraAlumnos').val() || '').toUpperCase(),
+                    estado: ($('#filterEstadoAlumnos').val() || '').toUpperCase()
+                }),
+                filter: (row, f) => {
+                    const haystack = `${row.identificador || ''} ${row.nombreCompleto || ''} ${row.carrera || ''} ${row.grupo || ''}`.toLowerCase();
+                    if (f.search && !haystack.includes(f.search)) return false;
+                    if (f.carrera && !(row.carrera || '').toUpperCase().includes(f.carrera)) return false;
+                    if (f.estado && (row.estadoCodigo || '').toUpperCase() !== f.estado) return false;
+                    return true;
+                },
+                renderRow: item => {
+                    const badgeCls = item.estadoBadgeClass || 'status-rechazado';
+                    const delBtn = item.esActivo
+                        ? `<button class="btn-action btn-action-delete" title="Eliminar" onclick="eliminarRegistro('Alumnos', ${item.id})"><i class="bi bi-trash3-fill"></i></button>`
+                        : '';
+                    return `<tr>
+                        <td class="px-4"><div class="txt-primary-dark fw-bold">${item.identificador || '-'}</div></td>
+                        <td><div class="txt-title fw-bold">${item.nombreCompleto || '-'}</div></td>
+                        <td>${item.carrera || '-'}</td>
+                        <td>${item.grupo || '-'}</td>
+                        <td class="text-center"><span class="badge ${badgeCls}">${item.estadoCodigo || '-'}</span></td>
+                        <td class="text-end px-4">
+                            <div class="d-flex justify-content-end gap-2">
+                                <a href="/Coordinador/StudentDetail/${item.id}?tab=tab-alumnos" class="btn-action btn-action-view" title="Ver"><i class="bi bi-eye"></i></a>
+                                <a href="/Coordinador/EditStudent/${item.id}?tab=tab-alumnos" class="btn-action btn-action-edit" title="Editar"><i class="bi bi-pencil-square"></i></a>
+                                ${delBtn}
+                            </div>
+                        </td>
+                    </tr>`;
+                }
+            });
+
+            // =============================================================
+            // Tabla: DOCENTES
+            // =============================================================
+            const tblDocentes = createTable({
+                url: '@Url.Action("GetDocentesJson", "Coordinador")',
+                bodyId: '#docentesBody',
+                infoId: '#docentesInfo',
+                paginationId: '#docentesPagination',
+                rowsPerPageId: '#docentesRpp',
+                colspan: 6,
+                getFilters: () => ({
+                    search: ($('#dtSearchDocentes').val() || '').toLowerCase(),
+                    estado: ($('#filterEstadoDocentes').val() || '').toUpperCase(),
+                    correo: ($('#filterCorreoDocentes').val() || '').toUpperCase()
+                }),
+                filter: (row, f) => {
+                    const haystack = `${row.numeroEmpleado || ''} ${row.nombreCompleto || ''} ${row.email || ''} ${row.telefono || ''}`.toLowerCase();
+                    if (f.search && !haystack.includes(f.search)) return false;
+                    if (f.estado && (row.estado || '').toUpperCase() !== f.estado) return false;
+                    if (f.correo && !(row.email || '').toUpperCase().includes(f.correo)) return false;
+                    return true;
+                },
+                renderRow: item => {
+                    const badgeCls = item.badgeClass || 'status-rechazado';
+                    return `<tr>
+                        <td class="px-4"><div class="txt-primary-dark fw-bold">${item.numeroEmpleado || '-'}</div></td>
+                        <td><div class="txt-title fw-bold">${item.nombreCompleto || '-'}</div></td>
+                        <td>${item.email || '-'}</td>
+                        <td>${item.telefono || '-'}</td>
+                        <td class="text-center"><span class="badge ${badgeCls}">${item.estado || '-'}</span></td>
+                        <td class="text-end px-4">
+                            <div class="d-flex justify-content-end gap-2">
+                                <a href="/Coordinador/TeacherDetail/${item.teacherId}?tab=tab-docentes" class="btn-action btn-action-view" title="Ver"><i class="bi bi-eye"></i></a>
+                                <a href="/Coordinador/EditTeacher/${item.teacherId}?tab=tab-docentes" class="btn-action btn-action-edit" title="Editar"><i class="bi bi-pencil-square"></i></a>
+                                <button class="btn-action btn-action-delete" title="Eliminar" onclick="eliminarRegistro('Docentes', ${item.teacherId})"><i class="bi bi-trash3-fill"></i></button>
+                            </div>
+                        </td>
+                    </tr>`;
+                }
+            });
+
+            // =============================================================
+            // Tabla: GRUPOS
+            // =============================================================
+            const tblGrupos = createTable({
+                url: '@Url.Action("GetGruposJson", "Coordinador")',
+                bodyId: '#gruposBody',
+                infoId: '#gruposInfo',
+                paginationId: '#gruposPagination',
+                rowsPerPageId: '#gruposRpp',
+                colspan: 5,
+                getFilters: () => ({
+                    search: ($('#dtSearchGrupos').val() || '').toLowerCase(),
+                    carrera: ($('#filterCarreraGrupos').val() || '').toUpperCase(),
+                    estado: ($('#filterEstadoGrupos').val() || '')
+                }),
+                filter: (row, f) => {
+                    const haystack = `${row.id || ''} ${row.nombre || ''} ${row.carrera || ''}`.toLowerCase();
+                    const estadoTexto = row.esActivo ? 'Activo' : 'Inactivo';
+                    if (f.search && !haystack.includes(f.search)) return false;
+                    if (f.carrera && !(row.carrera || '').toUpperCase().includes(f.carrera)) return false;
+                    if (f.estado && estadoTexto !== f.estado) return false;
+                    return true;
+                },
+                renderRow: item => {
+                    const badgeCls = item.esActivo ? 'status-aceptado' : 'status-rechazado';
+                    const badgeTxt = item.esActivo ? 'Activo' : 'Inactivo';
+                    return `<tr>
+                        <td class="px-4"><div class="txt-primary-dark fw-bold">${item.id}</div></td>
+                        <td><div class="txt-title fw-bold">${item.nombre || '-'}</div></td>
+                        <td>${item.carrera || '-'}</td>
+                        <td class="text-center"><span class="badge ${badgeCls}">${badgeTxt}</span></td>
+                        <td class="text-end px-4">
+                            <div class="d-flex justify-content-end gap-2">
+                                <a href="/Coordinador/EditGroup/${item.id}?tab=tab-grupos" class="btn-action btn-action-edit" title="Editar"><i class="bi bi-pencil-square"></i></a>
+                                <button class="btn-action btn-action-delete" title="Eliminar" onclick="eliminarRegistro('Grupos', ${item.id})"><i class="bi bi-trash3-fill"></i></button>
+                            </div>
+                        </td>
+                    </tr>`;
+                }
+            });
+
+            // =============================================================
+            // Tabla: CARRERAS
+            // =============================================================
+            const tblCareer = createTable({
+                url: '@Url.Action("GetCareersJson", "Coordinador")',
+                bodyId: '#careerBody',
+                infoId: '#careerInfo',
+                paginationId: '#careerPagination',
+                rowsPerPageId: '#careerRpp',
+                colspan: 4,
+                getFilters: () => ({
+                    search: ($('#dtSearchCarreras').val() || '').toLowerCase(),
+                    codigo: ($('#filterCodigoCarreras').val() || '').toUpperCase()
+                }),
+                filter: (row, f) => {
+                    const haystack = `${row.id || ''} ${row.codigo || ''} ${row.nombre || ''}`.toLowerCase();
+                    if (f.search && !haystack.includes(f.search)) return false;
+                    if (f.codigo && !(row.codigo || '').toUpperCase().includes(f.codigo)) return false;
+                    return true;
+                },
+                renderRow: item => `<tr>
+                    <td class="px-4"><div class="txt-primary-dark fw-bold">${item.id}</div></td>
+                    <td><div class="txt-title fw-bold">${item.codigo || '-'}</div></td>
+                    <td>${(item.nombre || '').toUpperCase()}</td>
+                    <td class="text-end px-4">
+                        <div class="d-flex justify-content-end gap-2">
+                            <a href="/Coordinador/EditCareer/${item.id}?tab=tab-career" class="btn-action btn-action-edit" title="Editar"><i class="bi bi-pencil-square"></i></a>
+                            <button class="btn-action btn-action-delete" title="Eliminar" onclick="eliminarRegistro('Carrera', ${item.id})"><i class="bi bi-trash3-fill"></i></button>
+                        </div>
+                    </td>
+                </tr>`
+            });
+
+            // =============================================================
+            // Tabla: BAJAS
+            // =============================================================
+            const tblBajas = createTable({
+                url: '@Url.Action("GetBajasJson", "Coordinador")',
+                bodyId: '#bajasBody',
+                infoId: '#bajasInfo',
+                paginationId: '#bajasPagination',
+                rowsPerPageId: '#bajasRpp',
+                colspan: 6,
+                getFilters: () => ({
+                    search: ($('#dtSearchBajas').val() || '').toLowerCase(),
+                    tipo: ($('#filterTipoBajas').val() || '').toUpperCase(),
+                    estado: ($('#filterEstadoBajas').val() || '').toUpperCase()
+                }),
+                filter: (row, f) => {
+                    const haystack = `${row.identificador || ''} ${row.nombreCompleto || ''} ${row.email || ''} ${row.tipoUsuario || ''}`.toLowerCase();
+                    if (f.search && !haystack.includes(f.search)) return false;
+                    if (f.tipo && (row.tipoUsuario || '').toUpperCase() !== f.tipo) return false;
+                    if (f.estado && (row.estadoCodigo || '').toUpperCase() !== f.estado) return false;
+                    return true;
+                },
+                renderRow: item => {
+                    const badgeCls = item.estadoBadgeClass || 'status-rechazado';
+                    return `<tr>
+                        <td class="px-4"><div class="txt-primary-dark fw-bold">${item.identificador || '-'}</div></td>
+                        <td><div class="txt-title fw-bold">${item.nombreCompleto || '-'}</div></td>
+                        <td>${item.tipoUsuario || '-'}</td>
+                        <td>${item.email || '-'}</td>
+                        <td class="text-center"><span class="badge ${badgeCls}">${item.estadoCodigo || '-'}</span></td>
+                        <td class="text-end px-4">
+                            <div class="d-flex justify-content-end gap-2">
+                                <button class="btn-action btn-action-delete" title="Eliminar definitivo" onclick="eliminarDefinitivo('${item.tipoUsuario}', ${item.id}, ${item.userId || 0})"><i class="bi bi-trash3"></i></button>
+                            </div>
+                        </td>
+                    </tr>`;
+                }
+            });
+
+            // =============================================================
+            // Tabla: CUENTAS
+            // =============================================================
+            const tblCuentas = createTable({
+                url: '@Url.Action("GetUsersJson", "Coordinador")',
+                bodyId: '#cuentasBody',
+                infoId: '#cuentasInfo',
+                paginationId: '#cuentasPagination',
+                rowsPerPageId: '#cuentasRpp',
+                colspan: 6,
+                transform: rows => rows.filter(x => x.id && x.username && x.username !== '-'),
+                onData: rows => fillRoleSelect('#filterRolCuentas', rows),
+                getFilters: () => ({
+                    search: ($('#dtSearchCuentas').val() || '').toLowerCase(),
+                    rol: ($('#filterRolCuentas').val() || '').toUpperCase(),
+                    estado: ($('#filterEstadoCuentas').val() || '').toUpperCase()
+                }),
+                filter: (row, f) => {
+                    const haystack = `${row.username || ''} ${row.nombreCompleto || ''} ${row.correo || ''} ${row.roles || ''}`.toLowerCase();
+                    if (f.search && !haystack.includes(f.search)) return false;
+                    if (f.rol && !(row.roles || '').toUpperCase().includes(f.rol)) return false;
+                    if (f.estado && (row.estado || '').toUpperCase() !== f.estado) return false;
+                    return true;
+                },
+                renderRow: item => {
+                    const estado = (item.estado || '').toUpperCase();
+                    const isActive = (estado === 'ACTIVO' || estado === 'INSCRITO' || estado === 'PREINSCRITO');
+                    const toggleBtn = isActive
+                        ? `<button class="btn-action btn-action-toggle-off" title="Desactivar" onclick="toggleUsuario(${item.id}, false)"><i class="bi bi-person-dash"></i></button>`
+                        : `<button class="btn-action btn-action-toggle-on" title="Activar" onclick="toggleUsuario(${item.id}, true)"><i class="bi bi-person-check"></i></button>`;
+
+                    return `<tr>
+                        <td class="px-4"><div class="txt-title fw-bold">${item.username || '-'}</div></td>
+                        <td>${item.nombreCompleto || '-'}</td>
+                        <td>${rolBadge(item.roles)}</td>
+                        <td>${item.correo || '-'}</td>
+                        <td class="text-center">${estadoBadge(item.estado)}</td>
+                        <td class="text-end px-4">
+                            <div class="d-flex justify-content-end gap-2">
+                                <a href="/Coordinador/EditUser/${item.id}?tab=tab-cuentas" class="btn-action btn-action-edit" title="Editar"><i class="bi bi-pencil-square"></i></a>
+                                ${toggleBtn}
+                                <button class="btn-action btn-action-delete" title="Eliminar" onclick="eliminarRegistro('Usuarios', ${item.id})"><i class="bi bi-trash3-fill"></i></button>
+                            </div>
+                        </td>
+                    </tr>`;
+                }
+            });
+
+            // =============================================================
+            // Tabla: ROLES
+            // =============================================================
+            const tblRoles = createTable({
+                url: '@Url.Action("GetRolesJson", "Coordinador")',
+                bodyId: '#rolesBody',
+                infoId: '#rolesInfo',
+                paginationId: '#rolesPagination',
+                rowsPerPageId: '#rolesRpp',
+                colspan: 3,
+                getFilters: () => ({
+                    search: ($('#dtSearchRoles').val() || '').toLowerCase()
+                }),
+                filter: (row, f) => {
+                    const haystack = `${row.nombre || ''} ${row.descripcion || ''}`.toLowerCase();
+                    if (f.search && !haystack.includes(f.search)) return false;
+                    return true;
+                },
+                renderRow: item => `<tr>
+                    <td class="px-4"><div class="txt-title fw-bold">${item.nombre || '-'}</div></td>
+                    <td>${item.descripcion || '-'}</td>
+                    <td class="text-end px-4">
+                        <div class="d-flex justify-content-end gap-2">
+                            <a href="/Coordinador/EditRole/${item.id}?tab=tab-roles" class="btn-action btn-action-edit" title="Editar"><i class="bi bi-pencil-square"></i></a>
+                            <button class="btn-action btn-action-delete" title="Eliminar" onclick="eliminarRol(${item.id})"><i class="bi bi-trash3-fill"></i></button>
+                        </div>
+                    </td>
+                </tr>`
+            });
+
+            // =============================================================
+            // Bindings de búsqueda y filtros
+            // =============================================================
+            $('#dtSearchPersonas, #filterRolPersonas, #filterEstadoPersonas, #filterTipoPersonas').on('input change', () => tblPersonas.redraw());
+            $('#dtSearchAlumnos, #filterCarreraAlumnos, #filterEstadoAlumnos').on('input change', () => tblAlumnos.redraw());
+            $('#dtSearchDocentes, #filterEstadoDocentes, #filterCorreoDocentes').on('input change', () => tblDocentes.redraw());
+            $('#dtSearchGrupos, #filterCarreraGrupos, #filterEstadoGrupos').on('input change', () => tblGrupos.redraw());
+            $('#dtSearchCarreras, #filterCodigoCarreras').on('input change', () => tblCareer.redraw());
+            $('#dtSearchBajas, #filterTipoBajas, #filterEstadoBajas').on('input change', () => tblBajas.redraw());
+            $('#dtSearchCuentas, #filterRolCuentas, #filterEstadoCuentas').on('input change', () => tblCuentas.redraw());
+            $('#dtSearchRoles').on('input', () => tblRoles.redraw());
+
+            // =============================================================
+            // Acciones globales (baja lógica / toggle / eliminar definitivo)
+            // =============================================================
+            function getToken() {
+                return $('input[name="__RequestVerificationToken"]').val();
+            }
+
+            function recargarTodo() {
+                tblPersonas.reload();
+                tblAlumnos.reload();
+                tblDocentes.reload();
+                tblGrupos.reload();
+                tblCareer.reload();
+                tblBajas.reload();
+                tblCuentas.reload();
+                tblRoles.reload();
+            }
+
+            window.eliminarRegistro = function (controlador, id) {
+                if (!confirm('¿Deseas aplicar baja lógica a este registro?')) return;
+
+                let url = '';
+                if (controlador === 'Usuarios') url = `/Coordinador/DeleteUser/${id}`;
+                else if (controlador === 'Alumnos') url = `/Coordinador/DeleteStudent/${id}`;
+                else if (controlador === 'Docentes') url = `/Coordinador/DeleteTeacher/${id}`;
+                else if (controlador === 'Grupos') url = `/Coordinador/DeleteGroup/${id}`;
+                else if (controlador === 'Carrera') url = `/Coordinador/DeleteCareer/${id}`;
+
+                $.post(url, { __RequestVerificationToken: getToken() })
+                    .done(recargarTodo)
+                    .fail(() => alert('Error al aplicar la baja'));
+            };
+
+            window.toggleUsuario = function (id, activar) {
+                $.ajax({
+                    url: '/Coordinador/ToggleUserStatus',
+                    type: 'POST',
+                    contentType: 'application/json',
+                    headers: { 'RequestVerificationToken': getToken() },
+                    data: JSON.stringify({ id: id, activar: activar })
+                })
+                .done(recargarTodo)
+                .fail(xhr => alert(xhr.responseText || 'No fue posible cambiar el estado'));
+            };
+
+            window.eliminarRol = function (id) {
+                if (!confirm('¿Deseas eliminar este rol?')) return;
+
+                $.post(`/Coordinador/DeleteRole/${id}`, { __RequestVerificationToken: getToken() })
+                    .done(() => tblRoles.reload())
+                    .fail(() => alert('Error al eliminar'));
+            };
+
+            window.eliminarDefinitivo = function (tipoUsuario, id, userId) {
+                if (!confirm('¿Deseas eliminar definitivamente este registro inactivo?')) return;
+
+                $.ajax({
+                    url: '/Coordinador/DeleteInactiveRecord',
+                    type: 'POST',
+                    contentType: 'application/json',
+                    headers: { 'RequestVerificationToken': getToken() },
+                    data: JSON.stringify({ tipo: tipoUsuario, id: id, userId: userId })
+                })
+                .done(recargarTodo)
+                .fail(xhr => alert(xhr.responseText || 'No fue posible eliminar definitivamente'));
+            };
+
+            // =============================================================
+            // Carga inicial
+            // =============================================================
+            tblPersonas.reload();
+            tblAlumnos.reload();
+            tblDocentes.reload();
+            tblGrupos.reload();
+            tblCareer.reload();
+            tblBajas.reload();
+            tblCuentas.reload();
+            tblRoles.reload();
+        });
+    </script>
+}

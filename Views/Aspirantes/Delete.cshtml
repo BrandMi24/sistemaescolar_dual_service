@@ -1,0 +1,46 @@
+@model ControlEscolar.Models.Aspirante
+
+@{
+    ViewData["Title"] = "Eliminar Aspirante";
+}
+
+<div class="main-container">
+    <div class="form-container">
+        <h2 class="txt-primary-dark fw-bold">¿Está seguro que desea eliminar este registro?</h2>
+        <p class="text-muted small">Esta acción eliminará permanentemente la inscripción y los archivos asociados.</p>
+        <hr />
+
+        <dl class="row">
+            <dt class="col-sm-3">Folio / Matrícula:</dt>
+            <dd class="col-sm-9 fw-bold">@(Model.academiccontrol_inscription_enrollment ?? $"#{Model.academiccontrol_inscription_ID}")</dd>
+
+            <dt class="col-sm-3">Nombre Completo:</dt>
+            <dd class="col-sm-9">
+                @Html.DisplayFor(model => model.academiccontrol_preinscription_personaldata_name)
+                @Html.DisplayFor(model => model.academiccontrol_preinscription_personaldata_paternalSurname)
+                @Html.DisplayFor(model => model.academiccontrol_preinscription_personaldata_maternalSurname)
+            </dd>
+
+            <dt class="col-sm-3">Carrera:</dt>
+            <dd class="col-sm-9">@Html.DisplayFor(model => model.academiccontrol_inscription_careerRequested)</dd>
+
+            <dt class="col-sm-3">Email:</dt>
+            <dd class="col-sm-9">@Html.DisplayFor(model => model.academiccontrol_preinscription_personaldata_email)</dd>
+        </dl>
+
+        <form asp-action="Delete">
+            @Html.AntiForgeryToken()
+            @* Se actualiza el campo oculto al nuevo ID *@
+            <input type="hidden" asp-for="academiccontrol_inscription_ID" />
+
+            <div class="d-flex justify-content-between mt-4">
+                <a asp-action="Index" class="btn btn-ghost-sep px-4">
+                    <i class="bi bi-arrow-left me-2"></i>Cancelar
+                </a>
+                <button type="submit" class="btn btn-danger px-4">
+                    <i class="bi bi-trash me-2"></i>Confirmar Eliminación
+                </button>
+            </div>
+        </form>
+    </div>
+</div>

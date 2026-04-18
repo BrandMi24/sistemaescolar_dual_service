@@ -1,0 +1,354 @@
+@* @using ControlEscolar.Enums
+@using ControlEscolar.Helpers
+@model ControlEscolar.Models.Preinscripcion
+
+@{
+    ViewData["Title"] = "Editar Preinscripción";
+}
+
+<div class="main-container">
+    <div class="page-header">
+        <h1>Editar Preinscripción</h1>
+        <p>Folio: @Model.Id</p>
+    </div>
+
+    <div class="form-container">
+        <form asp-action="Edit" enctype="multipart/form-data">
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+            <input type="hidden" asp-for="Id" />
+            <input type="hidden" asp-for="TieneDiscapacidad" id="tieneDiscapacidadEdit" />
+
+            <div class="form-section">
+                <h3 class="form-section-title">Estado del registro</h3>
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <label asp-for="EstadoPreinscripcion" class="form-label">Estado</label>
+                        <select asp-for="EstadoPreinscripcion" class="form-select" asp-items="Html.GetEnumSelectList<EstadoPreinscripcion>()"></select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-section">
+                <h3 class="form-section-title">Datos personales</h3>
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <label asp-for="Nombre" class="form-label">Nombre(s) *</label>
+                        <input asp-for="Nombre" class="form-control" required />
+                        <span asp-validation-for="Nombre" class="text-danger"></span>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label asp-for="ApellidoPaterno" class="form-label">Apellido paterno *</label>
+                        <input asp-for="ApellidoPaterno" class="form-control" required />
+                        <span asp-validation-for="ApellidoPaterno" class="text-danger"></span>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label asp-for="ApellidoMaterno" class="form-label">Apellido materno</label>
+                        <input asp-for="ApellidoMaterno" class="form-control" />
+                        <span asp-validation-for="ApellidoMaterno" class="text-danger"></span>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <label asp-for="CURP" class="form-label">CURP *</label>
+                        <input asp-for="CURP" class="form-control" maxlength="18" required />
+                        <span asp-validation-for="CURP" class="text-danger"></span>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label asp-for="FechaNacimiento" class="form-label">Fecha de nacimiento *</label>
+                        <input asp-for="FechaNacimiento" type="date" class="form-control date-quick" required />
+                        <span asp-validation-for="FechaNacimiento" class="text-danger"></span>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label asp-for="Sexo" class="form-label">Sexo *</label>
+                        <select asp-for="Sexo" class="form-select" required>
+                            <option value="">Seleccione</option>
+                            @foreach (var s in CatalogosHelper.Sexos)
+                            {
+                                <option value="@s">@s</option>
+                            }
+                        </select>
+                        <span asp-validation-for="Sexo" class="text-danger"></span>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <label asp-for="EstadoCivil" class="form-label">Estado civil</label>
+                        <select asp-for="EstadoCivil" class="form-select">
+                            <option value="">Seleccione</option>
+                            @foreach (var ec in CatalogosHelper.EstadosCiviles)
+                            {
+                                <option value="@ec">@ec</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label asp-for="Email" class="form-label">Correo electrónico *</label>
+                        <input asp-for="Email" type="email" class="form-control" required />
+                        <span asp-validation-for="Email" class="text-danger"></span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-section">
+                <h3 class="form-section-title">Contacto y domicilio</h3>
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <label asp-for="Telefono" class="form-label">Teléfono *</label>
+                        <input asp-for="Telefono" class="form-control" required />
+                        <span asp-validation-for="Telefono" class="text-danger"></span>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label asp-for="TelefonoEmergencia" class="form-label">Teléfono de emergencia *</label>
+                        <input asp-for="TelefonoEmergencia" class="form-control" required />
+                        <span asp-validation-for="TelefonoEmergencia" class="text-danger"></span>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <label asp-for="Estado" class="form-label">Estado *</label>
+                        <select asp-for="Estado" class="form-select" required data-estado data-municipio-target="Municipio" data-current-value="@Model.Estado">
+                            <option value="">Selecciona un estado</option>
+                        </select>
+                        <span asp-validation-for="Estado" class="text-danger"></span>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label asp-for="Municipio" class="form-label">Municipio *</label>
+                        <select asp-for="Municipio" class="form-select" required data-municipio="Municipio" data-current-value="@Model.Municipio">
+                            <option value="">Seleccione un municipio</option>
+                        </select>
+                        <span asp-validation-for="Municipio" class="text-danger"></span>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label asp-for="Localidad" class="form-label">Localidad</label>
+                        <input asp-for="Localidad" class="form-control" />
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-5 mb-3">
+                        <label asp-for="Calle" class="form-label">Calle *</label>
+                        <input asp-for="Calle" class="form-control" required />
+                        <span asp-validation-for="Calle" class="text-danger"></span>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <label asp-for="NumeroExterior" class="form-label">Número *</label>
+                        <input asp-for="NumeroExterior" class="form-control" required />
+                        <span asp-validation-for="NumeroExterior" class="text-danger"></span>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label asp-for="Colonia" class="form-label">Colonia *</label>
+                        <input asp-for="Colonia" class="form-control" required />
+                        <span asp-validation-for="Colonia" class="text-danger"></span>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <label asp-for="CodigoPostal" class="form-label">Código postal</label>
+                        <input asp-for="CodigoPostal" class="form-control" maxlength="5" />
+                        <span asp-validation-for="CodigoPostal" class="text-danger"></span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-section">
+                <h3 class="form-section-title">Salud y otros</h3>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label asp-for="ServicioMedico" class="form-label">Institución médica</label>
+                        <select asp-for="ServicioMedico" class="form-select">
+                            <option value="">Seleccione</option>
+                            @foreach (var sm in CatalogosHelper.ServiciosMedicos)
+                            {
+                                <option value="@sm">@sm</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label asp-for="MedioDifusion" class="form-label">¿Cómo se enteró?</label>
+                        <select asp-for="MedioDifusion" class="form-select">
+                            <option value="">Seleccione</option>
+                            @foreach (var md in CatalogosHelper.MediosDifusion)
+                            {
+                                <option value="@md">@md</option>
+                            }
+                        </select>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">¿Pertenece a comunidad indígena?</label>
+                        <div class="radio-group">
+                            <input type="radio" name="ComunidadIndigena" value="true" id="comIndSiEdit" @(Model.ComunidadIndigena ? "checked" : "") />
+                            <label for="comIndSiEdit">Sí</label>
+                            <input type="radio" name="ComunidadIndigena" value="false" id="comIndNoEdit" @(Model.ComunidadIndigena ? "" : "checked") />
+                            <label for="comIndNoEdit">No</label>
+                        </div>
+                    </div>
+                    <div class="col-md-6 mb-3" id="comunidadDescripcionGroupEdit" style="display:@(Model.ComunidadIndigena ? "block" : "none");">
+                        <label asp-for="ComunidadIndigenaDescripcion" class="form-label">¿Cuál?</label>
+                        <input asp-for="ComunidadIndigenaDescripcion" class="form-control" />
+                        <span asp-validation-for="ComunidadIndigenaDescripcion" class="text-danger"></span>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label asp-for="DiscapacidadDescripcion" class="form-label">¿Cuenta con discapacidad / trastorno?</label>
+                        <select asp-for="DiscapacidadDescripcion" class="form-select" id="discapacidadSelectEdit">
+                            @foreach (var d in CatalogosHelper.Discapacidades)
+                            {
+                                <option value="@d">@d</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">¿Tiene hijos?</label>
+                        <div class="radio-group">
+                            <input type="radio" name="TieneHijos" value="true" id="hijosSiEdit" @(Model.TieneHijos ? "checked" : "") />
+                            <label for="hijosSiEdit">Sí</label>
+                            <input type="radio" name="TieneHijos" value="false" id="hijosNoEdit" @(Model.TieneHijos ? "" : "checked") />
+                            <label for="hijosNoEdit">No</label>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-12 mb-3">
+                        <label asp-for="Comentarios" class="form-label">Comentarios</label>
+                        <textarea asp-for="Comentarios" class="form-control" rows="3"></textarea>
+                        <span asp-validation-for="Comentarios" class="text-danger"></span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-section">
+                <h3 class="form-section-title">Académicos y carrera</h3>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label asp-for="EscuelaProcedencia" class="form-label">Escuela de egreso *</label>
+                        <input asp-for="EscuelaProcedencia" class="form-control" required />
+                        <span asp-validation-for="EscuelaProcedencia" class="text-danger"></span>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <label asp-for="EstadoEscuela" class="form-label">Estado *</label>
+                        <select asp-for="EstadoEscuela" class="form-select" required data-estado data-municipio-target="MunicipioEscuela" data-current-value="@Model.EstadoEscuela">
+                            <option value="">Seleccione</option>
+                        </select>
+                        <span asp-validation-for="EstadoEscuela" class="text-danger"></span>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <label asp-for="MunicipioEscuela" class="form-label">Municipio *</label>
+                        <select asp-for="MunicipioEscuela" class="form-select" required data-municipio="MunicipioEscuela" data-current-value="@Model.MunicipioEscuela">
+                            <option value="">Seleccione un municipio</option>
+                        </select>
+                        <span asp-validation-for="MunicipioEscuela" class="text-danger"></span>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-3 mb-3">
+                        <label asp-for="Promedio" class="form-label">Promedio *</label>
+                        <input asp-for="Promedio" type="number" step="0.01" min="0" max="10" class="form-control" required />
+                        <span asp-validation-for="Promedio" class="text-danger"></span>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <label asp-for="InicioBachillerato" class="form-label">Inicio bachillerato</label>
+                        <input asp-for="InicioBachillerato" type="date" class="form-control date-quick" />
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <label asp-for="FinBachillerato" class="form-label">Fin bachillerato</label>
+                        <input asp-for="FinBachillerato" type="date" class="form-control date-quick" />
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label asp-for="CarreraSolicitada" class="form-label">Carrera a estudiar *</label>
+                        <select asp-for="CarreraSolicitada" class="form-select" required>
+                            <option value="">Selecciona una carrera</option>
+                            @foreach (var c in CatalogosHelper.Carreras)
+                            {
+                                <option value="@c">@c</option>
+                            }
+                        </select>
+                        <span asp-validation-for="CarreraSolicitada" class="text-danger"></span>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <label asp-for="OpcionEducativa" class="form-label">Somos tu opción</label>
+                        <select asp-for="OpcionEducativa" class="form-select">
+                            @foreach (var oe in CatalogosHelper.OpcionesEducativas)
+                            {
+                                <option value="@oe">@oe</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <label asp-for="Division" class="form-label">División / área</label>
+                        <input asp-for="Division" class="form-control" />
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-section">
+                <h3 class="form-section-title">Documentos</h3>
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">Acta de nacimiento</label>
+                        @if (!string.IsNullOrEmpty(Model.ActaNacimientoPath))
+                        {
+                            <div class="mb-2"><a href="@Model.ActaNacimientoPath" target="_blank">Ver archivo actual</a></div>
+                        }
+                        <input asp-for="ActaNacimientoFile" type="file" class="form-control" accept=".pdf" />
+                        <span asp-validation-for="ActaNacimientoFile" class="text-danger"></span>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">CURP</label>
+                        @if (!string.IsNullOrEmpty(Model.CurpPdfPath))
+                        {
+                            <div class="mb-2"><a href="@Model.CurpPdfPath" target="_blank">Ver archivo actual</a></div>
+                        }
+                        <input asp-for="CurpPdfFile" type="file" class="form-control" accept=".pdf" />
+                        <span asp-validation-for="CurpPdfFile" class="text-danger"></span>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">Certificado / boleta</label>
+                        @if (!string.IsNullOrEmpty(Model.BoletaPdfPath))
+                        {
+                            <div class="mb-2"><a href="@Model.BoletaPdfPath" target="_blank">Ver archivo actual</a></div>
+                        }
+                        <input asp-for="BoletaPdfFile" type="file" class="form-control" accept=".pdf" />
+                        <span asp-validation-for="BoletaPdfFile" class="text-danger"></span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="d-flex justify-content-between mt-4">
+                <a asp-action="Index" class="btn btn-secondary">Cancelar</a>
+                <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    <script>
+        (function () {
+            const radios = document.querySelectorAll('input[name="ComunidadIndigena"]');
+            function toggleComunidad() {
+                const visible = Array.from(radios).some(r => r.checked && r.value === 'true');
+                document.getElementById('comunidadDescripcionGroupEdit').style.display = visible ? 'block' : 'none';
+            }
+            radios.forEach(r => r.addEventListener('change', toggleComunidad));
+            toggleComunidad();
+
+            const discapacidadSelect = document.getElementById('discapacidadSelectEdit');
+            const flag = document.getElementById('tieneDiscapacidadEdit');
+            function syncDiscapacidad() {
+                flag.value = discapacidadSelect.value && discapacidadSelect.value !== 'Ninguna' ? 'true' : 'false';
+            }
+            discapacidadSelect.addEventListener('change', syncDiscapacidad);
+            syncDiscapacidad();
+
+            document.getElementById('CURP').addEventListener('input', function () {
+                this.value = this.value.toUpperCase();
+            });
+        })();
+    </script>
+}
+ *@

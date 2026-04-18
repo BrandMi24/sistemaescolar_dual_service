@@ -1,0 +1,278 @@
+@model CreateStudentViewModel
+@{
+    var isEdit = ViewBag.IsEdit as bool? ?? false;
+    var returnTab = ViewBag.ReturnTab as string ?? "tab-alumnos";
+    var availableAccounts = ViewBag.AvailableAccounts as Dictionary<int, string> ?? new Dictionary<int, string>();
+
+    ViewData["Title"] = isEdit ? "Editar Estudiante" : "Registrar Estudiante";
+    Layout = "_LayoutCoordinador";
+}
+
+<div class="container-fluid d-flex flex-column gap-4 p-0 fade-in">
+
+    <div class="bg-white p-4 rounded-4 shadow-sm border-0 d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+        <div style="max-width: 800px;">
+            <h5 class="txt-title fw-bold mb-1 text-uppercase">@(isEdit ? "Modificar Expediente de Estudiante" : "Nuevo Ingreso de Alumno")</h5>
+            <p class="txt-body text-xxs fw-bold text-uppercase tracking-widest mb-0 opacity-75">
+                @(isEdit ? "Actualización de datos personales y trayectoria académica" : "Captura inicial de información para integración al sistema")
+            </p>
+        </div>
+        <div class="flex-shrink-0">
+            <a href="@Url.Action("Catalogos", "Coordinador", new { tab = returnTab })"
+                   class="btn-ghost-sep bg-app border-0 px-4 py-2 fw-bold text-xxs d-flex align-items-center text-decoration-none shadow-none">
+                REGRESAR A CATÁLOGOS
+            </a>
+        </div>
+    </div>
+
+    <form asp-action="@(isEdit ? "EditStudent" : "CreateStudent")"
+          asp-controller="Coordinador"
+          method="post"
+          class="needs-validation"
+          novalidate>
+        @Html.AntiForgeryToken()
+
+        <input type="hidden" asp-for="StudentId" />
+        <input type="hidden" asp-for="PersonId" />
+        <input type="hidden" name="returnTab" value="@returnTab" />
+
+        <div class="row g-4">
+            <div class="col-lg-8 d-flex flex-column gap-4">
+
+                <div class="admin-card-white p-4 p-md-5 rounded-4 border-0 shadow-sm bg-white">
+                    <div class="mb-4 pb-3 border-bottom border-light">
+                        <h6 class="txt-title fw-bold text-xs text-uppercase tracking-widest mb-0">Datos Personales Identitarios</h6>
+                    </div>
+
+                    @if (!ViewData.ModelState.IsValid)
+                    {
+                        <div asp-validation-summary="ModelOnly" class="bg-error-100 border-start border-4 text-danger text-xs fw-bold rounded-3 p-3 mb-4" style="border-left-color: var(--error-700) !important;"></div>
+                    }
+
+                    <div class="row g-4">
+                        <div class="col-md-6">
+                            <label asp-for="FirstName" class="txt-body text-xxs fw-bold tracking-wide mb-2 d-block text-uppercase">NOMBRE(S) <span class="text-danger">*</span></label>
+                            <input asp-for="FirstName" class="form-control border-0 bg-app py-2 px-3 text-xs fw-medium shadow-none" placeholder="EJ. CARLOS" />
+                            <span asp-validation-for="FirstName" class="text-danger text-xxs fw-bold mt-1 d-block"></span>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label asp-for="Email" class="txt-body text-xxs fw-bold tracking-wide mb-2 d-block text-uppercase">CORREO INSTITUCIONAL <span class="text-danger">*</span></label>
+                            <input asp-for="Email" type="email" class="form-control border-0 bg-app py-2 px-3 text-xs fw-medium shadow-none" placeholder="CORREO@ALUMNOS.UTTN.MX" />
+                            <span asp-validation-for="Email" class="text-danger text-xxs fw-bold mt-1 d-block"></span>
+                        </div>
+
+                        <div class="col-md-4">
+                            <label asp-for="LastNamePaternal" class="txt-body text-xxs fw-bold tracking-wide mb-2 d-block text-uppercase">APELLIDO PATERNO <span class="text-danger">*</span></label>
+                            <input asp-for="LastNamePaternal" class="form-control border-0 bg-app py-2 px-3 text-xs fw-medium shadow-none" placeholder="EJ. PÉREZ" />
+                            <span asp-validation-for="LastNamePaternal" class="text-danger text-xxs fw-bold mt-1 d-block"></span>
+                        </div>
+
+                        <div class="col-md-4">
+                            <label asp-for="LastNameMaternal" class="txt-body text-xxs fw-bold tracking-wide mb-2 d-block text-uppercase">APELLIDO MATERNO</label>
+                            <input asp-for="LastNameMaternal" class="form-control border-0 bg-app py-2 px-3 text-xs fw-medium shadow-none" placeholder="OPCIONAL" />
+                            <span asp-validation-for="LastNameMaternal" class="text-danger text-xxs fw-bold mt-1 d-block"></span>
+                        </div>
+
+                        <div class="col-md-4">
+                            <label asp-for="Phone" class="txt-body text-xxs fw-bold tracking-wide mb-2 d-block text-uppercase">TELÉFONO DE CONTACTO</label>
+                            <input asp-for="Phone" type="tel" class="form-control border-0 bg-app py-2 px-3 text-xs fw-medium shadow-none" placeholder="10 DÍGITOS" maxlength="10" />
+                            <span asp-validation-for="Phone" class="text-danger text-xxs fw-bold mt-1 d-block"></span>
+                        </div>
+
+                        <div class="col-12">
+                            <label asp-for="CURP" class="txt-body text-xxs fw-bold tracking-wide mb-2 d-block text-uppercase">
+                                CURP DEL ALUMNO @(!isEdit ? Html.Raw("<span class='text-danger'>*</span>") : null)
+                            </label>
+                            <input asp-for="CURP" class="form-control border-0 bg-app py-2 px-3 text-xs fw-medium text-uppercase shadow-none" placeholder="18 CARACTERES ALFANUMÉRICOS" maxlength="18" />
+                            <span asp-validation-for="CURP" class="text-danger text-xxs fw-bold mt-1 d-block"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="admin-card-white p-4 p-md-5 rounded-4 border-0 shadow-sm bg-white">
+                    <div class="mb-4 pb-3 border-bottom border-light">
+                        <h6 class="txt-title fw-bold text-xs text-uppercase tracking-widest mb-0">Trayectoria Académica</h6>
+                    </div>
+
+                    <div class="row g-4">
+                        <div class="col-md-6">
+                            <label asp-for="StatusCode" class="txt-body text-xxs fw-bold tracking-wide mb-2 d-block text-uppercase">ESTADO INICIAL <span class="text-danger">*</span></label>
+                            <select asp-for="StatusCode" class="form-select border-0 bg-app py-2 px-3 text-xs fw-bold txt-title shadow-none cursor-pointer" id="statusSelect">
+                                <option value="PREINSCRITO">PREINSCRITO (ASPIRANTE)</option>
+                                <option value="INSCRITO">INSCRITO OFICIAL</option>
+                            </select>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label asp-for="CareerId" class="txt-body text-xxs fw-bold tracking-wide mb-2 d-block text-uppercase">CARRERA / ESPECIALIDAD <span class="text-danger">*</span></label>
+                            <select asp-for="CareerId" class="form-select border-0 bg-app py-2 px-3 text-xs fw-bold txt-title shadow-none cursor-pointer" id="careerSelect">
+                                <option value="">-- SELECCIONAR CARRERA --</option>
+                                @if (ViewBag.Careers != null)
+                                {
+                                    foreach (var career in (Dictionary<int, string>)ViewBag.Careers)
+                                    {
+                                        <option value="@career.Key">@career.Value.ToUpper()</option>
+                                    }
+                                }
+                            </select>
+                            <span asp-validation-for="CareerId" class="text-danger text-xxs fw-bold mt-1 d-block"></span>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label asp-for="GroupId" class="txt-body text-xxs fw-bold tracking-wide mb-2 d-block text-uppercase">GRUPO ASIGNADO</label>
+                            <select asp-for="GroupId" class="form-select border-0 bg-app py-2 px-3 text-xs fw-bold txt-title shadow-none cursor-pointer" id="groupSelect">
+                                <option value="">-- SELECCIONAR GRUPO --</option>
+                                @if (ViewBag.Groups != null)
+                                {
+                                    foreach (var group in (List<GroupViewModel>)ViewBag.Groups)
+                                    {
+                                        <option value="@group.Id" data-career="@group.CareerId">@group.Codigo - @group.Nombre.ToUpper()</option>
+                                    }
+                                }
+                            </select>
+                        </div>
+
+                        @if (isEdit && !string.IsNullOrWhiteSpace(Model?.Matricula))
+                        {
+                            <div class="col-md-6">
+                                <label class="txt-body text-xxs fw-bold tracking-wide mb-2 d-block text-uppercase">MATRÍCULA GENERADA</label>
+                                <input type="text" value="@Model.Matricula" class="form-control border-0 bg-app py-2 px-3 text-xs fw-bold text-muted shadow-none" disabled />
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-4">
+                <div class="admin-card-white p-4 p-md-5 rounded-4 border-0 shadow-sm bg-white h-100 d-flex flex-column">
+                    <h6 class="txt-title fw-bold text-xs text-uppercase tracking-widest mb-4 border-bottom border-light pb-2">Cuenta de Sistema</h6>
+
+                    @if (!isEdit)
+                    {
+                        <div id="accountInfoBox" class="bg-app rounded-3 p-3 mb-4 text-xxs fw-medium txt-body lh-base border-start border-4 border-primary">
+                            Si el alumno queda <span class="fw-bold">inscrito</span>, podrá crear una cuenta nueva o vincular una existente para acceso al portal.
+                        </div>
+
+                        <div id="accountFields">
+                            <div class="mb-4">
+                                <label asp-for="ExistingUserId" class="txt-body text-xxs fw-bold tracking-wide mb-2 d-block text-uppercase">VINCULAR EXISTENTE</label>
+                                <select asp-for="ExistingUserId" class="form-select border-0 bg-app py-2 px-3 text-xs fw-bold txt-title shadow-none cursor-pointer">
+                                    <option value="">-- NINGUNA --</option>
+                                    @foreach (var acc in availableAccounts)
+                                    {
+                                        <option value="@acc.Key">@acc.Value</option>
+                                    }
+                                </select>
+                            </div>
+
+                            <div class="mb-4">
+                                <label asp-for="Username" class="txt-body text-xxs fw-bold tracking-wide mb-2 d-block text-uppercase">USUARIO NUEVO</label>
+                                <input asp-for="Username" class="form-control border-0 bg-app py-2 px-3 text-xs fw-medium shadow-none" placeholder="NOMBRE.APELLIDO" autocomplete="off" />
+                            </div>
+
+                            <div class="mb-5">
+                                <label asp-for="Password" class="txt-body text-xxs fw-bold tracking-wide mb-2 d-block text-uppercase">CONTRASEÑA</label>
+                                <input asp-for="Password" type="password" class="form-control border-0 bg-app py-2 px-3 text-xs fw-medium shadow-none" placeholder="MÍN. 6 CARACTERES" autocomplete="new-password" />
+                            </div>
+                        </div>
+
+                        <div id="preinscritoMsg" class="alert rounded-3 p-3 mb-4 text-xxs fw-bold  border-start border-4 " style="display:none;">
+                            ESTADO: PREINSCRITO. Solo se genera el folio de aspirante. La cuenta se gestiona tras la inscripción oficial.
+                        </div>
+                        
+                    }
+                    else
+                    {
+                        <div class="bg-app rounded-3 p-3 mb-4 text-xxs fw-medium text-muted lh-base">
+                            La gestión de credenciales y acceso se realiza desde el módulo de <span class="fw-bold">Gestión de Cuentas</span>.
+                        </div>
+                    }
+
+                    <div class="mt-auto pt-4 border-top border-light d-flex flex-column gap-3">
+                        <button type="submit" class="btn-primary-sep border-0 w-100 py-3 text-xxs fw-bold tracking-widest shadow-sm">
+                            @(isEdit ? "GUARDAR CAMBIOS" : "REGISTRAR ESTUDIANTE")
+                        </button>
+                        <a href="@Url.Action("Catalogos", "Coordinador", new { tab = returnTab })"
+                               class="btn-ghost-sep bg-app border-0 w-100 py-2 text-xxs fw-bold text-muted text-center text-decoration-none shadow-none">
+                            CANCELAR
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const careerSelect = document.getElementById('careerSelect');
+            const groupSelect = document.getElementById('groupSelect');
+            const statusSelect = document.getElementById('statusSelect');
+            const accountFields = document.getElementById('accountFields');
+            const preinscritoMsg = document.getElementById('preinscritoMsg');
+            const accountInfoBox = document.getElementById('accountInfoBox');
+
+            // Filtrado de Grupos por Carrera
+            if (careerSelect && groupSelect) {
+                const allGroupOptions = Array.from(groupSelect.querySelectorAll('option[data-career]'));
+                const initialValue = groupSelect.value;
+
+                function filterGroups() {
+                    const careerId = careerSelect.value;
+                    const previous = groupSelect.value || initialValue;
+
+                    while (groupSelect.options.length > 1) {
+                        groupSelect.remove(1);
+                    }
+
+                    allGroupOptions
+                        .filter(o => !careerId || o.dataset.career === careerId)
+                        .forEach(o => groupSelect.add(o.cloneNode(true)));
+
+                    if (previous) {
+                        groupSelect.value = previous;
+                    }
+                }
+
+                careerSelect.addEventListener('change', filterGroups);
+                filterGroups();
+            }
+
+            // Toggling de campos de cuenta
+            function toggleAccountFields() {
+                if (!statusSelect || !accountFields || !preinscritoMsg || !accountInfoBox) return;
+
+                const isInscrito = statusSelect.value === 'INSCRITO';
+
+                accountFields.style.display = isInscrito ? 'block' : 'none';
+                accountInfoBox.style.display = isInscrito ? 'block' : 'none';
+                preinscritoMsg.style.display = isInscrito ? 'none' : 'block';
+
+                if (!isInscrito) {
+                    const existingUser = document.querySelector('select[name="ExistingUserId"]');
+                    const username = document.querySelector('input[name="Username"]');
+                    const password = document.querySelector('input[name="Password"]');
+
+                    if (existingUser) existingUser.value = '';
+                    if (username) username.value = '';
+                    if (password) password.value = '';
+                }
+            }
+
+            if (statusSelect) {
+                statusSelect.addEventListener('change', toggleAccountFields);
+                toggleAccountFields();
+            }
+        });
+    </script>
+    <style>
+        .form-control:focus, .form-select:focus {
+            background-color: var(--white) !important;
+            box-shadow: 0 0 0 4px var(--accent-100) !important;
+            border: 1px solid var(--accent-500) !important;
+        }
+    </style>
+}

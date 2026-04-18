@@ -1,0 +1,59 @@
+# =========================
+# Visual Studio / VS Code
+# =========================
+.vs/
+.vscode/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# =========================
+# Build folders
+# =========================
+bin/
+obj/
+[Bb]in/
+[Oo]bj/
+Debug/
+Release/
+
+# =========================
+# Logs / output files
+# =========================
+*.log
+build_output.txt
+migration_output.txt
+
+# =========================
+# OS files
+# =========================
+.DS_Store
+Thumbs.db
+
+# =========================
+# NuGet
+# =========================
+*.nupkg
+packages/
+!packages/build/
+*.snupkg
+
+# =========================
+# Node (por si luego usas frontend)
+# =========================
+node_modules/
+
+# =========================
+# Publish output
+# =========================
+publish/
+out/
+
+# =========================
+# App settings sensibles
+# =========================
+appsettings.Development.json
+
+# Si appsettings.json tiene secretos reales, descomenta esta línea:
+# appsettings.json

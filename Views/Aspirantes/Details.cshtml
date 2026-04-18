@@ -1,0 +1,87 @@
+@model ControlEscolar.Models.Aspirante;
+
+@{
+    ViewData["Title"] = "Inscripción Exitosa";
+    Layout = "_Layout";
+}
+
+<div class="wizard-wrapper pt-5 mb-5">
+    <div class="container">
+        <div class="form-container bg-surface rounded-4 shadow-sm border-theme p-4 p-md-5" style="max-width: 700px; margin: 0 auto;">
+
+            <div class="text-center mb-4">
+                <div class="rounded-circle d-inline-flex align-items-center justify-content-center mb-3"
+                     style="width: 80px; height: 80px; background-color: var(--success-100);">
+                    <i class="bi bi-check-circle-fill text-success" style="font-size: 2.5rem;"></i>
+                </div>
+                <h3 class="fw-bold txt-primary-dark mb-1">¡Inscripción Registrada!</h3>
+                <p class="txt-body small">Tu solicitud ha sido recibida y está siendo procesada.</p>
+            </div>
+
+            <div class="bg-app rounded-3 border-theme p-4 mb-4">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <div class="txt-body text-xs fw-bold tracking-wide mb-1">MATRÍCULA</div>
+                        <div class="fw-bold txt-primary-dark" style="font-size: 1.1rem;">
+                            @(Model.academiccontrol_inscription_enrollment ?? $"#{Model.academiccontrol_inscription_ID}")
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="txt-body text-xs fw-bold tracking-wide mb-1">ESTADO</div>
+                        @await Html.PartialAsync("_StatusBadge", null, new ViewDataDictionary(ViewData)
+                        {
+                            { "StatusValue", Model.academiccontrol_inscription_state },
+                                                { "StatusType", "inscripcion" }
+                        })
+                    </div>
+                    <div class="col-md-6">
+                        <div class="txt-body text-xs fw-bold tracking-wide mb-1">NOMBRE</div>
+                        <div class="fw-bold txt-title">
+                            @Model.academiccontrol_preinscription_personaldata_paternalSurname
+                            @Model.academiccontrol_preinscription_personaldata_maternalSurname,
+                            @Model.academiccontrol_preinscription_personaldata_name
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="txt-body text-xs fw-bold tracking-wide mb-1">CARRERA</div>
+                        <div class="fw-bold txt-title">@Model.academiccontrol_inscription_careerRequested</div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="txt-body text-xs fw-bold tracking-wide mb-1">FOLIO DE PREINSCRIPCIÓN</div>
+                        <div class="fw-bold txt-title">@Model.FolioValidacion</div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="txt-body text-xs fw-bold tracking-wide mb-1">FECHA DE REGISTRO</div>
+                        <div class="fw-bold txt-title">@Model.academiccontrol_inscription_registrationDate.ToString("dd/MM/yyyy HH:mm")</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="alert-box-sep shadow-sm mb-4 d-flex align-items-start gap-3">
+                <i class="bi bi-info-circle-fill fs-4 txt-primary-dark"></i>
+                <div>
+                    <h6 class="txt-title fw-bold text-sm mb-1">¿Qué sigue?</h6>
+                    <ul class="txt-body text-xs mb-0 ps-3">
+                        <li>Tu documentación será revisada por Control Escolar.</li>
+                        <li>Recibirás un correo cuando tu inscripción sea aprobada.</li>
+                        <li>Conserva tu matrícula y el PDF que se descargó como comprobante.</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="d-flex justify-content-between mt-4">
+                <a asp-controller="Home" asp-action="Index" class="btn btn-ghost-sep px-4">
+                    <i class="bi bi-house me-2"></i> Volver al Inicio
+                </a>
+@*                 <a asp-controller="Inscripciones" asp-action="DescargarFicha" asp-route-id="@Model.academiccontrol_inscription_ID"
+                   class="btn btn-primary-sep px-4">
+                    <i class="bi bi-file-earmark-pdf me-2"></i> Descargar Comprobante
+                </a> *@
+            </div>
+        </div>
+
+        <div class="text-center mt-5 txt-body pb-4 fw-bold text-xxs tracking-wide opacity-50">
+            SISTEMA INTEGRAL ESCOLAR © 2026 - TODOS LOS DERECHOS RESERVADOS
+        </div>
+    </div>
+</div>

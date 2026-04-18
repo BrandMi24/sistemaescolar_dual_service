@@ -1,0 +1,196 @@
+﻿@{
+    ViewData["Title"] = "Ciclos Escolares";
+    Layout = "_LayoutCoordinador";
+}
+
+<div class="d-flex flex-column gap-4" style="min-height: 82vh;">
+
+    <div class="bg-surface p-4 rounded-4 border border-light shadow-sm d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+        <div class="d-flex flex-column flex-md-row gap-3 flex-grow-1" style="max-width: 650px;">
+            <div class="position-relative flex-grow-1">
+                <i class="bi bi-search position-absolute top-50 start-0 translate-middle-y ms-3 text-secondary"></i>
+                <input type="text" id="searchInput" class="form-control border-0 bg-app py-2 ps-5 text-sm fw-medium" placeholder="Buscar ciclo...">
+            </div>
+
+            <select id="statusFilter" class="form-select border-0 bg-app txt-title fw-bold text-xs" style="width: auto; min-width: 180px;">
+                <option value="">TODOS LOS ESTADOS</option>
+                <option value="ACTIVO">ACTIVOS</option>
+                <option value="FINALIZADO">FINALIZADOS</option>
+                <option value="PROGRAMADO">PROGRAMADOS</option>
+            </select>
+        </div>
+
+        <a href="@Url.Action("CreateCycle", "Coordinador")"
+               class="btn-primary-sep border-0 d-flex align-items-center gap-2 shadow-sm text-decoration-none py-2 px-4 text-xs">
+            <i class="bi bi-plus-lg"></i> CREAR NUEVO CICLO
+        </a>
+    </div>
+
+    <div class="bg-surface p-0 rounded-4 border border-light shadow-sm overflow-hidden d-flex flex-column flex-grow-1">
+        <div class="table-responsive flex-grow-1">
+            <table class="table table-borderless align-middle mb-0" id="ciclosTable">
+                <thead class="bg-app sticky-top" style="z-index: 5;">
+                    <tr>
+                        <th class="py-3 px-4 text-xxs fw-bold text-uppercase tracking-wider">Nombre del Ciclo</th>
+                        <th class="py-3 text-center text-xxs fw-bold text-uppercase tracking-wider">Fecha Inicio</th>
+                        <th class="py-3 text-center text-xxs fw-bold text-uppercase tracking-wider">Fecha Fin</th>
+                        <th class="py-3 text-center text-xxs fw-bold text-uppercase tracking-wider">Estado</th>
+                        <th class="py-3 text-end px-4 text-xxs fw-bold text-uppercase tracking-wider">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody id="ciclosBody">
+                </tbody>
+            </table>
+        </div>
+
+        <div class="bg-white p-3 border-top border-light d-flex flex-column flex-md-row justify-content-between align-items-center gap-3">
+            <div class="d-flex align-items-center gap-3">
+                <span class="text-secondary fw-bold" style="font-size: 0.65rem;">MOSTRAR:</span>
+                <select id="rowsPerPage" class="form-select form-select-sm border-0 bg-app fw-bold text-xs" style="width: 70px; cursor: pointer;">
+                    <option value="5">5</option>
+                    <option value="10" selected>10</option>
+                    <option value="20">20</option>
+                </select>
+                <div id="tableInfo" class="txt-primary-dark fw-bold text-uppercase tracking-tighter" style="font-size: 0.65rem; opacity: 0.8;"></div>
+            </div>
+
+            <nav aria-label="Paginación de ciclos">
+                <ul class="pagination pagination-sm mb-0 gap-1" id="paginationControls">
+                </ul>
+            </nav>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            let allData = [];
+            let currentPage = 1;
+
+            function loadData() {
+                $.get('@Url.Action("GetCyclesJson", "Coordinador")', function (response) {
+                    allData = response.data ? response.data : response;
+                    updateTable();
+                });
+            }
+
+            function renderRows(data) {
+                let html = '';
+                if (data.length === 0) {
+                    html = `<tr>
+                        <td colspan="5" class="text-center py-5">
+                            <div class="d-flex flex-column align-items-center opacity-50 py-5">
+                                <i class="bi bi-folder2-open fs-1 mb-2"></i>
+                                <span class="fw-bold text-xxs text-uppercase tracking-widest">Sin registros disponibles</span>
+                            </div>
+                        </td>
+                    </tr>`;
+                } else {
+                    data.forEach(item => {
+                        let estadoClass = item.estado === 'ACTIVO' ? 'status-aceptado' : 'bg-app text-secondary border';
+                        html += `
+                        <tr class="border-bottom border-light">
+                            <td class="px-4 py-3">
+                                <div class="txt-title fw-bold text-xs text-uppercase">${item.nombre}</div>
+                            </td>
+                            <td class="text-center text-xs fw-medium text-secondary">${item.inicio}</td>
+                            <td class="text-center text-xs fw-medium text-secondary">${item.fin}</td>
+                            <td class="text-center">
+                                <span class="badge rounded-pill px-3 py-2 text-xxs fw-bold ${estadoClass}">${item.estado}</span>
+                            </td>
+                            <td class="text-end px-4">
+                                <div class="d-flex justify-content-end gap-2">
+                                    <a href="/Coordinador/EditCycle?id=${item.id}" class="btn btn-sm border-0 bg-primary-100 txt-primary-dark rounded-2 py-1 px-2" title="Editar">
+                                        <i class="bi bi-pencil-square"></i>
+                                    </a>
+                                    <button class="btn btn-sm border-0 bg-error-100 text-danger rounded-2 py-1 px-2 delete-cycle" data-id="${item.id}" title="Eliminar">
+                                        <i class="bi bi-trash3-fill"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>`;
+                    });
+                }
+                $('#ciclosBody').html(html);
+            }
+
+            function updateTable() {
+                let searchTerm = $('#searchInput').val().toLowerCase();
+                let statusFilter = $('#statusFilter').val();
+                let rowsPerPage = parseInt($('#rowsPerPage').val());
+
+                let filteredData = allData.filter(item => {
+                    let matchesSearch = item.nombre.toLowerCase().includes(searchTerm);
+                    let matchesStatus = (!statusFilter) || (item.estado === statusFilter);
+                    return matchesSearch && matchesStatus;
+                });
+
+                let totalRecords = filteredData.length;
+                let totalPages = Math.ceil(totalRecords / rowsPerPage) || 1;
+                if (currentPage > totalPages) currentPage = totalPages;
+
+                let startIndex = (currentPage - 1) * rowsPerPage;
+                let endIndex = Math.min(startIndex + rowsPerPage, totalRecords);
+                let pageData = filteredData.slice(startIndex, endIndex);
+
+                renderRows(pageData);
+
+                $('#tableInfo').text(totalRecords === 0 ? '0 REGISTROS' : `${startIndex + 1} - ${endIndex} DE ${totalRecords}`);
+                renderPagination(totalPages);
+            }
+
+            function renderPagination(totalPages) {
+                let html = '';
+                
+                // Botón Anterior
+                html += `<li class="page-item ${currentPage === 1 ? 'disabled' : ''}">
+                    <a class="page-link border-0 bg-app rounded-2 txt-title fw-bold text-xxs" href="#" data-page="${currentPage - 1}">
+                        <i class="bi bi-chevron-left"></i>
+                    </a>
+                </li>`;
+
+                for (let i = 1; i <= totalPages; i++) {
+                    let btnClass = (i === currentPage)
+                        ? 'bg-primary-dark text-white shadow-sm'
+                        : 'bg-app txt-title hover-bg-light';
+
+                    html += `<li class="page-item ${i === currentPage ? 'active' : ''}">
+                        <a class="page-link border-0 ${btnClass} rounded-2 mx-1 fw-bold text-xxs px-3" href="#" data-page="${i}">${i}</a>
+                    </li>`;
+                }
+
+                // Botón Siguiente
+                html += `<li class="page-item ${currentPage === totalPages ? 'disabled' : ''}">
+                    <a class="page-link border-0 bg-app rounded-2 txt-title fw-bold text-xxs" href="#" data-page="${currentPage + 1}">
+                        <i class="bi bi-chevron-right"></i>
+                    </a>
+                </li>`;
+
+                $('#paginationControls').html(html);
+            }
+
+            // Eventos
+            $('#searchInput, #statusFilter, #rowsPerPage').on('change input', () => { currentPage = 1; updateTable(); });
+
+            $('#paginationControls').on('click', '.page-link', function (e) {
+                e.preventDefault();
+                let page = parseInt($(this).data('page'));
+                if (page && !$(this).parent().hasClass('disabled')) {
+                    currentPage = page;
+                    updateTable();
+                }
+            });
+
+            $('#ciclosBody').on('click', '.delete-cycle', function () {
+                const id = $(this).data('id');
+                if (confirm('¿ELIMINAR ESTE CICLO?')) {
+                    $.post('/Coordinador/DeleteCycle', { id: id, __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val() })
+                     .done(loadData).fail(() => alert('Error al eliminar'));
+                }
+            });
+
+            loadData();
+        });
+    </script>
+}
