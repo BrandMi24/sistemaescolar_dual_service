@@ -3,117 +3,121 @@
     Layout = "_LayoutCoordinador";
 }
 
-<div class="fade-in d-flex flex-column gap-4">
+<div class="container-fluid d-flex flex-column gap-4 p-0 fade-in">
 
-    <div class="bg-surface p-4 rounded-4 border-theme shadow-sm d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
-        <div>
-            <h3 class="txt-title fw-bold mb-1">Mtra. Ana Martínez Ruiz</h3>
-            <div class="d-flex align-items-center gap-3 mt-2 txt-body text-xs">
-                <span>NO. EMPLEADO: <span class="fw-semibold">20192</span></span>
-                <span>CORREO: <span class="fw-semibold">amartinez@uttn.mx</span></span>
-                <span>TEL: <span class="fw-semibold">899-123-4567</span></span>
+    <div class="bg-white p-4 rounded-4 shadow-sm border-0 d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 border-start border-4" style="border-left-color: var(--primary-900) !important;">
+        <div class="d-flex align-items-center gap-4">
+            <div class="bg-primary-dark text-white fw-bold rounded-circle d-flex align-items-center justify-content-center shadow-sm" style="width: 64px; height: 64px; font-size: 1.5rem; background-color: var(--primary-900) !important;">
+                AM
+            </div>
+            <div>
+                <h5 class="txt-title fw-bold mb-1 text-uppercase">Mtra. Ana Martínez Ruiz</h5>
+                <div class="d-flex flex-wrap align-items-center gap-3 text-xxs fw-bold text-muted tracking-wide text-uppercase">
+                    <span><i class="bi bi-person-badge me-1"></i> EMPLEADO: 20192</span>
+                    <span><i class="bi bi-envelope me-1"></i> amartinez@uttn.mx</span>
+                    <span><i class="bi bi-telephone me-1"></i> 899-123-4567</span>
+                </div>
             </div>
         </div>
         <div class="text-end d-flex flex-column align-items-md-end gap-2">
-            <span class="badge status-aceptado px-3 py-2 text-sm shadow-sm rounded-pill">
-                ESTADO: ACTIVO
-            </span>
-            <a href="@Url.Action("Catalogos", "Coordinador")" class="btn btn-sm btn-ghost-sep border border-theme shadow-sm mt-1 fw-semibold">
-                Volver a Catálogos
+            <span class="badge status-aceptado px-3 py-2 text-xxs fw-bold rounded-pill shadow-sm">ESTADO: ACTIVO</span>
+            <a href="@Url.Action("Catalogos", "Coordinador", new { tab = "tab-docentes" })" 
+               class="btn-ghost-sep bg-app border-0 px-4 py-2 fw-bold text-xxs d-flex align-items-center text-decoration-none shadow-none mt-1">
+                REGRESAR A CATÁLOGOS
             </a>
         </div>
     </div>
 
-    <div class="alert bg-success-100 border border-success-700 text-success-700 rounded-3 alert-dismissible fade show shadow-sm" style="display: none;">
-        <span class="text-sm fw-bold">Operación realizada con éxito.</span>
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-    </div>
-
-    <div class="admin-card-white p-4 rounded-4 border-theme shadow-sm bg-white">
-        <h6 class="txt-title fw-bold mb-4 border-bottom border-theme pb-2 text-start">
-            MÉTRICAS DE CARGA LABORAL
+    <div class="admin-card-white p-4 rounded-4 border-0 shadow-sm bg-white">
+        <h6 class="txt-title fw-bold text-xs text-uppercase tracking-widest mb-4 border-bottom border-light pb-2">
+            Resumen de Carga Laboral
         </h6>
-        <div class="row g-0 align-items-center text-center">
-            <div class="col-6 col-md-2 border-end border-theme mb-3 mb-md-0">
-                <div class="fs-2 fw-bold text-dark">12</div>
-                <div class="txt-body text-xxs tracking-wide fw-bold">ESTUDIANTES</div>
+        <div class="row g-0 text-center">
+            <div class="col-6 col-md-2 border-end border-light py-2">
+                <div class="fs-3 fw-bold txt-title">12</div>
+                <div class="text-xxs fw-bold text-muted tracking-wide text-uppercase">ESTUDIANTES</div>
             </div>
-            <div class="col-6 col-md-2 border-end border-theme mb-3 mb-md-0">
-                <div class="fs-2 fw-bold text-dark">10</div>
-                <div class="txt-body text-xxs tracking-wide fw-bold">ACTIVOS</div>
+            <div class="col-6 col-md-2 border-end border-light py-2">
+                <div class="fs-3 fw-bold txt-title">10</div>
+                <div class="text-xxs fw-bold text-muted tracking-wide text-uppercase">ACTIVOS</div>
             </div>
-            <div class="col-6 col-md-2 border-end border-theme">
-                <div class="fs-2 fw-bold txt-error">4</div>
-                <div class="txt-body text-xxs tracking-wide fw-bold">HRS. PENDIENTES</div>
+            <div class="col-6 col-md-2 border-end border-light py-2">
+                <div class="fs-3 fw-bold text-danger">4</div>
+                <div class="text-xxs fw-bold text-muted tracking-wide text-uppercase">HRS. PENDIENTES</div>
             </div>
-            <div class="col-6 col-md-2 border-end border-theme">
-                <div class="fs-2 fw-bold text-warning">2</div>
-                <div class="txt-body text-xxs tracking-wide fw-bold">DOCS. PENDIENTES</div>
+            <div class="col-6 col-md-2 border-end border-light py-2">
+                <div class="fs-3 fw-bold text-warning" style="color: var(--warning-700) !important;">2</div>
+                <div class="text-xxs fw-bold text-muted tracking-wide text-uppercase">DOCS. PENDIENTES</div>
             </div>
-            <div class="col-6 col-md-2 border-end border-theme">
-                <div class="fs-2 fw-bold txt-primary-dark">8</div>
-                <div class="txt-body text-xxs tracking-wide fw-bold">EVALUACIONES</div>
+            <div class="col-6 col-md-2 border-end border-light py-2">
+                <div class="fs-3 fw-bold txt-primary-dark">8</div>
+                <div class="text-xxs fw-bold text-muted tracking-wide text-uppercase">EVALUACIONES</div>
             </div>
-            <div class="col-6 col-md-2">
-                <div class="fs-2 fw-bold text-success">85%</div>
-                <div class="txt-body text-xxs tracking-wide fw-bold">COMPLETITUD</div>
+            <div class="col-6 col-md-2 py-2">
+                <div class="fs-3 fw-bold text-success" style="color: var(--success-700) !important;">85%</div>
+                <div class="text-xxs fw-bold text-muted tracking-wide text-uppercase">COMPLETITUD</div>
             </div>
         </div>
     </div>
 
-    <div class="admin-card-white p-0 rounded-4 border-theme shadow-sm overflow-hidden mt-2 bg-white">
-        <div class="bg-surface p-3 border-bottom border-theme d-flex justify-content-between align-items-center">
-            <h6 class="txt-title fw-bold mb-0">Estudiantes Asignados (2)</h6>
-            <button type="button" class="btn btn-sm btn-primary-sep bg-primary-900 text-white fw-semibold" data-bs-toggle="modal" data-bs-target="#assignStudentsModal">
-                Asignar Estudiantes
+    <div class="admin-card-white p-0 rounded-4 border-0 shadow-sm overflow-hidden bg-white">
+        <div class="bg-white p-4 border-bottom border-light d-flex justify-content-between align-items-center">
+            <div>
+                <h6 class="txt-title fw-bold text-xs text-uppercase tracking-widest mb-0">Estudiantes Asignados</h6>
+                <p class="text-muted text-xxs fw-medium mb-0">DOCENTES RESPONSABLES DEL SEGUIMIENTO</p>
+            </div>
+            <button type="button" class="btn-primary-sep border-0 px-4 py-2 text-xxs fw-bold tracking-widest shadow-sm" data-bs-toggle="modal" data-bs-target="#assignStudentsModal">
+                ASIGNAR ESTUDIANTES
             </button>
         </div>
         <div class="table-responsive">
-            <table class="table table-hover align-middle mb-0 text-sm">
-                <thead class="admin-table-header">
+            <table class="table align-middle mb-0">
+                <thead class="bg-app border-0">
                     <tr>
-                        <th class="py-3 px-4">Estudiante</th>
-                        <th class="py-3">Matrícula</th>
-                        <th class="py-3">Programa</th>
-                        <th class="py-3">Tipo</th>
-                        <th class="py-3">Estado</th>
-                        <th class="py-3 text-center px-4">Progreso</th>
+                        <th class="py-3 px-4 border-0 text-xxs fw-bold text-uppercase tracking-wider">Estudiante</th>
+                        <th class="py-3 border-0 text-xxs fw-bold text-uppercase tracking-wider">Matrícula</th>
+                        <th class="py-3 border-0 text-xxs fw-bold text-uppercase tracking-wider">Programa / Carrera</th>
+                        <th class="py-3 border-0 text-xxs fw-bold text-uppercase tracking-wider">Tipo</th>
+                        <th class="py-3 border-0 text-xxs fw-bold text-uppercase tracking-wider">Estado</th>
+                        <th class="py-3 text-center px-4 border-0 text-xxs fw-bold text-uppercase tracking-wider" width="150">Progreso</th>
                     </tr>
                 </thead>
                 <tbody>
-                    <tr class="border-bottom border-theme">
-                        <td class="px-4 py-3 fw-bold txt-title">Roberto Carlos Perez Cadena</td>
-                        <td class="txt-body">24001504</td>
-                        <td class="txt-body text-xs">Ing. Desarrollo de Software</td>
-                        <td><span class="badge bg-app border border-theme text-dark text-xxs">ESTADÍAS</span></td>
-                        <td>
-                            <span class="badge status-aceptado text-xxs px-2 py-1 shadow-sm">ACTIVO</span>
+                    <tr class="border-bottom border-light hover-bg-app transition-all">
+                        <td class="px-4 py-3">
+                            <div class="txt-title fw-bold text-xs text-uppercase">Roberto Carlos Perez Cadena</div>
                         </td>
-                        <td class="text-center px-4">
-                            <div class="d-flex justify-content-between mb-1">
-                                <span class="txt-body text-xxs fw-bold"></span>
-                                <span class="text-dark text-xxs fw-bold">80%</span>
-                            </div>
-                            <div class="progress" style="height: 6px; background-color: var(--bg-main);">
-                                <div class="progress-bar bg-success" style="width: 80%"></div>
+                        <td class="text-xs fw-bold text-muted">24001504</td>
+                        <td>
+                            <div class="text-xxs fw-bold txt-title text-uppercase">Ing. Desarrollo de Software</div>
+                        </td>
+                        <td><span class="badge bg-app text-dark border border-light text-xxs px-2 py-1 fw-bold">ESTADÍAS</span></td>
+                        <td><span class="badge status-aceptado text-xxs px-2 py-1 fw-bold rounded-pill">ACTIVO</span></td>
+                        <td class="px-4">
+                            <div class="d-flex align-items-center gap-2">
+                                <div class="progress flex-grow-1" style="height: 4px; background-color: var(--bg-main);">
+                                    <div class="progress-bar" style="width: 80%; background-color: var(--primary-900) !important;"></div>
+                                </div>
+                                <span class="text-xxs fw-bold txt-title">80%</span>
                             </div>
                         </td>
                     </tr>
-                    <tr class="border-bottom border-theme">
-                        <td class="px-4 py-3 fw-bold txt-title">María Fernanda Salas</td>
-                        <td class="txt-body">23001122</td>
-                        <td class="txt-body text-xs">Mecatrónica</td>
-                        <td><span class="badge bg-app border border-theme text-dark text-xxs">SERVICIO SOCIAL</span></td>
-                        <td>
-                            <span class="badge bg-warning text-dark border border-warning text-xxs px-2 py-1 shadow-sm">EN PROCESO</span>
+                    <tr class="border-bottom border-light hover-bg-app transition-all">
+                        <td class="px-4 py-3">
+                            <div class="txt-title fw-bold text-xs text-uppercase">María Fernanda Salas</div>
                         </td>
-                        <td class="text-center px-4">
-                            <div class="d-flex justify-content-between mb-1">
-                                <span class="txt-body text-xxs fw-bold"></span>
-                                <span class="text-dark text-xxs fw-bold">45%</span>
-                            </div>
-                            <div class="progress" style="height: 6px; background-color: var(--bg-main);">
-                                <div class="progress-bar bg-warning" style="width: 45%"></div>
+                        <td class="text-xs fw-bold text-muted">23001122</td>
+                        <td>
+                            <div class="text-xxs fw-bold txt-title text-uppercase">Mecatrónica</div>
+                        </td>
+                        <td><span class="badge bg-app text-dark border border-light text-xxs px-2 py-1 fw-bold">SERVICIO SOCIAL</span></td>
+                        <td><span class="badge status-pendiente text-xxs px-2 py-1 fw-bold rounded-pill">EN PROCESO</span></td>
+                        <td class="px-4">
+                            <div class="d-flex align-items-center gap-2">
+                                <div class="progress flex-grow-1" style="height: 4px; background-color: var(--bg-main);">
+                                    <div class="progress-bar" style="width: 45%; background-color: var(--warning-700) !important;"></div>
+                                </div>
+                                <span class="text-xxs fw-bold txt-title">45%</span>
                             </div>
                         </td>
                     </tr>
@@ -123,38 +127,42 @@
     </div>
 </div>
 
-<div class="modal fade" id="assignStudentsModal" tabindex="-1" aria-labelledby="assignStudentsModalLabel">
+<div class="modal fade" id="assignStudentsModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-xl modal-dialog-centered">
-        <div class="modal-content admin-card-white border-theme rounded-4 overflow-hidden shadow">
+        <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden bg-white">
             
-            <div class="modal-header bg-surface border-bottom border-theme p-4">
-                <h5 class="modal-title txt-title fw-bold" id="assignStudentsModalLabel">Asignar Estudiantes a Mtra. Ana Martínez Ruiz</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            <div class="modal-header bg-app border-bottom border-light p-4">
+                <div>
+                    <h6 class="modal-title txt-title fw-bold text-uppercase tracking-widest text-xs mb-1">Asignar Estudiantes a Supervisión</h6>
+                    <p class="text-muted text-xxs fw-medium mb-0">Mtra. Ana Martínez Ruiz</p>
+                </div>
+                <button type="button" class="btn-close shadow-none" data-bs-dismiss="modal"></button>
             </div>
             
             <div class="modal-body p-4 bg-white">
                 <div class="row g-3 mb-4">
                     <div class="col-md-4">
-                        <input type="text" id="assignSearchInput" class="form-control search-input-custom" placeholder="Buscar por nombre o matrícula..." />
+                        <label class="text-xxs fw-bold text-muted text-uppercase mb-2 d-block">Buscar Alumno</label>
+                        <input type="text" id="assignSearchInput" class="form-control border-0 bg-app py-2 px-3 text-xs fw-medium shadow-none" placeholder="Nombre o matrícula..." />
                     </div>
                     <div class="col-md-3">
-                        <select id="assignProgramFilter" class="form-select bg-app border-theme txt-body text-sm">
-                            <option value="">Todos los programas</option>
-                            <option value="SERVICIO_SOCIAL">Servicio Social</option>
-                            <option value="PRACTICAS_PROFESIONALES">Prácticas Profesionales</option>
+                        <label class="text-xxs fw-bold text-muted text-uppercase mb-2 d-block">Programa</label>
+                        <select id="assignProgramFilter" class="form-select border-0 bg-app py-2 px-3 text-xs fw-bold txt-title shadow-none cursor-pointer">
+                            <option value="">TODOS LOS PROGRAMAS</option>
+                            <option value="SERVICIO_SOCIAL">SERVICIO SOCIAL</option>
+                            <option value="PRACTICAS">PRÁCTICAS PROFESIONALES</option>
                         </select>
                     </div>
                     <div class="col-md-3">
-                        <select id="assignStatusFilter" class="form-select bg-app border-theme txt-body text-sm">
-                            <option value="">Todos los estados</option>
-                            <option value="unassigned">Sin profesor asignado</option>
-                            <option value="assigned">Con profesor asignado</option>
+                        <label class="text-xxs fw-bold text-muted text-uppercase mb-2 d-block">Estatus de Asignación</label>
+                        <select id="assignStatusFilter" class="form-select border-0 bg-app py-2 px-3 text-xs fw-bold txt-title shadow-none cursor-pointer">
+                            <option value="">TODOS LOS ESTADOS</option>
+                            <option value="unassigned">SIN PROFESOR ASIGNADO</option>
+                            <option value="assigned">YA ASIGNADOS</option>
                         </select>
                     </div>
-                    <div class="col-md-2">
-                        <button type="button" class="btn btn-ghost-sep border border-theme w-100 text-body fw-semibold" id="assignClearFilters">
-                            Limpiar
-                        </button>
+                    <div class="col-md-2 d-flex align-items-end">
+                        <button type="button" class="btn-ghost-sep bg-app border-0 w-100 py-2 text-xxs fw-bold" id="assignClearFilters">LIMPIAR</button>
                     </div>
                 </div>
 
@@ -162,39 +170,39 @@
                     @Html.AntiForgeryToken()
                     <input type="hidden" name="teacherId" value="1" />
 
-                    <div class="table-responsive border border-theme rounded-3" style="max-height: 400px; overflow-y: auto;">
-                        <table class="table table-hover align-middle text-sm mb-0">
-                            <thead class="admin-table-header sticky-top">
+                    <div class="table-responsive border border-light rounded-3 custom-scroll" style="max-height: 350px; overflow-y: auto;">
+                        <table class="table align-middle text-sm mb-0">
+                            <thead class="bg-app border-0 sticky-top" style="z-index: 10;">
                                 <tr>
-                                    <th style="width:50px;" class="text-center py-3">
-                                        <input type="checkbox" id="assignSelectAll" class="form-check-input" />
+                                    <th style="width:50px;" class="text-center py-3 border-0">
+                                        <input type="checkbox" id="assignSelectAll" class="form-check-input shadow-none" />
                                     </th>
-                                    <th class="py-3">Estudiante</th>
-                                    <th class="py-3">Matrícula</th>
-                                    <th class="py-3">Carrera</th>
-                                    <th class="py-3">Programa</th>
-                                    <th class="py-3">Profesor Actual</th>
+                                    <th class="py-3 border-0 text-xxs fw-bold text-uppercase tracking-wider">Estudiante</th>
+                                    <th class="py-3 border-0 text-xxs fw-bold text-uppercase tracking-wider">Matrícula</th>
+                                    <th class="py-3 border-0 text-xxs fw-bold text-uppercase tracking-wider">Carrera</th>
+                                    <th class="py-3 border-0 text-xxs fw-bold text-uppercase tracking-wider">Programa</th>
+                                    <th class="py-3 border-0 text-xxs fw-bold text-uppercase tracking-wider">Profesor Actual</th>
                                 </tr>
                             </thead>
                             <tbody id="assignStudentsTableBody">
-                                <tr class="border-bottom border-theme">
-                                    <td class="text-center"><input type="checkbox" name="enrollmentIds" value="1" class="form-check-input assign-check" /></td>
-                                    <td class="fw-bold txt-title">Luis Ángel García</td>
-                                    <td class="txt-body">ASP-001</td>
-                                    <td class="txt-body text-xs">Mecatrónica</td>
-                                    <td><span class="badge bg-app border border-theme text-dark text-xxs">ESTADÍAS</span></td>
-                                    <td class="text-xs"><span class="text-muted">—</span></td>
+                                <tr class="border-bottom border-light">
+                                    <td class="text-center"><input type="checkbox" name="enrollmentIds" value="1" class="form-check-input assign-check shadow-none" /></td>
+                                    <td class="fw-bold txt-title text-xs text-uppercase">Luis Ángel García</td>
+                                    <td class="text-muted fw-bold">ASP-001</td>
+                                    <td class="text-muted text-xxs fw-bold">MECATRÓNICA</td>
+                                    <td><span class="badge bg-app text-dark border border-light text-xxs px-2 py-1">ESTADÍAS</span></td>
+                                    <td class="text-xxs fw-bold text-muted italic">-- SIN ASIGNAR --</td>
                                 </tr>
                             </tbody>
                         </table>
                     </div>
 
                     <div class="mt-4 d-flex justify-content-between align-items-center">
-                        <span class="txt-title fw-bold text-sm" id="assignSelectedCount">0 estudiantes seleccionados</span>
+                        <span class="txt-title fw-bold text-xs text-uppercase tracking-widest" id="assignSelectedCount">0 estudiantes seleccionados</span>
                         <div class="d-flex gap-2">
-                            <button type="button" class="btn btn-ghost-sep border border-theme text-body fw-semibold px-4" data-bs-dismiss="modal">Cancelar</button>
-                            <button type="button" class="btn btn-primary-sep bg-primary-900 text-white fw-bold px-4" id="assignSubmitBtn" disabled>
-                                Confirmar Asignación
+                            <button type="button" class="btn-ghost-sep bg-app border-0 text-xxs fw-bold px-4" data-bs-dismiss="modal">CANCELAR</button>
+                            <button type="button" class="btn-primary-sep border-0 px-4 text-xxs fw-bold tracking-widest shadow-sm" id="assignSubmitBtn" disabled>
+                                CONFIRMAR ASIGNACIÓN
                             </button>
                         </div>
                     </div>
@@ -204,39 +212,56 @@
     </div>
 </div>
 
+<style>
+    /* Estilos de Feedback Visual */
+    .status-aceptado { background-color: var(--success-100) !important; color: var(--success-700) !important; }
+    .status-pendiente { background-color: var(--warning-100) !important; color: var(--warning-700) !important; }
+    .status-rechazado { background-color: var(--error-100) !important; color: var(--error-700) !important; }
+
+    .hover-bg-app:hover { background-color: var(--bg-main) !important; }
+    .transition-all { transition: all 0.2s ease; }
+    
+    .form-control:focus, .form-select:focus {
+        background-color: var(--white) !important;
+        box-shadow: 0 0 0 4px var(--accent-100) !important;
+        border: 1px solid var(--accent-500) !important;
+    }
+</style>
+
 @section Scripts {
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             // Checkbox "Seleccionar Todos"
-            document.getElementById('assignSelectAll').addEventListener('change', function () {
-                var checked = this.checked;
-                document.querySelectorAll('.assign-check:not(:disabled)').forEach(function (cb) {
-                    cb.checked = checked;
+            const selectAll = document.getElementById('assignSelectAll');
+            if(selectAll) {
+                selectAll.addEventListener('change', function () {
+                    var checked = this.checked;
+                    document.querySelectorAll('.assign-check').forEach(function (cb) {
+                        cb.checked = checked;
+                    });
+                    updateSelectedCount();
                 });
-                updateSelectedCount();
-            });
+            }
 
             // Checkbox individuales
-            document.getElementById('assignStudentsTableBody').addEventListener('change', function (e) {
-                if (e.target.classList.contains('assign-check')) {
-                    updateSelectedCount();
-                }
-            });
+            const tableBody = document.getElementById('assignStudentsTableBody');
+            if(tableBody) {
+                tableBody.addEventListener('change', function (e) {
+                    if (e.target.classList.contains('assign-check')) {
+                        updateSelectedCount();
+                    }
+                });
+            }
 
-            // Actualizar contador y botón
             function updateSelectedCount() {
-                var count = document.querySelectorAll('.assign-check:checked:not(:disabled)').length;
-                document.getElementById('assignSelectedCount').textContent = count + ' estudiante(s) seleccionado(s)';
+                var count = document.querySelectorAll('.assign-check:checked').length;
+                document.getElementById('assignSelectedCount').textContent = count + ' ESTUDIANTE(S) SELECCIONADO(S)';
                 document.getElementById('assignSubmitBtn').disabled = count === 0;
             }
-            
+
             // Auto-ocultar alertas
             setTimeout(function () {
-                var alertNode = document.querySelector('.alert-dismissible');
-                if(alertNode) {
-                    var bsAlert = new bootstrap.Alert(alertNode);
-                    bsAlert.close();
-                }
+                $('.alert-dismissible').fadeOut('slow');
             }, 4000);
         });
     </script>

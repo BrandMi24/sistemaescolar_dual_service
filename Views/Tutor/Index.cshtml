@@ -3,133 +3,127 @@
     Layout = "_LayoutTutor";
 }
 
-<div class="d-flex flex-column gap-4">
+<div class="d-flex flex-column gap-4" style="min-height: 82vh;">
 
-    <div class="bg-surface p-4 rounded-4 border-theme shadow-sm d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
-        <div class="d-flex gap-3 flex-grow-1" style="max-width: 600px;">
-            <div class="position-relative search-wrapper flex-grow-1">
-                <i class="bi bi-search position-absolute search-icon-left txt-body"></i>
-                <input type="text" id="searchInput" class="form-control search-input-custom" placeholder="Buscar alumno por matrícula o nombre...">
+    <div class="bg-surface p-4 rounded-4 border border-light shadow-sm d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+        <div class="d-flex flex-column flex-md-row gap-3 flex-grow-1" style="max-width: 700px;">
+            <div class="position-relative flex-grow-1">
+                <i class="bi bi-search position-absolute top-50 start-0 translate-middle-y ms-3 text-secondary"></i>
+                <input type="text" id="searchInput" class="form-control border-0 bg-app py-2 ps-5 text-sm fw-medium" placeholder="Buscar por matrícula o nombre...">
             </div>
-            <select id="statusFilter" class="form-select bg-app border-theme txt-title fw-bold" style="width: auto; min-width: 150px;">
-                <option value="todos">Todos los Estados</option>
-                <option value="regular">Regular</option>
-                <option value="riesgo">En Riesgo</option>
+
+            <select id="statusFilter" class="form-select border-0 bg-app txt-title fw-bold text-xs" style="width: auto; min-width: 200px;">
+                <option value="todos">TODOS LOS ESTADOS</option>
+                <option value="regular">ALUMNOS REGULARES</option>
+                <option value="riesgo">ALUMNOS EN RIESGO</option>
             </select>
         </div>
-        <button class="btn btn-ghost-sep d-flex align-items-center gap-2 shadow-sm">
-            <i class="bi bi-printer"></i> Imprimir Lista
+
+        <button class="btn-ghost-sep border-0 d-flex align-items-center gap-2 shadow-sm py-2 px-4 text-xs fw-bold tracking-wide">
+            IMPRIMIR LISTA
         </button>
     </div>
 
-    <div class="admin-card-white p-0 rounded-4 border-theme shadow-sm overflow-hidden d-flex flex-column">
-        <div class="table-responsive bg-surface" style="min-height: 400px;">
-            <table class="table table-borderless align-middle mb-0" style="min-width: 1000px;">
-                <thead class="admin-table-header">
+    <div class="bg-surface p-0 rounded-4 border border-light shadow-sm overflow-hidden d-flex flex-column flex-grow-1">
+        <div class="table-responsive flex-grow-1">
+            <table class="table table-borderless align-middle mb-0">
+                <thead class="bg-app sticky-top" style="z-index: 5;">
                     <tr>
-                        <th class="py-3 px-4" width="15%">Matrícula</th>
-                        <th class="py-3" width="35%">Alumno</th>
-                        <th class="py-3 text-center" width="15%">Estatus</th>
-                        <th class="py-3 text-center" width="15%">Promedio</th>
-                        <th class="py-3 text-end px-4" width="20%">Expediente</th>
+                        <th class="py-3 px-4 text-xxs fw-bold text-uppercase tracking-wider" width="15%">Matrícula</th>
+                        <th class="py-3 text-xxs fw-bold text-uppercase tracking-wider" width="40%">Alumno</th>
+                        <th class="py-3 text-center text-xxs fw-bold text-uppercase tracking-wider" width="15%">Estatus</th>
+                        <th class="py-3 text-center text-xxs fw-bold text-uppercase tracking-wider" width="10%">Promedio</th>
+                        <th class="py-3 text-end px-4 text-xxs fw-bold text-uppercase tracking-wider" width="20%">Expediente</th>
                     </tr>
                 </thead>
-                <tbody>
-
-                    <tr class="border-bottom border-theme hover-bg-app border-start border-4 data-row" data-estado="regular" style="border-left-color: var(--success-700) !important;">
-                        <td class="px-4 py-3 txt-title fw-bold search-target">26001504</td>
+                <tbody id="alumnosBody">
+                    <tr class="border-bottom border-light hover-bg-app data-row" data-estado="regular">
+                        <td class="px-4 py-3">
+                            <div class="txt-primary-dark fw-bold text-xs search-target">26001504</div>
+                        </td>
                         <td class="search-target">
                             <div class="d-flex align-items-center gap-3">
-                                <div class="avatar-sm bg-accent-light txt-primary-dark fw-bold rounded-circle d-flex align-items-center justify-content-center flex-shrink-0">RC</div>
+                                <div class="avatar-sm bg-accent-light txt-primary-dark fw-bold rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width:35px; height:35px; font-size: 0.75rem;">
+                                    RC
+                                </div>
                                 <div>
-                                    <div class="txt-title fw-bold text-sm mb-1">Roberto Carlos Perez Cadena</div>
-                                    <div class="txt-body text-xs">rperez@alumnos.uttn.mx</div>
+                                    <div class="txt-title fw-bold text-xs text-uppercase mb-0">Roberto Carlos Perez Cadena</div>
+                                    <div class="text-muted" style="font-size: 0.7rem;">rperez@alumnos.uttn.mx</div>
                                 </div>
                             </div>
                         </td>
                         <td class="text-center">
-                            <span class="badge status-aceptado text-xxs px-2 py-1 shadow-sm">REGULAR</span>
+                            <span class="badge rounded-pill px-3 py-2 text-xxs fw-bold status-aceptado">REGULAR</span>
                         </td>
-                        <td class="text-center txt-title fw-bold">9.2</td>
+                        <td class="text-center">
+                            <span class="txt-title fw-bold text-xs">9.2</span>
+                        </td>
                         <td class="text-end px-4">
-                            <a href="@Url.Action("Entrevista", "Tutor")" class="btn btn-sm btn-ghost-sep px-2 py-1 me-1 text-primary" title="Entrevista Inicial"><i class="bi bi-clipboard-data"></i></a>
-                            <a href="@Url.Action("Seguimiento", "Tutor")" class="btn btn-sm btn-ghost-sep px-2 py-1 txt-body" title="Bitácora de Seguimiento"><i class="bi bi-journal-text"></i></a>
+                            <div class="d-flex justify-content-end gap-2">
+                                <a href="@Url.Action("Entrevista", "Tutor")" class="btn btn-sm border-0 bg-primary-100 txt-primary-dark rounded-2 py-1 px-2" title="Entrevista Inicial">
+                                    <i class="bi bi-clipboard-data"></i>
+                                </a>
+                                <a href="@Url.Action("Seguimiento", "Tutor")" class="btn btn-sm border-0 bg-app text-secondary rounded-2 py-1 px-2" title="Bitácora de Seguimiento">
+                                    <i class="bi bi-journal-text"></i>
+                                </a>
+                            </div>
                         </td>
                     </tr>
 
-                    <tr class="border-bottom border-theme hover-bg-app border-start border-4 data-row" data-estado="riesgo" style="border-left-color: var(--error-700) !important;">
-                        <td class="px-4 py-3 txt-title fw-bold search-target">26001892</td>
+                    <tr class="border-bottom border-light hover-bg-app data-row" data-estado="riesgo">
+                        <td class="px-4 py-3">
+                            <div class="txt-primary-dark fw-bold text-xs search-target">26001892</div>
+                        </td>
                         <td class="search-target">
                             <div class="d-flex align-items-center gap-3">
-                                <div class="avatar-sm bg-error-100 txt-error fw-bold rounded-circle d-flex align-items-center justify-content-center flex-shrink-0">MA</div>
+                                <div class="avatar-sm bg-error-100 text-danger fw-bold rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width:35px; height:35px; font-size: 0.75rem;">
+                                    MA
+                                </div>
                                 <div>
-                                    <div class="txt-title fw-bold text-sm mb-1">Miguel Ángel Torres</div>
-                                    <div class="txt-body text-xs">mtorres@alumnos.uttn.mx</div>
+                                    <div class="txt-title fw-bold text-xs text-uppercase mb-0">Miguel Ángel Torres</div>
+                                    <div class="text-muted" style="font-size: 0.7rem;">mtorres@alumnos.uttn.mx</div>
                                 </div>
                             </div>
                         </td>
                         <td class="text-center">
-                            <span class="badge bg-warning bg-opacity-25 txt-warning border border-warning border-opacity-50 text-xxs px-2 py-1 shadow-sm" style="color: var(--warning-700) !important;">EN RIESGO</span>
+                            <span class="badge rounded-pill px-3 py-2 text-xxs fw-bold bg-error-100 text-danger">EN RIESGO</span>
                         </td>
-                        <td class="text-center txt-error fw-bold">6.5</td>
+                        <td class="text-center">
+                            <span class="text-danger fw-bold text-xs">6.5</span>
+                        </td>
                         <td class="text-end px-4">
-                            <a href="@Url.Action("Entrevista", "Tutor")" class="btn btn-sm btn-ghost-sep px-2 py-1 me-1 text-primary" title="Entrevista Inicial"><i class="bi bi-clipboard-data"></i></a>
-                            <a href="@Url.Action("Seguimiento", "Tutor")" class="btn btn-sm btn-ghost-sep px-2 py-1 txt-body" title="Bitácora de Seguimiento"><i class="bi bi-journal-text"></i></a>
+                            <div class="d-flex justify-content-end gap-2">
+                                <a href="@Url.Action("Entrevista", "Tutor")" class="btn btn-sm border-0 bg-primary-100 txt-primary-dark rounded-2 py-1 px-2" title="Entrevista Inicial">
+                                    <i class="bi bi-clipboard-data"></i>
+                                </a>
+                                <a href="@Url.Action("Seguimiento", "Tutor")" class="btn btn-sm border-0 bg-app text-secondary rounded-2 py-1 px-2" title="Bitácora de Seguimiento">
+                                    <i class="bi bi-journal-text"></i>
+                                </a>
+                            </div>
                         </td>
                     </tr>
-
                 </tbody>
             </table>
         </div>
 
-        <div class="bg-surface p-3 border-top border-theme d-flex flex-column flex-md-row justify-content-between align-items-center gap-3">
+        <div class="bg-white p-3 border-top border-light d-flex flex-column flex-md-row justify-content-between align-items-center gap-3">
             <div class="d-flex align-items-center gap-3">
-                <span class="txt-body text-xs fw-bold">Mostrar:</span>
-                <select id="rowsPerPage" class="form-select form-select-sm bg-app border-theme txt-title fw-bold" style="width: 70px; cursor: pointer;">
+                <span class="text-secondary fw-bold" style="font-size: 0.65rem;">MOSTRAR:</span>
+                <select id="rowsPerPage" class="form-select form-select-sm border-0 bg-app fw-bold text-xs" style="width: 70px; cursor: pointer;">
                     <option value="5" selected>5</option>
                     <option value="10">10</option>
                     <option value="20">20</option>
                 </select>
-                <div class="txt-body text-xs fw-bold tracking-wide" id="tableInfo">
-                    Mostrando registros...
-                </div>
+                <div id="tableInfo" class="txt-primary-dark fw-bold text-uppercase tracking-tighter" style="font-size: 0.65rem; opacity: 0.8;"></div>
             </div>
 
-            <nav aria-label="Navegación de tabla">
-                <ul class="pagination pagination-sm mb-0" id="paginationControls">
+            <nav aria-label="Navegación de alumnos">
+                <ul class="pagination pagination-sm mb-0 gap-1" id="paginationControls">
                 </ul>
             </nav>
         </div>
     </div>
 </div>
-
-<style>
-    .page-link-custom {
-        color: var(--text-title);
-        background-color: var(--white);
-        border-color: var(--border-color);
-        font-weight: 700;
-        cursor: pointer;
-    }
-
-        .page-link-custom:hover {
-            background-color: var(--bg-main);
-            color: var(--primary-900);
-        }
-
-    .page-item.active .page-link-custom {
-        background-color: var(--primary-900);
-        border-color: var(--primary-900);
-        color: var(--white);
-    }
-
-    .page-item.disabled .page-link-custom {
-        color: var(--text-body);
-        background-color: var(--bg-main);
-        opacity: 0.6;
-        cursor: not-allowed;
-    }
-</style>
 
 @section Scripts {
     <script>
@@ -141,9 +135,10 @@
                 let statusFilter = $('#statusFilter').val();
                 let rowsPerPage = parseInt($('#rowsPerPage').val());
 
+                let $allRows = $('.data-row');
                 let filteredRows = [];
 
-                $('.data-row').each(function () {
+                $allRows.each(function () {
                     let text = $(this).find('.search-target').text().toLowerCase();
                     let status = $(this).data('estado');
 
@@ -158,10 +153,7 @@
 
                 let totalRecords = filteredRows.length;
                 let totalPages = Math.ceil(totalRecords / rowsPerPage) || 1;
-
-                if (currentPage > totalPages) {
-                    currentPage = totalPages;
-                }
+                if (currentPage > totalPages) currentPage = totalPages;
 
                 let startIndex = (currentPage - 1) * rowsPerPage;
                 let endIndex = Math.min(startIndex + rowsPerPage, totalRecords);
@@ -170,53 +162,48 @@
                     filteredRows[i].show();
                 }
 
-                if (totalRecords === 0) {
-                    $('#tableInfo').text('No se encontraron registros');
-                } else {
-                    $('#tableInfo').text(`Mostrando ${startIndex + 1} a ${endIndex} de ${totalRecords} registros`);
-                }
-
+                $('#tableInfo').text(totalRecords === 0 ? '0 REGISTROS' : `${startIndex + 1} - ${endIndex} DE ${totalRecords}`);
                 renderPagination(totalPages);
             }
 
             function renderPagination(totalPages) {
-                let paginationHtml = '';
-
-                paginationHtml += `
-                    <li class="page-item ${currentPage === 1 ? 'disabled' : ''}">
-                        <a class="page-link page-link-custom" href="#" data-page="${currentPage - 1}"><i class="bi bi-chevron-left"></i></a>
-                    </li>`;
+                let html = '';
+                
+                html += `<li class="page-item ${currentPage === 1 ? 'disabled' : ''}">
+                    <a class="page-link border-0 bg-app rounded-2 txt-title fw-bold text-xxs" href="#" data-page="${currentPage - 1}">
+                        <i class="bi bi-chevron-left"></i>
+                    </a>
+                </li>`;
 
                 for (let i = 1; i <= totalPages; i++) {
-                    paginationHtml += `
-                        <li class="page-item ${i === currentPage ? 'active' : ''}">
-                            <a class="page-link page-link-custom" href="#" data-page="${i}">${i}</a>
-                        </li>`;
+                    let btnClass = (i === currentPage)
+                        ? 'bg-primary-dark text-white shadow-sm'
+                        : 'bg-app txt-title hover-bg-light';
+
+                    html += `<li class="page-item ${i === currentPage ? 'active' : ''}">
+                        <a class="page-link border-0 ${btnClass} rounded-2 mx-1 fw-bold text-xxs px-3" href="#" data-page="${i}">${i}</a>
+                    </li>`;
                 }
 
-                paginationHtml += `
-                    <li class="page-item ${currentPage === totalPages || totalPages === 0 ? 'disabled' : ''}">
-                        <a class="page-link page-link-custom" href="#" data-page="${currentPage + 1}"><i class="bi bi-chevron-right"></i></a>
-                    </li>`;
+                html += `<li class="page-item ${currentPage === totalPages || totalPages === 0 ? 'disabled' : ''}">
+                    <a class="page-link border-0 bg-app rounded-2 txt-title fw-bold text-xxs" href="#" data-page="${currentPage + 1}">
+                        <i class="bi bi-chevron-right"></i>
+                    </a>
+                </li>`;
 
-                $('#paginationControls').html(paginationHtml);
+                $('#paginationControls').html(html);
             }
 
-            $('#searchInput, #statusFilter').on('input change', function() {
-                currentPage = 1;
-                updateTable();
-            });
-
-            $('#rowsPerPage').on('change', function() {
+            $('#searchInput, #statusFilter, #rowsPerPage').on('input change', function() {
                 currentPage = 1;
                 updateTable();
             });
 
             $('#paginationControls').on('click', '.page-link', function(e) {
                 e.preventDefault();
-                let $parent = $(this).parent();
-                if (!$parent.hasClass('disabled') && !$parent.hasClass('active')) {
-                    currentPage = parseInt($(this).data('page'));
+                let page = parseInt($(this).data('page'));
+                if (page && !$(this).parent().hasClass('disabled')) {
+                    currentPage = page;
                     updateTable();
                 }
             });

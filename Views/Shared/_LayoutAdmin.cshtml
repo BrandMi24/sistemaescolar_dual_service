@@ -1,116 +1,232 @@
-﻿
+﻿@{
+    var currentController = ViewContext.RouteData.Values["controller"]?.ToString();
+    var currentAction = ViewContext.RouteData.Values["action"]?.ToString();
+
+    // Función auxiliar para gestionar la clase activa en el menú
+    string IsActive(string controller, string action = null)
+    {
+        if (action == null)
+            return currentController == controller ? "active" : "";
+        
+        return (currentController == controller && currentAction == action) ? "active" : "";
+    }
+
+    // Lógica para el subtítulo dinámico del header
+    string GetSubtitle()
+    {
+        if (currentController == "Admin") return "Sistema Integral Escolar • Panel Central";
+        if (currentController == "VisitaMedica" || currentController == "VisitaPsicologica") return "Salud Integral • Módulo de Atención Médica y Psicológica";
+        if (currentController == "Coordinador") return "Coordinación • Gestión de Catálogos e Infraestructura";
+        if (currentController == "Tutor") return "Tutoría • Portal de Acompañamiento Alumno";
+        if (currentController == "Maestro") return "Docencia • Panel de Control Académico";
+        if (currentController == "Alumno") return "Estudiante • Mi Expediente Académico";
+        return "Sistema Integral Escolar • UTTN";
+    }
+}
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] - SIE UTTN</title>
+    
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
     <link rel="stylesheet" href="~/css/design-system.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/coordinador-styles.css" asp-append-version="true" />
+
+    <style>
+        body {
+            font-family: 'Montserrat', sans-serif !important;
+        }
+
+        /* Estilo de navegación REPLICADO EXACTO: Blanco sobre Verde */
+        .nav-link {
+            font-size: 0.8rem;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: rgba(255,255,255,0.7) !important;
+            padding: 0.8rem 1rem;
+            border-radius: 8px;
+            transition: all 0.2s ease;
+            margin-bottom: 2px;
+        }
+
+        .nav-link i {
+            font-size: 1.1rem;
+            opacity: 0.8;
+        }
+
+        /* HOVER Y ACTIVE: Card blanca con texto verde (primary-900) */
+        .nav-link:hover, .nav-link.active {
+            background-color: #ffffff !important;
+            color: var(--primary-900, #13322B) !important;
+            opacity: 1 !important;
+        }
+
+        .nav-link:hover i, .nav-link.active i {
+            color: var(--primary-900, #13322B) !important;
+            opacity: 1;
+        }
+
+        .sidebar-brand-text {
+            letter-spacing: 1.5px;
+        }
+
+        .nav-group-label {
+            font-size: 0.65rem;
+            text-transform: uppercase;
+            color: #fff;
+            opacity: 0.5;
+            font-weight: 700;
+            letter-spacing: 1px;
+            margin: 1.5rem 0 0.5rem 1rem;
+        }
+
+        .user-initial-avatar {
+            width: 38px;
+            height: 38px;
+            background-color: var(--accent-500);
+            color: var(--primary-900);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            font-weight: 800;
+            font-size: 1rem;
+            flex-shrink: 0;
+        }
+    </style>
 </head>
 <body>
     <div class="admin-layout">
 
-        <div class="bg-primary-dark p-3 d-flex d-lg-none justify-content-between align-items-center flex-shrink-0 z-3">
+        <div class="bg-primary-dark p-3 d-flex d-lg-none justify-content-between align-items-center flex-shrink-0 z-3 shadow-sm">
             <div class="d-flex align-items-center gap-2">
-                <div class="brand-logo" style="width: 32px; height: 32px; font-size: 0.8rem;">UT</div>
-                <span class="txt-white fw-bold fs-6">Portal Admin</span>
+                <span class="txt-white fw-bold text-xs tracking-widest uppercase">Portal Integral</span>
             </div>
-            <button id="btnMobileMenu" class="btn btn-link text-white p-0 fs-2 lh-1">
-                <i class="bi bi-list"></i>
+            <button id="btnMobileMenu" class="btn btn-link text-white p-0 text-decoration-none fw-bold text-xs border border-white border-opacity-25 px-2 py-1 rounded">
+                MENÚ
             </button>
         </div>
 
         <div id="mobileOverlay" class="mobile-overlay"></div>
 
-        <aside id="sidebar" class="sidebar-sep">
-            <div class="sidebar-brand">
-                <div class="brand-logo"><i class="bi bi-bank"></i></div>
-                <div class="ms-2">
-                    <div class="fw-bold small text-white">UT TAMAULIPAS</div>
-                    <div class="opacity-50 text-white" style="font-size: 0.6rem;">Nivel Medio Superior</div>
+        <aside id="sidebar" class="sidebar-sep bg-primary-dark border-end border-white border-opacity-10 shadow">
+            
+            <div class="sidebar-brand d-flex align-items-center p-4">
+                <div class="brand-logo bg-white txt-primary-dark fw-bolder d-flex align-items-center justify-content-center rounded-2" style="width:35px; height:35px; font-size: 1.1rem;">
+                    UT
+                </div>
+                <div class="ms-3">
+                    <div class="sidebar-brand-text fw-bold text-white fs-6 mb-0">UT TAMAULIPAS</div>
+                    <div class="opacity-50 text-white text-xxs fw-semibold uppercase tracking-tighter">Sistema Integral Escolar</div>
                 </div>
             </div>
 
-            <div class="d-flex d-lg-none justify-content-end p-2">
-                <button id="btnCloseMenu" class="btn btn-link text-white p-0 fs-3">
-                    <i class="bi bi-x-lg"></i>
-                </button>
-            </div>
-
-            <nav class="sidebar-nav mt-1">
-                <a class="nav-link" href="@Url.Action("Index", "Admin")">
-                    <i class="bi bi-grid-1x2"></i> Dashboard
+            <nav class="sidebar-nav custom-scroll mt-2 px-3">
+                
+                <a class="nav-link px-3 py-2 mb-1 @IsActive("Admin", "Index")"
+                   href="@Url.Action("Index", "Admin")">
+                    <i class="bi bi-grid-1x2-fill"></i> Panel Principal
                 </a>
 
-                <div class="nav-group-label">Control Escolar</div>
-                <a class="nav-link active" href="@Url.Action("Index", "Admisiones")">
-                    <i class="bi bi-inbox"></i> Bandeja Admisiones
+                <div class="nav-group-label mb-2 ps-3">Gestión y Control</div>
+                <a class="nav-link px-3 py-2 mb-1 @IsActive("Coordinador")" href="@Url.Action("Catalogos", "Coordinador")">
+                    <i class="bi bi-folder-fill"></i> Catálogos e Infra.
                 </a>
-                <a class="nav-link" href="@Url.Action("Index", "Entrevista")">
-                    <i class="bi bi-person-badge"></i> Entrevista y Asignación
+                <a class="nav-link px-3 py-2 mb-1 @IsActive("Admisiones")" href="@Url.Action("Index", "Admisiones")">
+                    <i class="bi bi-person-plus-fill"></i> Admisiones
                 </a>
 
-                <div class="nav-group-label">Gestión Docente</div>
-                <a class="nav-link" href="@Url.Action("Index", "Tutor")">
-                    <i class="bi bi-people"></i> Panel del Tutor
+                <div class="nav-group-label mt-4 mb-2 ps-3">Cuerpo Docente</div>
+                <a class="nav-link px-3 py-2 mb-1 @IsActive("Maestro")" href="@Url.Action("Index", "Maestro")">
+                    <i class="bi bi-mortarboard-fill"></i> Panel Maestro
                 </a>
-                <a class="nav-link" href="@Url.Action("Index", "Asistencia")">
-                    <i class="bi bi-list-check"></i> Pase de Lista
+                <a class="nav-link px-3 py-2 mb-1 @IsActive("Tutor")" href="@Url.Action("Index", "Tutor")">
+                    <i class="bi bi-shield-check"></i> Panel Tutor
                 </a>
-                <a class="nav-link" href="@Url.Action("Index", "Calificaciones")">
-                    <i class="bi bi-journal-text"></i> Calificaciones
+
+                <div class="nav-group-label mt-4 mb-2 ps-3">Salud Integral</div>
+                <a class="nav-link px-3 py-2 mb-1 @IsActive("VisitaMedica")" href="@Url.Action("Index", "VisitaMedica")">
+                    <i class="bi bi-heart-pulse-fill"></i> Área Médica
                 </a>
-                <a class="nav-link" href="@Url.Action("Index", "Coordinador")">
-                    <i class="bi bi-journal-text"></i> Coordinador
+                <a class="nav-link px-3 py-2 mb-1 @IsActive("VisitaPsicologica")" href="@Url.Action("Index", "VisitaPsicologica")">
+                    <i class="bi bi-person-heart"></i> Psicología
                 </a>
+
+                <div class="nav-group-label mt-4 mb-2 ps-3">Estudiantes</div>
+                <a class="nav-link px-3 py-2 mb-1 @IsActive("Alumno")" href="@Url.Action("Index", "Alumno")">
+                    <i class="bi bi-person-circle"></i> Mi Perfil Alumno
+                </a>
+
+                <partial name="_DashboardButton" />
+
             </nav>
 
-            <div class="sidebar-footer">
-                <div class="d-flex align-items-center gap-2">
-                    <div class="avatar-sm bg-accent-light txt-primary-dark fw-bold">@User.Identity.Name?.Substring(0, 1).ToUpper()</div>
+            <div class="sidebar-footer p-4 mt-auto border-top border-white border-opacity-10 bg-black bg-opacity-10">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="user-initial-avatar shadow-sm">
+                        @(User.Identity.Name?.Substring(0, 1).ToUpper() ?? "U")
+                    </div>
                     <div class="overflow-hidden">
-                        <div class="fw-bold small text-white text-truncate">@User.Identity.Name</div>
-                        <form asp-controller="Account" asp-action="Logout" method="post">
-                            <button type="submit" class="btn btn-link p-0 opacity-50 small text-white text-decoration-none shadow-none border-0" style="font-size: 0.7rem;">Cerrar Sesión</button>
+                        <div class="fw-bold text-white text-xs text-truncate">@User.Identity.Name</div>
+                        <form asp-controller="Account" asp-action="Logout" method="post" class="m-0">
+                            <button type="submit" class="btn btn-link p-0 text-white opacity-50 text-xxs text-decoration-none shadow-none border-0 text-uppercase fw-bold tracking-tighter">
+                                Cerrar Sesión
+                            </button>
                         </form>
                     </div>
                 </div>
             </div>
         </aside>
 
-        <main class="main-content">
-            <header class="admin-header border-bottom border-theme">
-                <h5 class="fw-bold txt-title mb-0">@ViewData["Title"]</h5>
-                <div class="d-flex align-items-center gap-3">
-                    <div class="search-wrapper d-none d-md-block position-relative">
-                        <i class="bi bi-search position-absolute" style="left:15px; top:10px; color:#94a3b8;"></i>
-                        <input type="text" class="form-control ps-5" placeholder="Buscar...">
+        <main class="main-content d-flex flex-column">
+            
+            <header class="admin-header bg-white px-4 py-3 border-bottom border-theme shadow-sm d-flex align-items-center justify-content-between">
+                <div>
+                    <h5 class="fw-bold txt-title mb-0">@ViewData["Title"]</h5>
+                    <div class="text-xxs fw-bold text-muted text-uppercase tracking-tighter">
+                        @GetSubtitle()
                     </div>
-                    <button class="icon-btn border-theme txt-body position-relative">
-                        <i class="bi bi-bell"></i>
-                        <span class="badge-dot"></span>
-                    </button>
                 </div>
             </header>
 
-            <div class="p-4 p-lg-5 container-fluid" style="max-width: 1600px;">
+            <div class="p-4 p-lg-5 flex-grow-1 bg-app">
+                @if (TempData["SuccessMessage"] != null)
+                {
+                    <div class="alert bg-success-100 border border-success-700 text-success-700 rounded-3 alert-dismissible fade show shadow-sm mb-4" role="alert">
+                        <i class="bi bi-check-circle-fill me-2"></i> @TempData["SuccessMessage"]
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                }
+
                 @RenderBody()
             </div>
+
         </main>
     </div>
 
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    
     <script>
         $(document).ready(function() {
             const sidebar = $('#sidebar');
             const overlay = $('#mobileOverlay');
-            $('#btnMobileMenu').click(function() { sidebar.addClass('show'); overlay.addClass('active'); });
-            $('#btnCloseMenu, #mobileOverlay').click(function() { sidebar.removeClass('show'); overlay.removeClass('active'); });
+            $('#btnMobileMenu, #mobileOverlay').click(function() {
+                sidebar.toggleClass('show');
+                overlay.toggleClass('active');
+            });
         });
     </script>
+    
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

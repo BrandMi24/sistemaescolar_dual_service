@@ -1,11 +1,12 @@
 using ControlEscolar.Data;
 using ControlEscolar.Services;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Http.Features;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using QuestPDF.Infrastructure;
-using Microsoft.AspNetCore.Authentication.Cookies;
 using System.Threading.RateLimiting;
 
 AppDomain.CurrentDomain.UnhandledException += (sender, e) =>
@@ -28,6 +29,9 @@ builder.Services.AddScoped<IEmailService, EmailService>();
 // Configurar Entity Framework
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+builder.Services.AddSingleton<ControlEscolar.Data.DapperContext>();
+builder.Services.AddScoped<ControlEscolar.Services.IDashboardService, ControlEscolar.Services.DashboardService>();
 
 // Límite de tamaño de archivos subidos (5 MB)
 builder.Services.Configure<FormOptions>(options =>
@@ -111,6 +115,32 @@ using (var scope = app.Services.CreateScope())
         //{
         //    context.Database.Migrate();
         //}
+
+        // Seed del usuario admin
+        var userManager = services.GetRequiredService<UserManager<IdentityUser>>();
+        var roleManager = services.GetRequiredService<RoleManager<IdentityRole>>();
+
+        if (!await roleManager.RoleExistsAsync("Admin"))
+        {
+            await roleManager.CreateAsync(new IdentityRole("Admin"));
+        }
+
+        var adminEmail = "admin@uttn.mx";
+        var adminUser = await userManager.FindByEmailAsync(adminEmail);
+        if (adminUser == null)
+        {
+            adminUser = new IdentityUser
+            {
+                UserName = adminEmail,
+                Email = adminEmail,
+                EmailConfirmed = true
+            };
+            var result = await userManager.CreateAsync(adminUser, "Admin123!");
+            if (result.Succeeded)
+            {
+                await userManager.AddToRoleAsync(adminUser, "Admin");
+            }
+        }
     }
     catch (Exception ex)
     {

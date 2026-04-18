@@ -1,0 +1,204 @@
+﻿@{
+    ViewData["Title"] = "Mis Grupos Asignados";
+    Layout = "_LayoutMaestro";
+}
+
+<div class="d-flex flex-column gap-4 fade-in" style="min-height: 82vh;">
+
+    <div class="bg-surface p-4 rounded-4 border border-light shadow-sm d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+        <div class="d-flex flex-column flex-md-row gap-3 flex-grow-1" style="max-width: 750px;">
+            <div class="position-relative flex-grow-1">
+                <i class="bi bi-search position-absolute top-50 start-0 translate-middle-y ms-3 text-secondary"></i>
+                <input type="text" id="searchInput" class="form-control border-0 bg-app py-2 ps-5 text-sm fw-medium shadow-none" placeholder="BUSCAR GRUPO O CARRERA...">
+            </div>
+
+            <select id="statusFilter" class="form-select border-0 bg-app txt-title fw-bold text-xs shadow-none" style="width: auto; min-width: 180px; cursor: pointer;">
+                <option value="todos">TODOS LOS TURNOS</option>
+                <option value="matutino">MATUTINO</option>
+                <option value="vespertino">VESPERTINO</option>
+            </select>
+        </div>
+        <div class="txt-primary-dark fw-bold text-xxs tracking-widest uppercase">CICLO: ENE - ABR 2026</div>
+    </div>
+
+    <div class="flex-grow-1">
+        <div class="row g-4" id="cardsContainer">
+            
+            <div class="col-md-6 col-lg-4 data-card" data-estado="matutino">
+                <div class="admin-card-white p-4 rounded-4 border border-light shadow-sm h-100 d-flex flex-column group-card">
+                    <div class="d-flex justify-content-between align-items-start mb-3 search-target">
+                        <div>
+                            <h4 class="txt-primary-dark fw-bold mb-1">4º A</h4>
+                            <div class="text-xxs fw-bold text-muted tracking-widest uppercase">Ing. Desarrollo de Software</div>
+                        </div>
+                        <span class="badge status-aceptado px-2 py-1 text-xxs fw-bold border">MATUTINO</span>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <span class="text-xxs fw-bold text-secondary tracking-tighter uppercase">Alumnos registrados: 30</span>
+                    </div>
+
+                    <div class="d-grid mt-auto">
+                        <a href="@Url.Action("Materias", "Maestro", new { grupoId = 1 })" class="btn btn-sm bg-app text-primary-dark border-0 py-2 text-xxs fw-bold tracking-widest action-btn">
+                            VER MATERIAS
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6 col-lg-4 data-card" data-estado="vespertino">
+                <div class="admin-card-white p-4 rounded-4 border border-light shadow-sm h-100 d-flex flex-column group-card">
+                    <div class="d-flex justify-content-between align-items-start mb-3 search-target">
+                        <div>
+                            <h4 class="txt-primary-dark fw-bold mb-1">1º C</h4>
+                            <div class="text-xxs fw-bold text-muted tracking-widest uppercase">TSU Mecatrónica</div>
+                        </div>
+                        <span class="badge bg-app text-secondary border px-2 py-1 text-xxs fw-bold">VESPERTINO</span>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <span class="text-xxs fw-bold text-secondary tracking-tighter uppercase">Alumnos registrados: 35</span>
+                    </div>
+
+                    <div class="d-grid mt-auto">
+                        <a href="@Url.Action("Materias", "Maestro", new { grupoId = 2 })" class="btn btn-sm bg-app text-primary-dark border-0 py-2 text-xxs fw-bold tracking-widest action-btn">
+                            VER MATERIAS
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <div id="noResultsMsg" class="text-center py-5 d-none opacity-50">
+            <h6 class="text-xxs fw-bold text-uppercase tracking-widest">No se encontraron grupos con los criterios de búsqueda</h6>
+        </div>
+    </div>
+
+    <div class="bg-surface p-3 rounded-4 border border-light shadow-sm d-flex flex-column flex-md-row justify-content-between align-items-center gap-3">
+        <div class="d-flex align-items-center gap-3">
+            <span class="text-secondary fw-bold text-uppercase tracking-tighter" style="font-size: 0.65rem;">Mostrar:</span>
+            <select id="rowsPerPage" class="form-select form-select-sm border-0 bg-app fw-bold text-xs shadow-none" style="width: 70px;">
+                <option value="6" selected>6</option>
+                <option value="12">12</option>
+            </select>
+            <div id="tableInfo" class="txt-primary-dark fw-bold text-uppercase tracking-tighter" style="font-size: 0.65rem; opacity: 0.8;"></div>
+        </div>
+
+        <nav>
+            <ul class="pagination pagination-sm mb-0 gap-1" id="paginationControls">
+            </ul>
+        </nav>
+    </div>
+</div>
+
+<style>
+    /* Estilo de Card: Al hacer hover se vuelve Blanca con texto Verde */
+    .group-card {
+        transition: all 0.2s ease;
+        transform: none !important; /* Estático como en Ciclos */
+    }
+
+        .group-card:hover {
+            border-color: var(--primary-900) !important;
+            box-shadow: 0 8px 20px rgba(19, 50, 43, 0.08) !important;
+        }
+
+            .group-card:hover .action-btn {
+                background-color: var(--primary-900) !important;
+                color: #ffffff !important;
+            }
+
+    /* Paginación sólida idéntica a Ciclos */
+    .page-link-custom {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 32px;
+        height: 32px;
+        padding: 0 12px;
+        font-size: 0.7rem;
+        font-weight: 700;
+        border-radius: 6px !important;
+        background-color: var(--bg-main);
+        color: var(--primary-900);
+        text-decoration: none;
+        transition: all 0.2s;
+    }
+
+    .page-item.active .page-link-custom {
+        background-color: var(--primary-900) !important;
+        color: white !important;
+    }
+
+    .uppercase {
+        text-transform: uppercase;
+    }
+</style>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            let currentPage = 1;
+
+            function updateDisplay() {
+                let searchTerm = $('#searchInput').val().toLowerCase();
+                let statusFilter = $('#statusFilter').val();
+                let rowsPerPage = parseInt($('#rowsPerPage').val());
+
+                let $allCards = $('.data-card');
+                let filteredCards = [];
+
+                $allCards.each(function () {
+                    let text = $(this).find('.search-target').text().toLowerCase();
+                    let status = $(this).data('estado');
+                    let matchesSearch = text.indexOf(searchTerm) > -1;
+                    let matchesStatus = (statusFilter === 'todos') || (status === statusFilter);
+
+                    if (matchesSearch && matchesStatus) filteredCards.push($(this));
+                    $(this).hide();
+                });
+
+                let total = filteredCards.length;
+                let pages = Math.ceil(total / rowsPerPage) || 1;
+                if (currentPage > pages) currentPage = pages;
+                
+                let start = (currentPage - 1) * rowsPerPage;
+                let end = Math.min(start + rowsPerPage, total);
+
+                for (let i = start; i < end; i++) {
+                    filteredCards[i].fadeIn(200);
+                }
+
+                $('#noResultsMsg').toggleClass('d-none', total > 0);
+                $('#tableInfo').text(total === 0 ? '0 GRUPOS' : `${start + 1} - ${end} DE ${total} GRUPOS`);
+                renderPager(pages);
+            }
+
+            function renderPager(pages) {
+                let html = `<li class="page-item ${currentPage === 1 ? 'disabled' : ''}"><a class="page-link-custom" href="#" data-page="${currentPage - 1}"><i class="bi bi-chevron-left"></i></a></li>`;
+                for (let i = 1; i <= pages; i++) {
+                    html += `<li class="page-item ${i === currentPage ? 'active' : ''}"><a class="page-link-custom mx-1" href="#" data-page="${i}">${i}</a></li>`;
+                }
+                html += `<li class="page-item ${currentPage === pages || pages === 0 ? 'disabled' : ''}"><a class="page-link-custom" href="#" data-page="${currentPage + 1}"><i class="bi bi-chevron-right"></i></a></li>`;
+                $('#paginationControls').html(html);
+            }
+
+            $('#searchInput, #statusFilter, #rowsPerPage').on('input change', function () {
+                currentPage = 1;
+                updateDisplay();
+            });
+
+            $(document).on('click', '.page-link-custom', function (e) {
+                e.preventDefault();
+                let p = parseInt($(this).data('page'));
+                if (p && p !== currentPage) {
+                    currentPage = p;
+                    updateDisplay();
+                }
+            });
+
+            updateDisplay();
+        });
+    </script>
+}

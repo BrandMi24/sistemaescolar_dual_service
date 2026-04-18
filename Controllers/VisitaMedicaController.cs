@@ -9,7 +9,6 @@ using System.Threading.Tasks;
 
 namespace ControlEscolar.Controllers
 {
-    [Authorize(Roles = "Nurse,Head Nurse")]
     public class VisitaMedicaController : Controller
     {
         private readonly ApplicationDbContext _context;
@@ -19,7 +18,6 @@ namespace ControlEscolar.Controllers
             _context = context;
         }
 
-        [Authorize(Roles = "Head Nurse")]
         public async Task<IActionResult> GestionUsuarios()
         {
             var viewModel = new UsuariosViewModel();
@@ -62,7 +60,7 @@ namespace ControlEscolar.Controllers
         }
 
         [HttpPost]
-        [Authorize(Roles = "Head Nurse")]
+       
         public async Task<IActionResult> AsignarRol([FromBody] AsignarRolRequest request)
         {
             if (request == null || request.UserId <= 0 || request.RolId <= 0)
@@ -144,7 +142,6 @@ namespace ControlEscolar.Controllers
         }
 
         [HttpPost]
-        [Authorize(Roles = "Head Nurse")]
         public async Task<IActionResult> QuitarRol([FromBody] QuitarRolRequest request)
         {
             if (request == null || request.UserId <= 0)

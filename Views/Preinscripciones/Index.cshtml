@@ -19,7 +19,7 @@
                     <th>Nombre</th>
                     <th>Carrera</th>
                     <th>Contacto</th>
-                    <th>Estado</th>
+                    <th>Estado (Rep.)</th>
                     <th>Promedio</th>
                     <th>Estatus</th>
                     <th>Registro</th>
@@ -30,29 +30,33 @@
                 @foreach (var item in Model)
                 {
                     <tr>
-                        <td>@item.Id</td>
-                        <td>@item.Nombre @item.ApellidoPaterno @item.ApellidoMaterno</td>
+                        <td class="fw-bold">@(item.academiccontrol_preinscription_folio ?? $"#{item.academiccontrol_preinscription_ID}")</td>
                         <td>
-                            <div class="fw-semibold">@item.CarreraSolicitada</div>
+                            @item.academiccontrol_preinscription_personaldata_name
+                            @item.academiccontrol_preinscription_personaldata_paternalSurname
+                            @item.academiccontrol_preinscription_personaldata_maternalSurname
+                        </td>
+                        <td>
+                            <div class="fw-semibold">@item.academiccontrol_preinscription_careerRequested</div>
                             @if (!string.IsNullOrWhiteSpace(item.OpcionEducativa))
                             {
                                 <small class="text-muted">Opción: @item.OpcionEducativa</small>
                             }
                         </td>
                         <td>
-                            <div>@item.Email</div>
-                            <small class="text-muted">@item.Telefono</small>
+                            <div>@item.academiccontrol_preinscription_personaldata_email</div>
+                            <small class="text-muted">@item.academiccontrol_preinscription_personaldata_phone</small>
                         </td>
-                        <td>@item.Estado</td>
-                        <td>@(item.Promedio?.ToString("0.00") ?? "-")</td>
+                        <td>@item.academiccontrol_preinscription_address_state</td>
+                        <td>@(item.academiccontrol_preinscription_average?.ToString("0.00") ?? "-")</td>
                         <td>
-                            @await Html.PartialAsync("_StatusBadge", null, new ViewDataDictionary(ViewData) { { "StatusValue", item.EstadoPreinscripcion.ToString() }, { "StatusType", "preinscripcion" } })
+                            @await Html.PartialAsync("_StatusBadge", null, new ViewDataDictionary(ViewData) { { "StatusValue", item.academiccontrol_preinscription_state }, { "StatusType", "preinscripcion" } })
                         </td>
-                        <td>@item.FechaPreinscripcion.ToString("dd/MM/yyyy")</td>
+                        <td>@item.academiccontrol_preinscription_registrationDate.ToString("dd/MM/yyyy")</td>
                         <td class="d-flex gap-1">
-                            <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-info">Ver</a>
-                            <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-warning">Editar</a>
-                            <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-sm btn-danger">Eliminar</a>
+                            <a asp-action="Details" asp-route-id="@item.academiccontrol_preinscription_ID" class="btn btn-sm btn-info">Ver</a>
+                            <a asp-action="Edit" asp-route-id="@item.academiccontrol_preinscription_ID" class="btn btn-sm btn-warning">Editar</a>
+                            <a asp-action="Delete" asp-route-id="@item.academiccontrol_preinscription_ID" class="btn btn-sm btn-danger">Eliminar</a>
                         </td>
                     </tr>
                 }

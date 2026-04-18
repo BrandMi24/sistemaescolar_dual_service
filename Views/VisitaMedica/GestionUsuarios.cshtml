@@ -94,6 +94,23 @@
             <i class="bi bi-search fs-3 mb-2 d-block"></i>
             <span class="text-sm fw-bold">No se encontraron resultados</span>
         </div>
+
+        <div class="bg-white p-3 border-top border-light d-flex flex-column flex-md-row justify-content-between align-items-center gap-3">
+            <div class="d-flex align-items-center gap-3">
+                <span class="text-secondary fw-bold text-uppercase tracking-tighter" style="font-size: 0.65rem;">Mostrar:</span>
+                <select id="rowsPerPage" class="form-select form-select-sm border-0 bg-app fw-bold text-xs shadow-none" style="width: 70px; cursor: pointer;">
+                    <option value="5">5</option>
+                    <option value="10" selected>10</option>
+                    <option value="25">25</option>
+                </select>
+                <div id="tableInfo" class="txt-primary-dark fw-bold text-uppercase tracking-tighter" style="font-size: 0.65rem; opacity: 0.8;"></div>
+            </div>
+
+            <nav aria-label="Navegación de usuarios">
+                <ul class="pagination pagination-sm mb-0 gap-1" id="paginationControls">
+                </ul>
+            </nav>
+        </div>
     </div>
 </div>
 
@@ -105,8 +122,8 @@
                 <h5 class="txt-primary-dark fw-bold mb-0">Actualizar Perfil Médico</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-            <div class="modal-body p-4">
-                <div class="alert bg-light border-0 mb-4 p-3 rounded-3 d-flex align-items-center gap-3">
+            <div class="modal-body p-4 bg-app">
+                <div class="bg-white p-3 rounded-3 border border-light mb-4 d-flex align-items-center gap-3 shadow-sm">
                     <i class="bi bi-info-circle-fill fs-4 txt-primary-dark"></i>
                     <div class="text-xs">
                         Modificando permisos de:<br />
@@ -169,6 +186,28 @@
         </div>
     </div>
 </div>
+
+<style>
+    /* Clases de utilidad para igualar el sistema de Ciclos */
+    .hover-bg-app:hover { background-color: rgba(0,0,0,0.02) !important; }
+    .user-initial-avatar { display: flex; align-items: center; justify-content: center; border-radius: 50%; font-weight: 800; }
+    
+    /* Botones de Paginación Visibles */
+    .page-link-custom {
+        display: flex; align-items: center; justify-content: center;
+        min-width: 32px; height: 32px; padding: 0 12px;
+        font-size: 0.7rem; font-weight: 700; border-radius: 8px !important;
+        border: 1px solid var(--border-color); background-color: #f1f5f9; color: var(--primary-900);
+        text-decoration: none; transition: all 0.2s;
+    }
+
+    .page-item.active .page-link-custom {
+        background-color: var(--primary-900) !important;
+        border-color: var(--primary-900) !important;
+        color: white !important;
+        box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+    }
+</style>
 
 @section Scripts {
     <script>

@@ -69,7 +69,7 @@
                         <th class="py-4 text-end px-4 text-muted fw-bold">Acciones</th>
                     </tr>
                 </thead>
-                <tbody>
+                <tbody id="psicoBody">
                     @foreach (var p in Model)
                     {
                         var estado = "seguimiento";
@@ -84,37 +84,26 @@
                                 </div>
                             </td>
                             <td class="text-center">
-                                <span class="badge fw-bold px-3 py-2"
-                                      style="background-color: #495057; color: #ffffff; border-radius: 6px; font-size: 0.85rem; font-family: monospace;">
+                                <span class="badge bg-app text-secondary border border-light px-3 py-2 text-xxs fw-bold" style="font-family: monospace; letter-spacing: 1px;">
                                     @p.Matricula
                                 </span>
                             </td>
                             <td>
-                                <div class="text-xs txt-body fw-bold">@p.Carrera</div>
+                                <div class="text-xxs fw-bold text-secondary text-uppercase tracking-tight">@p.Carrera</div>
                             </td>
                             <td class="text-center">
-                                @if (estado == "seguimiento")
-                                {
-                                    <span class="badge px-3 py-2 fw-bolder"
-                                          style="background-color: #d1e7dd; color: #0a3622; border: 1.5px solid #0a3622; font-size: 0.75rem; min-width: 100px;">
-                                        SEGUIMIENTO
-                                    </span>
-                                }
-                                else
-                                {
-                                    <span class="badge px-3 py-2 fw-bolder"
-                                          style="background-color: #e2e3e5; color: #212529; border: 1.5px solid #212529; font-size: 0.75rem; min-width: 100px;">
-                                        CONCLUIDO
-                                    </span>
-                                }
+                                <span class="badge rounded-pill px-3 py-2 text-xxs fw-bold border @estadoClase">
+                                    @estadoTexto
+                                </span>
                             </td>
                             <td class="text-end px-4">
-                                <a asp-action="History" asp-route-id="@p.Matricula"
-                                   class="btn p-2 text-primary"
-                                   title="Ver Expediente"
-                                   style="background-color: #e7f1ff; border: 1px solid #0d6efd; border-radius: 6px;">
-                                    <i class="bi bi-folder2-open fs-5"></i>
-                                </a>
+                                <div class="d-flex justify-content-end gap-2">
+                                    <a asp-action="History" asp-route-id="@p.Matricula" 
+                                       class="btn btn-sm border-0 bg-primary-100 txt-primary-dark rounded-2 py-1 px-2" 
+                                       title="Ver Expediente">
+                                        <i class="bi bi-folder2-open fs-6"></i>
+                                    </a>
+                                </div>
                             </td>
                         </tr>
                     }
@@ -122,19 +111,20 @@
             </table>
         </div>
 
-        <div class="bg-surface p-3 border-top border-theme d-flex flex-column flex-md-row justify-content-between align-items-center gap-3">
+        <div class="bg-white p-3 border-top border-light d-flex flex-column flex-md-row justify-content-between align-items-center gap-3">
             <div class="d-flex align-items-center gap-3">
-                <span class="txt-body text-xs fw-bold">Mostrar:</span>
-                <select id="rowsPerPage" class="form-select form-select-sm border-theme fw-bold" style="width: 75px; box-shadow: none;">
-                    <option value="5" selected>5</option>
-                    <option value="10">10</option>
+                <span class="text-secondary fw-bold text-uppercase tracking-tighter" style="font-size: 0.65rem;">Mostrar:</span>
+                <select id="rowsPerPage" class="form-select form-select-sm border-0 bg-app fw-bold text-xs shadow-none" style="width: 70px; cursor: pointer;">
+                    <option value="5">5</option>
+                    <option value="10" selected>10</option>
                     <option value="25">25</option>
                 </select>
-                <div class="txt-body text-xs fw-bold" id="tableInfo"></div>
+                <div id="tableInfo" class="txt-primary-dark fw-bold text-uppercase tracking-tighter" style="font-size: 0.65rem; opacity: 0.8;"></div>
             </div>
 
             <nav aria-label="Navegación">
-                <ul class="pagination pagination-sm mb-0 gap-1" id="paginationControls"></ul>
+                <ul class="pagination pagination-sm mb-0 gap-1" id="paginationControls">
+                </ul>
             </nav>
         </div>
     </div>
@@ -145,13 +135,16 @@
         background-color: transparent !important;
     }
 
-    .data-row {
-        background-color: white !important;
+    .page-link-custom:hover {
+        background-color: #e2e8f0 !important;
+        color: #1a2b6b !important;
     }
 
-    .btn, .page-link, .form-control, .form-select {
-        transition: none !important;
-        box-shadow: none !important;
+    .page-item.active .page-link-custom {
+        background-color: var(--primary-900) !important; /* Usando tu variable de verde/oscuro */
+        border-color: var(--primary-900) !important;
+        color: #ffffff !important;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
     }
 
     .page-link-custom {
@@ -225,7 +218,9 @@
                 const start  = (currentPage - 1) * rowsPerPage;
                 const end    = Math.min(start + rowsPerPage, total);
 
-                for (let i = start; i < end; i++) filteredRows[i].show();
+                for (let i = startIndex; i < endIndex; i++) {
+                    filteredRows[i].show();
+                }
 
                 $('#tableInfo').text(
                     total === 0 ? 'Sin registros' : `Mostrando ${start + 1} a ${end} de ${total}`
@@ -261,8 +256,9 @@
 
             $('#paginationControls').on('click', '.page-link', function (e) {
                 e.preventDefault();
-                if (!$(this).parent().hasClass('disabled')) {
-                    currentPage = parseInt($(this).data('page'));
+                let page = parseInt($(this).data('page'));
+                if (page && !$(this).parent().hasClass('disabled')) {
+                    currentPage = page;
                     updateTable();
                 }
             });

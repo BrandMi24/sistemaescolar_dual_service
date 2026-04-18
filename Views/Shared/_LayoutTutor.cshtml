@@ -1,118 +1,176 @@
-﻿<!DOCTYPE html>
+﻿@{
+    var currentAction = ViewContext.RouteData.Values["action"]?.ToString();
+}
+<!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] - Tutoría UTTN</title>
+    
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
     <link rel="stylesheet" href="~/css/design-system.css" asp-append-version="true" />
-    <link rel="stylesheet" href="~/css/tutor-styles.css" asp-append-version="true" />
+    @* Usamos el CSS base del sistema para mantener la consistencia *@
+    <link rel="stylesheet" href="~/css/coordinador-styles.css" asp-append-version="true" />
+
+    <style>
+            body {
+                font-family: 'Montserrat', sans-serif !important;
+            }
+    
+            .nav-link {
+                font-size: 0.8rem;
+                letter-spacing: 0.5px;
+                text-transform: uppercase;
+                font-weight: 600;
+                display: flex;
+                align-items: center;
+                gap: 12px;
+            }
+    
+                .nav-link i {
+                    font-size: 1.1rem;
+                    opacity: 0.8;
+                }
+    
+            .sidebar-brand-text {
+                letter-spacing: 1.5px;
+            }
+    
+            .user-initial-avatar {
+                width: 38px;
+                height: 38px;
+                background-color: var(--accent-500);
+                color: var(--primary-900);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                border-radius: 50%;
+                font-weight: 800;
+                font-size: 1rem;
+                flex-shrink: 0;
+            }
+    </style>
 </head>
 <body>
     <div class="admin-layout">
 
-        <div class="bg-primary-dark p-3 d-flex d-lg-none justify-content-between align-items-center flex-shrink-0 z-3">
+        <div class="bg-primary-dark p-3 d-flex d-lg-none justify-content-between align-items-center flex-shrink-0 z-3 shadow-sm">
             <div class="d-flex align-items-center gap-2">
-                <div class="brand-logo avatar-sm text-xs">UT</div>
-                <span class="txt-white fw-bold fs-6">Portal Tutor</span>
+                <span class="txt-white fw-bold text-xs tracking-widest">PORTAL TUTOR</span>
             </div>
-            <button id="btnMobileMenu" class="btn btn-link text-white p-0 fs-2 lh-1">
-                <i class="bi bi-list"></i>
+            <button id="btnMobileMenu" class="btn btn-link text-white p-0 text-decoration-none fw-bold text-xs border border-white border-opacity-25 px-2 py-1 rounded">
+                MENÚ
             </button>
         </div>
 
         <div id="mobileOverlay" class="mobile-overlay"></div>
 
-        <aside id="sidebar" class="sidebar-sep">
-            <div class="sidebar-brand">
-                <div class="brand-logo"><i class="bi bi-person-badge-fill"></i></div>
-                <div class="ms-2">
-                    <div class="fw-bold small text-white">UT TAMAULIPAS</div>
-                    <div class="opacity-50 text-white text-xxs">Módulo de Tutoría</div>
+        <aside id="sidebar" class="sidebar-sep bg-primary-dark border-end border-white border-opacity-10 shadow">
+            
+            <div class="sidebar-brand d-flex align-items-center p-4">
+                <div class="brand-logo bg-white txt-primary-dark fw-bolder d-flex align-items-center justify-content-center rounded-2" style="width:35px; height:35px; font-size: 1.1rem;">
+                    UT
+                </div>
+                <div class="ms-3">
+                    <div class="sidebar-brand-text fw-bold text-white fs-6 mb-0">UT TAMAULIPAS</div>
+                    <div class="opacity-50 text-white text-xxs fw-semibold text-uppercase">Módulo de Tutoría</div>
                 </div>
             </div>
 
-            <div class="d-flex d-lg-none justify-content-end p-2">
-                <button id="btnCloseMenu" class="btn btn-link text-white p-0 fs-3">
-                    <i class="bi bi-x-lg"></i>
-                </button>
-            </div>
-
-            <nav class="sidebar-nav mt-1">
-                <div class="nav-group-label">Mi Grupo</div>
-                <a class="nav-link" href="@Url.Action("Index", "Tutor")">
+            <nav class="sidebar-nav custom-scroll mt-2 px-3">
+                
+                <div class="nav-group-label mb-2 ps-3 opacity-50">Mi Grupo</div>
+                
+                <a class="nav-link px-3 py-2 mb-1 @(currentAction == "Index" ? "active" : "")"
+                       href="@Url.Action("Index", "Tutor")">
                     <i class="bi bi-people-fill"></i> Lista de Alumnos
                 </a>
-                <a class="nav-link" href="@Url.Action("Asistencia", "Tutor")">
+
+                <a class="nav-link px-3 py-2 mb-1 @(currentAction == "Asistencia" ? "active" : "")"
+                       href="@Url.Action("Asistencia", "Tutor")">
                     <i class="bi bi-calendar2-check"></i> Control de Asistencia
                 </a>
 
-                <div class="nav-group-label">Expedientes</div>
-                <a class="nav-link" href="@Url.Action("Entrevista", "Tutor")">
+                <div class="nav-group-label mt-4 mb-2 ps-3 opacity-50">Expedientes y Seguimiento</div>
+                
+                <a class="nav-link px-3 py-2 mb-1 @(currentAction == "Entrevista" ? "active" : "")"
+                       href="@Url.Action("Entrevista", "Tutor")">
                     <i class="bi bi-clipboard-data"></i> Entrevista Inicial
                 </a>
-                <a class="nav-link" href="@Url.Action("Seguimiento", "Tutor")">
-                    <i class="bi bi-journal-text"></i> Bitácora de Seguimiento
+                
+                <a class="nav-link px-3 py-2 mb-1 @(currentAction == "Seguimiento" ? "active" : "")"
+                       href="@Url.Action("Seguimiento", "Tutor")">
+                    <i class="bi bi-journal-text"></i> Bitácora Grupal
                 </a>
-                <a class="nav-link" href="@Url.Action("Tramites", "Tutor")">
-                    <i class="bi bi-journal-text"></i> Bitácora de Seguimiento
+
+                <a class="nav-link px-3 py-2 mb-1 @(currentAction == "Tramites" ? "active" : "")"
+                       href="@Url.Action("Tramites", "Tutor")">
+                    <i class="bi bi-file-earmark-text"></i> Gestión de Trámites
                 </a>
+
+                <partial name="_DashboardButton" />
+
             </nav>
 
-            <div class="sidebar-footer">
-                <div class="d-flex align-items-center gap-2">
-                    <div class="avatar-sm bg-accent-light txt-primary-dark fw-bold">@User.Identity.Name?.Substring(0, 1).ToUpper()</div>
+            <div class="sidebar-footer p-4 mt-auto border-top border-white border-opacity-10 bg-black bg-opacity-10">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="user-initial-avatar shadow-sm">
+                        @(User.Identity.Name?.Substring(0, 1).ToUpper() ?? "T")
+                    </div>
                     <div class="overflow-hidden">
-                        <div class="fw-bold small text-white text-truncate">@User.Identity.Name</div>
-                        <form asp-controller="Account" asp-action="Logout" method="post">
-                            <button type="submit" class="btn btn-link p-0 opacity-50 text-xxs text-white text-decoration-none shadow-none border-0">Cerrar Sesión</button>
+                        <div class="fw-bold text-white text-xs text-truncate">@User.Identity.Name</div>
+                        <form asp-controller="Account" asp-action="Logout" method="post" class="m-0">
+                            <button type="submit" class="btn btn-link p-0 text-white opacity-50 text-xxs text-decoration-none shadow-none border-0 text-uppercase fw-bold tracking-tighter">
+                                Cerrar Sesión
+                            </button>
                         </form>
                     </div>
                 </div>
             </div>
         </aside>
 
-        <main class="main-content">
-            <header class="admin-header border-bottom border-theme">
-                <h5 class="fw-bold txt-title mb-0">@ViewData["Title"]</h5>
+        <main class="main-content d-flex flex-column">
+            <header class="admin-header bg-white px-4 py-3 border-bottom border-theme shadow-sm d-flex align-items-center justify-content-between">
+                <div>
+                    <h5 class="fw-bold txt-title mb-0">@ViewData["Title"]</h5>
+                    <div class="text-xxs fw-bold text-muted text-uppercase tracking-tighter">Tutoría • Portal de Acompañamiento Alumno</div>
+                </div>
             </header>
 
-            @if (TempData["SuccessMessage"] != null)
-            {
-                <div class="p-4 pb-0">
-                    <div class="alert bg-success-100 border border-success-700 text-success-700 rounded-3 alert-dismissible fade show shadow-sm mb-0" role="alert">
+            <div class="p-4 p-lg-5 flex-grow-1 bg-app">
+                @if (TempData["SuccessMessage"] != null)
+                {
+                    <div class="alert bg-success-100 border border-success-700 text-success-700 rounded-3 alert-dismissible fade show shadow-sm mb-4" role="alert">
                         <i class="bi bi-check-circle-fill me-2"></i> @TempData["SuccessMessage"]
                         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                     </div>
-                </div>
-            }
+                }
 
-            <div class="p-4 p-lg-5 container-fluid">
                 @RenderBody()
             </div>
+
         </main>
     </div>
 
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    
     <script>
         $(document).ready(function() {
         const sidebar = $('#sidebar');
         const overlay = $('#mobileOverlay');
-        $('#btnMobileMenu').click(function() { sidebar.addClass('show'); overlay.addClass('active'); });
-        $('#btnCloseMenu, #mobileOverlay').click(function() { sidebar.removeClass('show'); overlay.removeClass('active'); });
-
-        // Script para marcar la pestaña activa automáticamente
-        const currentPath = window.location.pathname;
-        $('.sidebar-nav a').each(function() {
-        if ($(this).attr('href') === currentPath) {
-        $('.sidebar-nav a').removeClass('active');
-        $(this).addClass('active');
-        }
+            
+        $('#btnMobileMenu, #mobileOverlay').click(function() {
+        sidebar.toggleClass('show');
+        overlay.toggleClass('active');
         });
         });
     </script>
+    
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

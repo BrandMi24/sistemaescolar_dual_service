@@ -41,7 +41,6 @@ namespace ControlEscolar.Controllers
         // AQUÍ CARGAMOS LA BANDEJA DE TRÁMITES PARA EL TUTOR
         // ====================================================
         [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
-        [Authorize(Roles = "Administrativo,TEACHER,ADMIN")]
         public IActionResult Tramites(string estatus = "Todos")
         {
             var listado = _context.Set<DetalleSolicitudViewModel>()

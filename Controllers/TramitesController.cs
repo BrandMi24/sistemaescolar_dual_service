@@ -16,14 +16,13 @@ using System.Threading.Tasks;
 
 namespace ControlEscolar.Controllers
 {
-    [Authorize]
     [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
     public class TramitesController : Controller
     {
         private readonly ApplicationDbContext _context;
         private readonly IWebHostEnvironment _webHostEnvironment;
 
-        public TramitesController(ApplicationDbContext context, IWebHostEnvironment webHostEnvironment)
+        public TramitesController(ApplicationDbContext context, IWebHostEnvironment webHostEnvironment, UserManager<IdentityUser> userManager)
         {
             _context = context;
             _webHostEnvironment = webHostEnvironment;
@@ -212,7 +211,6 @@ namespace ControlEscolar.Controllers
             return Json(requisitos.Select(r => new { id_requisito = r.IdRequisito, nombre_documento = r.NombreRequisito }).ToList());
         }
 
-        [Authorize]
         public async Task<IActionResult> Gestion(string estatus = "Todos")
         {
             var listado = _context.Set<DetalleSolicitudViewModel>()
