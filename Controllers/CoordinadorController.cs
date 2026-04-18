@@ -1,5 +1,6 @@
 using ControlEscolar.Data;
 using ControlEscolar.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
@@ -16,6 +17,7 @@ using System.Threading.Tasks;
 
 namespace ControlEscolar.Controllers
 {
+    [Authorize]
     public class CoordinadorController : Controller
     {
         private readonly ApplicationDbContext _context;

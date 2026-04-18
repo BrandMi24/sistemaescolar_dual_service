@@ -1,10 +1,10 @@
-﻿@using ControlEscolar.Helpers
+@using ControlEscolar.Helpers
 @using ControlEscolar.Enums
 @model ControlEscolar.Models.HistorialViewModel
 
 @{
     ViewData["Title"] = "Historial de Preinscripciones";
-    Layout = "_Layout";
+    Layout = "_LayoutAdmin";
 }
 
 <div class="main-container pt-5 mb-5">
@@ -156,9 +156,7 @@
                                     </td>
                                     <td>
                                         <div class="fw-bold txt-title">
-                                            @item.DatosPersonales?.academiccontrol_preinscription_personaldata_paternalSurname,
-                                            @item.DatosPersonales?.academiccontrol_preinscription_personaldata_maternalSurname,
-                                            @item.DatosPersonales?.academiccontrol_preinscription_personaldata_name
+                                            @($"{item.DatosPersonales?.academiccontrol_preinscription_personaldata_paternalSurname} {item.DatosPersonales?.academiccontrol_preinscription_personaldata_maternalSurname}, {item.DatosPersonales?.academiccontrol_preinscription_personaldata_name}")
                                         </div>
                                         <small class="txt-body">@item.DatosPersonales?.academiccontrol_preinscription_personaldata_CURP</small>
                                     </td>
