@@ -538,26 +538,41 @@
                 const actionUrl = '@Url.Action("Create", "Preinscripciones")';
 
                 try {
-                    const response = await fetch(actionUrl, {
-                        method: 'POST',
-                        body: formData,
-                        headers: { 'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value }
-                    });
+        const response = await fetch(actionUrl, {
+            method: 'POST',
+            body: formData,
+            headers: { 'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value }
+        });
 
-                    if (response.ok) {
-                        const contentType = response.headers.get('Content-Type');
-                        if (contentType && contentType.includes('application/pdf')) {
-                            const blob = await response.blob();
-                            const url = window.URL.createObjectURL(blob);
-                            const a = document.createElement('a');
-                            a.href = url;
-                            a.download = 'FichaPreinscripcion.pdf';
-                            a.click();
-                            window.location.href = response.headers.get('X-Details-Url') || '/';
-                        } else {
-                            window.location.href = response.url;
-                        }
-                    }
+        if (!response.ok) return;
+
+        const contentType = response.headers.get('Content-Type') || '';
+
+        if (contentType.includes('application/json')) {
+            const data = await response.json();
+            if (!data.success) {
+                Swal.fire({
+                    title: 'No fue posible continuar',
+                    text: data.message,
+                    icon: 'error',
+                    confirmButtonText: 'Entendido',
+                    confirmButtonColor: '#13322B'
+                });
+            }
+            return;
+        }
+
+        if (contentType.includes('application/pdf')) {
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'FichaPreinscripcion.pdf';
+            a.click();
+            window.location.href = response.headers.get('X-Details-Url') || '/';
+        } else {
+            window.location.href = response.url;
+        }
                 } catch (error) { console.error('Error al enviar:', error); }
             });
         });

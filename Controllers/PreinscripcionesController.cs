@@ -113,8 +113,7 @@ namespace ControlEscolar.Controllers
 
                 if (curpExistente)
                 {
-                    TempData["ErrorMessage"] = "El CURP ingresado ya se encuentra registrado en el periodo de preinscripción actual.";
-                    return View(vm);
+                    return Json(new { success = false, message = "El CURP ingresado ya se encuentra registrado en el periodo actual." });
                 }
             }
 
@@ -134,8 +133,7 @@ namespace ControlEscolar.Controllers
 
                 if (fichasUsadas >= config.academiccontrol_inscription_ticketconfig_limit)
                 {
-                    TempData["ErrorMessage"] = $"Cupo completo para '{vm.academiccontrol_preinscription_careerRequested}'.";
-                    return View(vm);
+                    return Json(new { success = false, message = $"Cupo completo para '{vm.academiccontrol_preinscription_careerRequested}'." });
                 }
             }
 
