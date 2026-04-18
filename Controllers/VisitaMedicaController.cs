@@ -1,4 +1,5 @@
-﻿using ControlEscolar.Data;
+﻿using ClosedXML.Excel;
+using ControlEscolar.Data;
 using ControlEscolar.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -285,6 +286,183 @@ namespace ControlEscolar.Controllers
             var historial = await _context.Visitas.Where(v => v.Matricula == id).OrderByDescending(v => v.FechaVisita).ToListAsync();
             ViewData["Matricula"] = id;
             return View(historial);
+        }
+
+        // ─────────────────────────────────────────────────────────────────────
+        // EXPORTAR EXCEL
+        // GET: /VisitaMedica/ExportarExcel?fechaInicio=2026-01-01&fechaFin=2026-04-30
+        // ─────────────────────────────────────────────────────────────────────
+        [HttpGet]
+        public async Task<IActionResult> ExportarExcel(DateTime? fechaInicio, DateTime? fechaFin)
+        {
+            var lista = new List<VisitaMedica>();
+
+            using (var connection = _context.Database.GetDbConnection())
+            {
+                await connection.OpenAsync();
+
+                // Construimos el filtro de fechas sobre registros individuales
+                // y agrupamos para mostrar la visita más reciente en el rango
+                var condiciones = new List<string>();
+                if (fechaInicio.HasValue)
+                    condiciones.Add("v.FechaVisita >= @fechaInicio");
+                if (fechaFin.HasValue)
+                    condiciones.Add("v.FechaVisita < DATEADD(day, 1, @fechaFin)");
+
+                var whereClause = condiciones.Count > 0
+                    ? "WHERE " + string.Join(" AND ", condiciones)
+                    : "";
+
+                var query = $@"
+                SELECT 
+                    v.Matricula,
+                    v.FechaVisita,
+                    v.Diagnostico,
+                    v.Edad,
+                    v.Talla,
+                    v.Peso,
+                    v.PresionArterial,
+                    v.FrecuenciaCardiaca,
+                    v.Temperatura,
+                    ISNULL(NULLIF(LTRIM(RTRIM(
+                        dp.academiccontrol_preinscription_personaldata_name + ' ' +
+                        dp.academiccontrol_preinscription_personaldata_paternalSurname + ' ' +
+                        dp.academiccontrol_preinscription_personaldata_maternalSurname
+                    )), ''), 'FALTA NOMBRE EN BD') AS NombreCompleto,
+                    ISNULL(NULLIF(LTRIM(RTRIM(i.academiccontrol_inscription_careerRequested)), ''), 'FALTA CARRERA EN BD') AS Carrera
+                FROM Visitas v
+                LEFT JOIN academiccontrol_inscription_table i
+                    ON v.Matricula = i.academiccontrol_inscription_enrollment
+                LEFT JOIN academiccontrol_preinscription_personaldata_table dp
+                    ON i.academiccontrol_inscription_preinscriptionID = dp.academiccontrol_preinscription_personaldata_preinscriptionID
+                {whereClause}
+                ORDER BY v.FechaVisita DESC";
+
+                using (var command = connection.CreateCommand())
+                {
+                    command.CommandText = query;
+
+                    if (fechaInicio.HasValue)
+                    {
+                        var p = command.CreateParameter();
+                        p.ParameterName = "@fechaInicio";
+                        p.Value = fechaInicio.Value.Date;
+                        command.Parameters.Add(p);
+                    }
+                    if (fechaFin.HasValue)
+                    {
+                        var p = command.CreateParameter();
+                        p.ParameterName = "@fechaFin";
+                        p.Value = fechaFin.Value.Date;
+                        command.Parameters.Add(p);
+                    }
+
+                    using (var reader = await command.ExecuteReaderAsync())
+                    {
+                        while (await reader.ReadAsync())
+                        {
+                            lista.Add(new VisitaMedica
+                            {
+                                Matricula = reader["Matricula"].ToString() ?? "",
+                                NombreCompleto = reader["NombreCompleto"].ToString(),
+                                Carrera = reader["Carrera"].ToString(),
+                                FechaVisita = (DateTime)reader["FechaVisita"],
+                                Diagnostico = reader["Diagnostico"].ToString() ?? "",
+                                Edad = reader["Edad"] != DBNull.Value ? Convert.ToInt32(reader["Edad"]) : 0,
+                                Talla = reader["Talla"] != DBNull.Value ? Convert.ToDouble(reader["Talla"]) : null,
+                                Peso = reader["Peso"] != DBNull.Value ? Convert.ToDouble(reader["Peso"]) : null,
+                                PresionArterial = reader["PresionArterial"].ToString(),
+                                FrecuenciaCardiaca = reader["FrecuenciaCardiaca"].ToString(),
+                                Temperatura = reader["Temperatura"] != DBNull.Value ? Convert.ToDouble(reader["Temperatura"]) : null
+                            });
+                        }
+                    }
+                }
+            }
+
+            // ── Construir Excel ──────────────────────────────────────────────
+            using var workbook = new XLWorkbook();
+            var ws = workbook.Worksheets.Add("Visitas Médicas");
+
+            // Encabezado con título
+            ws.Cell(1, 1).Value = "Reporte de Visitas Médicas - UT Tamaulipas";
+            ws.Range(1, 1, 1, 11).Merge().Style
+                .Font.SetBold(true)
+                .Font.SetFontSize(13)
+                .Alignment.SetHorizontal(XLAlignmentHorizontalValues.Center)
+                .Fill.SetBackgroundColor(XLColor.FromHtml("#1a3c34"))
+                .Font.SetFontColor(XLColor.White);
+
+            // Sub-encabezado con rango de fechas
+            var rango = fechaInicio.HasValue || fechaFin.HasValue
+                ? $"Período: {(fechaInicio.HasValue ? fechaInicio.Value.ToString("dd/MM/yyyy") : "inicio")} — {(fechaFin.HasValue ? fechaFin.Value.ToString("dd/MM/yyyy") : "hoy")}"
+                : "Período: Todos los registros";
+            ws.Cell(2, 1).Value = rango;
+            ws.Range(2, 1, 2, 11).Merge().Style
+                .Font.SetItalic(true)
+                .Alignment.SetHorizontal(XLAlignmentHorizontalValues.Center)
+                .Fill.SetBackgroundColor(XLColor.FromHtml("#d1e7dd"))
+                .Font.SetFontColor(XLColor.FromHtml("#0a3622"));
+
+            // Cabeceras de columnas
+            var headers = new[] { "Nombre Completo", "Matrícula", "Carrera", "Fecha Visita",
+                                   "Edad", "Talla (m)", "Peso (kg)", "Presión Arterial",
+                                   "Frec. Cardíaca", "Temperatura (°C)", "Diagnóstico" };
+            for (int col = 0; col < headers.Length; col++)
+            {
+                var cell = ws.Cell(3, col + 1);
+                cell.Value = headers[col];
+                cell.Style
+                    .Font.SetBold(true)
+                    .Fill.SetBackgroundColor(XLColor.FromHtml("#495057"))
+                    .Font.SetFontColor(XLColor.White)
+                    .Alignment.SetHorizontal(XLAlignmentHorizontalValues.Center)
+                    .Border.SetBottomBorder(XLBorderStyleValues.Thin);
+            }
+
+            // Datos
+            int row = 4;
+            foreach (var v in lista)
+            {
+                ws.Cell(row, 1).Value = v.NombreCompleto;
+                ws.Cell(row, 2).Value = v.Matricula;
+                ws.Cell(row, 3).Value = v.Carrera;
+                ws.Cell(row, 4).Value = v.FechaVisita.ToString("dd/MM/yyyy HH:mm");
+                ws.Cell(row, 5).Value = v.Edad;
+                ws.Cell(row, 6).Value = v.Talla.HasValue ? v.Talla.Value.ToString("0.00") : "";
+                ws.Cell(row, 7).Value = v.Peso.HasValue ? v.Peso.Value.ToString("0.00") : "";
+                ws.Cell(row, 8).Value = v.PresionArterial ?? "";
+                ws.Cell(row, 9).Value = v.FrecuenciaCardiaca ?? "";
+                ws.Cell(row, 10).Value = v.Temperatura.HasValue ? v.Temperatura.Value.ToString("0.0") : "";
+                ws.Cell(row, 11).Value = v.Diagnostico;
+
+                // Alternar color de filas
+                if (row % 2 == 0)
+                    ws.Range(row, 1, row, 11).Style.Fill.SetBackgroundColor(XLColor.FromHtml("#f8f9fa"));
+
+                row++;
+            }
+
+            // Total de registros al final
+            ws.Cell(row + 1, 1).Value = $"Total de registros: {lista.Count}";
+            ws.Range(row + 1, 1, row + 1, 4).Merge().Style
+                .Font.SetBold(true)
+                .Font.SetItalic(true);
+
+            // Ajustar ancho de columnas automáticamente
+            ws.Columns().AdjustToContents();
+
+            // Congelar fila de cabecera
+            ws.SheetView.FreezeRows(3);
+
+            using var stream = new MemoryStream();
+            workbook.SaveAs(stream);
+            stream.Position = 0;
+
+            var nombreArchivo = $"VisitasMedicas_{DateTime.Now:yyyyMMdd_HHmm}.xlsx";
+            return File(stream.ToArray(),
+                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                nombreArchivo);
         }
     }
 }

@@ -5,21 +5,56 @@
 }
 
 <div class="d-flex flex-column gap-4 fade-in">
-    <div class="bg-surface p-4 rounded-4 border-theme shadow-sm d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
 
-        <div class="d-flex flex-column flex-md-row gap-3 flex-grow-1" style="max-width: 700px;">
-            <div class="position-relative flex-grow-1">
+    <div class="bg-surface p-4 rounded-4 border-theme shadow-sm d-flex flex-column gap-3">
+
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+            <div class="position-relative flex-grow-1" style="max-width: 480px;">
                 <i class="bi bi-search position-absolute text-muted" style="top: 50%; left: 18px; transform: translateY(-50%);"></i>
                 <input type="text" id="searchInput" class="form-control ps-5"
                        placeholder="Buscar por nombre o matrícula..."
                        style="height: 48px; border-radius: 8px; background-color: var(--app-bg); border: 1px solid var(--border-color); box-shadow: none;">
             </div>
+
+            <a asp-action="Register" class="btn-primary-sep d-flex align-items-center justify-content-center gap-2 text-decoration-none shadow-sm" style="height: 48px; border-radius: 8px;">
+                <i class="bi bi-plus-lg"></i>
+                <span class="fw-bold">Nueva Sesión</span>
+            </a>
         </div>
 
-        <a asp-action="Register" class="btn-primary-sep d-flex align-items-center justify-content-center gap-2 text-decoration-none shadow-sm" style="height: 48px; border-radius: 8px;">
-            <i class="bi bi-plus-lg"></i>
-            <span class="fw-bold">Nueva Sesión</span>
-        </a>
+        <div class="d-flex flex-column flex-md-row align-items-md-center gap-3 flex-wrap">
+
+            <div class="d-flex align-items-center gap-2 flex-wrap">
+                <i class="bi bi-calendar-range text-muted fs-5"></i>
+                <span class="txt-body text-xs fw-bold text-nowrap">Filtrar por fecha:</span>
+                <input type="date" id="fechaInicio" class="form-control form-control-sm border-theme"
+                       style="width: 155px; border-radius: 8px; background-color: var(--app-bg);"
+                       title="Fecha inicio">
+                <span class="txt-body text-xs fw-bold">—</span>
+                <input type="date" id="fechaFin" class="form-control form-control-sm border-theme"
+                       style="width: 155px; border-radius: 8px; background-color: var(--app-bg);"
+                       title="Fecha fin">
+                <button id="btnLimpiarFechas" class="btn btn-sm btn-outline-secondary" style="border-radius: 8px;" title="Limpiar filtro de fechas">
+                    <i class="bi bi-x-circle"></i>
+                </button>
+            </div>
+
+            <div class="vr d-none d-md-block" style="height: 32px;"></div>
+
+            <button id="btnSort" class="btn btn-sm d-flex align-items-center gap-2 fw-bold px-3"
+                    style="height: 36px; border-radius: 8px; border: 1.5px solid var(--border-color); background-color: var(--app-bg);"
+                    title="Ordenar alfabéticamente">
+                <i class="bi bi-sort-alpha-down" id="sortIcon"></i>
+                <span id="sortLabel">A → Z</span>
+            </button>
+
+            <button id="btnExportarExcel" class="btn btn-sm d-flex align-items-center gap-2 fw-bold px-3"
+                    style="height: 36px; border-radius: 8px; border: 1.5px solid #198754; color: #198754; background-color: #f0fff4;"
+                    title="Exportar a Excel con el rango de fechas seleccionado">
+                <i class="bi bi-file-earmark-excel-fill"></i>
+                <span>Exportar Excel</span>
+            </button>
+        </div>
     </div>
 
     <div class="admin-card-white p-0 rounded-4 border-theme shadow-sm overflow-hidden d-flex flex-column">
@@ -37,9 +72,11 @@
                 <tbody>
                     @foreach (var p in Model)
                     {
-                        var estado = "seguimiento"; // Puedes cambiar esta lógica luego
-
-                        <tr class="border-bottom border-theme data-row" data-estado="@estado">
+                        var estado = "seguimiento";
+                        <tr class="border-bottom border-theme data-row"
+                            data-estado="@estado"
+                            data-nombre="@p.NombreCompleto?.ToLower()"
+                            data-fecha="@p.FechaVisita.ToString("yyyy-MM-dd")">
                             <td class="px-4 py-3 search-target">
                                 <div class="txt-title fw-bold fs-6">@p.NombreCompleto</div>
                                 <div class="text-muted text-xxs mt-1">
@@ -104,7 +141,6 @@
 </div>
 
 <style>
-    /* Reset de transiciones visuales para un aspecto estático y formal */
     .table-hover tbody tr:hover {
         background-color: transparent !important;
     }
@@ -118,7 +154,6 @@
         box-shadow: none !important;
     }
 
-    /* Estilos de paginación cuadrados y sólidos */
     .page-link-custom {
         border-radius: 4px !important;
         color: #333;
@@ -133,56 +168,135 @@
         border-color: var(--primary-900) !important;
         color: white !important;
     }
+
+    #btnSort:hover {
+        background-color: #e9ecef !important;
+    }
+
+    #btnExportarExcel:hover {
+        background-color: #d1e7dd !important;
+    }
 </style>
 
 @section Scripts {
     <script>
         $(document).ready(function () {
             let currentPage = 1;
+            let sortDir = 'asc';
+            const $tbody = $('#psicoTable tbody');
+
+            // ── Ordenar filas en el DOM ──────────────────────────────────────
+            function sortRows(dir) {
+                const rows = $tbody.find('tr.data-row').get();
+                rows.sort(function (a, b) {
+                    const na = $(a).data('nombre') || '';
+                    const nb = $(b).data('nombre') || '';
+                    return dir === 'asc' ? na.localeCompare(nb, 'es') : nb.localeCompare(na, 'es');
+                });
+                $.each(rows, function (_, row) { $tbody.append(row); });
+            }
+
+            // ── Filtrar y paginar ────────────────────────────────────────────
             function updateTable() {
-                let searchTerm = $('#searchInput').val().toLowerCase();
-                let rowsPerPage = parseInt($('#rowsPerPage').val());
-                let filteredRows = [];
+                const searchTerm  = $('#searchInput').val().toLowerCase();
+                const fechaInicio = $('#fechaInicio').val();
+                const fechaFin    = $('#fechaFin').val();
+                const rowsPerPage = parseInt($('#rowsPerPage').val());
+                const filteredRows = [];
 
                 $('.data-row').each(function () {
-                    let text = $(this).find('.search-target').text().toLowerCase();
-                    let mat = $(this).find('.badge').first().text().toLowerCase();
+                    const text     = $(this).find('.search-target').text().toLowerCase();
+                    const mat      = $(this).find('.badge').first().text().toLowerCase();
+                    const fechaRow = $(this).data('fecha');
 
-                    if (text.includes(searchTerm) || mat.includes(searchTerm)) {
+                    const matchSearch = !searchTerm || text.includes(searchTerm) || mat.includes(searchTerm);
+                    const matchDesde  = !fechaInicio || fechaRow >= fechaInicio;
+                    const matchHasta  = !fechaFin   || fechaRow <= fechaFin;
+
+                    if (matchSearch && matchDesde && matchHasta) {
                         filteredRows.push($(this));
                     }
                     $(this).hide();
                 });
 
-                let total = filteredRows.length;
-                let pages = Math.ceil(total / rowsPerPage) || 1;
+                const total  = filteredRows.length;
+                const pages  = Math.ceil(total / rowsPerPage) || 1;
                 if (currentPage > pages) currentPage = pages;
-                let start = (currentPage - 1) * rowsPerPage;
-                let end = Math.min(start + rowsPerPage, total);
+                const start  = (currentPage - 1) * rowsPerPage;
+                const end    = Math.min(start + rowsPerPage, total);
 
                 for (let i = start; i < end; i++) filteredRows[i].show();
 
-                $('#tableInfo').text(total === 0 ? 'Sin registros' : `Mostrando ${start + 1} a ${end} de ${total}`);
+                $('#tableInfo').text(
+                    total === 0 ? 'Sin registros' : `Mostrando ${start + 1} a ${end} de ${total}`
+                );
                 renderPagination(pages);
             }
 
             function renderPagination(totalPages) {
-                let html = `<li class="page-item ${currentPage === 1 ? 'disabled' : ''}"><a class="page-link page-link-custom" href="#" data-page="${currentPage - 1}"><i class="bi bi-chevron-left"></i></a></li>`;
+                let html = `<li class="page-item ${currentPage === 1 ? 'disabled' : ''}">
+                              <a class="page-link page-link-custom" href="#" data-page="${currentPage - 1}">
+                                <i class="bi bi-chevron-left"></i></a></li>`;
                 for (let i = 1; i <= totalPages; i++) {
-                    html += `<li class="page-item ${i === currentPage ? 'active' : ''}"><a class="page-link page-link-custom" href="#" data-page="${i}">${i}</a></li>`;
+                    html += `<li class="page-item ${i === currentPage ? 'active' : ''}">
+                               <a class="page-link page-link-custom" href="#" data-page="${i}">${i}</a></li>`;
                 }
-                html += `<li class="page-item ${currentPage === totalPages || totalPages === 0 ? 'disabled' : ''}"><a class="page-link page-link-custom" href="#" data-page="${currentPage + 1}"><i class="bi bi-chevron-right"></i></a></li>`;
+                html += `<li class="page-item ${currentPage === totalPages || totalPages === 0 ? 'disabled' : ''}">
+                           <a class="page-link page-link-custom" href="#" data-page="${currentPage + 1}">
+                             <i class="bi bi-chevron-right"></i></a></li>`;
                 $('#paginationControls').html(html);
             }
 
-            $('#searchInput, #rowsPerPage').on('input change', function() { currentPage = 1; updateTable(); });
-            $('#paginationControls').on('click', '.page-link', function(e) {
+            // ── Eventos ──────────────────────────────────────────────────────
+            $('#searchInput, #rowsPerPage, #fechaInicio, #fechaFin').on('input change', function () {
+                currentPage = 1;
+                updateTable();
+            });
+
+            $('#btnLimpiarFechas').on('click', function () {
+                $('#fechaInicio, #fechaFin').val('');
+                currentPage = 1;
+                updateTable();
+            });
+
+            $('#paginationControls').on('click', '.page-link', function (e) {
                 e.preventDefault();
                 if (!$(this).parent().hasClass('disabled')) {
                     currentPage = parseInt($(this).data('page'));
                     updateTable();
                 }
             });
+
+            // ── Botón ordenar A-Z / Z-A ──────────────────────────────────────
+            $('#btnSort').on('click', function () {
+                if (sortDir === 'asc') {
+                    sortDir = 'desc';
+                    $('#sortIcon').removeClass('bi-sort-alpha-down').addClass('bi-sort-alpha-down-alt');
+                    $('#sortLabel').text('Z → A');
+                } else {
+                    sortDir = 'asc';
+                    $('#sortIcon').removeClass('bi-sort-alpha-down-alt').addClass('bi-sort-alpha-down');
+                    $('#sortLabel').text('A → Z');
+                }
+                sortRows(sortDir);
+                currentPage = 1;
+                updateTable();
+            });
+
+            // ── Botón exportar Excel ─────────────────────────────────────────
+            $('#btnExportarExcel').on('click', function () {
+                const fi = $('#fechaInicio').val();
+                const ff = $('#fechaFin').val();
+                let url = '@Url.Action("ExportarExcel", "VisitaPsicologica")';
+                const params = [];
+                if (fi) params.push('fechaInicio=' + fi);
+                if (ff) params.push('fechaFin=' + ff);
+                if (params.length) url += '?' + params.join('&');
+                window.location.href = url;
+            });
+
+            // Init
+            sortRows(sortDir);
             updateTable();
         });
     </script>
