@@ -55,6 +55,16 @@ namespace ControlEscolar.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(Aspirante vm)
         {
+
+            if (vm.ActaNacimientoFile == null || vm.ActaNacimientoFile.Length == 0)
+                return Json(new { success = false, message = "El Acta de Nacimiento es requerida." });
+
+            if (vm.CurpPdfFile == null || vm.CurpPdfFile.Length == 0)
+                return Json(new { success = false, message = "El CURP es requerido." });
+
+            if (vm.BoletaPdfFile == null || vm.BoletaPdfFile.Length == 0)
+                return Json(new { success = false, message = "El Certificado de Estudios o Boleta es requerido." });
+
             try
             {
                 // 1. Validaciones de Negocio
