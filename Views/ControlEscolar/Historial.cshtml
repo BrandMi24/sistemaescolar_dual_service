@@ -3,191 +3,207 @@
 @model ControlEscolar.Models.HistorialViewModel
 
 @{
-    ViewData["Title"] = "Historial de Preinscripciones";
-    Layout = "_LayoutAdmin";
+    ViewData["Title"] = "Control Escolar — Historial";
+    Layout = "_LayoutControlEscolar";
 }
 
-<div class="main-container pt-5 mb-5">
-    <div class="container">
-
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <div>
-                <h2 class="fw-bold txt-primary-dark mb-1">Historial de Preinscripciones</h2>
-                <p class="txt-body small mb-0">Consulta y filtra el registro histórico de preinscripciones</p>
-            </div>
-            @* <a asp-action="Index" class="btn btn-ghost-sep px-4">
-                <i class="bi bi-arrow-left me-2"></i> Volver
-            </a> *@
-            <a asp-action="ExportarHistorialExcel"
-               asp-route-carrera="@Model.FiltroCarrera"
-               asp-route-estado="@Model.FiltroEstado"
-               asp-route-municipio="@Model.FiltroMunicipio"
-               asp-route-anio="@Model.FiltroAnio"
-               asp-route-fechaInicio="@Model.FiltroFechaInicio?.ToString("yyyy-MM-dd")"
-               asp-route-fechaFin="@Model.FiltroFechaFin?.ToString("yyyy-MM-dd")"
-               class="btn btn-primary-sep px-4">
-                <i class="bi bi-file-earmark-excel me-2"></i> Exportar Excel
+<div class="admin-card-white p-4 mb-4 shadow-sm">
+    <form method="get" asp-action="Historial" class="row g-3 align-items-end">
+        <div class="col-md-2">
+            <label class="section-label text-muted mb-2 d-block">Carrera</label>
+            <select name="carrera" class="form-select text-sm fw-semibold">
+                <option value="">Todas</option>
+                @foreach (var c in CatalogosHelper.Carreras)
+                {
+                    if (Model.FiltroCarrera == c)
+                    {
+                        <option value="@c" selected>@c</option>
+                    }
+                    else
+                    {
+                        <option value="@c">@c</option>
+                    }
+                }
+            </select>
+        </div>
+        <div class="col-md-2">
+            <label class="section-label text-muted mb-2 d-block">Estado</label>
+            <select name="estado" class="form-select text-sm fw-semibold">
+                <option value="">Todos</option>
+                @foreach (var e in Enum.GetNames(typeof(EstadoPreinscripcion)))
+                {
+                    if (Model.FiltroEstado == e)
+                    {
+                        <option value="@e" selected>@e</option>
+                    }
+                    else
+                    {
+                        <option value="@e">@e</option>
+                    }
+                }
+            </select>
+        </div>
+        <div class="col-md-1">
+            <label class="section-label text-muted mb-2 d-block">Año</label>
+            <select name="anio" class="form-select text-sm fw-semibold">
+                <option value="">Todos</option>
+                @foreach (var a in Model.AniosDisponibles)
+                {
+                    if (Model.FiltroAnio == a)
+                    {
+                        <option value="@a" selected>@a</option>
+                    }
+                    else
+                    {
+                        <option value="@a">@a</option>
+                    }
+                }
+            </select>
+        </div>
+        <div class="col-md-2">
+            <label class="section-label text-muted mb-2 d-block">Desde</label>
+            <input type="date" name="fechaInicio" value="@Model.FiltroFechaInicio?.ToString("yyyy-MM-dd")"
+                   class="form-control text-sm fw-semibold" />
+        </div>
+        <div class="col-md-2">
+            <label class="section-label text-muted mb-2 d-block">Hasta</label>
+            <input type="date" name="fechaFin" value="@Model.FiltroFechaFin?.ToString("yyyy-MM-dd")"
+                   class="form-control text-sm fw-semibold" />
+        </div>
+        <div class="col-md-3 d-flex gap-2">
+            <button type="submit" class="btn-primary-sep text-xs px-4">
+                <i class="bi bi-funnel me-2"></i> FILTRAR
+            </button>
+            <a href="@Url.Action("Historial")" class="btn-ghost-sep text-xs px-4 bg-surface">
+                LIMPIAR
             </a>
         </div>
+    </form>
+</div>
 
-        <div class="bg-surface rounded-4 shadow-sm border-theme p-4 mb-4">
-            <form method="get" asp-action="Historial" class="row g-3 align-items-end">
-                <div class="col-md-2">
-                    <label class="form-label txt-body text-xs fw-bold tracking-wide">CARRERA</label>
-                    <select name="carrera" class="form-select bg-app border-theme txt-title fw-bold">
-                        <option value="">Todas</option>
-                        @foreach (var c in CatalogosHelper.Carreras)
-                        {
-                            <option value="@c" selected="@(Model.FiltroCarrera == c)">@c</option>
-                        }
-                    </select>
-                </div>
-                <div class="col-md-2">
-                    <label class="form-label txt-body text-xs fw-bold tracking-wide">ESTADO</label>
-                    <select name="estado" class="form-select bg-app border-theme txt-title fw-bold">
-                        <option value="">Todos</option>
-                        @foreach (var e in Enum.GetNames(typeof(EstadoPreinscripcion)))
-                        {
-                            <option value="@e" selected="@(Model.FiltroEstado == e)">@e</option>
-                        }
-                    </select>
-                </div>
-                <div class="col-md-1">
-                    <label class="form-label txt-body text-xs fw-bold tracking-wide">AÑO</label>
-                    <select name="anio" class="form-select bg-app border-theme txt-title fw-bold">
-                        <option value="">Todos</option>
-                        @foreach (var a in Model.AniosDisponibles)
-                        {
-                            <option value="@a" selected="@(Model.FiltroAnio == a)">@a</option>
-                        }
-                    </select>
-                </div>
-                <div class="col-md-2">
-                    <label class="form-label txt-body text-xs fw-bold tracking-wide">DESDE</label>
-                    <input type="date" name="fechaInicio"
-                           value="@Model.FiltroFechaInicio?.ToString("yyyy-MM-dd")"
-                           class="form-control bg-app border-theme txt-title fw-bold" />
-                </div>
-                <div class="col-md-2">
-                    <label class="form-label txt-body text-xs fw-bold tracking-wide">HASTA</label>
-                    <input type="date" name="fechaFin"
-                           value="@Model.FiltroFechaFin?.ToString("yyyy-MM-dd")"
-                           class="form-control bg-app border-theme txt-title fw-bold" />
-                </div>
-                <div class="col-md-3 d-flex gap-2">
-                    <button type="submit" class="btn btn-primary-sep w-100">
-                        <i class="bi bi-funnel"></i> Filtrar
-                    </button>
-                    <a href="@Url.Action("Historial")" class="btn btn-ghost-sep w-100">
-                        <i class="bi bi-x-circle"></i> Limpiar
-                    </a>
-                </div>
-            </form>
-        </div>
-
-        <div class="row g-3 mb-4">
-            <div class="col-md-3">
-                <div class="bg-surface rounded-4 shadow-sm border-theme p-3 text-center">
-                    <div class="txt-body text-xs fw-bold tracking-wide mb-1">TOTAL</div>
-                    <h4 class="fw-bold txt-primary-dark mb-0">@Model.Preinscripciones.Count</h4>
-                </div>
+<div class="row g-3 mb-4">
+    <div class="col-12 col-md-6 col-xl-3">
+        <div class="stat-card-sep">
+            <div class="d-flex justify-content-between align-items-start mb-2">
+                <span class="stat-label">Total</span>
+                <div class="icon-circle bg-accent-light txt-primary-dark shadow-sm"><i class="bi bi-people fs-5"></i></div>
             </div>
-            <div class="col-md-3">
-                <div class="bg-surface rounded-4 shadow-sm border-theme p-3 text-center">
-                    <div class="txt-body text-xs fw-bold tracking-wide mb-1">PENDIENTES</div>
-                    <h4 class="fw-bold txt-primary-dark mb-0">
-                        @Model.Preinscripciones.Count(p => p.academiccontrol_preinscription_state == "Pendiente")
-                    </h4>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="bg-surface rounded-4 shadow-sm border-theme p-3 text-center">
-                    <div class="txt-body text-xs fw-bold tracking-wide mb-1">HABILITADAS</div>
-                    <h4 class="fw-bold txt-primary-dark mb-0">
-                        @Model.Preinscripciones.Count(p => p.academiccontrol_preinscription_state == "InscripcionHabilitada")
-                    </h4>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="bg-surface rounded-4 shadow-sm border-theme p-3 text-center">
-                    <div class="txt-body text-xs fw-bold tracking-wide mb-1">RECHAZADAS</div>
-                    <h4 class="fw-bold txt-primary-dark mb-0">
-                        @Model.Preinscripciones.Count(p => p.academiccontrol_preinscription_state == "Rechazada")
-                    </h4>
-                </div>
-            </div>
-        </div>
-
-        <div class="bg-surface rounded-4 shadow-sm border-theme p-4">
-            @if (!Model.Preinscripciones.Any())
-            {
-                <div class="text-center py-5">
-                    <i class="bi bi-inbox fs-1 txt-body opacity-50"></i>
-                    <p class="txt-body mt-3">No hay registros con los filtros aplicados.</p>
-                </div>
-            }
-            else
-            {
-                <div class="d-flex justify-content-between align-items-center mb-3">
-                    <span class="txt-body small">
-                        Mostrando <strong>@Model.Preinscripciones.Count</strong> registros
-                    </span>
-                </div>
-                <div class="table-responsive">
-                    <table class="table align-middle mb-0" style="font-size: 0.875rem;">
-                        <thead>
-                            <tr class="txt-body border-bottom border-theme">
-                                <th class="fw-bold pb-3">Folio</th>
-                                <th class="fw-bold pb-3">Aspirante</th>
-                                <th class="fw-bold pb-3">Carrera</th>
-                                <th class="fw-bold pb-3">Municipio</th>
-                                <th class="fw-bold pb-3">Promedio</th>
-                                <th class="fw-bold pb-3">Fecha</th>
-                                <th class="fw-bold pb-3">Estado</th>
-                                <th class="fw-bold pb-3 text-end">Detalle</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach (var item in Model.Preinscripciones)
-                            {
-                                <tr class="border-bottom border-theme">
-                                    <td class="fw-bold txt-primary-dark">
-                                        @(item.academiccontrol_preinscription_folio ?? $"#{item.academiccontrol_preinscription_ID}")
-                                    </td>
-                                    <td>
-                                        <div class="fw-bold txt-title">
-                                            @($"{item.DatosPersonales?.academiccontrol_preinscription_personaldata_paternalSurname} {item.DatosPersonales?.academiccontrol_preinscription_personaldata_maternalSurname}, {item.DatosPersonales?.academiccontrol_preinscription_personaldata_name}")
-                                        </div>
-                                        <small class="txt-body">@item.DatosPersonales?.academiccontrol_preinscription_personaldata_CURP</small>
-                                    </td>
-                                    <td class="txt-body">@item.academiccontrol_preinscription_careerRequested</td>
-                                    <td class="txt-body">@item.Domicilio?.academiccontrol_preinscription_address_municipality</td>
-                                    <td class="txt-body">@item.academiccontrol_preinscription_average.ToString("F1")</td>
-                                    <td class="txt-body">
-                                        @item.academiccontrol_preinscription_registrationDate.ToString("dd/MM/yyyy")
-                                    </td>
-                                    <td>
-                                        @await Html.PartialAsync("_StatusBadge", null,
-                                        new ViewDataDictionary(ViewData)
-                                                                {
-                                                                { "StatusValue", item.academiccontrol_preinscription_state },
-                                                                { "StatusType", "preinscripcion" }
-                                                                })
-                            </td>
-                            <td class="text-end">
-                                <a asp-controller="Preinscripciones"
-                                   asp-action="Details"
-                                   asp-route-id="@item.academiccontrol_preinscription_ID"
-                                   class="btn btn-sm btn-ghost-sep px-3">
-                                    <i class="bi bi-eye me-1"></i> Ver
-                                </a>
-                            </td>
-                        </tr>
-                                                }
-                        </tbody>
-                    </table>
-                </div>
-            }
+            <div class="stat-value">@Model.Preinscripciones.Count</div>
+            <span class="text-xxs txt-body mt-1 fw-medium">Registros encontrados</span>
         </div>
     </div>
+    <div class="col-12 col-md-6 col-xl-3">
+        <div class="stat-card-sep">
+            <div class="d-flex justify-content-between align-items-start mb-2">
+                <span class="stat-label">Pendientes</span>
+                <div class="icon-circle bg-warning-100 shadow-sm" style="color: var(--warning-700);"><i class="bi bi-hourglass-split fs-5"></i></div>
+            </div>
+            <div class="stat-value">@Model.Preinscripciones.Count(p => p.academiccontrol_preinscription_state == "Pendiente")</div>
+            <span class="text-xxs txt-body mt-1 fw-medium">En espera de validación</span>
+        </div>
+    </div>
+    <div class="col-12 col-md-6 col-xl-3">
+        <div class="stat-card-sep" style="border-left: 3px solid var(--success-700);">
+            <div class="d-flex justify-content-between align-items-start mb-2">
+                <span class="stat-label">Habilitadas</span>
+                <div class="icon-circle bg-success-100 shadow-sm" style="color: var(--success-700);"><i class="bi bi-unlock fs-5"></i></div>
+            </div>
+            <div class="stat-value">@Model.Preinscripciones.Count(p => p.academiccontrol_preinscription_state == "InscripcionHabilitada")</div>
+            <span class="text-xxs txt-body mt-1 fw-medium">Listas para inscripción</span>
+        </div>
+    </div>
+    <div class="col-12 col-md-6 col-xl-3">
+        <div class="stat-card-sep" style="border-left: 3px solid #991B1B;">
+            <div class="d-flex justify-content-between align-items-start mb-2">
+                <span class="stat-label">Rechazadas</span>
+                <div class="icon-circle shadow-sm" style="background: #FEE2E2; color: #991B1B;"><i class="bi bi-x-circle fs-5"></i></div>
+            </div>
+            <div class="stat-value">@Model.Preinscripciones.Count(p => p.academiccontrol_preinscription_state == "Rechazada")</div>
+            <span class="text-xxs txt-body mt-1 fw-medium">No aprobadas</span>
+        </div>
+    </div>
+</div>
+
+<div class="admin-card-white shadow-sm mb-5">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center border-bottom pb-3 mb-4 gap-3">
+        <h6 class="txt-title fw-bold text-xs text-uppercase tracking-wide mb-0">
+            <i class="bi bi-table me-2"></i>Padrón de Preinscripciones
+        </h6>
+        <div class="d-flex gap-2">
+            <span class="text-xxs text-muted fw-bold align-self-center">@Model.Preinscripciones.Count registros</span>
+            <form method="get" asp-action="ExportarHistorialExcel">
+                <input type="hidden" name="carrera" value="@Model.FiltroCarrera" />
+                <input type="hidden" name="estado" value="@Model.FiltroEstado" />
+                <input type="hidden" name="municipio" value="@Model.FiltroMunicipio" />
+                <input type="hidden" name="anio" value="@Model.FiltroAnio" />
+                <input type="hidden" name="fechaInicio" value="@Model.FiltroFechaInicio?.ToString("yyyy-MM-dd")" />
+                <input type="hidden" name="fechaFin" value="@Model.FiltroFechaFin?.ToString("yyyy-MM-dd")" />
+                <button type="submit" class="btn-primary-sep text-xxs py-2 px-3">
+                    <i class="bi bi-file-earmark-excel me-2"></i> EXPORTAR EXCEL
+                </button>
+            </form>
+        </div>
+    </div>
+
+    @if (!Model.Preinscripciones.Any())
+    {
+        <div class="text-center py-5">
+            <i class="bi bi-inbox fs-1 text-muted opacity-50"></i>
+            <p class="text-muted mt-3 text-sm">No hay registros con los filtros aplicados.</p>
+        </div>
+    }
+    else
+    {
+        <div class="table-responsive custom-scroll" style="max-height: 600px;">
+            <table class="table table-hover align-middle text-sm table-borderless mb-0">
+                <thead class="bg-primary-dark txt-white text-xxs fw-bold" style="position: sticky; top: 0; z-index: 10;">
+                    <tr>
+                        <th class="ps-4 border-0 py-3">Folio</th>
+                        <th class="border-0 py-3">Aspirante</th>
+                        <th class="border-0 py-3">Carrera</th>
+                        <th class="border-0 py-3">Municipio</th>
+                        <th class="text-center border-0 py-3">Promedio</th>
+                        <th class="border-0 py-3">Fecha</th>
+                        <th class="border-0 py-3">Estado</th>
+                        <th class="pe-4 text-end border-0 py-3">Detalle</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model.Preinscripciones)
+                    {
+                        <tr>
+                            <td class="ps-4 fw-bold txt-primary-dark">
+                                @(item.academiccontrol_preinscription_folio ?? $"#{item.academiccontrol_preinscription_ID}")
+                            </td>
+                            <td>
+                                <div class="fw-bold txt-title text-xs">
+                                    @($"{item.DatosPersonales?.academiccontrol_preinscription_personaldata_paternalSurname} {item.DatosPersonales?.academiccontrol_preinscription_personaldata_maternalSurname}, {item.DatosPersonales?.academiccontrol_preinscription_personaldata_name}")
+                                </div>
+                                <div class="text-xxs text-muted">@item.DatosPersonales?.academiccontrol_preinscription_personaldata_CURP</div>
+                            </td>
+                            <td class="text-muted text-xs" style="max-width: 200px;">@item.academiccontrol_preinscription_careerRequested</td>
+                            <td class="text-muted text-xs">@item.Domicilio?.academiccontrol_preinscription_address_municipality</td>
+                            <td class="text-center fw-bold">@item.academiccontrol_preinscription_average.ToString("F1")</td>
+                            <td class="text-muted text-xs">@item.academiccontrol_preinscription_registrationDate.ToString("dd/MM/yyyy")</td>
+                            <td>
+                                @await Html.PartialAsync("_StatusBadge", null, new ViewDataDictionary(ViewData)
+                                {
+                                    { "StatusValue", item.academiccontrol_preinscription_state },
+                                                { "StatusType", "preinscripcion" }
+                                })
+                    </td>
+                    <td class="pe-4 text-end">
+                        <a asp-controller="Preinscripciones"
+                           asp-action="Details"
+                           asp-route-id="@item.academiccontrol_preinscription_ID"
+                           class="btn btn-sm btn-light border text-xxs fw-bold px-3">
+                            <i class="bi bi-eye me-1"></i> Ver
+                        </a>
+                    </td>
+                </tr>
+                                }
+                </tbody>
+            </table>
+        </div>
+    }
 </div>
