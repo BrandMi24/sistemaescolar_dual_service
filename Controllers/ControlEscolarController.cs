@@ -81,14 +81,6 @@ namespace ControlEscolar.Controllers
             if (entidad == null) return NotFound();
 
             entidad.academiccontrol_preinscription_state = EstadoPreinscripcion.Validada.ToString();
-            
-            //_context.AuditLogs.Add(new AuditLogEntity
-            //{
-            //    academiccontrol_audit_action = "Validar",
-            //    academiccontrol_audit_entityName = "Preinscripcion",
-            //    academiccontrol_audit_entityID = entidad.academiccontrol_preinscription_ID,
-            //    academiccontrol_audit_user = User.Identity?.Name ?? "Sistema"
-            //});
 
             await _context.SaveChangesAsync();
 
@@ -122,14 +114,6 @@ namespace ControlEscolar.Controllers
             }
 
             entidad.academiccontrol_preinscription_state = EstadoPreinscripcion.InscripcionHabilitada.ToString();
-            
-            //_context.AuditLogs.Add(new AuditLogEntity
-            //{
-            //    academiccontrol_audit_action = "Habilitar Inscripcion",
-            //    academiccontrol_audit_entityName = "Preinscripcion",
-            //    academiccontrol_audit_entityID = entidad.academiccontrol_preinscription_ID,
-            //    academiccontrol_audit_user = User.Identity?.Name ?? "Sistema"
-            //});
 
             await _context.SaveChangesAsync();
 
@@ -155,15 +139,6 @@ namespace ControlEscolar.Controllers
             if (entidad == null) return NotFound();
 
             entidad.academiccontrol_preinscription_state = EstadoPreinscripcion.Rechazada.ToString();
-            
-            //_context.AuditLogs.Add(new AuditLogEntity
-            //{
-            //    academiccontrol_audit_action = "Rechazar",
-            //    academiccontrol_audit_entityName = "Preinscripcion",
-            //    academiccontrol_audit_entityID = entidad.academiccontrol_preinscription_ID,
-            //    academiccontrol_audit_user = User.Identity?.Name ?? "Sistema",
-            //    academiccontrol_audit_details = motivo
-            //});
 
             await _context.SaveChangesAsync();
 
@@ -182,7 +157,38 @@ namespace ControlEscolar.Controllers
             return RedirectToAction(nameof(Index), new { tab = "preinscripciones" });
         }
 
-        // VALIDAR ACTA DE NACIMIENTO
+        //// VALIDAR ACTA DE NACIMIENTO
+        //[HttpPost]
+        //public async Task<IActionResult> ValidarActa(int id)
+        //{
+        //    var entidad = await _context.Inscripciones
+        //        .FirstOrDefaultAsync(i => i.academiccontrol_inscription_ID == id);
+
+        //    if (entidad == null) return NotFound();
+
+        //    entidad.academiccontrol_inscription_actaValidada = true;
+        //    await _context.SaveChangesAsync();
+
+        //    TempData["SuccessMessage"] = "Acta de nacimiento validada.";
+        //    return RedirectToAction(nameof(Index), new { tab = "inscripciones" });
+        //}
+
+        //// VALIDAR CURP
+        //[HttpPost]
+        //public async Task<IActionResult> ValidarCurp(int id)
+        //{
+        //    var entidad = await _context.Inscripciones
+        //        .FirstOrDefaultAsync(i => i.academiccontrol_inscription_ID == id);
+
+        //    if (entidad == null) return NotFound();
+
+        //    entidad.academiccontrol_inscription_curpValidado = true;
+        //    await _context.SaveChangesAsync();
+
+        //    TempData["SuccessMessage"] = "CURP validado.";
+        //    return RedirectToAction(nameof(Index), new { tab = "inscripciones" });
+        //}
+
         [HttpPost]
         public async Task<IActionResult> ValidarActa(int id)
         {
@@ -194,11 +200,24 @@ namespace ControlEscolar.Controllers
             entidad.academiccontrol_inscription_actaValidada = true;
             await _context.SaveChangesAsync();
 
+            var preinscripcion = await _context.Preinscripciones
+                .Include(p => p.DatosPersonales)
+                .FirstOrDefaultAsync(p => p.academiccontrol_preinscription_ID == entidad.academiccontrol_inscription_preinscriptionID);
+
+            if (preinscripcion?.DatosPersonales?.academiccontrol_preinscription_personaldata_email != null)
+            {
+                await _emailService.EnviarAsync(
+                    preinscripcion.DatosPersonales.academiccontrol_preinscription_personaldata_email,
+                    "Documento Validado — Acta de Nacimiento",
+                    $"Estimado(a) {preinscripcion.DatosPersonales.academiccontrol_preinscription_personaldata_name}, " +
+                    $"su Acta de Nacimiento ha sido validada correctamente. En breve se revisarán los demás documentos."
+                );
+            }
+
             TempData["SuccessMessage"] = "Acta de nacimiento validada.";
             return RedirectToAction(nameof(Index), new { tab = "inscripciones" });
         }
 
-        // VALIDAR CURP
         [HttpPost]
         public async Task<IActionResult> ValidarCurp(int id)
         {
@@ -209,6 +228,20 @@ namespace ControlEscolar.Controllers
 
             entidad.academiccontrol_inscription_curpValidado = true;
             await _context.SaveChangesAsync();
+
+            var preinscripcion = await _context.Preinscripciones
+                .Include(p => p.DatosPersonales)
+                .FirstOrDefaultAsync(p => p.academiccontrol_preinscription_ID == entidad.academiccontrol_inscription_preinscriptionID);
+
+            if (preinscripcion?.DatosPersonales?.academiccontrol_preinscription_personaldata_email != null)
+            {
+                await _emailService.EnviarAsync(
+                    preinscripcion.DatosPersonales.academiccontrol_preinscription_personaldata_email,
+                    "Documento Validado — CURP",
+                    $"Estimado(a) {preinscripcion.DatosPersonales.academiccontrol_preinscription_personaldata_name}, " +
+                    $"su CURP ha sido validado correctamente. En breve se revisarán los demás documentos."
+                );
+            }
 
             TempData["SuccessMessage"] = "CURP validado.";
             return RedirectToAction(nameof(Index), new { tab = "inscripciones" });
@@ -283,10 +316,23 @@ namespace ControlEscolar.Controllers
             {
                 await _emailService.EnviarAsync(
                     entidad.Preinscripcion.DatosPersonales.academiccontrol_preinscription_personaldata_email,
-                    "Inscripción Aprobada",
+                    "Documento Validado — Boleta de Estudios",
                     $"Estimado(a) {entidad.Preinscripcion.DatosPersonales.academiccontrol_preinscription_personaldata_name}, " +
-                    $"su inscripción ha sido aprobada. Su matrícula es: {entidad.academiccontrol_inscription_enrollment}."
+                    $"su Boleta de Estudios ha sido validada correctamente."
                 );
+
+                // Si los 3 están validados, mandar correo de documentos completos
+                if (entidad.academiccontrol_inscription_actaValidada &&
+                    entidad.academiccontrol_inscription_curpValidado &&
+                    entidad.academiccontrol_inscription_boletaValidada)
+                {
+                    await _emailService.EnviarAsync(
+                        entidad.Preinscripcion.DatosPersonales.academiccontrol_preinscription_personaldata_email,
+                        "Documentación Completa — Inscripción en Proceso",
+                        $"Estimado(a) {entidad.Preinscripcion.DatosPersonales.academiccontrol_preinscription_personaldata_name}, " +
+                        $"todos sus documentos han sido validados correctamente. Su inscripción está siendo procesada."
+                    );
+                }
             }
 
             TempData["SuccessMessage"] = $"Inscripción aprobada. Matrícula: {entidad.academiccontrol_inscription_enrollment}.";
