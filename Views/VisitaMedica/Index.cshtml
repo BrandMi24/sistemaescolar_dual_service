@@ -73,6 +73,8 @@
                     @foreach (var alumno in Model)
                     {
                         var estado = "seguimiento";
+                        var estadoClase = "border-success text-success bg-success bg-opacity-10";
+                        var estadoTexto = "SEGUIMIENTO";
                         <tr class="border-bottom border-theme data-row"
                             data-nombre="@alumno.NombreCompleto?.ToLower()"
                             data-fecha="@alumno.FechaVisita.ToString("yyyy-MM-dd")">
@@ -97,7 +99,7 @@
                             </td>
                             <td class="text-end px-4">
                                 <div class="d-flex justify-content-end gap-2">
-                                    <a asp-action="History" asp-route-id="@alumno.Matricula" 
+                                    <a asp-action="History" asp-route-id="@alumno.Matricula"
                                        class="btn btn-sm border-0 bg-primary-100 txt-primary-dark rounded-2 py-1 px-2">
                                         <i class="bi bi-folder2-open fs-6"></i>
                                     </a>
@@ -216,7 +218,7 @@
                 const start  = (currentPage - 1) * rowsPerPage;
                 const end    = Math.min(start + rowsPerPage, total);
 
-                for (let i = startIndex; i < endIndex; i++) {
+                for (let i = start; i < end; i++) {
                     filteredRows[i].show();
                 }
 
