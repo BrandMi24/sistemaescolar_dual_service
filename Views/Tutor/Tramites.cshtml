@@ -167,10 +167,16 @@
                         <div class="col-md-5 text-center text-muted text-xxs fw-bold text-uppercase tracking-widest" id="mensajeTramiteCerradoFooter" style="display:none;">
                             <i class="bi bi-lock-fill me-1"></i> Expediente Cerrado
                         </div>
-                        <div class="col-md-4 text-end" id="accionesPendientesFooter" style="display:none;">
-                            <button type="button" id="btnRechazarFooter" onclick="confirmarDictamen('Rechazado')" class="btn btn-sm btn-outline-danger px-4 rounded-2 fw-bold text-xxs tracking-widest py-2" disabled>RECHAZAR</button>
-                            <button type="button" id="btnAceptarFooter" onclick="confirmarDictamen('Aprobado')" class="btn btn-sm px-4 rounded-2 fw-bold text-xxs tracking-widest ms-2 py-2" style="background-color: #13322B; color: white;" disabled>APROBAR</button>
-                        </div>
+<div class="col-md-4 text-end" id="accionesPendientesFooter" style="display:none;">
+    <button type="button" id="btnRechazarFooter" onclick="confirmarDictamen('Rechazado')" class="btn btn-sm btn-outline-danger px-4 rounded-2 fw-bold text-xxs tracking-widest py-2" disabled>RECHAZAR</button>
+    <button type="button" id="btnAceptarFooter" onclick="confirmarDictamen('Aprobado')" class="btn btn-sm px-4 rounded-2 fw-bold text-xxs tracking-widest ms-2 py-2" style="background-color: #13322B; color: white;" disabled>APROBAR</button>
+</div>
+
+<div class="col-md-4 text-end" id="accionesReversionFooter" style="display:none;">
+    <button type="button" id="btnToggleEstatus" class="btn btn-sm btn-outline-secondary px-4 rounded-2 fw-bold text-xxs tracking-widest py-2" onclick="toggleEstatus()">
+        <i class="bi bi-arrow-left-right me-1"></i> <span id="textToggle">REVERTIR</span>
+    </button>
+</div>
                     </div>
                     <input type="hidden" name="id" id="inputSolicitudId" />
                     <input type="hidden" name="estatus" id="inputEstatus" />
@@ -265,7 +271,6 @@
 
         window.changePage = (p) => { if (p > 0) { currentPage = p; updateTable(); } };
 
-        // LÓGICA DE REVISIÓN (MODAL)
 // LÓGICA DE REVISIÓN (MODAL) - LIMPIA Y REAL
         $(document).on('click', '.btn-revisar', function() {
             const data = $(this).data();
@@ -275,9 +280,11 @@
             $('#modalTipoTramite').text(data.tipo);
             $('#modalGradoGrupoHist').text(`GRUPO: ${data.grado}° "${data.grupo}"`);
             $('#inputSolicitudId').val(data.id);
-
+            const estatus = data.estatus.toLowerCase();
             const isPendiente = data.estatus.toLowerCase() === "pendiente";
-            $('#accionesPendientesFooter, #contenedorObservacionesFooter').toggle(isPendiente);
+            $('#accionesPendientesFooter').toggle(isPendiente);
+    $('#contenedorObservacionesFooter').toggle(isPendiente);
+    $('#accionesReversionFooter').toggle(!isPendiente);
             $('#mensajeTramiteCerradoFooter').toggle(!isPendiente);
 
             $('#pdfContainer').html('<div class="text-center opacity-25"><i class="bi bi-file-earmark-text mb-3" style="font-size: 4rem;"></i><p class="text-xxs fw-bold text-uppercase">Cargando archivos...</p></div>');
@@ -407,5 +414,34 @@ $('#btnDescargaCarpeta').on('click', function() {
         Swal.fire('Error', 'No se pudo identificar el trámite para descargar.', 'error');
     }
 });
+function toggleEstatus() {
+const idSolicitud = $('#inputSolicitudId').val();
+    
+    Swal.fire({
+        title: '¿Revertir a Pendiente?',
+        text: "Se reiniciará todo el trámite y sus documentos.",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#6c757d',
+        confirmButtonText: 'Sí, revertir'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            fetch('/Tramites/RevertirEstatus', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(parseInt(idSolicitud))
+            })
+            .then(r => r.json())
+            .then(data => {
+                if(data.success) {
+                    // Limpiamos cache y forzamos recarga total
+                    window.location.href = window.location.pathname + '?t=' + new Date().getTime();
+                } else {
+                    Swal.fire('Error', data.message, 'error');
+                }
+            });
+        }
+    });
+}
     </script>
 }

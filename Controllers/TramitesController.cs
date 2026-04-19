@@ -388,5 +388,14 @@ namespace ControlEscolar.Controllers
 
             return Json(new { success = true });
         }
+        [HttpPost]
+        public async Task<IActionResult> RevertirEstatus([FromBody] int idSolicitud)
+        {
+            // Ejecutas un SP que cambie el estatus a 'Pendiente' y borre observaciones
+            await _context.Database.ExecuteSqlInterpolatedAsync(
+                $"EXEC sp_tramites @Option='tramites_revertir_estatus', @ID={idSolicitud}"
+            );
+            return Json(new { success = true });
+        }
     }
 }
