@@ -16,13 +16,14 @@ using System.Threading.Tasks;
 
 namespace ControlEscolar.Controllers
 {
+    [Authorize]
     [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
     public class TramitesController : Controller
     {
         private readonly ApplicationDbContext _context;
         private readonly IWebHostEnvironment _webHostEnvironment;
 
-        public TramitesController(ApplicationDbContext context, IWebHostEnvironment webHostEnvironment, UserManager<IdentityUser> userManager)
+        public TramitesController(ApplicationDbContext context, IWebHostEnvironment webHostEnvironment)
         {
             _context = context;
             _webHostEnvironment = webHostEnvironment;
@@ -133,29 +134,14 @@ namespace ControlEscolar.Controllers
 
                 string timeStamp = DateTime.Now.ToString("yyyyMMdd_HHmmss");
                 string nombreCarpetaMaestra = $"{info.Matricula}_{info.Nombre.Replace(" ", "_")}_{timeStamp}";
+
+                // RUTA PLANA: Sin subcarpeta Carpetas_ZIP
                 string pathMaestra = Path.Combine(_webHostEnvironment.WebRootPath, "uploads", "tramites", nombreCarpetaMaestra);
-                string pathZipsRaiz = Path.Combine(pathMaestra, "Carpetas_ZIP");
 
                 if (!Directory.Exists(pathMaestra)) Directory.CreateDirectory(pathMaestra);
-                if (!Directory.Exists(pathZipsRaiz)) Directory.CreateDirectory(pathZipsRaiz);
 
-                string nombreTramite = idTramiteLocal switch
-                {
-                    1 => "Tramite_de_Titulo",
-                    2 => "Certificacion_de_Estudios",
-                    3 => "Cursos_de_Extension",
-                    4 => "Cursos_Empresariales",
-                    5 => "Cursos_Regulares",
-                    6 => "Inscripcion_Bachillerato",
-                    7 => "Reconocimiento_Competencia",
-                    _ => "Tramite_General"
-                };
-
-                string nombreCarpetaTramite = $"{nombreTramite.Replace(" ", "_")}_{timeStamp}";
-                string folderPathTramite = Path.Combine(pathZipsRaiz, nombreCarpetaTramite);
-                if (!Directory.Exists(folderPathTramite)) Directory.CreateDirectory(folderPathTramite);
-
-                string rutaRelativaBD = Path.Combine(nombreCarpetaMaestra, "Carpetas_ZIP", nombreCarpetaTramite);
+                // La ruta que guardamos en BD es simplemente el nombre de la carpeta (estructura plana)
+                string rutaRelativaBD = nombreCarpetaMaestra;
 
                 var resultadoCabecera = _context.Set<TramiteResult>()
                     .FromSqlInterpolated($"EXEC sp_tramites @Option='tramites_solicitud_insert', @ID={userIdActual}, @TramiteID={idTramiteLocal}, @ArchivoPath={rutaRelativaBD}")
@@ -166,7 +152,6 @@ namespace ControlEscolar.Controllers
 
                 int nuevaSolicitudId = resultadoCabecera.Id;
 
-                // USAMOS EL DBSET REAL AQUÍ
                 var requisitos = await _context.TramitesRequisitos
                     .Where(r => r.id_tramite == idTramiteLocal)
                     .OrderBy(r => r.id_requisito).ToListAsync();
@@ -182,7 +167,9 @@ namespace ControlEscolar.Controllers
                     {
                         var archivoActual = archivos[indexArchivoActual];
                         fileNameFinal = $"{req.nombre_documento.Replace(" ", "_").Replace("/", "_")}_{timeStamp}{Path.GetExtension(archivoActual.FileName).ToLower()}";
-                        using (var stream = new FileStream(Path.Combine(folderPathTramite, fileNameFinal), FileMode.Create))
+
+                        // Guardamos directamente en la carpeta del alumno
+                        using (var stream = new FileStream(Path.Combine(pathMaestra, fileNameFinal), FileMode.Create))
                         {
                             await archivoActual.CopyToAsync(stream);
                         }
@@ -211,6 +198,7 @@ namespace ControlEscolar.Controllers
             return Json(requisitos.Select(r => new { id_requisito = r.IdRequisito, nombre_documento = r.NombreRequisito }).ToList());
         }
 
+        [Authorize]
         public async Task<IActionResult> Gestion(string estatus = "Todos")
         {
             var listado = _context.Set<DetalleSolicitudViewModel>()
@@ -240,13 +228,16 @@ namespace ControlEscolar.Controllers
 
             if (!archivos.Any()) return NotFound("No hay archivos para descargar.");
 
+            // Buscamos directo en la ruta base
             string folderPath = Path.Combine(_webHostEnvironment.WebRootPath, "uploads", "tramites", archivos.First().ArchivoPath);
+
             using (var memoryStream = new MemoryStream())
             {
                 using (var archive = new ZipArchive(memoryStream, ZipArchiveMode.Create, true))
                 {
                     foreach (var doc in archivos)
                     {
+                        // Solo unimos folderPath y nombre de archivo, sin subcarpetas extra
                         string filePath = Path.Combine(folderPath, doc.NombreArchivoFisico);
                         if (System.IO.File.Exists(filePath)) archive.CreateEntryFromFile(filePath, doc.NombreArchivoFisico);
                     }
@@ -284,14 +275,28 @@ namespace ControlEscolar.Controllers
         [HttpPost]
         public async Task<IActionResult> ActualizarEstatusDocumento([FromBody] System.Text.Json.JsonElement data)
         {
-            int idSol = data.GetProperty("idSolicitud").GetInt32();
-            int idReq = data.GetProperty("idRequisito").GetInt32();
-            string estatus = data.GetProperty("estatus").GetString() ?? "Pendiente";
+            try
+            {
+                int idSol = data.GetProperty("idSolicitud").GetInt32();
+                int idReq = data.GetProperty("idRequisito").GetInt32();
+                string estatus = data.GetProperty("estatus").GetString();
 
-            await _context.Database.ExecuteSqlInterpolatedAsync(
-                $"EXEC sp_tramites @Option='tramites_detalle_documento_actualizar_estatus', @ID={idSol}, @RequisitoID={idReq}, @Estatus={estatus}"
-            );
-            return Ok(new { success = true });
+                // Ejecutar y capturar resultado
+                var result = await _context.Database.ExecuteSqlInterpolatedAsync(
+                    $"EXEC sp_tramites @Option='tramites_detalle_documento_actualizar_estatus', @ID={idSol}, @RequisitoID={idReq}, @Estatus={estatus}"
+                );
+
+                if (result == 0) // El SP devolvió 0 filas afectadas
+                {
+                    return BadRequest("El SP no encontró el registro para actualizar. Revisa los IDs.");
+                }
+
+                return Ok(new { success = true });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
         }
 
         [HttpPost]

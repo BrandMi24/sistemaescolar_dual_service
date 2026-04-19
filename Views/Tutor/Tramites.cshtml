@@ -205,50 +205,7 @@
         let matriculaActiva = "";
 
         $(document).ready(function () {
-            
-            // ==========================================
-            // INYECCIÓN DE DATOS DE PRUEBA (DUMMIES)
-            // ==========================================
-            if ($('#tramitesBody .data-row').length === 0) {
-                const dummies = [
-                    { Id: 101, Fecha: '17/04/2026', Matricula: '24001504', Nombre: 'Perez Cadena Roberto', Grado: 4, Grupo: 'A', Tipo: 'Inscripción', Estatus: 'Pendiente', IdTramite: 1, ArchivoPath: 'f1' },
-                    { Id: 102, Fecha: '16/04/2026', Matricula: '24001892', Nombre: 'García González Luis', Grado: 1, Grupo: 'C', Tipo: 'Beca', Estatus: 'Aprobado', IdTramite: 2, ArchivoPath: 'f2' },
-                    { Id: 103, Fecha: '15/04/2026', Matricula: '24002010', Nombre: 'Martínez López Ana', Grado: 4, Grupo: 'A', Tipo: 'Inscripción', Estatus: 'Rechazado', IdTramite: 1, ArchivoPath: 'f3' },
-                    { Id: 104, Fecha: '14/04/2026', Matricula: '24003055', Nombre: 'Hernández Ruiz Carlos', Grado: 2, Grupo: 'B', Tipo: 'Servicio Social', Estatus: 'Pendiente', IdTramite: 3, ArchivoPath: 'f4' },
-                    { Id: 105, Fecha: '12/04/2026', Matricula: '24004088', Nombre: 'López Díaz María', Grado: 6, Grupo: 'A', Tipo: 'Titulación', Estatus: 'Pendiente', IdTramite: 4, ArchivoPath: 'f5' },
-                    { Id: 106, Fecha: '10/04/2026', Matricula: '24005112', Nombre: 'Torres Garza Fernando', Grado: 1, Grupo: 'A', Tipo: 'Inscripción', Estatus: 'Pendiente', IdTramite: 1, ArchivoPath: 'f6' },
-                    { Id: 107, Fecha: '08/04/2026', Matricula: '24006223', Nombre: 'Ramírez Silva Valeria', Grado: 4, Grupo: 'C', Tipo: 'Beca', Estatus: 'Aprobado', IdTramite: 2, ArchivoPath: 'f7' }
-                ];
 
-                let htmlDummies = '';
-                dummies.forEach(item => {
-                    let badgeClass = item.Estatus === "Pendiente" ? "bg-warning bg-opacity-10 text-warning border-warning" : 
-                                     item.Estatus === "Rechazado" ? "bg-error-100 text-danger border-danger" : "bg-success-100 text-success border-success";
-                    
-                    htmlDummies += `
-                        <tr class="border-bottom border-light hover-bg-app data-row" 
-                            data-estatus="${item.Estatus}" 
-                            data-search="${item.Id} ${item.Nombre} ${item.Matricula}">
-                            <td class="px-4 py-3 text-center"><span class="txt-primary-dark fw-bold text-xs">#${item.Id}</span></td>
-                            <td class="text-secondary fw-medium text-xs">${item.Fecha}</td>
-                            <td class="txt-title fw-bold text-xs">${item.Matricula}</td>
-                            <td class="txt-title fw-bold text-xs text-uppercase">${item.Nombre}</td>
-                            <td class="text-center text-secondary fw-bold text-xs">${item.Grado}° "${item.Grupo}"</td>
-                            <td class="text-xs fw-bold text-uppercase tracking-tighter">${item.Tipo}</td>
-                            <td class="text-center">
-                                <span class="badge rounded-pill px-3 py-2 text-xxs fw-bold border ${badgeClass}">${item.Estatus.toUpperCase()}</span>
-                            </td>
-                            <td class="text-end px-4">
-                                <button type="button" class="btn btn-sm border-0 bg-primary-dark text-white rounded-2 py-1 px-3 text-xxs fw-bold tracking-widest btn-revisar shadow-sm"
-                                        data-id="${item.Id}" data-idtramite="${item.IdTramite}" data-nombre="${item.Nombre}" data-matricula="${item.Matricula}" data-grado="${item.Grado}" data-grupo="${item.Grupo}" data-tipo="${item.Tipo}" data-archivopath="${item.ArchivoPath}" data-estatus="${item.Estatus}">
-                                    REVISAR
-                                </button>
-                            </td>
-                        </tr>`;
-                });
-                $('#tramitesBody').html(htmlDummies);
-            }
-            // ==========================================
 
             updateTable();
 
@@ -309,6 +266,7 @@
         window.changePage = (p) => { if (p > 0) { currentPage = p; updateTable(); } };
 
         // LÓGICA DE REVISIÓN (MODAL)
+// LÓGICA DE REVISIÓN (MODAL) - LIMPIA Y REAL
         $(document).on('click', '.btn-revisar', function() {
             const data = $(this).data();
             matriculaActiva = data.matricula;
@@ -322,26 +280,22 @@
             $('#accionesPendientesFooter, #contenedorObservacionesFooter').toggle(isPendiente);
             $('#mensajeTramiteCerradoFooter').toggle(!isPendiente);
 
-            $('#pdfContainer').html('<div class="text-center opacity-25"><i class="bi bi-file-earmark-text mb-3" style="font-size: 4rem;"></i><p class="text-xxs fw-bold text-uppercase">Seleccione un archivo</p></div>');
+            $('#pdfContainer').html('<div class="text-center opacity-25"><i class="bi bi-file-earmark-text mb-3" style="font-size: 4rem;"></i><p class="text-xxs fw-bold text-uppercase">Cargando archivos...</p></div>');
             
             const $lista = $('#listaDocumentos').html('<div class="text-center p-4"><div class="spinner-border spinner-border-sm text-secondary"></div></div>');
             
-            // SIMULACIÓN DE DOCUMENTOS DE PRUEBA
-            const mockRequisitos = [
-                { estatus: "Pendiente", nombreArchivoFisico: "null", esFotografia: false, nombreRequisito: "Acta de Nacimiento", idRequisito: 1 },
-                { estatus: "Pendiente", nombreArchivoFisico: "null", esFotografia: false, nombreRequisito: "Certificado de Secundaria", idRequisito: 2 },
-                { estatus: "Pendiente", nombreArchivoFisico: "null", esFotografia: false, nombreRequisito: "CURP Actualizada", idRequisito: 3 }
-            ];
-
-            const dataPromise = data.id < 2000 
-                ? Promise.resolve({ json: () => Promise.resolve(mockRequisitos) })
-                : fetch(`/Tramites/ObtenerDetalleRequisitos?idSolicitud=${data.id}`);
-
-            dataPromise.then(r => r.json()).then(requisitos => {
+            // LLAMADA REAL AL SERVIDOR
+            fetch(`/Tramites/ObtenerDetalleRequisitos?idSolicitud=${data.id}`)
+            .then(r => r.json())
+            .then(requisitos => {
                 $lista.empty();
+                if (requisitos.length === 0) {
+                    $lista.append('<p class="text-center text-muted text-xxs p-3">No hay documentos registrados.</p>');
+                }
                 requisitos.forEach(req => {
                     let borderColor = req.estatus === "Aprobado" ? "border-success" : req.estatus === "Rechazado" ? "border-danger" : "border-light";
                     let icon = req.estatus === "Aprobado" ? "bi-check-circle-fill text-success" : req.estatus === "Rechazado" ? "bi-x-circle-fill text-danger" : "bi-circle text-muted";
+                    
                     $lista.append(`
                         <div class="bg-white border rounded-3 p-3 mb-2 req-card shadow-sm border-start ${borderColor}" style="cursor: pointer;" onclick="cargarVisor('${data.archivopath}', '${req.nombreArchivoFisico}', ${req.esFotografia}, '${req.nombreRequisito}', ${req.idRequisito}, ${data.id})">
                             <div class="d-flex justify-content-between align-items-center mb-1">
@@ -359,47 +313,52 @@
             new bootstrap.Modal('#revisarModal').show();
         });
 
-        function cargarVisor(folder, archivo, isFoto, nombre, idReq, idSol) {
-            $('#nombreDocActivo').text(nombre.toUpperCase());
-            const $container = $('#pdfContainer').html('<div class="spinner-border text-primary"></div>');
-            
-            if (idSol < 2000) {
-                setTimeout(() => {
-                    $container.html('<div class="text-center opacity-50"><i class="bi bi-file-earmark-pdf fs-1 mb-2 text-secondary"></i><p class="text-xxs fw-bold text-uppercase">VISTA PREVIA SIMULADA<br>(DUMMY)</p></div>');
-                }, 400);
-                return;
-            }
+function cargarVisor(folder, archivo, isFoto, nombre, idReq, idSol) {
+    $('#nombreDocActivo').text(nombre.toUpperCase());
+    const $container = $('#pdfContainer').html('<div class="spinner-border text-primary"></div>');
+    
+    if (archivo && archivo !== "null" && archivo !== "" && !isFoto) {
+        // Obtenemos solo el nombre de la carpeta maestra (la primera parte de la ruta)
+        // folder.split('/')[0] toma "20260406_Aaron_Lara_..." y descarta todo lo que siga después
+        let folderBase = folder.split('/')[0].split('\\')[0];
+        
+        const url = `/uploads/tramites/${folderBase}/${archivo}`.replace(/\/+/g, '/');
+        
+        $container.html(`<iframe src="${url}?v=${new Date().getTime()}#toolbar=1" style="width:100%; height:100%; border:none;"></iframe>`);
+        $('#btnLinkIndividual').show().attr('href', `/Tramites/DescargarArchivoIndividual?idSolicitud=${idSol}&idRequisito=${idReq}&matricula=${encodeURIComponent(matriculaActiva)}`);
+    } else {
+        $container.html('<div class="text-center opacity-50 p-5">ARCHIVO NO DISPONIBLE</div>');
+        $('#btnLinkIndividual').hide();
+    }
+}
 
-            if (archivo && archivo !== "null" && !isFoto) {
-                const url = `/uploads/tramites/${folder.replace(/\\/g, '/')}/${archivo}`.replace(/\/+/g, '/');
-                $container.html(`<iframe src="${url}?v=${new Date().getTime()}#toolbar=1" style="width:100%; height:100%; border:none;"></iframe>`);
-                $('#btnLinkIndividual').show().attr('href', `/Tramites/DescargarArchivoIndividual?idSolicitud=${idSol}&idRequisito=${idReq}&matricula=${encodeURIComponent(matriculaActiva)}`);
-            } else {
-                $container.html('<div class="text-center opacity-50"><i class="bi bi-file-earmark-x fs-1 mb-2"></i><p class="text-xxs fw-bold text-uppercase">ARCHIVO NO DISPONIBLE</p></div>');
-                $('#btnLinkIndividual').hide();
-            }
+function setStatusDoc(idSol, idReq, estatus, btn) {
+    console.log("Intentando actualizar: Solicitud=" + idSol + ", Requisito=" + idReq + ", Estatus=" + estatus);
+    
+    fetch('/Tramites/ActualizarEstatusDocumento', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ idSolicitud: idSol, idRequisito: idReq, estatus: estatus })
+    })
+    .then(res => {
+        console.log("Respuesta del servidor recibida, estatus:", res.status);
+        return res.json();
+    })
+    .then(data => {
+        console.log("Datos recibidos del servidor:", data);
+        if (data.success) {
+            const $card = $(btn).closest('.req-card');
+            $card.removeClass('border-light border-success border-danger').addClass(estatus === 'Aprobado' ? 'border-success' : 'border-danger');
+            $card.find('.bi-circle, .bi-check-circle-fill, .bi-x-circle-fill').attr('class', `bi ${estatus === 'Aprobado' ? 'bi-check-circle-fill text-success' : 'bi-x-circle-fill text-danger'}`);
+            validarChecklist();
+        } else {
+            console.error("Error en la respuesta:", data.message);
         }
-
-        function setStatusDoc(idSol, idReq, estatus, btn) {
-            if (idSol < 2000) {
-                const $card = $(btn).closest('.req-card');
-                $card.removeClass('border-light border-success border-danger').addClass(estatus === 'Aprobado' ? 'border-success' : 'border-danger');
-                $card.find('.bi-circle, .bi-check-circle-fill, .bi-x-circle-fill').attr('class', `bi ${estatus === 'Aprobado' ? 'bi-check-circle-fill text-success' : 'bi-x-circle-fill text-danger'}`);
-                validarChecklist();
-                return;
-            }
-
-            fetch('/Tramites/ActualizarEstatusDocumento', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ idSolicitud: idSol, idRequisito: idReq, estatus: estatus })
-            }).then(res => { if (res.ok) {
-                const $card = $(btn).closest('.req-card');
-                $card.removeClass('border-light border-success border-danger').addClass(estatus === 'Aprobado' ? 'border-success' : 'border-danger');
-                $card.find('.bi-circle, .bi-check-circle-fill, .bi-x-circle-fill').attr('class', `bi ${estatus === 'Aprobado' ? 'bi-check-circle-fill text-success' : 'bi-x-circle-fill text-danger'}`);
-                validarChecklist();
-            }});
-        }
+    })
+    .catch(err => {
+        console.error("Error crítico en el fetch:", err);
+    });
+}
 
         function validarChecklist() {
             const total = $('#listaDocumentos .req-card').length;
@@ -414,24 +373,39 @@
         }
 
         function confirmarDictamen(v) {
-            const isApprove = v === 'Aprobado';
-            if (!isApprove && $('#modalObservacionesFooter').val().trim().length < 5) { Swal.fire('Error', 'Debe detallar el motivo del rechazo.', 'warning'); return; }
-            Swal.fire({
-                title: isApprove ? '¿APROBAR TRÁMITE?' : '¿RECHAZAR TRÁMITE?',
-                icon: isApprove ? 'success' : 'warning',
-                showCancelButton: true,
-                confirmButtonText: 'CONFIRMAR',
-                confirmButtonColor: isApprove ? '#15803D' : '#B91C1C'
-            }).then((r) => { 
-                if (r.isConfirmed) { 
-                    $('#inputEstatus').val(v); 
-                    if ($('#inputSolicitudId').val() < 2000) {
-                        Swal.fire('Guardado', `Trámite marcado como ${v} (Prueba Local)`, 'success');
-                    } else {
-                        $('#revisarModal form').submit(); 
-                    }
-                } 
-            });
+        const esAprobacion = (v === 'Aprobado');
+        if (!esAprobacion && document.getElementById('modalObservacionesFooter').value.trim().length < 5) {
+        Swal.fire({ icon: 'warning', title: 'Faltan observaciones', text: 'Detalla el motivo del rechazo.' });
+        return;
         }
+
+        Swal.fire({
+        title: esAprobacion ? '¿Aprobar Trámite?' : '¿Rechazar Trámite?',
+        text: esAprobacion ? "Se notificará al alumno." : "El alumno deberá corregir los documentos.",
+        icon: esAprobacion ? 'success' : 'warning',
+        showCancelButton: true,
+        confirmButtonColor: esAprobacion ? '#198754' : '#dc3545',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: 'Sí, confirmar',
+        cancelButtonText: 'Cancelar'
+        }).then((result) => {
+        if (result.isConfirmed) {
+        document.getElementById('inputEstatus').value = v;
+        document.querySelector('#revisarModal form').submit();
+        }
+        });
+        }
+$('#btnDescargaCarpeta').on('click', function() {
+    const idSol = $('#inputSolicitudId').val(); // Este ID ya lo tienes en el input hidden
+    const matricula = matriculaActiva; // Ya la tienes definida globalmente
+    const tipo = $('#modalTipoTramite').text();
+
+    if (idSol) {
+        // Redirige al método del controlador que genera el ZIP
+        window.location.href = `/Tramites/DescargarCarpeta?idSolicitud=${idSol}&matricula=${encodeURIComponent(matricula)}&tipo=${encodeURIComponent(tipo)}`;
+    } else {
+        Swal.fire('Error', 'No se pudo identificar el trámite para descargar.', 'error');
+    }
+});
     </script>
 }
