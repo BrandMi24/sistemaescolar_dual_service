@@ -131,10 +131,11 @@
                                 <thead class="border-bottom text-muted">
                                     <tr>
                                         <th class="py-3 px-4 fw-bold text-xs" width="10%">FOLIO</th>
-                                        <th class="py-3 fw-bold text-xs" width="15%">FECHA</th>
-                                        <th class="py-3 fw-bold text-xs" width="35%">TIPO DE TRÁMITE</th>
-                                        <th class="py-3 fw-bold text-xs" width="25%">OBSERVACIONES</th>
-                                        <th class="py-3 px-4 text-center fw-bold text-xs" width="15%">ESTATUS</th>
+                                        <th class="py-3 fw-bold text-center text-xs" width="15%">FECHA</th>
+                                        <th class="py-3 fw-bold text-center text-xs" width="35%">TIPO DE TRÁMITE</th>
+                                        <th class="py-3 fw-bold text-center text-xs" width="25%">OBSERVACIONES</th>
+                                        <th class="py-3 fw-bold text-center text-xs" width="15%">ESTATUS</th>
+                                        <th class="py-3 px-4 text-center fw-bold text-xs" width="10%">ACCIONES</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -142,7 +143,6 @@
                                     {
                                         @foreach (var item in Model)
                                         {
-                                            bool tieneRechazos = item.Estatus.Equals("Rechazado", StringComparison.OrdinalIgnoreCase);
                                             <tr class="border-bottom hover-bg-light transition-all">
                                                 <td class="px-4 py-3 text-primary fw-bold text-sm">#@item.Id</td>
                                                 <td class="text-muted text-xs">@item.Fecha.ToString("dd/MM/yyyy")</td>
@@ -163,21 +163,21 @@
                                                 </td>
 
                                                 <td class="px-4 text-center">
-                                                    @if (tieneRechazos)
-                                                    {
-                                                        <button type="button" class="btn btn-sm btn-white border shadow-sm px-3 py-2 text-danger fw-bold btn-detalle-alumno"
-                                                                data-id="@item.Id" data-id-tramite="@item.IdTramite" data-tipo="@item.Tipo"
-                                                                data-archivopath="@item.ArchivoPath" data-estatus="@item.Estatus">
-                                                            <i class="bi bi-exclamation-circle-fill me-1"></i> Corregir
-                                                        </button>
-                                                    }
-                                                    else
-                                                    {
-                                                        <span class="badge bg-white text-dark border shadow-sm px-3 py-2">
-                                                            <i class="bi bi-circle-fill @(item.Estatus == "Pendiente" ? "text-warning" : "text-success") me-1" style="font-size: 0.5rem;"></i>
-                                                            @item.Estatus
-                                                        </span>
-                                                    }
+                                                    <span class="badge bg-white text-dark border shadow-sm px-3 py-2">
+                                                        <i class="bi bi-circle-fill @(item.Estatus == "Pendiente" ? "text-warning" : (item.Estatus == "Rechazado" ? "text-danger" : "text-success")) me-1" style="font-size: 0.5rem;"></i>
+                                                        @item.Estatus
+                                                    </span>
+                                                </td>
+
+                                                <td class="px-4 text-center">
+                                                    <button type="button" class="btn btn-sm btn-white border shadow-sm px-3 py-2 text-primary fw-bold btn-detalle-alumno"
+                                                            data-id="@item.Id"
+                                                            data-id-tramite="@item.IdTramite"
+                                                            data-tipo="@item.Tipo"
+                                                            data-archivopath="@item.ArchivoPath"
+                                                            data-estatus="@item.Estatus">
+                                                        <i class="bi bi-file-earmark-text me-1"></i> Editar
+                                                    </button>
                                                 </td>
                                             </tr>
                                         }
@@ -557,30 +557,50 @@
         }
 
         requisitos.forEach(req => {
-        const esRechazado = (req.estatus || req.Estatus).toLowerCase() === "rechazado";
-        const esAprobado = (req.estatus || req.Estatus).toLowerCase() === "aprobado";
         const archivoFisico = req.nombreArchivoFisico || req.NombreArchivoFisico;
         const tieneArchivo = archivoFisico && archivoFisico !== "null" && archivoFisico !== "";
         const nombreRequisito = req.nombreRequisito || req.NombreRequisito;
         const idReq = req.idRequisito || req.IdRequisito;
 
-        let colorBorde = 'border-secondary';
+        // Detectamos estados
+        const esAprobado = (req.estatus || req.Estatus || "").toLowerCase() === "aprobado";
+        const esRechazado = (req.estatus || req.Estatus || "").toLowerCase() === "rechazado";
+
+        // Lógica dinámica de colores y bordes
+        let colorBorde = 'border-secondary'; // Default (Pendiente)
         let colorIcono = 'text-secondary';
-        if(esAprobado) { colorBorde = 'border-success'; colorIcono = 'text-success'; }
-        if(esRechazado) { colorBorde = 'border-danger'; colorIcono = 'text-danger'; }
+    
+        if (esAprobado) {
+        colorBorde = 'border-success';
+        colorIcono = 'text-success';
+        } else if (esRechazado) {
+        colorBorde = 'border-danger';
+        colorIcono = 'text-danger';
+        }
 
         lista.innerHTML += `
         <div class="bg-white border rounded-3 p-3 mb-2 shadow-sm border-start border-4 ${colorBorde}">
         <div class="d-flex justify-content-between align-items-center mb-2">
         <span class="fw-bold text-dark text-xs">${nombreRequisito}</span>
-        <i class="bi bi-circle-fill ${colorIcono}" style="font-size:0.6rem"></i>
+        <i class="bi bi-circle-fill ${colorIcono}"></i>
         </div>
+        
+        ${esRechazado && req.motivoRechazo ? `<div class="text-danger text-xxs mb-2 fw-bold">Obs: ${req.motivoRechazo}</div>` : ''}
+
         <div class="d-flex gap-2">
-        <button type="button" class="btn btn-dark btn-sm text-xs flex-grow-1" ${!tieneArchivo ? 'disabled' : ''} onclick="verArchivoAlumno('${folderPath}', '${archivoFisico}', '${nombreRequisito}')">${tieneArchivo ? 'Ver Documento' : 'Sin archivo'}</button>
-        ${esRechazado ? `
-        <button type="button" class="btn btn-outline-danger btn-sm text-xs" onclick="document.getElementById('in_${idReq}').click()" title="Subir corrección"><i class="bi bi-arrow-repeat"></i> Reemplazar</button>
-        <input type="file" id="in_${idReq}" class="d-none" accept=".pdf" onchange="subirCorreccion(this, ${idSolicitud}, ${idReq}, '${folderPath}')">
-        ` : ''}
+        <button type="button" class="btn btn-dark btn-sm text-xs flex-grow-1" ${!tieneArchivo ? 'disabled' : ''}
+        onclick="verArchivoAlumno('${folderPath}', '${archivoFisico}', '${nombreRequisito}')">
+        ${tieneArchivo ? 'Ver Documento' : 'Sin archivo'}
+        </button>
+
+        ${!esAprobado ? `
+        <button type="button" class="btn btn-outline-primary btn-sm text-xs"
+        onclick="document.getElementById('in_${idReq}').click()" title="Actualizar archivo">
+        <i class="bi bi-arrow-repeat"></i> Actualizar
+        </button>
+        <input type="file" id="in_${idReq}" class="d-none" accept=".pdf"
+        onchange="subirCorreccion(this, ${idSolicitud}, ${idReq}, '${folderPath}')">
+        ` : `<span class="badge bg-success-subtle text-success d-flex align-items-center px-3"><i class="bi bi-lock-fill me-1"></i> APROBADO</span>`}
         </div>
         </div>`;
         });

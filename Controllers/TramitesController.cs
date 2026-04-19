@@ -303,45 +303,87 @@ namespace ControlEscolar.Controllers
         [RequestSizeLimit(104857600)]
         public async Task<IActionResult> SubsanarDocumento(int idDetalle, int idSolicitud, IFormFile archivoNuevo)
         {
-            // Validaciones iniciales
-            if (archivoNuevo == null || archivoNuevo.Length == 0)
-                return Json(new { success = false, message = "Archivo no seleccionado." });
+            try
+            {
+                // 1. Buscamos solo lo mínimo necesario y de forma plana
+                var detalle = await _context.TramitesDetalleDocumentos
+                    .Select(d => new {
+                        d.id_solicitud,
+                        d.id_requisito,
+                        nombre_archivo = d.nombre_archivo_fisico
+                    })
+                    .FirstOrDefaultAsync(d => d.id_solicitud == idSolicitud && d.id_requisito == idDetalle);
 
-            // MANTENEMOS la validación de PDF de la Versión Actual
-            if (archivoNuevo.ContentType != "application/pdf")
-                return Json(new { success = false, message = "Solo se permiten archivos PDF." });
+                var solicitud = await _context.TramitesSolicitudes
+                    .Select(s => new {
+                        s.tramites_solicitud_id,
+                        s.tramites_solicitud_archivo_path
+                    })
+                    .FirstOrDefaultAsync(s => s.tramites_solicitud_id == idSolicitud);
 
-            // 1. Buscamos los registros en la base de datos
-            var detalle = await _context.TramitesDetalleDocumentos
-                .FirstOrDefaultAsync(d => d.id_solicitud == idSolicitud && d.id_requisito == idDetalle);
+                if (detalle == null || solicitud == null)
+                    return Json(new { success = false, message = "Datos no encontrados." });
+
+                // 2. Ruta de carpeta
+                string pathCarpeta = solicitud.tramites_solicitud_archivo_path ?? "";
+                string folderPath = Path.Combine(_webHostEnvironment.WebRootPath, "uploads", "tramites", pathCarpeta);
+
+                // 3. Borrado seguro
+                if (!string.IsNullOrEmpty(detalle.nombre_archivo))
+                {
+                    string oldPath = Path.Combine(folderPath, detalle.nombre_archivo);
+                    if (System.IO.File.Exists(oldPath)) System.IO.File.Delete(oldPath);
+                }
+
+                // 4. Guardado y SP
+                string nuevoNombre = $"Doc_{idDetalle}_{DateTime.Now:yyyyMMddHHmmss}.pdf";
+                string fullPath = Path.Combine(folderPath, nuevoNombre);
+
+                using (var stream = new FileStream(fullPath, FileMode.Create))
+                {
+                    await archivoNuevo.CopyToAsync(stream);
+                }
+
+                await _context.Database.ExecuteSqlInterpolatedAsync(
+                    $"EXEC sp_tramites @Option='tramites_documento_subsanar', @ID={idSolicitud}, @RequisitoID={idDetalle}, @NombreArchivo={nuevoNombre}"
+                );
+
+                return Json(new { success = true });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = "Error en el servidor: " + ex.Message });
+            }
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> ActualizarDocumentoAlumno(int idSolicitud, int idRequisito, IFormFile archivoNuevo)
+        {
+            // Obtenemos info de la solicitud y el documento actual
             var solicitud = await _context.TramitesSolicitudes.FindAsync(idSolicitud);
-            var requisito = await _context.TramitesRequisitos.FindAsync(idDetalle);
+            var detalle = await _context.TramitesDetalleDocumentos
+                .FirstOrDefaultAsync(d => d.id_solicitud == idSolicitud && d.id_requisito == idRequisito);
 
-            if (detalle == null || solicitud == null || requisito == null)
-                return Json(new { success = false, message = "Datos no encontrados." });
+            if (solicitud == null || detalle == null)
+                return Json(new { success = false, message = "Error al localizar el trámite." });
 
-            // 2. Definimos la ruta de la carpeta del trámite
             string folderPath = Path.Combine(_webHostEnvironment.WebRootPath, "uploads", "tramites", solicitud.tramites_solicitud_archivo_path);
 
-            // 3. Borramos el archivo viejo si existe para no llenar el disco de basura
-            if (!string.IsNullOrEmpty(detalle.nombre_archivo_fisico))
-            {
-                string oldPath = Path.Combine(folderPath, detalle.nombre_archivo_fisico);
-                if (System.IO.File.Exists(oldPath)) System.IO.File.Delete(oldPath);
-            }
+            // Mantenemos el mismo nombre de archivo físico
+            string nombreArchivo = detalle.nombre_archivo_fisico;
+            string fullPath = Path.Combine(folderPath, nombreArchivo);
 
-            // 4. Guardamos el nuevo archivo con sufijo "CORREGIDO"
-            string nuevoNombre = $"{requisito.nombre_documento.Replace(" ", "_")}_CORREGIDO_{DateTime.Now:yyyyMMddHHmmss}.pdf";
-            string fullPath = Path.Combine(folderPath, nuevoNombre);
+            // Borramos el anterior y guardamos el nuevo con el MISMO nombre
+            if (System.IO.File.Exists(fullPath)) System.IO.File.Delete(fullPath);
 
             using (var stream = new FileStream(fullPath, FileMode.Create))
             {
                 await archivoNuevo.CopyToAsync(stream);
             }
 
-            // 5. Notificamos a la base de datos mediante el SP
+            // Actualizamos a Pendiente para nueva revisión
             await _context.Database.ExecuteSqlInterpolatedAsync(
-                $"EXEC sp_tramites @Option='tramites_documento_subsanar', @ID={idSolicitud}, @RequisitoID={idDetalle}, @NombreArchivo={nuevoNombre}"
+                $"UPDATE CE_TramitesDetalleDocumentos SET estatus_documento='Pendiente', fecha_validacion=NULL WHERE id_solicitud={idSolicitud} AND id_requisito={idRequisito}"
             );
 
             return Json(new { success = true });
