@@ -1,5 +1,6 @@
 using System.Linq;
 using System.Data.Common;
+using System.Text;
 using ControlEscolar.Data;
 
 namespace ControlEscolar.Models
@@ -21,7 +22,7 @@ namespace ControlEscolar.Models
 
             if (!string.IsNullOrEmpty(groupCode))
             {
-                var numero = new string(groupCode.TakeWhile(char.IsDigit).ToArray());
+                var numero = ExtractFirstNumberToken(groupCode);
                 if (int.TryParse(numero, out int sem))
                     semestre = sem;
             }
@@ -59,7 +60,7 @@ namespace ControlEscolar.Models
         public static GroupViewModel MapToGroup(DbDataReader reader)
         {
             var groupCode = Management.GetValue<string>(reader, "management_group_Code") ?? "";
-            var digits = new string(groupCode.TakeWhile(char.IsDigit).ToArray());
+            var digits = ExtractFirstNumberToken(groupCode);
 
             return new GroupViewModel
             {
@@ -72,6 +73,34 @@ namespace ControlEscolar.Models
                 Turno = Management.GetValue<string>(reader, "management_group_Shift") ?? "",
                 EsActivo = Management.GetValue<bool>(reader, "management_group_status")
             };
+        }
+
+        private static string ExtractFirstNumberToken(string? input)
+        {
+            if (string.IsNullOrWhiteSpace(input))
+            {
+                return string.Empty;
+            }
+
+            var token = new StringBuilder();
+            var found = false;
+
+            foreach (var ch in input)
+            {
+                if (char.IsDigit(ch))
+                {
+                    token.Append(ch);
+                    found = true;
+                    continue;
+                }
+
+                if (found)
+                {
+                    break;
+                }
+            }
+
+            return token.ToString();
         }
 
         public static HistoricoViewModel MapToHistorico(DbDataReader reader)

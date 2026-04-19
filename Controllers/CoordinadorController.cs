@@ -343,6 +343,7 @@ namespace ControlEscolar.Controllers
         public async Task<IActionResult> CreateModuleStepRule(string? tab = null)
         {
             await _moduleFlowConfigurationService.EnsureInfrastructureAsync();
+            await PopulateModuleStepRuleFormDataAsync();
 
             ViewBag.IsEdit = false;
             ViewBag.ReturnTab = string.IsNullOrWhiteSpace(tab) ? "tab-flujo-modulos" : tab;
@@ -358,6 +359,7 @@ namespace ControlEscolar.Controllers
 
             if (!ModelState.IsValid)
             {
+                await PopulateModuleStepRuleFormDataAsync(model.ModuleType);
                 ViewBag.IsEdit = false;
                 ViewBag.ReturnTab = returnTab;
                 return View(model);
@@ -391,6 +393,8 @@ namespace ControlEscolar.Controllers
                 return NotFound();
             }
 
+            await PopulateModuleStepRuleFormDataAsync(entity.ModuleType);
+
             ViewBag.IsEdit = true;
             ViewBag.ReturnTab = string.IsNullOrWhiteSpace(tab) ? "tab-flujo-modulos" : tab;
 
@@ -421,6 +425,7 @@ namespace ControlEscolar.Controllers
 
             if (!ModelState.IsValid)
             {
+                await PopulateModuleStepRuleFormDataAsync(model.ModuleType);
                 ViewBag.IsEdit = true;
                 ViewBag.ReturnTab = returnTab;
                 return View("CreateModuleStepRule", model);
@@ -463,6 +468,42 @@ namespace ControlEscolar.Controllers
             await _context.SaveChangesAsync();
 
             return Ok();
+        }
+
+        private async Task PopulateModuleStepRuleFormDataAsync(string? selectedModuleType = null)
+        {
+            var activeCuatrimestres = await _context.CuatrimestresCatalog
+                .AsNoTracking()
+                .Where(x => x.Status && x.IsActive)
+                .OrderBy(x => x.Number)
+                .Select(x => x.Number)
+                .ToListAsync();
+
+            if (activeCuatrimestres.Count == 0)
+            {
+                activeCuatrimestres = Enumerable.Range(1, 11).ToList();
+            }
+
+            var moduleConfigs = await _context.OperationalModuleFlowConfigs
+                .AsNoTracking()
+                .Where(x => x.Status)
+                .OrderBy(x => x.ModuleType)
+                .ToListAsync();
+
+            var normalizedSelected = string.IsNullOrWhiteSpace(selectedModuleType)
+                ? null
+                : selectedModuleType.Trim().ToUpperInvariant();
+
+            ViewBag.ActiveCuatrimestres = activeCuatrimestres;
+            ViewBag.ModulePortalStarts = moduleConfigs.ToDictionary(
+                x => (x.ModuleType ?? string.Empty).Trim().ToUpperInvariant(),
+                x => x.PortalStartCuatrimestre,
+                StringComparer.OrdinalIgnoreCase);
+            ViewBag.ModuleTrackingStarts = moduleConfigs.ToDictionary(
+                x => (x.ModuleType ?? string.Empty).Trim().ToUpperInvariant(),
+                x => x.TrackingStartCuatrimestre,
+                StringComparer.OrdinalIgnoreCase);
+            ViewBag.SelectedModuleType = normalizedSelected;
         }
 
         [HttpGet]

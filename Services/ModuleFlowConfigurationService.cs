@@ -106,8 +106,31 @@ public class ModuleFlowConfigurationService : IModuleFlowConfigurationService
             return Task.FromResult<int?>(null);
         }
 
-        var digits = new string(groupCode.Trim().TakeWhile(char.IsDigit).ToArray());
+        var digits = ExtractFirstNumberToken(groupCode);
         return Task.FromResult(int.TryParse(digits, out var cuatrimestre) ? (int?)cuatrimestre : null);
+    }
+
+    private static string ExtractFirstNumberToken(string input)
+    {
+        var token = new System.Text.StringBuilder();
+        var found = false;
+
+        foreach (var ch in input.Trim())
+        {
+            if (char.IsDigit(ch))
+            {
+                token.Append(ch);
+                found = true;
+                continue;
+            }
+
+            if (found)
+            {
+                break;
+            }
+        }
+
+        return token.ToString();
     }
 
     private static List<OperationalModuleStepRule> GetDefaultRules()

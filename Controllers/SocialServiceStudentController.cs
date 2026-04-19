@@ -11,7 +11,7 @@ using System.Security.Claims;
 
 namespace ControlEscolar.Controllers;
 
-[Authorize(Roles = "Alumno,Student")]
+[Authorize(Roles = "Alumno,Student,STUDENT,Admin,ADMIN")]
 public class SocialServiceStudentController : Controller
 {
     private readonly ApplicationDbContext _context;

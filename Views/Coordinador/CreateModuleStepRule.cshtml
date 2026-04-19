@@ -1,10 +1,19 @@
 @model ModuleStepRuleViewModel
+@using System.Text.Json
 @{
     ViewData["Title"] = "Regla de Paso";
     Layout = "_LayoutCoordinador";
 
     var isEdit = ViewBag.IsEdit as bool? ?? false;
     var returnTab = ViewBag.ReturnTab as string ?? "tab-flujo-modulos";
+    var activeCuatrimestres = ViewBag.ActiveCuatrimestres as List<int> ?? new List<int>();
+    var modulePortalStarts = ViewBag.ModulePortalStarts as Dictionary<string, int> ?? new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+    var moduleTrackingStarts = ViewBag.ModuleTrackingStarts as Dictionary<string, int> ?? new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+
+    var selectedStatuses = (Model.AllowedStatusesCsv ?? string.Empty)
+        .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+        .Select(x => x.ToUpperInvariant())
+        .ToHashSet(StringComparer.OrdinalIgnoreCase);
 }
 
 <div class="fade-in d-flex flex-column gap-4">
@@ -33,42 +42,57 @@
 
                     <div class="mb-3">
                         <label asp-for="ModuleType" class="fw-bold text-xs">MÓDULO</label>
-                        <select asp-for="ModuleType" class="form-select search-input-custom">
+                        <select asp-for="ModuleType" class="form-select search-input-custom" id="moduleTypeSelect">
                             <option value="">Selecciona...</option>
                             <option value="PRACTICAS_PROFESIONALES">PRACTICAS_PROFESIONALES</option>
                             <option value="SERVICIO_SOCIAL">SERVICIO_SOCIAL</option>
                         </select>
                         <span asp-validation-for="ModuleType" class="text-danger text-xs"></span>
+                        <div class="txt-body text-xs mt-2" id="moduleRulesHint"></div>
                     </div>
 
                     <div class="row g-3">
                         <div class="col-md-6">
                             <label asp-for="StepCode" class="fw-bold text-xs">CÓDIGO PASO</label>
-                            <input asp-for="StepCode" class="form-control search-input-custom" placeholder="PASO1" />
+                            <select asp-for="StepCode" class="form-select search-input-custom" id="stepCodeSelect">
+                                <option value="">Selecciona...</option>
+                            </select>
                             <span asp-validation-for="StepCode" class="text-danger text-xs"></span>
                         </div>
                         <div class="col-md-6">
                             <label asp-for="SortOrder" class="fw-bold text-xs">ORDEN</label>
-                            <input asp-for="SortOrder" class="form-control search-input-custom" type="number" min="1" max="50" />
+                            <input asp-for="SortOrder" class="form-control search-input-custom" id="sortOrderInput" type="number" min="1" max="50" />
                             <span asp-validation-for="SortOrder" class="text-danger text-xs"></span>
                         </div>
                     </div>
 
                     <div class="mb-3 mt-3">
                         <label asp-for="StepName" class="fw-bold text-xs">NOMBRE PASO</label>
-                        <input asp-for="StepName" class="form-control search-input-custom" />
+                        <input asp-for="StepName" class="form-control search-input-custom" id="stepNameInput" readonly />
                         <span asp-validation-for="StepName" class="text-danger text-xs"></span>
                     </div>
 
                     <div class="mb-3">
                         <label asp-for="MinCuatrimestre" class="fw-bold text-xs">CUATRIMESTRE MÍNIMO</label>
-                        <input asp-for="MinCuatrimestre" class="form-control search-input-custom" type="number" min="1" max="20" />
+                        <select asp-for="MinCuatrimestre" class="form-select search-input-custom" id="minCuatrimestreSelect">
+                            <option value="">Usar mínimo del módulo</option>
+                        </select>
                         <span asp-validation-for="MinCuatrimestre" class="text-danger text-xs"></span>
+                        <div class="txt-body text-xs mt-2" id="minCuatrimestreHint"></div>
                     </div>
 
                     <div class="mb-3">
-                        <label asp-for="AllowedStatusesCsv" class="fw-bold text-xs">ESTATUS PERMITIDOS (CSV)</label>
-                        <textarea asp-for="AllowedStatusesCsv" class="form-control search-input-custom" rows="3" placeholder="REGISTERED,PLACEMENT,IN_PROGRESS"></textarea>
+                        <label class="fw-bold text-xs">ESTATUS PERMITIDOS</label>
+                        <input asp-for="AllowedStatusesCsv" type="hidden" id="allowedStatusesCsvInput" />
+                        <div class="form-check mt-2 mb-3">
+                            <input class="form-check-input" type="checkbox" id="allStatusesCheck" />
+                            <label class="form-check-label text-xs fw-semibold" for="allStatusesCheck">Permitir todos los estatus (sin filtro por estatus)</label>
+                        </div>
+                        <div id="statusOptionsContainer" class="d-flex flex-column gap-2"></div>
+                        <div class="bg-surface border border-theme rounded-3 p-3 mt-3">
+                            <div class="fw-semibold text-xs mb-2">¿Qué significa esto para el alumno?</div>
+                            <ul id="statusDescriptionsList" class="mb-0 ps-3 text-xs"></ul>
+                        </div>
                         <span asp-validation-for="AllowedStatusesCsv" class="text-danger text-xs"></span>
                     </div>
 
@@ -93,4 +117,252 @@
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
+    <script>
+        (function () {
+            const activeCuatrimestres = @Html.Raw(JsonSerializer.Serialize(activeCuatrimestres));
+            const modulePortalStarts = @Html.Raw(JsonSerializer.Serialize(modulePortalStarts));
+            const moduleTrackingStarts = @Html.Raw(JsonSerializer.Serialize(moduleTrackingStarts));
+            const selectedStatusesInitial = @Html.Raw(JsonSerializer.Serialize(selectedStatuses));
+
+            const stepTemplates = {
+                PRACTICAS_PROFESIONALES: {
+                    PASO1: { name: 'Mis Datos', order: 1 },
+                    PASO2: { name: 'Empresa/Apoyo', order: 2 },
+                    PASO3: { name: 'Documentos', order: 3 },
+                    PASO4: { name: 'Carta', order: 4 },
+                    PASO5: { name: 'Asesores', order: 5 },
+                    PASO6: { name: 'Reportes', order: 6 }
+                },
+                SERVICIO_SOCIAL: {
+                    PASO1: { name: 'Mis Datos', order: 1 },
+                    PASO2: { name: 'Institución', order: 2 },
+                    PASO3: { name: 'Carta', order: 3 },
+                    PASO4: { name: 'Asesor', order: 4 },
+                    PASO5: { name: 'Bitácoras/Reportes', order: 5 },
+                    PASO6: { name: 'Evaluación', order: 6 }
+                }
+            };
+
+            const statusCatalog = {
+                PRACTICAS_PROFESIONALES: [
+                    { code: 'REGISTERED', description: 'El alumno solo tiene su registro inicial del proceso dual.' },
+                    { code: 'PLACEMENT', description: 'El alumno ya seleccionó o registró empresa para estadías.' },
+                    { code: 'PROFILE_COMPLETE', description: 'Perfil académico/personal completado.' },
+                    { code: 'DOCUMENTS', description: 'Documentos base cargados por el alumno.' },
+                    { code: 'LETTER_REQUESTED', description: 'Carta de presentación solicitada.' },
+                    { code: 'ACCEPTANCE_SUBMITTED', description: 'Carta de aceptación enviada para revisión.' },
+                    { code: 'ADVISORS_ASSIGNED', description: 'Asesores académico/empresarial asignados.' },
+                    { code: 'IN_PROGRESS', description: 'Alumno en ejecución de estadías y reportes.' },
+                    { code: 'COMPLETED', description: 'Alumno completó horas y evidencias requeridas.' },
+                    { code: 'FINALIZED', description: 'Proceso dual finalizado y cerrado.' }
+                ],
+                SERVICIO_SOCIAL: [
+                    { code: 'REGISTERED', description: 'Registro inicial del proceso de servicio social.' },
+                    { code: 'PLACEMENT', description: 'Institución seleccionada o propuesta.' },
+                    { code: 'PROFILE_COMPLETE', description: 'Perfil de alumno completado.' },
+                    { code: 'LETTER_REQUESTED', description: 'Carta de presentación solicitada.' },
+                    { code: 'ACCEPTANCE_SUBMITTED', description: 'Carta de aceptación subida para revisión.' },
+                    { code: 'ADVISOR_ASSIGNED', description: 'Asesor asignado para seguimiento.' },
+                    { code: 'IN_PROGRESS', description: 'Alumno ejecutando horas y bitácoras.' },
+                    { code: 'COMPLETED', description: 'Horas y evidencias completadas.' },
+                    { code: 'RELEASED', description: 'Servicio social liberado/cerrado.' }
+                ]
+            };
+
+            const moduleSelect = document.getElementById('moduleTypeSelect');
+            const stepCodeSelect = document.getElementById('stepCodeSelect');
+            const stepNameInput = document.getElementById('stepNameInput');
+            const sortOrderInput = document.getElementById('sortOrderInput');
+            const minCuatrimestreSelect = document.getElementById('minCuatrimestreSelect');
+            const minCuatrimestreHint = document.getElementById('minCuatrimestreHint');
+            const moduleRulesHint = document.getElementById('moduleRulesHint');
+            const statusOptionsContainer = document.getElementById('statusOptionsContainer');
+            const statusDescriptionsList = document.getElementById('statusDescriptionsList');
+            const allStatusesCheck = document.getElementById('allStatusesCheck');
+            const allowedStatusesCsvInput = document.getElementById('allowedStatusesCsvInput');
+
+            const modelStepCode = '@(Model.StepCode ?? string.Empty)';
+            const modelMinCuat = '@(Model.MinCuatrimestre?.ToString() ?? string.Empty)';
+
+            function normalizeModule(value) {
+                return (value || '').trim().toUpperCase();
+            }
+
+            function currentModuleConfig(moduleType) {
+                const normalized = normalizeModule(moduleType);
+                const portal = modulePortalStarts[normalized] || 10;
+                const tracking = moduleTrackingStarts[normalized] || 11;
+                return { portal, tracking };
+            }
+
+            function populateStepOptions(moduleType) {
+                const normalized = normalizeModule(moduleType);
+                const templates = stepTemplates[normalized] || {};
+                const previous = stepCodeSelect.value || modelStepCode;
+
+                stepCodeSelect.innerHTML = '<option value="">Selecciona...</option>';
+                Object.keys(templates)
+                    .sort((a, b) => templates[a].order - templates[b].order)
+                    .forEach(code => {
+                        const opt = document.createElement('option');
+                        opt.value = code;
+                        opt.textContent = code;
+                        stepCodeSelect.appendChild(opt);
+                    });
+
+                if (previous && templates[previous]) {
+                    stepCodeSelect.value = previous;
+                }
+
+                autoFillStepData();
+            }
+
+            function autoFillStepData() {
+                const normalized = normalizeModule(moduleSelect.value);
+                const stepCode = stepCodeSelect.value;
+                const template = (stepTemplates[normalized] || {})[stepCode];
+                if (!template) {
+                    stepNameInput.value = '';
+                    return;
+                }
+
+                stepNameInput.value = template.name;
+                sortOrderInput.value = template.order;
+            }
+
+            function populateMinCuatrimestres(moduleType) {
+                const normalized = normalizeModule(moduleType);
+                const config = currentModuleConfig(normalized);
+                const previous = minCuatrimestreSelect.value || modelMinCuat;
+                const options = (activeCuatrimestres || []).filter(x => x >= config.portal);
+
+                minCuatrimestreSelect.innerHTML = '<option value="">Usar mínimo del módulo</option>';
+
+                options.forEach(c => {
+                    const opt = document.createElement('option');
+                    opt.value = c;
+                    opt.textContent = 'Cuatrimestre ' + c;
+                    minCuatrimestreSelect.appendChild(opt);
+                });
+
+                if (previous && options.some(x => String(x) === String(previous))) {
+                    minCuatrimestreSelect.value = previous;
+                }
+
+                minCuatrimestreHint.textContent = 'Mínimo portal configurado: ' + config.portal + '. Inicio de seguimiento: ' + config.tracking + '.';
+                moduleRulesHint.textContent = 'Las reglas de este módulo respetan el arranque de portal/seguimiento configurado en Configuración por Módulo.';
+            }
+
+            function refreshAllowedStatusesHidden() {
+                if (allStatusesCheck.checked) {
+                    allowedStatusesCsvInput.value = '';
+                    return;
+                }
+
+                const selected = Array.from(statusOptionsContainer.querySelectorAll('input[type="checkbox"]:checked'))
+                    .map(x => x.value.toUpperCase());
+                allowedStatusesCsvInput.value = selected.join(',');
+            }
+
+            function updateDescriptions(selectedCodes, catalog) {
+                statusDescriptionsList.innerHTML = '';
+
+                if (allStatusesCheck.checked) {
+                    const li = document.createElement('li');
+                    li.textContent = 'Sin filtro de estatus: cualquier alumno del cuatrimestre permitido verá este paso.';
+                    statusDescriptionsList.appendChild(li);
+                    return;
+                }
+
+                const selectedCatalog = catalog.filter(x => selectedCodes.includes(x.code));
+                if (selectedCatalog.length === 0) {
+                    const li = document.createElement('li');
+                    li.textContent = 'No has seleccionado estatus; se aplicará sin filtro de estatus.';
+                    statusDescriptionsList.appendChild(li);
+                    return;
+                }
+
+                selectedCatalog.forEach(item => {
+                    const li = document.createElement('li');
+                    li.textContent = item.code + ': ' + item.description;
+                    statusDescriptionsList.appendChild(li);
+                });
+            }
+
+            function populateStatuses(moduleType) {
+                const normalized = normalizeModule(moduleType);
+                const catalog = statusCatalog[normalized] || [];
+                const initial = new Set((selectedStatusesInitial || []).map(x => String(x).toUpperCase()));
+
+                statusOptionsContainer.innerHTML = '';
+
+                if (catalog.length === 0) {
+                    const empty = document.createElement('div');
+                    empty.className = 'text-muted text-xs';
+                    empty.textContent = 'Selecciona módulo para cargar estatus disponibles.';
+                    statusOptionsContainer.appendChild(empty);
+                    allStatusesCheck.checked = true;
+                    refreshAllowedStatusesHidden();
+                    updateDescriptions([], catalog);
+                    return;
+                }
+
+                const modelHadCsv = (allowedStatusesCsvInput.value || '').trim().length > 0;
+                allStatusesCheck.checked = !modelHadCsv;
+
+                catalog.forEach(item => {
+                    const row = document.createElement('label');
+                    row.className = 'form-check bg-surface border border-theme rounded-3 p-2';
+
+                    const isChecked = initial.has(item.code) || (!modelHadCsv && false);
+                    row.innerHTML = '<input class="form-check-input me-2" type="checkbox" value="' + item.code + '" ' + (isChecked ? 'checked' : '') + '>' +
+                        '<span class="fw-semibold text-xs">' + item.code + '</span>' +
+                        '<span class="d-block text-muted text-xs mt-1">' + item.description + '</span>';
+
+                    statusOptionsContainer.appendChild(row);
+                });
+
+                const checkboxes = Array.from(statusOptionsContainer.querySelectorAll('input[type="checkbox"]'));
+                checkboxes.forEach(cb => {
+                    cb.disabled = allStatusesCheck.checked;
+                    cb.addEventListener('change', function () {
+                        const selected = checkboxes.filter(x => x.checked).map(x => x.value.toUpperCase());
+                        refreshAllowedStatusesHidden();
+                        updateDescriptions(selected, catalog);
+                    });
+                });
+
+                const selected = checkboxes.filter(x => x.checked).map(x => x.value.toUpperCase());
+                refreshAllowedStatusesHidden();
+                updateDescriptions(selected, catalog);
+            }
+
+            allStatusesCheck.addEventListener('change', function () {
+                const checkboxes = Array.from(statusOptionsContainer.querySelectorAll('input[type="checkbox"]'));
+                checkboxes.forEach(cb => cb.disabled = allStatusesCheck.checked);
+                refreshAllowedStatusesHidden();
+
+                const normalized = normalizeModule(moduleSelect.value);
+                const catalog = statusCatalog[normalized] || [];
+                const selected = checkboxes.filter(x => x.checked).map(x => x.value.toUpperCase());
+                updateDescriptions(selected, catalog);
+            });
+
+            moduleSelect.addEventListener('change', function () {
+                selectedStatusesInitial.length = 0;
+                populateStepOptions(moduleSelect.value);
+                populateMinCuatrimestres(moduleSelect.value);
+                populateStatuses(moduleSelect.value);
+            });
+
+            stepCodeSelect.addEventListener('change', autoFillStepData);
+
+            populateStepOptions(moduleSelect.value);
+            populateMinCuatrimestres(moduleSelect.value);
+            populateStatuses(moduleSelect.value);
+            if (!stepNameInput.value) {
+                autoFillStepData();
+            }
+        })();
+    </script>
 }

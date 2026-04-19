@@ -251,12 +251,17 @@
                         groupSelect.remove(1);
                     }
 
-                    allGroupOptions
+                    const filtered = allGroupOptions
                         .filter(o => {
                             const careerMatch = !careerId || o.dataset.career === careerId;
                             const cuatrimestreMatch = !cuatrimestre || o.dataset.cuatrimestre === cuatrimestre;
                             return careerMatch && cuatrimestreMatch;
-                        })
+                        });
+
+                    const fallback = allGroupOptions
+                        .filter(o => !cuatrimestre || o.dataset.cuatrimestre === cuatrimestre);
+
+                    (filtered.length > 0 ? filtered : fallback)
                         .forEach(o => groupSelect.add(o.cloneNode(true)));
 
                     if (previous && !Array.from(groupSelect.options).some(o => o.value === previous)) {
