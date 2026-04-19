@@ -20,6 +20,7 @@
         if (currentController == "Tutor") return "Tutoría • Portal de Acompañamiento Alumno";
         if (currentController == "Maestro") return "Docencia • Panel de Control Académico";
         if (currentController == "Alumno") return "Estudiante • Mi Expediente Académico";
+        if (currentController == "ControlEscolar") return "Control Escolar • Panel";
         return "Sistema Integral Escolar • UTTN";
     }
 }
@@ -143,6 +144,10 @@
                 </a>
                 <a class="nav-link px-3 py-2 mb-1 @IsActive("Admisiones")" href="@Url.Action("Index", "Admisiones")">
                     <i class="bi bi-person-plus-fill"></i> Admisiones
+                </a>
+                <a class="nav-link px-3 py-2 @(currentController == "ControlEscolar" && currentAction == "Index" ? "active" : "")"
+                   href="@Url.Action("Index", "ControlEscolar")">
+                    <i class="bi bi-person-lines-fill"></i> Gestión
                 </a>
 
                 <div class="nav-group-label mt-4 mb-2 ps-3">Cuerpo Docente</div>
