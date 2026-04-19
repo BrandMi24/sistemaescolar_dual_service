@@ -3,116 +3,121 @@
     Layout = "_LayoutCoordinador";
 }
 
-<div class="d-flex flex-column gap-4">
+<div class="container-fluid p-0 fade-in">
+    <div class="d-flex flex-column gap-4">
 
-    <div class="admin-grid-dashboard">
-        <div class="admin-stat-card border-start" style="border-left-width: 4px !important; border-left-color: var(--primary-900) !important;">
-            <div>
-                <div class="txt-body text-xs fw-bold tracking-wide mb-2 text-uppercase">Grupos Activos</div>
-                <div class="admin-stat-number">18</div>
-            </div>
-            <div class="icon-circle-lg bg-accent-light txt-primary-dark">
-                <i class="bi bi-collection-fill fs-4"></i>
-            </div>
-        </div>
-
-        <div class="admin-stat-card border-start" style="border-left-width: 4px !important; border-left-color: var(--accent-500) !important;">
-            <div>
-                <div class="txt-body text-xs fw-bold tracking-wide mb-2 text-uppercase">Docentes Asignados</div>
-                <div class="admin-stat-number">45</div>
-            </div>
-            <div class="icon-circle-lg bg-surface border border-theme txt-primary-dark">
-                <i class="bi bi-person-workspace fs-4"></i>
-            </div>
-        </div>
-
-        <div class="admin-stat-card border-start" style="border-left-width: 4px !important; border-left-color: var(--warning-700) !important;">
-            <div>
-                <div class="txt-body text-xs fw-bold tracking-wide mb-2 text-uppercase">Materias sin Docente</div>
-                <div class="admin-stat-number txt-warning">3</div>
-            </div>
-            <div class="icon-circle-lg bg-warning bg-opacity-10" style="color: var(--warning-700);">
-                <i class="bi bi-exclamation-triangle-fill fs-4"></i>
-            </div>
-        </div>
-
-        <div class="admin-stat-card border-start" style="border-left-width: 4px !important; border-left-color: var(--success-700) !important;">
-            <div>
-                <div class="txt-body text-xs fw-bold tracking-wide mb-2 text-uppercase">Ciclo Actual</div>
-                <div class="txt-primary-dark fw-bold fs-4 mt-1">ENE-ABR 2026</div>
-            </div>
-            <div class="icon-circle-lg bg-success-100 txt-success-700">
-                <i class="bi bi-calendar-check-fill fs-4"></i>
-            </div>
-        </div>
-    </div>
-
-    <div class="row g-4">
-        <div class="col-lg-8">
-            <div class="admin-card-white p-4 h-100 d-flex flex-column">
-                <h6 class="txt-title fw-bold mb-4 border-bottom border-theme pb-3">Estado de Asignaciones (ENE-ABR 2026)</h6>
-
-                <div class="flex-grow-1 d-flex flex-column justify-content-center gap-4">
+        <div class="row g-3">
+            <div class="col-12 col-sm-6 col-xl-3">
+                <div class="admin-card-white p-4 shadow-sm border-0 h-100 d-flex flex-column justify-content-between">
                     <div>
-                        <div class="d-flex justify-content-between mb-2">
-                            <span class="txt-title fw-bold text-sm">Progreso General de Asignación Docente</span>
-                            <span class="txt-primary-dark fw-bold">92%</span>
-                        </div>
-                        <div class="progress rounded-pill bg-app" style="height: 10px;">
-                            <div class="progress-bar rounded-pill bg-primary-dark" style="width: 92%;"></div>
-                        </div>
-                        <p class="txt-body text-xs mt-2 mb-0">Faltan 3 materias por asignar maestro en la carrera de Mecatrónica.</p>
+                        <div class="text-muted fw-bold mb-1" style="font-size: 0.65rem; letter-spacing: 1px;">GRUPOS ACTIVOS</div>
+                        <div class="h2 fw-bold txt-primary-dark mb-0">18</div>
                     </div>
+                    <div class="fw-bold txt-primary-dark opacity-50 mt-2" style="font-size: 0.6rem;">ENE - ABR 2026</div>
+                </div>
+            </div>
 
-                    <div class="row g-3 mt-2">
-                        <div class="col-md-6">
-                            <a href="@Url.Action("Asignaciones", "Coordinador")" class="bg-surface border border-theme rounded-4 p-3 d-flex align-items-center justify-content-between text-decoration-none transition hover-bg-app">
-                                <div class="d-flex align-items-center gap-3">
-                                    <div class="icon-circle bg-warning bg-opacity-10 text-warning-700"><i class="bi bi-person-fill-add"></i></div>
-                                    <span class="txt-title fw-bold text-sm">Completar Asignaciones</span>
-                                </div>
-                                <i class="bi bi-arrow-right txt-body"></i>
-                            </a>
-                        </div>
-                        <div class="col-md-6">
-                            <a href="@Url.Action("Catalogos", "Coordinador")" class="bg-surface border border-theme rounded-4 p-3 d-flex align-items-center justify-content-between text-decoration-none transition hover-bg-app">
-                                <div class="d-flex align-items-center gap-3">
-                                    <div class="icon-circle bg-accent-light txt-primary-dark"><i class="bi bi-people-fill"></i></div>
-                                    <span class="txt-title fw-bold text-sm">Ver Catálogo Docente</span>
-                                </div>
-                                <i class="bi bi-arrow-right txt-body"></i>
-                            </a>
-                        </div>
+            <div class="col-12 col-sm-6 col-xl-3">
+                <div class="admin-card-white p-4 shadow-sm border-0 h-100 d-flex flex-column justify-content-between">
+                    <div>
+                        <div class="text-muted fw-bold mb-1" style="font-size: 0.65rem; letter-spacing: 1px;">DOCENTES ASIGNADOS</div>
+                        <div class="h2 fw-bold txt-primary-dark mb-0">45</div>
                     </div>
+                    <div class="fw-bold txt-primary-dark opacity-50 mt-2" style="font-size: 0.6rem;">PLANTILLA VALIDADA</div>
+                </div>
+            </div>
+
+            <div class="col-12 col-sm-6 col-xl-3">
+                <div class="admin-card-white p-4 shadow-sm border-0 h-100 d-flex flex-column justify-content-between">
+                    <div>
+                        <div class="text-muted fw-bold mb-1" style="font-size: 0.65rem; letter-spacing: 1px;">MATERIAS SIN DOCENTE</div>
+                        <div class="h2 fw-bold text-danger mb-0">03</div>
+                    </div>
+                    <div class="text-danger fw-bold opacity-75 mt-2" style="font-size: 0.6rem;">REQUIERE ATENCIÓN</div>
+                </div>
+            </div>
+
+            <div class="col-12 col-sm-6 col-xl-3">
+                <div class="bg-primary-dark p-4 rounded-4 shadow-sm border-0 h-100 d-flex flex-column justify-content-center">
+                    <div class="text-white opacity-50 fw-bold mb-1" style="font-size: 0.65rem; letter-spacing: 1.5px;">PERIODO ESCOLAR</div>
+                    <div class="h5 fw-bold text-white mb-0">ENERO - ABRIL 2026</div>
                 </div>
             </div>
         </div>
 
-        <div class="col-lg-4">
-            <div class="bg-surface p-4 rounded-4 border-theme shadow-sm border-start h-100" style="border-left-width: 4px !important; border-left-color: var(--error-700) !important;">
-                <h6 class="txt-error fw-bold mb-4 d-flex align-items-center gap-2">
-                    <i class="bi bi-exclamation-triangle-fill"></i> Alertas de Deserción
-                </h6>
-
-                <div class="d-flex flex-column gap-3">
-                    <div class="p-3 bg-error-100 rounded-3 border-error border-opacity-25">
-                        <div class="d-flex justify-content-between align-items-start mb-1">
-                            <span class="txt-error fw-bold">Grupo 4º A (Software)</span>
-                            <span class="badge bg-white txt-error fw-bold">13% bajas</span>
-                        </div>
-                        <div class="txt-error opacity-75 text-xs">4 alumnos se han dado de baja este mes.</div>
+        <div class="row g-4">
+            <div class="col-lg-8">
+                <div class="admin-card-white p-4 h-100 shadow-sm border-0 d-flex flex-column">
+                    <div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-3">
+                        <h6 class="txt-title fw-bold text-uppercase mb-0" style="font-size: 0.75rem; letter-spacing: 1px;">Estado de Carga Académica</h6>
+                        <span class="badge bg-light text-dark border px-3 py-2 fw-bold" style="font-size: 0.6rem;">AVANCE: 92%</span>
                     </div>
 
-                    <div class="p-3 bg-app rounded-3 border border-theme">
-                        <div class="d-flex justify-content-between align-items-start mb-1">
-                            <span class="txt-title fw-bold">Grupo 2º C (Mecatrónica)</span>
-                            <span class="badge bg-white txt-title fw-bold border border-theme">8% bajas</span>
+                    <div class="flex-grow-1 py-3">
+                        <div class="mb-5">
+                            <div class="d-flex justify-content-between align-items-end mb-2">
+                                <span class="txt-title fw-bold" style="font-size: 0.7rem;">PROGRESO GENERAL DE ASIGNACIÓN</span>
+                                <span class="txt-primary-dark fw-bold h4 mb-0">92%</span>
+                            </div>
+                            <div class="progress rounded-pill bg-light" style="height: 12px;">
+                                <div class="progress-bar rounded-pill bg-primary-dark" role="progressbar" style="width: 92%;"></div>
+                            </div>
+                            <div class="mt-4 p-3 bg-light rounded-3 border-0">
+                                <p class="txt-body mb-0 fw-medium" style="font-size: 0.75rem;">
+                                    Se han identificado materias pendientes de docente en el programa de <strong>Ingeniería en Mecatrónica</strong>.
+                                    Es necesario completar la matriz antes del cierre de periodo.
+                                </p>
+                            </div>
                         </div>
-                        <div class="txt-body text-xs">3 alumnos se han dado de baja.</div>
+
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <a href="@Url.Action("Asignaciones", "Coordinador")" class="btn btn-light w-100 py-3 border-0 text-start d-flex justify-content-between align-items-center shadow-none rounded-3 px-4">
+                                    <span class="txt-title fw-bold text-uppercase" style="font-size: 0.7rem; letter-spacing: 1px;">COMPLETAR MATRIZ</span>
+                                    <span class="text-muted fw-bold">→</span>
+                                </a>
+                            </div>
+                            <div class="col-md-6">
+                                <a href="@Url.Action("Catalogos", "Coordinador")" class="btn btn-light w-100 py-3 border-0 text-start d-flex justify-content-between align-items-center shadow-none rounded-3 px-4">
+                                    <span class="txt-title fw-bold text-uppercase" style="font-size: 0.7rem; letter-spacing: 1px;">CATÁLOGO DOCENTE</span>
+                                    <span class="text-muted fw-bold">→</span>
+                                </a>
+                            </div>
+                        </div>
                     </div>
                 </div>
+            </div>
 
-                <a href="@Url.Action("Reportes", "Coordinador")" class="btn btn-ghost-sep w-100 mt-4 text-xs">Ver todos los reportes</a>
+            <div class="col-lg-4">
+                <div class="admin-card-white p-4 h-100 shadow-sm border-0">
+                    <h6 class="text-danger fw-bold mb-4 border-bottom pb-3 text-uppercase" style="font-size: 0.75rem; letter-spacing: 1px;">
+                        Indicadores de Riesgo
+                    </h6>
+
+                    <div class="d-flex flex-column gap-3">
+                        <div class="p-3 bg-danger bg-opacity-10 rounded-3 d-flex justify-content-between align-items-center border-0">
+                            <div>
+                                <div class="text-danger fw-bold text-uppercase" style="font-size: 0.7rem;">Grupo 4º A (Software)</div>
+                                <div class="text-danger opacity-75 fw-medium" style="font-size: 0.65rem;">4 Alumnos con baja procesada</div>
+                            </div>
+                            <span class="badge bg-white text-danger border border-danger border-opacity-25 fw-bold px-2 py-1" style="font-size: 0.7rem;">13%</span>
+                        </div>
+
+                        <div class="p-3 bg-light rounded-3 d-flex justify-content-between align-items-center border-0">
+                            <div>
+                                <div class="txt-title fw-bold text-uppercase" style="font-size: 0.7rem;">Grupo 2º C (Mecatrónica)</div>
+                                <div class="txt-body opacity-75 fw-medium" style="font-size: 0.65rem;">3 Alumnos con estatus irregular</div>
+                            </div>
+                            <span class="badge bg-white txt-title border border-secondary border-opacity-25 fw-bold px-2 py-1" style="font-size: 0.7rem;">08%</span>
+                        </div>
+                    </div>
+
+                    <div class="mt-5">
+                        <a href="@Url.Action("Reportes", "Coordinador")" class="btn btn-outline-secondary w-100 py-2 fw-bold text-uppercase border-0 bg-light" style="font-size: 0.65rem; letter-spacing: 1px;">
+                            VER TODOS LOS REPORTES
+                        </a>
+                    </div>
+                </div>
             </div>
         </div>
     </div>

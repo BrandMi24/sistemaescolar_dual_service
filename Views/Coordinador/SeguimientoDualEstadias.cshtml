@@ -24,21 +24,20 @@
     var teachers = ViewBag.Teachers as IEnumerable<dynamic>;
 }
 
-<div class="d-flex flex-column gap-4 fade-in">
-
+<div class="container-fluid d-flex flex-column gap-4 p-0 fade-in" style="height: 82vh;">
 
     @if (TempData["SuccessMessage"] != null)
     {
-        <div class="alert bg-success-100 border border-success-700 text-success-700 rounded-3 alert-dismissible fade show shadow-sm">
+        <div class="alert bg-success-100 border-start border-4 border-success text-success-700 rounded-3 alert-dismissible fade show shadow-sm flex-shrink-0">
             <i class="bi bi-check-circle-fill me-2"></i> @TempData["SuccessMessage"]
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            <button type="button" class="btn-close shadow-none" data-bs-dismiss="alert"></button>
         </div>
     }
     @if (TempData["ErrorMessage"] != null)
     {
-        <div class="alert bg-error-100 border border-error border-opacity-25 txt-error rounded-3 alert-dismissible fade show shadow-sm">
+        <div class="alert bg-error-100 border-start border-4 border-error txt-error rounded-3 alert-dismissible fade show shadow-sm flex-shrink-0" style="border-left-color: var(--error-700) !important;">
             <i class="bi bi-exclamation-triangle-fill me-2"></i> @TempData["ErrorMessage"]
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            <button type="button" class="btn-close shadow-none" data-bs-dismiss="alert"></button>
         </div>
     }
 
@@ -49,9 +48,9 @@
             <input type="hidden" name="page" value="1" />
             <input type="hidden" name="pageSize" value="@pageSize" />
             
-            <div class="position-relative search-wrapper flex-grow-1">
-                <i class="bi bi-search position-absolute search-icon-left txt-body"></i>
-                <input type="text" name="search" class="form-control search-input-custom tab-search" placeholder="Buscar por alumno o matrícula..." value="@search">
+            <div class="position-relative flex-grow-1">
+                <i class="bi bi-search position-absolute top-50 start-0 translate-middle-y ms-3 text-muted"></i>
+                <input type="text" id="searchInput" class="form-control border-0 bg-app py-2 ps-5 text-xs fw-medium shadow-none" placeholder="Buscar por alumno o matrícula..." value="@search">
             </div>
             
             <select name="status" class="form-select bg-app border-theme txt-title fw-bold tab-filter" style="width: auto; min-width: 160px;">
@@ -106,20 +105,18 @@
             </select>
 
             <div class="d-flex gap-2 flex-shrink-0">
-                <button type="submit" class="btn btn-primary-sep d-flex align-items-center gap-2 shadow-sm bg-primary-900">
-                    <i class="bi bi-funnel-fill"></i> Filtrar
+                <button type="button" id="btnLimpiar" class="btn-ghost-sep bg-app border-0 shadow-none px-4 py-2 text-xxs fw-bold d-flex align-items-center gap-2">
+                    LIMPIAR
                 </button>
-                <a href="@Url.Action("Asignaciones")" class="btn btn-ghost-sep d-flex align-items-center gap-2 shadow-sm">
-                    <i class="bi bi-x-lg"></i> Limpiar
-                </a>
             </div>
         </form>
     </div>
 
-    <div class="admin-card-white p-0 rounded-4 border-theme shadow-sm overflow-hidden d-flex flex-column">
-        <div class="table-responsive bg-surface" style="min-height: 300px;">
-            <table class="table table-borderless align-middle mb-0" style="min-width: 1100px;">
-                <thead class="admin-table-header">
+    <div class="admin-card-white p-0 rounded-4 border-0 shadow-sm overflow-hidden d-flex flex-column flex-grow-1">
+        
+        <div class="table-responsive bg-white flex-grow-1 custom-scroll" style="min-height: 250px;">
+            <table class="table align-middle mb-0 w-100" style="min-width: 1100px;">
+                <thead class="bg-app border-0 sticky-top" style="z-index: 5;">
                     <tr>
                         <th class="py-3 px-4" width="25%">
                             <a class="text-reset text-decoration-none" href="@Url.Action("SeguimientoDualEstadias", new { search, status = selectedStatus, teacher = selectedTeacher, createdFrom, createdTo, module = selectedModule, cuatrimestre = selectedCuatrimestre, moduleNumber = selectedModuleNumber, sort = "student", order = ToggleOrder("student"), page = 1, pageSize })">Estudiante</a>
@@ -207,7 +204,7 @@
             </table>
         </div>
 
-        <div class="bg-surface p-3 border-top border-theme d-flex flex-column flex-md-row justify-content-between align-items-center gap-3">
+        <div class="bg-white p-3 border-top border-light d-flex flex-column flex-xl-row justify-content-between align-items-center gap-3 flex-shrink-0">
             <div class="d-flex align-items-center gap-3">
                 <span class="txt-body text-xs fw-bold">Mostrar:</span>
                 <select id="rowsPerPage" class="form-select form-select-sm bg-app border-theme txt-title fw-bold rows-per-page" style="width: 70px; cursor: pointer;">
@@ -250,24 +247,24 @@
 
 <div class="modal fade" id="modalReasignar" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content border-theme shadow-sm rounded-4 overflow-hidden bg-surface">
+        <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden bg-white">
             <form action="@Url.Action("ReassignSupervisor", "Coordinador")" method="post">
                 @Html.AntiForgeryToken()
                 <input type="hidden" name="enrollmentId" id="inputEnrollmentId" value="0" />
                 
-                <div class="modal-header border-bottom border-theme p-4">
-                    <h5 class="modal-title txt-title fw-bold">
-                        <i class="bi bi-arrow-left-right me-2 text-primary"></i> Asignar Supervisor
-                    </h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                <div class="modal-header border-bottom border-light p-4 bg-app">
+                    <h6 class="modal-title txt-title fw-bold text-uppercase tracking-widest text-xs">
+                        ASIGNAR SUPERVISOR
+                    </h6>
+                    <button type="button" class="btn-close shadow-none" data-bs-dismiss="modal"></button>
                 </div>
                 
                 <div class="modal-body p-4">
-                    <p class="txt-body text-sm mb-4">Seleccione al docente que será responsable del seguimiento del estudiante.</p>
+                    <p class="text-muted text-xs fw-medium mb-4">Seleccione al docente que será responsable del seguimiento del estudiante.</p>
                     
                     <div class="mb-3">
-                        <label class="txt-body text-xs fw-bold tracking-wide mb-2 d-block">DOCENTE DISPONIBLE</label>
-                        <select name="newTeacherId" class="form-select bg-app border-theme txt-title fw-bold py-2" required>
+                        <label class="txt-body text-xxs fw-bold tracking-wide mb-2 d-block text-uppercase">DOCENTE DISPONIBLE</label>
+                        <select name="newTeacherId" class="form-select border-0 bg-app py-2 text-xs fw-bold txt-title shadow-none cursor-pointer" required>
                             <option value="">-- Seleccionar Docente --</option>
                             @if (teachers != null)
                             {
@@ -280,44 +277,19 @@
                     </div>
                 </div>
                 
-                <div class="modal-footer border-top border-theme bg-app p-3">
-                    <button type="button" class="btn btn-ghost-sep" data-bs-dismiss="modal">Cancelar</button>
-                    <button type="submit" class="btn btn-primary-sep bg-primary-900 shadow-sm">Guardar Asignación</button>
+                <div class="modal-footer border-top border-light p-3">
+                    <button type="button" class="btn-ghost-sep bg-app border-0 text-xxs fw-bold px-4" data-bs-dismiss="modal">CANCELAR</button>
+                    <button type="submit" class="btn-primary-sep border-0 px-4 text-xxs fw-bold tracking-widest shadow-sm">GUARDAR ASIGNACIÓN</button>
                 </div>
             </form>
         </div>
     </div>
 </div>
 
-<style>
-    /* Estilos de paginación heredados de tu vista Catálogos */
-    .page-link-custom {
-        color: var(--text-title);
-        background-color: var(--white);
-        border-color: var(--border-color);
-        font-weight: 700;
-        cursor: pointer;
-    }
-    .page-link-custom:hover {
-        background-color: var(--bg-main);
-        color: var(--primary-900);
-    }
-    .page-item.active .page-link-custom {
-        background-color: var(--primary-900);
-        border-color: var(--primary-900);
-        color: var(--white);
-    }
-    .page-item.disabled .page-link-custom {
-        color: var(--text-body);
-        background-color: var(--bg-main);
-        opacity: 0.6;
-        cursor: not-allowed;
-    }
-</style>
-
 @section Scripts {
     <script>
         $(document).ready(function () {
+            
             // Animación para desaparecer alertas
             setTimeout(function () {
                 $('.alert-dismissible').fadeOut('slow', function() {
@@ -325,7 +297,7 @@
                 });
             }, 4000);
 
-            // Ejemplo para pasar el ID al modal si los generas dinámicamente con un foreach en el futuro
+            // Modal ID handling
             $('#modalReasignar').on('show.bs.modal', function (event) {
                 var button = $(event.relatedTarget);
                 var id = button.data('enrollment-id');
@@ -337,6 +309,180 @@
                 const url = '@Url.Action("SeguimientoDualEstadias", new { search, status = selectedStatus, teacher = selectedTeacher, createdFrom, createdTo, module = selectedModule, cuatrimestre = selectedCuatrimestre, moduleNumber = selectedModuleNumber, sort, order, page = 1, pageSize = "__SIZE__" })';
                 window.location.href = url.replace('__SIZE__', size);
             });
+
+            // ==========================================
+            // LÓGICA DE TABLA DINÁMICA
+            // ==========================================
+            // ==========================================
+        // LÓGICA DE TABLA DINÁMICA DE ASIGNACIONES
+        // ==========================================
+        let allData = [];
+        let currentPage = 1;
+
+        function loadData() {
+            // Datos simulados. (Reemplazar por tu $.get real)
+            allData = [
+                {
+                    id: 1, matricula: '24001504', nombre: 'Roberto Carlos Perez Cadena', iniciales: 'RC',
+                    programa: 'Estadías Profesionales', org: 'CORNING OPTICAL',
+                    supervisor: 'Ing. Juan Pérez Martínez', estadoSupervisor: 'Asignado',
+                    estado: 'EN PROGRESO', horasHechas: 320, horasTotal: 600, progreso: 53
+                },
+                {
+                    id: 2, matricula: '24001892', nombre: 'Luis Ángel García', iniciales: 'LA',
+                    programa: 'Educación Dual', org: 'NIDEC MOTORS',
+                    supervisor: 'Sin Supervisor', estadoSupervisor: 'Pendiente',
+                    estado: 'SIN ASIGNAR', horasHechas: 0, horasTotal: 480, progreso: 0
+                }
+            ];
+            updateTable();
+        }
+
+        function renderRows(data) {
+            let html = '';
+            if (data.length === 0) {
+                html = `<tr>
+                    <td colspan="6" class="text-center py-5">
+                        <div class="d-flex flex-column align-items-center opacity-50 py-5">
+                            <i class="bi bi-folder-x fs-1 mb-2"></i>
+                            <span class="fw-bold text-xxs text-uppercase tracking-widest">Sin registros disponibles</span>
+                        </div>
+                    </td>
+                </tr>`;
+            } else {
+                data.forEach(item => {
+                    // Lógica para asignar colores basados en las variables CSS proporcionadas
+                    let estadoClass = '';
+                    let rowClass = 'hover-bg-app transition-all';
+                    let isAssigned = false;
+                    
+                    if(item.estado === 'EN PROGRESO' || item.estado === 'COMPLETADO') {
+                        estadoClass = 'status-aceptado text-white bg-success-700 bg-opacity-75'; // Verde
+                        isAssigned = true;
+                    } else if (item.estado === 'SIN ASIGNAR') {
+                        estadoClass = 'status-rechazado bg-error-100 txt-error border border-error border-opacity-25'; // Rojo claro
+                        rowClass += ' bg-error-100 bg-opacity-10'; // Fila con fondo rojo sutil
+                    } else {
+                        estadoClass = 'bg-warning-100 text-warning-700 border border-warning border-opacity-25'; // Amarillo/Naranja
+                    }
+
+                    let avatarColor = isAssigned ? 'bg-accent-light txt-primary-dark' : 'bg-app text-secondary border border-theme';
+                    
+                    html += `
+                    <tr class="border-bottom border-light ${rowClass}">
+                        <td class="px-4 py-3">
+                            <div class="d-flex align-items-center gap-3">
+                                <div class="${avatarColor} fw-bold rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width: 36px; height: 36px; font-size: 0.75rem;">${item.iniciales}</div>
+                                <div>
+                                    <div class="txt-title fw-bold text-xs text-uppercase mb-1">${item.nombre}</div>
+                                    <div class="text-muted text-xxs fw-medium">Mat: ${item.matricula}</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="txt-title fw-bold text-xs text-uppercase mb-1">${item.programa}</div>
+                            <span class="badge bg-app txt-title border border-theme text-xxs px-2 py-1 shadow-sm">${item.org}</span>
+                        </td>
+                        <td>
+                            <div class="txt-title fw-bold text-xs mb-1 ${isAssigned ? '' : 'text-danger'}">${item.supervisor}</div>
+                            <div class="text-muted text-xxs fw-medium text-uppercase">${item.estadoSupervisor}</div>
+                        </td>
+                        <td class="text-center">
+                            <span class="badge rounded-pill px-3 py-1 text-xxs fw-bold ${estadoClass}">${item.estado}</span>
+                        </td>
+                        <td class="text-center">
+                            <div class="txt-title fw-bold text-xs mb-1">${item.horasHechas} / ${item.horasTotal} hrs</div>
+                            <div class="progress" style="height: 6px; width: 100px; margin: 0 auto; background-color: var(--bg-main);">
+                                <div class="progress-bar bg-primary-900" style="width: ${item.progreso}%"></div>
+                            </div>
+                        </td>
+                        <td class="text-end px-4">
+                            <div class="d-flex justify-content-end gap-2">
+                                <button class="btn btn-sm border-0 bg-primary-100 txt-primary-dark rounded-2 py-1 px-2 shadow-sm" data-bs-toggle="modal" data-bs-target="#modalReasignar" data-id="${item.id}" title="Asignar / Reasignar">
+                                    <i class="bi bi-person-plus-fill fs-6"></i>
+                                </button>
+                                <button class="btn btn-sm border-0 bg-app text-secondary rounded-2 py-1 px-2 shadow-sm" title="Ver Detalles">
+                                    <i class="bi bi-eye fs-6"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>`;
+                });
+            }
+            $('#asignacionesBody').html(html);
+        }
+
+            function updateTable() {
+                let searchTerm = $('#searchInput').val().toLowerCase();
+                let statusFilter = $('#statusFilter').val();
+                let rowsPerPage = parseInt($('#rowsPerPage').val());
+
+                let filteredData = allData.filter(item => {
+                    let matchesSearch = item.nombre.toLowerCase().includes(searchTerm) || item.matricula.includes(searchTerm);
+                    let matchesStatus = (!statusFilter) || (item.estado === statusFilter);
+                    return matchesSearch && matchesStatus;
+                });
+
+                let totalRecords = filteredData.length;
+                let totalPages = Math.ceil(totalRecords / rowsPerPage) || 1;
+                if (currentPage > totalPages) currentPage = totalPages;
+
+                let startIndex = (currentPage - 1) * rowsPerPage;
+                let endIndex = Math.min(startIndex + rowsPerPage, totalRecords);
+                let pageData = filteredData.slice(startIndex, endIndex);
+
+                renderRows(pageData);
+
+                $('#tableInfo').text(totalRecords === 0 ? '0 REGISTROS' : `${startIndex + 1} - ${endIndex} DE ${totalRecords}`);
+                renderPagination(totalPages);
+            }
+
+            function renderPagination(totalPages) {
+                let html = '';
+                
+                html += `<li class="page-item ${currentPage === 1 ? 'disabled' : ''}">
+                    <a class="page-link border-0 bg-app rounded-2 txt-title fw-bold text-xxs" href="#" data-page="${currentPage - 1}">
+                        <i class="bi bi-chevron-left"></i>
+                    </a>
+                </li>`;
+
+                for (let i = 1; i <= totalPages; i++) {
+                    let btnClass = (i === currentPage) ? 'bg-primary-dark text-white shadow-sm' : 'bg-app txt-title hover-bg-light';
+                    html += `<li class="page-item ${i === currentPage ? 'active' : ''}">
+                        <a class="page-link border-0 ${btnClass} rounded-2 mx-1 fw-bold text-xxs px-3" href="#" data-page="${i}">${i}</a>
+                    </li>`;
+                }
+
+                html += `<li class="page-item ${currentPage === totalPages ? 'disabled' : ''}">
+                    <a class="page-link border-0 bg-app rounded-2 txt-title fw-bold text-xxs" href="#" data-page="${currentPage + 1}">
+                        <i class="bi bi-chevron-right"></i>
+                    </a>
+                </li>`;
+
+                $('#paginationControls').html(html);
+            }
+
+            // Eventos
+            $('#searchInput, #statusFilter, #teacherFilter, #rowsPerPage').on('change input', () => { currentPage = 1; updateTable(); });
+
+            $('#paginationControls').on('click', '.page-link', function (e) {
+                e.preventDefault();
+                let page = parseInt($(this).data('page'));
+                if (page && !$(this).parent().hasClass('disabled')) {
+                    currentPage = page;
+                    updateTable();
+                }
+            });
+
+            $('#btnLimpiar').click(function() {
+                $('#searchInput').val('');
+                $('#statusFilter').val('');
+                $('#teacherFilter').val('');
+                currentPage = 1;
+                updateTable();
+            });
+
+            loadData();
         });
     </script>
 }

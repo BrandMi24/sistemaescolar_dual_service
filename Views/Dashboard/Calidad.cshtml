@@ -1,0 +1,426 @@
+﻿@model ControlEscolar.Models.Dashboard.AcademicQualityViewModel
+@{
+    ViewData["Title"] = "Calidad Académica — Rendimiento Estudiantil";
+    Layout = "_LayoutDashboard";
+    var cuatNames = new Dictionary<int, string> { { 0, "Todo el año" }, { 1, "Ene — Abr" }, { 2, "May — Ago" }, { 3, "Sep — Dic" } };
+}
+
+@if (ViewBag.Error != null)
+{
+    <div class="alert-box-sep mb-4 shadow-sm border-theme">
+        <i class="bi bi-exclamation-octagon-fill txt-error fs-5"></i>
+        <div class="txt-title text-sm"><strong>Error de Sistema:</strong> @ViewBag.Error</div>
+    </div>
+}
+
+<div class="admin-card-white p-4 mb-4 shadow-sm">
+    <form method="get" class="row g-3 align-items-end">
+        <div class="col-md-3">
+            <label class="section-label text-muted mb-2 d-block">Año Académico</label>
+            <select name="year" class="form-select text-sm fw-semibold">
+                @foreach (var y in Model.AvailableYears)
+                {
+                    if (y == Model.SelectedYear)
+                    {
+                        <option value="@y" selected>@y</option>
+                    }
+                    else
+                    {
+                        <option value="@y">@y</option>
+                    }
+                }
+            </select>
+        </div>
+        <div class="col-md-3">
+            <label class="section-label text-muted mb-2 d-block">Periodo (Cuatrimestre)</label>
+            <select name="cuatrimestre" class="form-select text-sm fw-semibold">
+                @{
+                    var cuatOptions = new Dictionary<int, string> { { 0, "Todo el año" }, { 1, "Ene — Abr" }, { 2, "May — Ago" }, { 3, "Sep — Dic" } };
+                }
+                @foreach (var opt in cuatOptions)
+                {
+                    if (opt.Key == Model.SelectedCuatrimestre)
+                    {
+                        <option value="@opt.Key" selected>@opt.Value</option>
+                    }
+                    else
+                    {
+                        <option value="@opt.Key">@opt.Value</option>
+                    }
+                }
+            </select>
+        </div>
+        <div class="col-md-6 d-flex gap-2 flex-wrap">
+            <button type="submit" class="btn-primary-sep text-xs px-4"><i class="bi bi-funnel me-2"></i> FILTRAR DATOS</button>
+            <a href="@Url.Action("Calidad", "Dashboard")" class="btn-ghost-sep text-xs px-4 bg-surface">LIMPIAR</a>
+            <button type="button" class="btn-ghost-sep text-xs px-4" onclick="exportAllTablesToZip('calidad_academica')" title="Descargar todas las tablas en un ZIP (respeta filtros actuales)">
+                <i class="bi bi-file-earmark-zip me-2"></i> DESCARGAR TODO (ZIP)
+            </button>
+        </div>
+    </form>
+</div>
+
+@if (Model.SelectedCuatrimestre > 0)
+{
+    <div class="mb-4 d-inline-flex align-items-center bg-primary-dark txt-white text-xxs fw-bold tracking-wide px-3 py-2 rounded-pill shadow-sm">
+        <i class="bi bi-info-circle me-2"></i> VISTA ACTUAL: AÑO @Model.SelectedYear / @cuatNames[Model.SelectedCuatrimestre].ToUpper()
+    </div>
+}
+
+<div class="row g-3 mb-4">
+    <div class="col-12 col-md-6 col-xl-3">
+        <div class="stat-card-sep">
+            <div class="d-flex justify-content-between align-items-start mb-2">
+                <span class="stat-label">Calificaciones Finales</span>
+                <div class="icon-circle bg-accent-light txt-primary-dark shadow-sm"><i class="bi bi-journal-check fs-5"></i></div>
+            </div>
+            <div class="stat-value">@Model.TotalFinalGrades</div>
+            <span class="text-xxs txt-body mt-1 fw-medium">@Model.TotalGradeRecords registros parciales</span>
+        </div>
+    </div>
+    <div class="col-12 col-md-6 col-xl-3">
+        <div class="stat-card-sep" style="border-left: 3px solid var(--success-700);">
+            <div class="d-flex justify-content-between align-items-start mb-2">
+                <span class="stat-label">Tasa Aprobación</span>
+                <div class="icon-circle bg-success-100 shadow-sm" style="color: var(--success-700);"><i class="bi bi-check-circle fs-5"></i></div>
+            </div>
+            <div class="stat-value">@Model.TasaAprobacion%</div>
+            <div class="progress mt-2" style="height: 4px; background-color: var(--bg-main);"><div class="progress-bar" style="width: @Model.TasaAprobacion%; background-color: var(--success-700);"></div></div>
+        </div>
+    </div>
+    <div class="col-12 col-md-6 col-xl-3">
+        <div class="stat-card-sep" style="border-left: 3px solid var(--primary-700);">
+            <div class="d-flex justify-content-between align-items-start mb-2">
+                <span class="stat-label">Promedio General</span>
+                <div class="icon-circle bg-primary-100 txt-primary-dark shadow-sm"><i class="bi bi-award fs-5"></i></div>
+            </div>
+            <div class="stat-value">@Model.PromedioGeneral</div>
+            <span class="text-xxs txt-body mt-1 fw-medium">Media institucional</span>
+        </div>
+    </div>
+    <div class="col-12 col-md-6 col-xl-3">
+        <div class="stat-card-sep" style="border-left: 3px solid var(--warning-700);">
+            <div class="d-flex justify-content-between align-items-start mb-2">
+                <span class="stat-label">Oportunidades</span>
+                <div class="icon-circle bg-warning-100 shadow-sm" style="color: var(--warning-700);"><i class="bi bi-arrow-repeat fs-5"></i></div>
+            </div>
+            <div class="stat-value">@Model.TotalOpportunities</div>
+            <span class="text-xxs txt-body mt-1 fw-medium">@Model.Reprobados reprobados</span>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4 mb-4">
+    <div class="col-12 col-lg-8">
+        <div class="admin-card-white h-100">
+            <div class="d-flex align-items-center gap-2 mb-4 border-bottom pb-3">
+                <div style="width: 4px; height: 18px; background: var(--primary-900); border-radius: 2px;"></div>
+                <h6 class="txt-title fw-bold text-xs text-uppercase tracking-wide mb-0">Distribución de Calificaciones Finales</h6>
+            </div>
+            @if (Model.GradeDistribution.Any())
+            {
+                <div class="chart-container" style="height: 280px;"><canvas id="chartDist"></canvas></div>
+            }
+            else
+            {
+
+                <div class="no-data">Sin datos para este periodo</div>
+            }
+        </div>
+    </div>
+    <div class="col-12 col-lg-4">
+        <div class="admin-card-white h-100">
+            <div class="d-flex align-items-center gap-2 mb-4 border-bottom pb-3">
+                <div style="width: 4px; height: 18px; background: var(--accent-500); border-radius: 2px;"></div>
+                <h6 class="txt-title fw-bold text-xs text-uppercase tracking-wide mb-0">Aprobación vs Reprobación</h6>
+            </div>
+            @if (Model.ByPassStatus.Any())
+            {
+                <div class="chart-container" style="height: 280px;"><canvas id="chartPass"></canvas></div>
+            }
+            else
+            {
+
+                <div class="no-data">Sin datos para este periodo</div>
+            }
+        </div>
+    </div>
+</div>
+
+@if (Model.GradesBySubject.Any())
+{
+    <div class="admin-card-white mb-4 shadow-sm">
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center border-bottom pb-3 mb-4 gap-3">
+            <h6 class="txt-title fw-bold text-xs text-uppercase tracking-wide mb-0"><i class="bi bi-book me-2"></i>Rendimiento por Materia</h6>
+            <div class="d-flex gap-2">
+                <select class="form-select form-select-sm text-xxs fw-bold bg-app border-0" style="width: auto;" onchange="filterTableByColumn(this.value,'tblSubjects',1)">
+                    <option value="">Carrera (Todas)</option>
+                    @foreach (var c in Model.GradesBySubject.Select(s => s.CareerName).Distinct().OrderBy(c => c))
+                    {
+                        <option value="@c">@c</option>
+                    }
+                </select>
+                <button class="btn btn-sm btn-light border text-xxs fw-bold px-3 py-1" onclick="exportTableToCSV('tblSubjects','rendimiento_materias.csv')"><i class="bi bi-download"></i></button>
+            </div>
+        </div>
+        <div class="text-xxs text-muted mb-2 fw-bold" id="tblSubjectsCount">Mostrando 1 a @Model.GradesBySubject.Count registros</div>
+        <div class="table-responsive custom-scroll" style="max-height: 350px;">
+            <table class="table table-hover align-middle text-sm mb-0 table-borderless" id="tblSubjects" data-export-name="rendimiento_por_materia">
+                <thead class="bg-app text-xxs fw-bold text-muted" style="position: sticky; top: 0; z-index: 1;">
+                    <tr><th class="ps-3 border-0">Materia</th><th class="border-0">Carrera</th><th class="text-center border-0">Promedio</th><th class="text-center border-0">Alumnos</th><th class="text-center border-0">Aprobados</th><th class="text-center border-0">Reprobados</th><th class="text-center pe-3 border-0">% Aprob.</th></tr>
+                </thead>
+                <tbody>
+                    @foreach (var s in Model.GradesBySubject)
+                    {
+                        var gc = s.Average >= 8 ? "status-aceptado" : s.Average >= 7 ? "status-pendiente" : "status-rechazado";
+                        var pc = s.PassRate >= 80 ? "status-aceptado" : s.PassRate >= 60 ? "status-pendiente" : "status-rechazado";
+                        <tr>
+                            <td class="ps-3 fw-bold txt-title text-xs">@s.SubjectName</td>
+                            <td class="text-muted text-xs">@s.CareerName</td>
+                            <td class="text-center"><span class="badge badge-status @gc shadow-sm">@s.Average.ToString("0.0")</span></td>
+                            <td class="text-center"><span class="badge bg-app txt-title">@s.TotalStudents</span></td>
+                            <td class="text-center fw-bold" style="color: var(--success-700);">@s.Passed</td>
+                            <td class="text-center @(s.Failed > 0 ? "fw-bold" : "text-muted")" style="@(s.Failed > 0 ? "color: var(--error-700,#991B1B);" : "")">@s.Failed</td>
+                            <td class="text-center pe-3"><span class="badge badge-status @pc shadow-sm">@s.PassRate.ToString("0.0")%</span></td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+}
+
+@if (Model.GradesByTeacher.Any())
+{
+    <div class="admin-card-white mb-4 shadow-sm">
+        <h6 class="txt-title fw-bold text-xs text-uppercase tracking-wide mb-4 border-bottom pb-3"><i class="bi bi-person-video3 me-2"></i>Rendimiento por Docente</h6>
+        <div class="table-responsive custom-scroll" style="max-height: 300px;">
+            <table class="table table-hover align-middle text-sm mb-0 table-borderless">
+                <thead class="bg-app text-xxs fw-bold text-muted" style="position: sticky; top: 0; z-index: 1;">
+                    <tr><th class="ps-3 border-0">Docente</th><th class="text-center border-0">Materias</th><th class="text-center border-0">Alumnos</th><th class="text-center border-0">Promedio</th><th class="text-center pe-3 border-0">% Aprob.</th></tr>
+                </thead>
+                <tbody>
+                    @foreach (var t in Model.GradesByTeacher)
+                    {
+                        var pc = t.PassRate >= 80 ? "status-aceptado" : t.PassRate >= 60 ? "status-pendiente" : "status-rechazado";
+                        <tr>
+                            <td class="ps-3 fw-bold txt-title text-xs">@t.TeacherName</td>
+                            <td class="text-center"><span class="badge bg-primary-dark txt-white px-2">@t.TotalSubjects</span></td>
+                            <td class="text-center"><span class="badge bg-app txt-title">@t.TotalStudents</span></td>
+                            <td class="text-center fw-bold" style="color: var(--success-700);">@t.AverageGrade.ToString("0.0")</td>
+                            <td class="text-center pe-3"><span class="badge badge-status @pc shadow-sm">@t.PassRate.ToString("0.0")%</span></td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+}
+
+<div class="row g-4 mb-4">
+    @if (Model.SubjectsByCareer.Any())
+    {
+        <div class="col-12 col-lg-6">
+            <div class="admin-card-white h-100">
+                <h6 class="txt-title fw-bold text-xs text-uppercase tracking-wide mb-4 border-bottom pb-3">Materias por Carrera</h6>
+                <div class="table-responsive custom-scroll" style="max-height: 250px;">
+                    <table class="table table-hover align-middle text-sm mb-0 table-borderless">
+                        <thead class="bg-app text-xxs fw-bold text-muted" style="position: sticky; top: 0; z-index: 1;"><tr><th class="ps-3 border-0">Carrera</th><th class="text-center border-0">Materias</th><th class="text-center border-0">Hrs/Sem</th></tr></thead>
+                        <tbody>
+                            @foreach (var sc in Model.SubjectsByCareer)
+                            {
+                                <tr><td class="ps-3 fw-bold txt-title text-xs">@sc.CareerName</td><td class="text-center"><span class="badge bg-primary-dark txt-white px-2">@sc.SubjectCount</span></td><td class="text-center"><span class="badge bg-app txt-title">@sc.TotalHours</span></td></tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    }
+    @if (Model.GradeDistribution.Any())
+    {
+        <div class="col-12 col-lg-6">
+            <div class="admin-card-white h-100">
+                <h6 class="txt-title fw-bold text-xs text-uppercase tracking-wide mb-4 border-bottom pb-3">Distribución de Promedios</h6>
+                <div class="table-responsive custom-scroll" style="max-height: 250px;">
+                    <table class="table table-hover align-middle text-sm mb-0 table-borderless">
+                        <thead class="bg-app text-xxs fw-bold text-muted" style="position: sticky; top: 0; z-index: 1;"><tr><th class="ps-3 border-0">Rango</th><th class="text-center border-0">Total</th></tr></thead>
+                        <tbody>
+                            @foreach (var g in Model.GradeDistribution)
+                            {
+                                var gc = g.Range.StartsWith("9") ? "status-aceptado" : g.Range.StartsWith("8") ? "status-pendiente" : "status-rechazado";
+                                <tr><td class="ps-3 fw-bold txt-title">@g.Range</td><td class="text-center"><span class="badge badge-status @gc shadow-sm">@g.Count</span></td></tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@if (Model.Periods.Any())
+{
+    <div class="admin-card-white mb-4 shadow-sm">
+        <h6 class="txt-title fw-bold text-xs text-uppercase tracking-wide mb-4 border-bottom pb-3"><i class="bi bi-calendar-range me-2"></i>Periodos Académicos</h6>
+        <div class="table-responsive custom-scroll" style="max-height: 250px;">
+            <table class="table table-hover align-middle text-sm mb-0 table-borderless">
+                <thead class="bg-app text-xxs fw-bold text-muted" style="position: sticky; top: 0; z-index: 1;">
+                    <tr><th class="ps-3 border-0">Periodo</th><th class="text-center border-0">Inicio</th><th class="text-center border-0">Fin</th><th class="text-center border-0">Asignaciones</th><th class="text-center pe-3 border-0">Estatus</th></tr>
+                </thead>
+                <tbody>
+                    @foreach (var p in Model.Periods)
+                    {
+                        <tr>
+                            <td class="ps-3 fw-bold txt-title text-xs">@p.Name</td>
+                            <td class="text-center text-muted text-xs">@p.StartDate.ToString("dd/MM/yyyy")</td>
+                            <td class="text-center text-muted text-xs">@p.EndDate.ToString("dd/MM/yyyy")</td>
+                            <td class="text-center"><span class="badge bg-primary-dark txt-white px-2">@p.Assignments</span></td>
+                            <td class="text-center pe-3">@if (p.IsActive) {
+                            <span class="badge badge-status status-aceptado shadow-sm">Activo</span>
+                        } else
+                        {
+
+                            <span class="badge bg-app txt-title">Cerrado</span>
+                        }
+    </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+}
+
+@if (Model.SubjectCatalog.Any())
+{
+    <div class="admin-card-white mb-4 shadow-sm">
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center border-bottom pb-3 mb-4 gap-3">
+            <h6 class="txt-title fw-bold text-xs text-uppercase tracking-wide mb-0"><i class="bi bi-journal-text me-2"></i>Catálogo de Materias</h6>
+            <div class="d-flex gap-2">
+                <select class="form-select form-select-sm text-xxs fw-bold bg-app border-0" style="width: auto;" onchange="filterTableByColumn(this.value,'tblCatalog',2)">
+                    <option value="">Carrera (Todas)</option>
+                    @foreach (var c in Model.SubjectsByCareer)
+                    {
+                        <option value="@c.CareerName">@c.CareerName</option>
+                    }
+                </select>
+                <button class="btn btn-sm btn-light border text-xxs fw-bold px-3 py-1" onclick="exportTableToCSV('tblCatalog','catalogo_materias.csv')"><i class="bi bi-download"></i></button>
+            </div>
+        </div>
+        <div class="text-xxs text-muted mb-2 fw-bold" id="tblCatalogCount">Mostrando 1 a @Model.SubjectCatalog.Count registros</div>
+        <div class="table-responsive custom-scroll" style="max-height: 350px;">
+            <table class="table table-hover align-middle text-sm mb-0 table-borderless" id="tblCatalog" data-export-name="catalogo_materias">
+                <thead class="bg-app text-xxs fw-bold text-muted" style="position: sticky; top: 0; z-index: 1;">
+                    <tr><th class="ps-3 border-0">Código</th><th class="border-0">Materia</th><th class="border-0">Carrera</th><th class="text-center border-0">Cuatrimestre</th><th class="text-center pe-3 border-0">Hrs/Sem</th></tr>
+                </thead>
+                <tbody>
+                    @foreach (var s in Model.SubjectCatalog)
+                    {
+                        <tr>
+                            <td class="ps-3 fw-bold txt-primary-dark">@s.Code</td>
+                            <td class="fw-bold txt-title text-xs">@s.Name</td>
+                            <td class="text-muted text-xs">@s.CareerName</td>
+                            <td class="text-center"><span class="badge bg-primary-dark txt-white px-2">@s.Semester</span></td>
+                            <td class="text-center pe-3"><span class="badge bg-app txt-title">@s.WeeklyHours</span></td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+}
+
+@if (Model.RecentFinalGrades.Any())
+{
+    <div class="admin-card-white mb-4 shadow-sm">
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center border-bottom pb-3 mb-4 gap-3">
+            <h6 class="txt-title fw-bold text-xs text-uppercase tracking-wide mb-0"><i class="bi bi-card-checklist me-2"></i>Calificaciones Finales</h6>
+            <div class="d-flex gap-2">
+                <select class="form-select form-select-sm text-xxs fw-bold bg-app border-0" style="width: auto;" onchange="filterTableByColumn(this.value,'tblGrades',5)">
+                    <option value="">Estatus (Todos)</option>
+                    <option value="APROBADO">Aprobado</option>
+                    <option value="REPROBADO">Reprobado</option>
+                </select>
+                <button class="btn-primary-sep text-xxs py-2 px-3" onclick="exportTableToCSV('tblGrades','calificaciones_finales.csv')"><i class="bi bi-file-earmark-excel me-2"></i> EXPORTAR</button>
+            </div>
+        </div>
+        <div class="text-xxs text-muted mb-2 fw-bold" id="tblGradesCount">Mostrando 1 a @Model.RecentFinalGrades.Count registros</div>
+        <div class="table-responsive custom-scroll" style="max-height: 400px;">
+            <table class="table table-hover align-middle text-sm mb-0 table-borderless" id="tblGrades" data-export-name="calificaciones_finales">
+                <thead class="bg-primary-dark txt-white text-xxs" style="position: sticky; top: 0; z-index: 10;">
+                    <tr><th class="ps-3 border-0">Alumno</th><th class="border-0">Matrícula</th><th class="border-0">Materia</th><th class="border-0">Docente</th><th class="text-center border-0">Calif.</th><th class="text-center border-0">Estatus</th><th class="pe-3 border-0">Periodo</th></tr>
+                </thead>
+                <tbody>
+                    @foreach (var g in Model.RecentFinalGrades)
+                    {
+                        var sc = g.PassStatus == "APROBADO" ? "status-aceptado" : "status-rechazado";
+                        var gc = g.FinalValue >= 9 ? "color: var(--success-700);" : g.FinalValue >= 7 ? "color: var(--primary-700);" : "color: var(--error-700,#991B1B);";
+                        <tr>
+                            <td class="ps-3 fw-bold txt-title text-xs">@g.StudentName</td>
+                            <td class="text-muted text-xs">@g.Matricula</td>
+                            <td class="text-truncate text-xs" style="max-width: 150px;" title="@g.SubjectName">@g.SubjectName</td>
+                            <td class="text-xs">@g.TeacherName</td>
+                            <td class="text-center fw-bold" style="@gc">@g.FinalValue.ToString("0.0")</td>
+                            <td class="text-center"><span class="badge badge-status @sc shadow-sm">@g.PassStatus</span></td>
+                            <td class="text-muted text-xs pe-3">@g.PeriodName</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+}
+
+@if (Model.RecentOpportunities.Any())
+{
+    <div class="admin-card-white mb-5 shadow-sm" style="border-left: 4px solid var(--warning-700) !important;">
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center border-bottom pb-3 mb-4 gap-3">
+            <h6 class="fw-bold text-xs text-uppercase tracking-wide mb-0" style="color: var(--warning-700);"><i class="bi bi-exclamation-circle-fill me-2"></i>Oportunidades Extraordinarias</h6>
+            <button class="btn btn-sm btn-light border text-xxs fw-bold px-3 py-1" onclick="exportTableToCSV('tblOpp','oportunidades.csv')"><i class="bi bi-download"></i></button>
+        </div>
+        <div class="table-responsive custom-scroll" style="max-height: 300px;">
+            <table class="table table-hover align-middle text-sm mb-0 table-borderless" id="tblOpp" data-export-name="oportunidades_extraordinarias">
+                <thead class="bg-app text-xxs fw-bold text-muted" style="position: sticky; top: 0; z-index: 1;">
+                    <tr><th class="ps-3 border-0">Alumno</th><th class="border-0">Materia</th><th class="text-center border-0">Tipo</th><th class="text-center border-0">Calif. Original</th><th class="text-center border-0">Calif. Oport.</th><th class="text-center border-0">Máx.</th><th class="pe-3 border-0">Notas</th></tr>
+                </thead>
+                <tbody>
+                    @foreach (var o in Model.RecentOpportunities)
+                    {
+                        var oc = o.OpportunityGrade >= 7 ? "status-aceptado" : "status-rechazado";
+                        <tr>
+                            <td class="ps-3 fw-bold txt-title text-xs">@o.StudentName</td>
+                            <td class="text-truncate text-xs" style="max-width: 150px;">@o.SubjectName</td>
+                            <td class="text-center"><span class="badge bg-warning-100" style="color: var(--warning-700); font-size:10px;">@o.Type</span></td>
+                            <td class="text-center"><span class="badge badge-status status-rechazado shadow-sm">@o.OriginalGrade.ToString("0.0")</span></td>
+                            <td class="text-center"><span class="badge badge-status @oc shadow-sm">@o.OpportunityGrade.ToString("0.0")</span></td>
+                            <td class="text-center"><span class="badge bg-app txt-title">@(o.MaxAllowed.HasValue? o.MaxAllowed.Value.ToString("0.0") : "—")</span></td>
+                            <td class="text-xs text-muted text-truncate pe-3" style="max-width: 150px;">@(string.IsNullOrEmpty(o.Notes) ? "—" : o.Notes)</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+}
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
+    <script>
+        Chart.register(ChartDataLabels); Chart.defaults.color = '#6B7280'; Chart.defaults.font.family = "'Montserrat', sans-serif";
+
+        @if (Model.GradeDistribution.Any())
+        {
+                <text>new Chart(document.getElementById('chartDist'), { type: 'bar', data: { labels: [@Html.Raw(string.Join(",", Model.GradeDistribution.Select(g => $"'{g.Range}'")))], datasets: [{ data: [@string.Join(",", Model.GradeDistribution.Select(g => g.Count))], backgroundColor: ['#13322B', '#204A40', '#D4C19C', '#A67C52', '#991B1B'], borderRadius: 4, maxBarThickness: 55 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, datalabels: { anchor: 'end', align: 'top', color: '#13322B', font: { weight: '800', size: 11 }, offset: 4 } }, scales: { x: { grid: { display: false } }, y: { grid: { color: 'rgba(0,0,0,0.04)' }, ticks: { precision: 0 } } } } });</text>
+        }
+
+        @if (Model.ByPassStatus.Any())
+        {
+                <text>new Chart(document.getElementById('chartPass'), { type: 'doughnut', data: { labels: [@Html.Raw(string.Join(",", Model.ByPassStatus.Select(s => $"'{s.Status}'")))], datasets: [{ data: [@string.Join(",", Model.ByPassStatus.Select(s => s.Count))], backgroundColor: ['#13322B', '#991B1B'], borderWidth: 2, borderColor: '#ffffff' }] }, options: { responsive: true, maintainAspectRatio: false, cutout: '75%', plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, padding: 15, font: { size: 10, weight: '600' } } }, datalabels: { color: '#fff', font: { weight: 'bold', size: 13 }, formatter: function(v, ctx) { var t = ctx.dataset.data.reduce((a, b) => a + b, 0); var p = t > 0 ? Math.round(v / t * 100) : 0; return p > 5 ? p + '%' : ''; } } } } });</text>
+        }
+
+        function filterTableByColumn(value, tableId, colIndex) { var table = document.getElementById(tableId); if (!table) return; if (!window._filters) window._filters = {}; if (!window._filters[tableId]) window._filters[tableId] = {}; if (value) window._filters[tableId][colIndex] = value; else delete window._filters[tableId][colIndex]; var rows = table.querySelectorAll('tbody tr'); var visible = 0; rows.forEach(function(row) { var show = true; for (var ci in window._filters[tableId]) { var fv = window._filters[tableId][ci]; var cell = row.cells[parseInt(ci)]; if (cell && cell.textContent.trim().indexOf(fv) === -1) { show = false; break; } } row.style.display = show ? '' : 'none'; if (show) visible++; }); var countEl = document.getElementById(tableId + 'Count'); if (countEl) countEl.textContent = 'Mostrando 1 a ' + visible + ' registros'; }
+        function exportTableToCSV(tid, fn) { var t = document.getElementById(tid); var r = t.querySelectorAll('tr'); var c = []; r.forEach(function(row) { if (row.style.display === 'none') return; var cols = row.querySelectorAll('th,td'); var d = []; cols.forEach(function(col) { d.push('"' + col.textContent.trim().replace(/\n/g,' ').replace(/"/g,'""') + '"'); }); c.push(d.join(',')); }); var b = new Blob(['\uFEFF' + c.join('\n')], { type: 'text/csv;charset=utf-8;' }); var l = document.createElement('a'); l.href = URL.createObjectURL(b); l.download = fn; l.click(); }
+    </script>
+}

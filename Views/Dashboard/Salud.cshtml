@@ -1,0 +1,414 @@
+﻿@model ControlEscolar.Models.Dashboard.MedicalViewModel
+@{
+    ViewData["Title"] = "Salud Integral — Servicios Médicos";
+    Layout = "_LayoutDashboard";
+    var cuatNames = new Dictionary<int, string> { { 0, "Todo el año" }, { 1, "Ene — Abr" }, { 2, "May — Ago" }, { 3, "Sep — Dic" } };
+}
+
+@if (ViewBag.Error != null)
+{
+    <div class="alert-box-sep mb-4 shadow-sm border-theme">
+        <i class="bi bi-exclamation-octagon-fill txt-error fs-5"></i>
+        <div class="txt-title text-sm"><strong>Error de Sistema:</strong> @ViewBag.Error</div>
+    </div>
+}
+
+<div class="admin-card-white p-4 mb-4 shadow-sm">
+    <form method="get" class="row g-3 align-items-end">
+        <div class="col-md-3">
+            <label class="section-label text-muted mb-2 d-block">Año Académico</label>
+            <select name="year" class="form-select text-sm fw-semibold">
+                @foreach (var y in Model.AvailableYears)
+                {
+                    if (y == Model.SelectedYear)
+                    {
+                        <option value="@y" selected>@y</option>
+                    }
+                    else
+                    {
+                        <option value="@y">@y</option>
+                    }
+                }
+            </select>
+        </div>
+        <div class="col-md-3">
+            <label class="section-label text-muted mb-2 d-block">Periodo (Cuatrimestre)</label>
+            <select name="cuatrimestre" class="form-select text-sm fw-semibold">
+                @{
+                    var cuatOptions = new Dictionary<int, string> { { 0, "Todo el año" }, { 1, "Ene — Abr" }, { 2, "May — Ago" }, { 3, "Sep — Dic" } };
+                }
+                @foreach (var opt in cuatOptions)
+                {
+                    if (opt.Key == Model.SelectedCuatrimestre)
+                    {
+                        <option value="@opt.Key" selected>@opt.Value</option>
+                    }
+                    else
+                    {
+                        <option value="@opt.Key">@opt.Value</option>
+                    }
+                }
+            </select>
+        </div>
+        <div class="col-md-6 d-flex gap-2 flex-wrap">
+            <button type="submit" class="btn-primary-sep text-xs px-4"><i class="bi bi-funnel me-2"></i> FILTRAR DATOS</button>
+            <a href="@Url.Action("Salud", "Dashboard")" class="btn-ghost-sep text-xs px-4 bg-surface">LIMPIAR</a>
+            <button type="button" class="btn-ghost-sep text-xs px-4" onclick="exportAllTablesToZip('salud_integral')" title="Descargar todas las tablas en un ZIP (respeta filtros actuales)">
+                <i class="bi bi-file-earmark-zip me-2"></i> DESCARGAR TODO (ZIP)
+            </button>
+        </div>
+    </form>
+</div>
+
+@if (Model.SelectedCuatrimestre > 0)
+{
+    <div class="mb-4 d-inline-flex align-items-center bg-primary-dark txt-white text-xxs fw-bold tracking-wide px-3 py-2 rounded-pill shadow-sm">
+        <i class="bi bi-info-circle me-2"></i> VISTA ACTUAL: AÑO @Model.SelectedYear / @cuatNames[Model.SelectedCuatrimestre].ToUpper()
+    </div>
+}
+
+@* ═══════════ KPI CARDS (Row 1) ═══════════ *@
+<div class="row g-3 mb-4">
+    <div class="col-12 col-md-6 col-xl-3">
+        <div class="stat-card-sep">
+            <div class="d-flex justify-content-between align-items-start mb-2">
+                <span class="stat-label">Consultas Médicas</span>
+                <div class="icon-circle bg-accent-light txt-primary-dark shadow-sm"><i class="bi bi-bandaid fs-5"></i></div>
+            </div>
+            <div class="stat-value">@Model.TotalVisitas</div>
+            <span class="text-xxs txt-body mt-1 fw-medium">Atenciones registradas</span>
+        </div>
+    </div>
+    <div class="col-12 col-md-6 col-xl-3">
+        <div class="stat-card-sep" style="border-left: 3px solid var(--primary-700);">
+            <div class="d-flex justify-content-between align-items-start mb-2">
+                <span class="stat-label">Atención Psicológica</span>
+                <div class="icon-circle bg-primary-100 txt-primary-dark shadow-sm"><i class="bi bi-person-heart fs-5"></i></div>
+            </div>
+            <div class="stat-value">@Model.TotalPsicologicas</div>
+            <span class="text-xxs txt-body mt-1 fw-medium">Consultas psicológicas</span>
+        </div>
+    </div>
+    <div class="col-12 col-md-6 col-xl-3">
+        <div class="stat-card-sep" style="border-left: 3px solid var(--success-700);">
+            <div class="d-flex justify-content-between align-items-start mb-2">
+                <span class="stat-label">Edad Promedio</span>
+                <div class="icon-circle bg-success-100 shadow-sm" style="color: var(--success-700);"><i class="bi bi-calendar3 fs-5"></i></div>
+            </div>
+            <div class="stat-value">@Model.PromedioEdad <span class="text-sm text-muted">años</span></div>
+            <span class="text-xxs txt-body mt-1 fw-medium">Media de pacientes</span>
+        </div>
+    </div>
+    <div class="col-12 col-md-6 col-xl-3">
+        <div class="stat-card-sep" style="border-left: 3px solid var(--warning-700);">
+            <div class="d-flex justify-content-between align-items-start mb-2">
+                <span class="stat-label">IMC Promedio</span>
+                <div class="icon-circle bg-warning-100 shadow-sm" style="color: var(--warning-700);"><i class="bi bi-activity fs-5"></i></div>
+            </div>
+            <div class="stat-value">@Model.PromedioIMC</div>
+            <span class="text-xxs txt-body mt-1 fw-medium">Temp. prom: @Model.PromedioTemperatura°C</span>
+        </div>
+    </div>
+</div>
+
+@* ═══════════ KPI CARDS (Row 2 — Indicadores clínicos) ═══════════ *@
+<div class="row g-3 mb-4">
+    <div class="col-12 col-md-6 col-xl-3">
+        <div class="admin-card-white p-3 shadow-sm d-flex align-items-center gap-3">
+            <div class="icon-circle bg-accent-light" style="color: var(--error-700, #991B1B);"><i class="bi bi-exclamation-triangle-fill"></i></div>
+            <div><div class="text-xxs fw-bold text-muted text-uppercase">Con Alergias</div><div class="fw-bold txt-title" style="color: var(--error-700, #991B1B);">@Model.ConAlergias</div></div>
+        </div>
+    </div>
+    <div class="col-12 col-md-6 col-xl-3">
+        <div class="admin-card-white p-3 shadow-sm d-flex align-items-center gap-3">
+            <div class="icon-circle bg-accent-light" style="color: var(--warning-700);"><i class="bi bi-clipboard2-pulse-fill"></i></div>
+            <div><div class="text-xxs fw-bold text-muted text-uppercase">Enf. Crónicas</div><div class="fw-bold txt-title" style="color: var(--warning-700);">@Model.ConEnfermedadesCronicas</div></div>
+        </div>
+    </div>
+    <div class="col-12 col-md-6 col-xl-3">
+        <div class="admin-card-white p-3 shadow-sm d-flex align-items-center gap-3">
+            <div class="icon-circle bg-accent-light txt-primary-dark"><i class="bi bi-arrow-return-left"></i></div>
+            <div><div class="text-xxs fw-bold text-muted text-uppercase">Terapia Previa</div><div class="fw-bold txt-title">@Model.ConTerapiaPrevia</div></div>
+        </div>
+    </div>
+    <div class="col-12 col-md-6 col-xl-3">
+        <div class="admin-card-white p-3 shadow-sm d-flex align-items-center gap-3">
+            <div class="icon-circle bg-accent-light" style="color: var(--primary-700);"><i class="bi bi-capsule"></i></div>
+            <div><div class="text-xxs fw-bold text-muted text-uppercase">Con Medicación</div><div class="fw-bold txt-title" style="color: var(--primary-700);">@Model.ConMedicacion</div></div>
+        </div>
+    </div>
+</div>
+
+@* ═══════════ CHARTS: Diagnósticos + Edad ═══════════ *@
+<div class="row g-4 mb-4">
+    <div class="col-12 col-lg-8">
+        <div class="admin-card-white h-100">
+            <div class="d-flex align-items-center gap-2 mb-4 border-bottom pb-3">
+                <div style="width: 4px; height: 18px; background: var(--primary-900); border-radius: 2px;"></div>
+                <h6 class="txt-title fw-bold text-xs text-uppercase tracking-wide mb-0">Motivos de Consulta Médica</h6>
+            </div>
+            @if (Model.TopDiagnosticos.Any())
+            {
+                <div class="chart-container" style="height: @(Math.Max(200, Model.TopDiagnosticos.Count * 30))px;"><canvas id="chartDiag"></canvas></div>
+            }
+            else
+            {
+
+                <div class="no-data">Sin datos para este periodo</div>
+            }
+        </div>
+    </div>
+    <div class="col-12 col-lg-4">
+        <div class="admin-card-white h-100">
+            <div class="d-flex align-items-center gap-2 mb-4 border-bottom pb-3">
+                <div style="width: 4px; height: 18px; background: var(--accent-500); border-radius: 2px;"></div>
+                <h6 class="txt-title fw-bold text-xs text-uppercase tracking-wide mb-0">Distribución por Edad</h6>
+            </div>
+            @if (Model.ByEdad.Any())
+            {
+                <div class="chart-container" style="height: 260px;"><canvas id="chartEdad"></canvas></div>
+            }
+            else
+            {
+
+                <div class="no-data">Sin datos para este periodo</div>
+            }
+        </div>
+    </div>
+</div>
+
+@* ═══════════ CHARTS: Tendencia Mensual ═══════════ *@
+@if (Model.MonthlyVisitas.Any() || Model.MonthlyPsicologicas.Any())
+{
+    <div class="admin-card-white mb-4 shadow-sm">
+        <div class="d-flex align-items-center gap-2 mb-4 border-bottom pb-3">
+            <div style="width: 4px; height: 18px; background: var(--success-700, #0d9e7a); border-radius: 2px;"></div>
+            <h6 class="txt-title fw-bold text-xs text-uppercase tracking-wide mb-0">Tendencia Mensual de Atenciones</h6>
+        </div>
+        <div class="chart-container" style="height: 260px;"><canvas id="chartMonthly"></canvas></div>
+    </div>
+}
+
+@* ═══════════ Tables: Diagnósticos + Motivos Psicológicos ═══════════ *@
+<div class="row g-4 mb-4">
+    @if (Model.TopDiagnosticos.Any())
+    {
+        <div class="col-12 col-lg-6">
+            <div class="admin-card-white h-100">
+                <div class="d-flex justify-content-between align-items-center border-bottom pb-3 mb-4">
+                    <h6 class="txt-title fw-bold text-xs text-uppercase tracking-wide mb-0"><i class="bi bi-clipboard2-check me-2"></i>Diagnósticos Médicos</h6>
+                    <button class="btn btn-sm btn-light border text-xxs fw-bold px-3 py-1" onclick="exportTableToCSV('tblDiag','diagnosticos_medicos.csv')"><i class="bi bi-download"></i></button>
+                </div>
+                <div class="table-responsive custom-scroll" style="max-height: 300px;">
+                    <table class="table table-hover align-middle text-sm mb-0 table-borderless" id="tblDiag" data-export-name="diagnosticos_medicos">
+                        <thead class="bg-app text-xxs fw-bold text-muted" style="position: sticky; top: 0; z-index: 1;">
+                            <tr><th class="ps-3 border-0">#</th><th class="border-0">Diagnóstico</th><th class="text-center border-0">Casos</th><th class="text-center pe-3 border-0">%</th></tr>
+                        </thead>
+                        <tbody>
+                            @{
+                                var rk = 1;
+                            }
+                            @foreach (var d in Model.TopDiagnosticos)
+                            {
+                                <tr><td class="ps-3 text-muted fw-bold">@rk</td><td class="fw-bold txt-title text-xs">@d.Status</td><td class="text-center"><span class="badge bg-primary-100 txt-primary-dark px-2">@d.Count</span></td><td class="text-center pe-3 text-muted text-xs">@d.Percentage%</td></tr>
+                                rk++;
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    }
+    @if (Model.TopMotivosPsicologicos.Any())
+    {
+        <div class="col-12 col-lg-6">
+            <div class="admin-card-white h-100">
+                <div class="d-flex justify-content-between align-items-center border-bottom pb-3 mb-4">
+                    <h6 class="txt-title fw-bold text-xs text-uppercase tracking-wide mb-0"><i class="bi bi-chat-heart me-2"></i>Motivos Psicológicos</h6>
+                    <button class="btn btn-sm btn-light border text-xxs fw-bold px-3 py-1" onclick="exportTableToCSV('tblPsico','motivos_psicologicos.csv')"><i class="bi bi-download"></i></button>
+                </div>
+                <div class="table-responsive custom-scroll" style="max-height: 300px;">
+                    <table class="table table-hover align-middle text-sm mb-0 table-borderless" id="tblPsico" data-export-name="motivos_psicologicos">
+                        <thead class="bg-app text-xxs fw-bold text-muted" style="position: sticky; top: 0; z-index: 1;">
+                            <tr><th class="ps-3 border-0">#</th><th class="border-0">Motivo</th><th class="text-center border-0">Casos</th><th class="text-center pe-3 border-0">%</th></tr>
+                        </thead>
+                        <tbody>
+                            @{
+                                var rk2 = 1;
+                            }
+                            @foreach (var m in Model.TopMotivosPsicologicos)
+                            {
+                                <tr><td class="ps-3 text-muted fw-bold">@rk2</td><td class="fw-bold txt-title text-xs">@m.Status</td><td class="text-center"><span class="badge bg-primary-100 txt-primary-dark px-2">@m.Count</span></td><td class="text-center pe-3 text-muted text-xs">@m.Percentage%</td></tr>
+                                rk2++;
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@* ═══════════ Tables: Edad + Signos Vitales ═══════════ *@
+<div class="row g-4 mb-4">
+    @if (Model.ByEdad.Any())
+    {
+        <div class="col-12 col-lg-6">
+            <div class="admin-card-white h-100">
+                <h6 class="txt-title fw-bold text-xs text-uppercase tracking-wide mb-4 border-bottom pb-3">Distribución por Edad</h6>
+                <table class="table table-hover align-middle text-sm mb-0 table-borderless">
+                    <thead class="bg-app text-xxs fw-bold text-muted"><tr><th class="ps-3 border-0">Rango</th><th class="text-center pe-3 border-0">Total</th></tr></thead>
+                    <tbody>
+                        @foreach (var e in Model.ByEdad)
+                        {
+                            <tr><td class="ps-3 fw-bold txt-title">@e.Range</td><td class="text-center pe-3"><span class="badge bg-primary-100 txt-primary-dark px-2">@e.Count</span></td></tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    }
+    <div class="col-12 col-lg-6">
+        <div class="admin-card-white h-100">
+            <h6 class="txt-title fw-bold text-xs text-uppercase tracking-wide mb-4 border-bottom pb-3">Resumen de Signos Vitales</h6>
+            <table class="table table-hover align-middle text-sm mb-0 table-borderless">
+                <thead class="bg-app text-xxs fw-bold text-muted"><tr><th class="ps-3 border-0">Indicador</th><th class="text-center pe-3 border-0">Valor Promedio</th></tr></thead>
+                <tbody>
+                    <tr><td class="ps-3 fw-bold txt-title">Temperatura</td><td class="text-center pe-3"><span class="badge badge-status @(Model.PromedioTemperatura > 37.5m ? "status-rechazado" : "status-aceptado") shadow-sm">@Model.PromedioTemperatura °C</span></td></tr>
+                    <tr><td class="ps-3 fw-bold txt-title">IMC</td><td class="text-center pe-3"><span class="badge badge-status @(Model.PromedioIMC > 25 ? "status-pendiente" : "status-aceptado") shadow-sm">@Model.PromedioIMC</span></td></tr>
+                    <tr><td class="ps-3 fw-bold txt-title">Edad Promedio</td><td class="text-center pe-3"><span class="badge bg-primary-100 txt-primary-dark">@Model.PromedioEdad años</span></td></tr>
+                    <tr><td class="ps-3 fw-bold txt-title">Pacientes con Alergias</td><td class="text-center pe-3"><span class="badge badge-status status-rechazado shadow-sm">@Model.ConAlergias</span></td></tr>
+                    <tr><td class="ps-3 fw-bold txt-title">Enfermedades Crónicas</td><td class="text-center pe-3"><span class="badge badge-status status-pendiente shadow-sm">@Model.ConEnfermedadesCronicas</span></td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+@* ═══════════ Bitácora Médica ═══════════ *@
+@if (Model.RecentVisitas.Any())
+{
+    <div class="admin-card-white mb-4 shadow-sm" style="border-left: 4px solid var(--success-700, #0d9e7a) !important;">
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center border-bottom pb-3 mb-4 gap-3">
+            <h6 class="txt-title fw-bold text-xs text-uppercase tracking-wide mb-0"><i class="bi bi-file-medical me-2"></i>Bitácora de Atención Médica</h6>
+            <div class="d-flex gap-2 flex-wrap">
+                <select class="form-select form-select-sm text-xxs fw-bold bg-app border-0" style="width: auto;" onchange="filterTableByColumn(this.value,'tblVisitas',4)">
+                    <option value="">Diagnóstico (Todos)</option>
+                    @foreach (var d in Model.TopDiagnosticos.Take(10))
+                    {
+                        <option value="@d.Status">@d.Status</option>
+                    }
+                </select>
+                <button class="btn-primary-sep text-xxs py-2 px-3" onclick="exportTableToCSV('tblVisitas','bitacora_medica.csv')"><i class="bi bi-file-earmark-excel me-2"></i> EXPORTAR</button>
+            </div>
+        </div>
+        <div class="text-xxs text-muted mb-2 fw-bold" id="tblVisitasCount">Mostrando 1 a @Model.RecentVisitas.Count registros</div>
+        <div class="table-responsive custom-scroll" style="max-height: 400px;">
+            <table class="table table-hover align-middle text-sm mb-0 table-borderless" id="tblVisitas" data-export-name="bitacora_medica">
+                <thead class="bg-app text-xxs fw-bold text-muted" style="position: sticky; top: 0; z-index: 1;">
+                    <tr><th class="ps-3 border-0">Matrícula</th><th class="border-0">Fecha</th><th class="text-center border-0">Edad</th><th class="text-center border-0">Temp.</th><th class="border-0">Diagnóstico</th><th class="text-center border-0">P/A</th><th class="text-center border-0">Sat.</th><th class="text-center pe-3 border-0">Alergias</th></tr>
+                </thead>
+                <tbody>
+                    @foreach (var v in Model.RecentVisitas)
+                    {
+                        <tr>
+                            <td class="ps-3 fw-bold txt-primary-dark">@v.Matricula</td>
+                            <td class="text-muted text-xs">@v.FechaVisita.ToString("dd/MMM/yyyy")</td>
+                            <td class="text-center text-xs">@v.Edad</td>
+                            <td class="text-center"><span class="badge badge-status @(v.Temperatura != "—" && decimal.TryParse(v.Temperatura, out var temp) && temp > 37.5m ? "status-rechazado" : "status-aceptado") shadow-sm">@v.Temperatura°</span></td>
+                            <td class="fw-bold txt-title text-xs text-truncate" style="max-width: 150px;" title="@v.Diagnostico">@v.Diagnostico</td>
+                            <td class="text-center text-xs">@v.PresionArterial</td>
+                            <td class="text-center text-xs">@v.Saturacion</td>
+                            <td class="text-center pe-3">@if (v.TieneAlergias) {
+                            <span class="badge badge-status status-rechazado shadow-sm" title="@v.Alergias">Sí</span>
+                        } else
+                        {
+
+                            <span class="badge bg-app txt-title">No</span>
+                        }
+    </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+}
+
+@* ═══════════ Bitácora Psicológica ═══════════ *@
+@if (Model.RecentPsicologicas.Any())
+{
+    <div class="admin-card-white mb-5 shadow-sm" style="border-left: 4px solid #8b5cf6 !important;">
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center border-bottom pb-3 mb-4 gap-3">
+            <h6 class="txt-title fw-bold text-xs text-uppercase tracking-wide mb-0" style="color: #8b5cf6;"><i class="bi bi-journal-medical me-2"></i>Bitácora Psicológica</h6>
+            <div class="d-flex gap-2 flex-wrap">
+                <select class="form-select form-select-sm text-xxs fw-bold bg-app border-0" style="width: auto;" onchange="filterTableByColumn(this.value,'tblPsicoVisitas',4)">
+                    <option value="">Motivo (Todos)</option>
+                    @foreach (var m in Model.TopMotivosPsicologicos.Take(10))
+                    {
+                        <option value="@m.Status">@m.Status</option>
+                    }
+                </select>
+                <button class="btn-primary-sep text-xxs py-2 px-3" onclick="exportTableToCSV('tblPsicoVisitas','bitacora_psicologica.csv')"><i class="bi bi-file-earmark-excel me-2"></i> EXPORTAR</button>
+            </div>
+        </div>
+        <div class="text-xxs text-muted mb-2 fw-bold" id="tblPsicoVisitasCount">Mostrando 1 a @Model.RecentPsicologicas.Count registros</div>
+        <div class="table-responsive custom-scroll" style="max-height: 400px;">
+            <table class="table table-hover align-middle text-sm mb-0 table-borderless" id="tblPsicoVisitas" data-export-name="bitacora_psicologica">
+                <thead class="bg-app text-xxs fw-bold text-muted" style="position: sticky; top: 0; z-index: 1;">
+                    <tr><th class="ps-3 border-0">Matrícula</th><th class="border-0">Fecha</th><th class="text-center border-0">Edad</th><th class="text-center border-0">Terapia Previa</th><th class="border-0">Motivo de Consulta</th><th class="pe-3 border-0">Medicación</th></tr>
+                </thead>
+                <tbody>
+                    @foreach (var p in Model.RecentPsicologicas)
+                    {
+                        <tr>
+                            <td class="ps-3 fw-bold" style="color: #8b5cf6;">@p.Matricula</td>
+                            <td class="text-muted text-xs">@p.FechaVisita.ToString("dd/MMM/yyyy")</td>
+                            <td class="text-center text-xs">@p.Edad</td>
+                            <td class="text-center">@if (p.TerapiaPrevia) {
+                            <span class="badge badge-status status-pendiente shadow-sm">Sí</span>
+                        } else
+                        {
+
+                            <span class="badge bg-app txt-title">No</span>
+                        }
+    </td>
+                        <td class="fw-bold txt-title text-xs text-truncate" style="max-width: 200px;" title="@p.MotivoConsulta">@p.MotivoConsulta</td>
+                        <td class="text-xs text-muted text-truncate pe-3" style="max-width: 150px;">@(string.IsNullOrEmpty(p.Medicacion) ? "—" : p.Medicacion)</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+}
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
+    <script>
+        Chart.register(ChartDataLabels); Chart.defaults.color = '#6B7280'; Chart.defaults.font.family = "'Montserrat', sans-serif";
+
+        @if (Model.TopDiagnosticos.Any())
+        {
+                <text>new Chart(document.getElementById('chartDiag'), { type: 'bar', data: { labels: [@Html.Raw(string.Join(",", Model.TopDiagnosticos.Select(d => $"'{d.Status}'")))], datasets: [{ data: [@string.Join(",", Model.TopDiagnosticos.Select(d => d.Count))], backgroundColor: '#13322B', borderRadius: 4, maxBarThickness: 32 }] }, options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, datalabels: { anchor: 'end', align: 'right', color: '#13322B', font: { weight: '800', size: 10 }, offset: 4 } }, scales: { x: { display: false, grid: { display: false } }, y: { grid: { display: false }, ticks: { font: { size: 9, weight: '600' } } } }, layout: { padding: { right: 30 } } } });</text>
+        }
+
+        @if (Model.ByEdad.Any())
+        {
+                <text>new Chart(document.getElementById('chartEdad'), { type: 'doughnut', data: { labels: [@Html.Raw(string.Join(",", Model.ByEdad.Select(e => $"'{e.Range}'")))], datasets: [{ data: [@string.Join(",", Model.ByEdad.Select(e => e.Count))], backgroundColor: ['#13322B', '#204A40', '#D4C19C', '#A67C52', '#95A5A6'], borderWidth: 2, borderColor: '#ffffff' }] }, options: { responsive: true, maintainAspectRatio: false, cutout: '65%', plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, padding: 15, font: { size: 10, weight: '600' } } }, datalabels: { display: false } } } });</text>
+        }
+
+        @if (Model.MonthlyVisitas.Any() || Model.MonthlyPsicologicas.Any())
+        {
+                var allMonths = Model.MonthlyVisitas.Select(m => m.Month).Union(Model.MonthlyPsicologicas.Select(m => m.Month)).Distinct().ToList();
+                <text>new Chart(document.getElementById('chartMonthly'), { type: 'line', data: { labels: [@Html.Raw(string.Join(",", allMonths.Select(m => $"'{m}'")))], datasets: [
+                { label: 'Consultas Médicas', data: [@Html.Raw(string.Join(",", allMonths.Select(m => { var item = Model.MonthlyVisitas.FirstOrDefault(x => x.Month == m); return item?.Count ?? 0; })))], borderColor: '#13322B', backgroundColor: 'rgba(19,50,43,0.08)', fill: true, tension: 0.35, borderWidth: 2.5, pointRadius: 4, pointBackgroundColor: '#13322B' },
+                { label: 'Atención Psicológica', data: [@Html.Raw(string.Join(",", allMonths.Select(m => { var item = Model.MonthlyPsicologicas.FirstOrDefault(x => x.Month == m); return item?.Count ?? 0; })))], borderColor: '#8b5cf6', backgroundColor: 'rgba(139,92,246,0.08)', fill: true, tension: 0.35, borderWidth: 2, pointRadius: 3, pointBackgroundColor: '#8b5cf6', borderDash: [5, 3] }
+                ] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, padding: 15, font: { size: 10, weight: '600' } } }, datalabels: { display: false } }, scales: { x: { grid: { display: false }, ticks: { font: { size: 10 } } }, y: { grid: { color: 'rgba(0,0,0,0.04)' }, ticks: { precision: 0, font: { size: 10 } } } } } });</text>
+        }
+
+        function filterTableByColumn(value, tableId, colIndex) { var table = document.getElementById(tableId); if (!table) return; if (!window._filters) window._filters = {}; if (!window._filters[tableId]) window._filters[tableId] = {}; if (value) window._filters[tableId][colIndex] = value; else delete window._filters[tableId][colIndex]; var rows = table.querySelectorAll('tbody tr'); var visible = 0; rows.forEach(function(row) { var show = true; for (var ci in window._filters[tableId]) { var fv = window._filters[tableId][ci]; var cell = row.cells[parseInt(ci)]; if (cell && cell.textContent.trim().indexOf(fv) === -1) { show = false; break; } } row.style.display = show ? '' : 'none'; if (show) visible++; }); var countEl = document.getElementById(tableId + 'Count'); if (countEl) countEl.textContent = 'Mostrando 1 a ' + visible + ' registros'; }
+        function exportTableToCSV(tid, fn) { var t = document.getElementById(tid); var r = t.querySelectorAll('tr'); var c = []; r.forEach(function(row) { if (row.style.display === 'none') return; var cols = row.querySelectorAll('th,td'); var d = []; cols.forEach(function(col) { d.push('"' + col.textContent.trim().replace(/\n/g,' ').replace(/"/g,'""') + '"'); }); c.push(d.join(',')); }); var b = new Blob(['\uFEFF' + c.join('\n')], { type: 'text/csv;charset=utf-8;' }); var l = document.createElement('a'); l.href = URL.createObjectURL(b); l.download = fn; l.click(); }
+    </script>
+}

@@ -4,89 +4,100 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] - Control Escolar UTTN</title>
+    
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/flatpickr.min.css" crossorigin="anonymous">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&display=swap" rel="stylesheet">
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    
     <link rel="stylesheet" href="~/css/design-system.css" asp-append-version="true" />
-</head>
-<body>
-    <header>
-        <div style="height: 4px; background-color: var(--primary-900); width: 100%;"></div>
 
-        <nav class="navbar navbar-expand-lg navbar-light bg-surface border-bottom border-theme shadow-sm py-3">
+    <style>
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background-color: #f8f9fa;
+        }
+        /* Colores Institucionales */
+        .bg-uttn-dark { background-color: #13322B !important; }
+        .text-uttn { color: #13322B !important; }
+        
+        .navbar-brand .logo-box {
+            width: 35px; height: 35px;
+            background-color: #13322B;
+            color: white;
+            border-radius: 8px;
+            display: flex; align-items: center; justify-content: center;
+            font-weight: 800; font-size: 0.8rem;
+        }
+
+        /* Ajustes para links en hover */
+        .nav-link:hover {
+            color: #13322B !important;
+            background-color: rgba(19, 50, 43, 0.05);
+        }
+    </style>
+</head>
+<body class="d-flex flex-column min-vh-100">
+    <header class="sticky-top">
+        <div class="bg-uttn-dark" style="height: 4px;"></div>
+
+        <nav class="navbar navbar-expand-lg navbar-light bg-white border-bottom shadow-sm py-3">
             <div class="container">
-                <a class="navbar-brand d-flex align-items-center gap-2" asp-area="" asp-controller="Home" asp-action="Index">
-                    <div class="brand-logo" style="width: 35px; height: 35px; font-size: 0.8rem;">UT</div>
-                    <span class="txt-primary-dark fw-800 tracking-wide mb-0" style="font-size: 1.1rem;">Control Escolar</span>
+                <a class="navbar-brand d-flex align-items-center gap-2" asp-controller="Home" asp-action="Index">
+                    <div class="logo-box">UT</div>
+                    <span class="fw-bold text-uttn mb-0">Control Escolar</span>
                 </a>
 
-                <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
-                    <i class="bi bi-list fs-1 txt-primary-dark"></i>
+                <button class="navbar-toggler border-0 shadow-none" type="button" data-bs-toggle="collapse" data-bs-target="#navMain" aria-controls="navMain" aria-expanded="false" aria-label="Navegación">
+                    <span class="navbar-toggler-icon"></span>
                 </button>
 
-                <div class="navbar-collapse collapse d-lg-inline-flex justify-content-between mt-3 mt-lg-0">
-                    <ul class="navbar-nav flex-grow-1 mx-lg-3 gap-1">
+                <div class="collapse navbar-collapse" id="navMain">
+                    <ul class="navbar-nav me-auto mb-2 mb-lg-0 mt-3 mt-lg-0 gap-lg-1">
                         <li class="nav-item">
-                            <a class="nav-link txt-title fw-600 px-3 header-link" asp-area="" asp-controller="Home" asp-action="Index">Inicio</a>
+                            <a class="nav-link fw-semibold px-lg-3 rounded" asp-controller="Home" asp-action="Index">Inicio</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link txt-title fw-600 px-3 header-link" asp-controller="Preinscripciones" asp-action="Create">Preinscripción</a>
+                            <a class="nav-link fw-semibold px-lg-3 rounded" asp-controller="Preinscripciones" asp-action="Create">Preinscripción</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link txt-title fw-600 px-3 header-link" asp-controller="Aspirantes" asp-action="Create">Inscripción</a>
+                            <a class="nav-link fw-semibold px-lg-3 rounded" asp-controller="Aspirantes" asp-action="Create">Inscripción</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link txt-title fw-600 px-3 header-link" asp-controller="ControlEscolar" asp-action="Index">Control Escolar</a>
+                            <a class="nav-link fw-semibold px-lg-3 rounded" asp-controller="Admin" asp-action="Index">Panel de Control</a>
                         </li>
+                       
 
                         @if (User.Identity?.IsAuthenticated == true)
                         {
-                            <div class="vr mx-2 d-none d-lg-block border-theme"></div>
-
+                            <li class="nav-item border-start d-none d-lg-block mx-2" style="height: 24px; align-self: center;"></li>
                             <li class="nav-item">
-                                <a class="nav-link txt-body fw-600 px-3 header-link d-flex align-items-center gap-2" asp-controller="Preinscripciones" asp-action="Index">
-                                    <i class="bi bi-clipboard-check"></i> Preinscripciones
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link txt-body fw-600 px-3 header-link d-flex align-items-center gap-2" asp-controller="Aspirantes" asp-action="Index">
-                                    <i class="bi bi-person-badge"></i> Inscripciones
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link txt-body fw-600 px-3 header-link d-flex align-items-center gap-2" asp-controller="ControlEscolar" asp-action="Index">
-                                    <i class="bi bi-person-badge"></i> Control Escolar
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link txt-primary-dark fw-700 px-3 header-link d-flex align-items-center gap-2" asp-controller="Admin" asp-action="Index">
-                                    <i class="bi bi-gear-fill"></i> Admin
-                                </a>
+                                <a class="nav-link fw-bold text-uttn text-uppercase" asp-controller="Admin" asp-action="Index" style="font-size: 0.85rem; letter-spacing: 0.5px;">Panel de Control</a>
                             </li>
                         }
                     </ul>
 
-                    <div class="d-flex align-items-center gap-3 border-top border-lg-0 pt-3 pt-lg-0 border-theme mt-3 mt-lg-0">
+                    <div class="d-flex flex-column flex-lg-row align-items-lg-center gap-3 pt-3 pt-lg-0 border-top border-lg-0">
                         @if (User.Identity?.IsAuthenticated == true)
                         {
-                            <div class="d-flex align-items-center gap-2 me-2">
-                                <div class="avatar-sm bg-accent-light txt-primary-dark fw-bold rounded-circle d-flex align-items-center justify-content-center" style="width: 35px; height: 35px;">
-                                    <i class="bi bi-person-fill"></i>
-                                </div>
-                                <span class="txt-title fw-600 small d-none d-xl-block">@User.Identity?.Name</span>
+                            <div class="d-flex align-items-center gap-2 bg-light px-3 py-2 rounded-pill">
+                                <i class="bi bi-person-circle text-uttn fs-5"></i>
+                                <span class="fw-bold small text-truncate" style="max-width: 150px;">@User.Identity?.Name</span>
                             </div>
                             <form asp-controller="Account" asp-action="Logout" method="post" class="m-0">
-                                <button type="submit" class="btn btn-ghost-sep btn-sm border-theme txt-title d-flex align-items-center gap-2 px-3">
-                                    <i class="bi bi-box-arrow-right"></i> <span class="fw-bold">Salir</span>
+                                <button type="submit" class="btn btn-outline-secondary btn-sm w-100 d-flex align-items-center justify-content-center gap-2 px-3 fw-bold">
+                                    <i class="bi bi-door-open"></i> Salir
                                 </button>
                             </form>
                         }
                         else
                         {
-                            <a class="btn btn-primary-sep btn-sm d-flex align-items-center gap-2 px-4 shadow-sm" asp-controller="Account" asp-action="Login">
-                                <i class="bi bi-lock-fill"></i> <span class="fw-bold">Iniciar sesión</span>
+                            <a class="btn btn-primary btn-sm px-4 fw-bold shadow-sm d-flex align-items-center justify-content-center gap-2" 
+                               style="background-color: #13322B; border: none;"
+                               asp-controller="Account" asp-action="Login">
+                                ACCESO
                             </a>
                         }
                     </div>
@@ -95,87 +106,50 @@
         </nav>
     </header>
 
-    <style>
-        /* Estilos adicionales para el Header */
-        .header-link {
-            transition: all 0.2s ease;
-            border-radius: var(--border-radius-md);
-            font-size: 0.9rem;
-        }
-
-            .header-link:hover {
-                background-color: var(--accent-100);
-                color: var(--primary-900) !important;
+    <main class="flex-grow-1 py-4 py-lg-5">
+        <div class="container">
+            @if (TempData["SuccessMessage"] != null)
+            {
+                <div class="alert alert-success alert-dismissible fade show border-0 shadow-sm rounded-3 mb-4" role="alert">
+                    <div class="d-flex align-items-center">
+                        <i class="bi bi-check-circle-fill me-2 fs-5"></i>
+                        <span class="fw-semibold">@TempData["SuccessMessage"]</span>
+                    </div>
+                    <button type="button" class="btn-close shadow-none" data-bs-dismiss="alert" aria-label="Cerrar"></button>
+                </div>
             }
 
-        .navbar-toggler:focus {
-            box-shadow: none;
-        }
-
-        .fw-600 {
-            font-weight: 600;
-        }
-
-        .fw-700 {
-            font-weight: 700;
-        }
-
-        .fw-800 {
-            font-weight: 800;
-        }
-    </style>
-    <main role="main" class="pb-3">
-        @if (TempData["SuccessMessage"] != null)
-        {
-            <div class="container mt-3">
-                <div class="alert alert-success alert-dismissible fade show" role="alert">
-                    @TempData["SuccessMessage"]
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                </div>
-            </div>
-        }
-        @RenderBody()
+            @RenderBody()
+        </div>
     </main>
 
-    <footer class="border-top footer text-muted">
+    <footer class="bg-white border-top py-4 mt-auto">
         <div class="container">
-            &copy; 2026 - Control Escolar UTTN - Universidad Tecnológica de Tamaulipas Norte
+            <div class="row align-items-center">
+                <div class="col-md-6 text-center text-md-start">
+                    <p class="text-muted small mb-0">&copy; 2026 Universidad Tecnológica de Tamaulipas Norte</p>
+                </div>
+                <div class="col-md-6 text-center text-md-end mt-2 mt-md-0">
+                    <p class="fw-bold text-uttn small text-uppercase tracking-widest mb-0">Control Escolar UTTN</p>
+                </div>
+            </div>
         </div>
     </footer>
-    <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous"></script>
-    <script src="https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/flatpickr.min.js" crossorigin="anonymous"></script>
-    <script src="https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/l10n/es.js" crossorigin="anonymous"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js" crossorigin="anonymous"></script>
-    <script src="~/js/site.js" asp-append-version="true"></script>
-    <script src="~/js/form-conditional.js" asp-append-version="true"></script>
-    <script src="~/js/form-wizard.js" asp-append-version="true"></script>
+
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    
     @await RenderSectionAsync("Scripts", required: false)
+
+    <script>
+        $(document).ready(function() {
+            // Auto-cerrar alertas después de un tiempo prudente
+            setTimeout(function() {
+                $(".alert").fadeOut('slow', function(){
+                    $(this).remove();
+                });
+            }, 6000);
+        });
+    </script>
 </body>
-
-<script>
-        document.addEventListener('DOMContentLoaded', function () {
-        const msg = sessionStorage.getItem('successMessage');
-        if (msg) {
-            const toast = document.createElement('div');
-            toast.style.cssText = `
-                position: fixed; top: 20px; right: 20px; z-index: 9999;
-                background-color: #198754; color: white;
-                padding: 16px 24px; border-radius: 8px;
-                box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-                font-weight: bold; font-size: 14px;
-            `;
-            toast.innerHTML = `<i class="bi bi-check-circle-fill me-2"></i>${msg}`;
-            document.body.appendChild(toast);
-            sessionStorage.removeItem('successMessage');
-
-            setTimeout(() => {
-                toast.style.transition = 'opacity 0.5s ease';
-                toast.style.opacity = '0';
-                setTimeout(() => toast.remove(), 500);
-            }, 5000);
-        }
-    });
-</script>
-
 </html>

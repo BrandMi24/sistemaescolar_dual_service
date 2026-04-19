@@ -1,8 +1,6 @@
 @model CreateCareerViewModel
 @{
-    ViewData["Title"] = "Registrar Carrera";
-    Layout = "_LayoutCoordinador";
-
+    // Declaración de variables para evitar errores de compilación
     var isEdit = ViewBag.IsEdit as bool? ?? false;
     var returnTab = ViewBag.ReturnTab as string ?? Context.Request.Query["tab"].ToString();
 
@@ -10,25 +8,26 @@
     {
         returnTab = "tab-career";
     }
+
+    ViewData["Title"] = isEdit ? "Editar Carrera" : "Registrar Carrera";
+    Layout = "_LayoutCoordinador";
 }
 
-<div class="fade-in d-flex flex-column gap-4">
+<div class="container-fluid d-flex flex-column gap-4 p-0 fade-in">
 
-    <div class="bg-surface p-4 rounded-4 border-theme shadow-sm d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+    <div class="bg-white p-4 rounded-4 shadow-sm border-0 d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
         <div>
-            <h3 class="txt-title fw-bold mb-1">@(isEdit ? "Editar Carrera" : "Registrar Nueva Carrera")</h3>
-            <div class="d-flex align-items-center gap-3 mt-2 txt-body text-xs">
-                <span>
-                    @(isEdit
-                                        ? "Actualice la información de la carrera seleccionada utilizando únicamente registros activos."
-                                        : "Ingrese la información de la carrera.")
-                </span>
-            </div>
+            <h5 class="txt-title fw-bold mb-1 text-uppercase">@(isEdit ? "Modificar Catálogo de Carrera" : "Nuevo Registro de Carrera")</h5>
+            <p class="txt-body text-xxs fw-bold text-uppercase tracking-widest mb-0 opacity-75">
+                @(isEdit
+                    ? "Actualice los metadatos de la carrera para la correcta organización de grupos."
+                    : "Capture la información básica para dar de alta un nuevo programa educativo.")
+            </p>
         </div>
-        <div class="text-end d-flex flex-column align-items-md-end gap-2">
+        <div class="flex-shrink-0">
             <a href="@Url.Action("Catalogos", "Coordinador", new { tab = returnTab })"
-               class="btn btn-sm btn-ghost-sep border border-theme shadow-sm mt-1 fw-semibold">
-                <i class="bi bi-arrow-left me-1"></i> Volver a Catálogos
+                   class="btn-ghost-sep bg-app border-0 px-4 py-2 fw-bold text-xxs d-flex align-items-center text-decoration-none shadow-none">
+                REGRESAR A CATÁLOGOS
             </a>
         </div>
     </div>
@@ -44,49 +43,50 @@
         <input type="hidden" name="returnTab" value="@returnTab" />
 
         <div class="row justify-content-center">
-            <div class="col-lg-8">
-                <div class="admin-card-white p-4 p-md-5 rounded-4 border-theme shadow-sm bg-white">
-                    <h6 class="txt-title fw-bold mb-4 border-bottom border-theme pb-2">
-                        INFORMACIÓN DE LA CARRERA
-                    </h6>
+            <div class="col-lg-10 col-xl-8">
+                
+                <div class="admin-card-white p-4 p-md-5 rounded-4 border-0 shadow-sm bg-white">
+                    <div class="mb-4 pb-3 border-bottom border-light">
+                        <h6 class="txt-title fw-bold text-xs text-uppercase tracking-widest mb-0">
+                            INFORMACIÓN DE LA CARRERA
+                        </h6>
+                    </div>
 
-                    <div asp-validation-summary="ModelOnly"
-                         class="alert alert-danger mb-4"
-                         style="display:@(!ViewData.ModelState.IsValid ? "block" : "none")"></div>
+                    @if (!ViewData.ModelState.IsValid)
+                    {
+                        <div asp-validation-summary="ModelOnly" class="bg-error-100 border-start border-4 text-danger text-xs fw-bold rounded-3 p-3 mb-4" style="border-left-color: var(--error-700) !important;"></div>
+                    }
 
                     <div class="row g-4">
                         <div class="col-md-6">
-                            <label asp-for="Code" class="txt-body text-xs fw-bold tracking-wide mb-2">
+                            <label asp-for="Code" class="txt-body text-xxs fw-bold tracking-wide mb-2 d-block text-uppercase">
                                 CÓDIGO DE CARRERA <span class="text-danger">*</span>
                             </label>
                             <input asp-for="Code"
-                                   class="form-control search-input-custom ps-3 text-uppercase"
-                                   placeholder="Ej. ISC"
-                                    />
-                            <span asp-validation-for="Code" class="text-danger text-xs"></span>
+                                   class="form-control border-0 bg-app py-2 px-3 text-xs fw-medium text-uppercase shadow-none"
+                                   placeholder="EJ. ISC" required />
+                            <span asp-validation-for="Code" class="text-danger text-xxs fw-bold mt-1 d-block"></span>
                         </div>
 
                         <div class="col-md-6">
-                            <label asp-for="Name" class="txt-body text-xs fw-bold tracking-wide mb-2">
+                            <label asp-for="Name" class="txt-body text-xxs fw-bold tracking-wide mb-2 d-block text-uppercase">
                                 NOMBRE DE LA CARRERA <span class="text-danger">*</span>
                             </label>
                             <input asp-for="Name"
-                                   class="form-control search-input-custom ps-3"
-                                   placeholder="Ej. Ingeniería en Sistemas Computacionales"
-                                    />
-                            <span asp-validation-for="Name" class="text-danger text-xs"></span>
+                                   class="form-control border-0 bg-app py-2 px-3 text-xs fw-medium shadow-none"
+                                   placeholder="EJ. INGENIERÍA EN SISTEMAS" required />
+                            <span asp-validation-for="Name" class="text-danger text-xxs fw-bold mt-1 d-block"></span>
                         </div>
                     </div>
 
-                    <div class="mt-5 border-top border-theme pt-4 d-flex justify-content-end gap-3">
+                    <div class="mt-5 pt-4 border-top border-light d-flex flex-column flex-sm-row justify-content-end gap-3">
                         <a href="@Url.Action("Catalogos", "Coordinador", new { tab = returnTab })"
-                           class="btn btn-ghost-sep border border-theme px-4 py-2 shadow-sm text-body fw-semibold">
-                            Cancelar
+                               class="btn-ghost-sep bg-app border-0 px-5 py-2 fw-bold text-xxs text-muted text-center text-decoration-none shadow-none">
+                            CANCELAR
                         </a>
 
-                        <button type="submit"
-                                class="btn btn-primary-sep bg-primary-900 px-5 py-2 shadow-sm text-white fw-bold">
-                            @(isEdit ? "Guardar Cambios" : "Guardar Carrera")
+                        <button type="submit" class="btn-primary-sep border-0 px-5 py-2 fw-bold text-xxs tracking-widest shadow-sm">
+                            @(isEdit ? "GUARDAR CAMBIOS" : "GUARDAR CARRERA")
                         </button>
                     </div>
                 </div>
@@ -97,4 +97,12 @@
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
+    <style>
+        /* Glow institucional en foco */
+        .form-control:focus {
+            background-color: var(--white) !important;
+            box-shadow: 0 0 0 4px var(--accent-100) !important;
+            border: 1px solid var(--accent-500) !important;
+        }
+    </style>
 }

@@ -50,139 +50,365 @@ namespace ControlEscolar.Data
         public DbSet<OperationalDocument> OperationalDocuments { get; set; }
         public DbSet<OperationalModuleFlowConfig> OperationalModuleFlowConfigs { get; set; }
         public DbSet<OperationalModuleStepRule> OperationalModuleStepRules { get; set; }
+        // ==========================================
+        // NUEVO: Módulo de Salud (Enfermería y Psicología)
+        // ==========================================
+        public DbSet<VisitaMedica> Visitas { get; set; }
+        public DbSet<VisitaPsicologica> VisitasPsicologicas { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            base.OnModelCreating(modelBuilder);
 
+            //  PREINSCRIPCION 
             modelBuilder.Entity<PreinscripcionEntity>(entity =>
             {
                 entity.ToTable("academiccontrol_preinscription_table");
-                entity.HasKey(e => e.Id);
-                entity.Property(e => e.Id).HasColumnName("academiccontrol_preinscription_ID");
-                entity.Property(e => e.Folio).HasColumnName("academiccontrol_preinscription_folio").HasMaxLength(20);
-                entity.Property(e => e.CarreraSolicitada).HasColumnName("academiccontrol_preinscription_careerRequested").IsRequired().HasMaxLength(200);
-                entity.Property(e => e.Promedio).HasColumnName("academiccontrol_preinscription_average").HasColumnType("DECIMAL(4,2)");
-                entity.Property(e => e.MedioDifusion).HasColumnName("academiccontrol_preinscription_diffusionMedia").HasMaxLength(150);
-                entity.Property(e => e.EstadoPreinscripcion).HasColumnName("academiccontrol_preinscription_state").HasMaxLength(50).HasDefaultValue("Pendiente");
-                entity.Property(e => e.FechaPreinscripcion).HasColumnName("academiccontrol_preinscription_registrationDate");
+                entity.HasKey(e => e.academiccontrol_preinscription_ID);
+                entity.Property(e => e.academiccontrol_preinscription_ID)
+                      .HasColumnName("academiccontrol_preinscription_ID");
+                entity.Property(e => e.academiccontrol_preinscription_folio)
+                      .HasColumnName("academiccontrol_preinscription_folio")
+                      .HasMaxLength(20);
+                entity.Property(e => e.academiccontrol_preinscription_careerRequested)
+                      .HasColumnName("academiccontrol_preinscription_careerRequested")
+                      .IsRequired().HasMaxLength(200);
+                entity.Property(e => e.academiccontrol_preinscription_average)
+                      .HasColumnName("academiccontrol_preinscription_average")
+                      .HasColumnType("DECIMAL(4,2)");
+                entity.Property(e => e.academiccontrol_preinscription_diffusionMedia)
+                      .HasColumnName("academiccontrol_preinscription_diffusionMedia")
+                      .HasMaxLength(150);
+                entity.Property(e => e.academiccontrol_preinscription_registrationDate)
+                      .HasColumnName("academiccontrol_preinscription_registrationDate")
+                      .HasDefaultValueSql("GETDATE()");
+                entity.Property(e => e.academiccontrol_preinscription_state)
+                      .HasColumnName("academiccontrol_preinscription_state")
+                      .HasMaxLength(50).HasDefaultValue("Pendiente");
+                entity.Property(e => e.academiccontrol_preinscription_status)
+                      .HasColumnName("academiccontrol_preinscription_status")
+                      .HasDefaultValue(true);
+                entity.Property(e => e.academiccontrol_preinscription_createdDate)
+                      .HasColumnName("academiccontrol_preinscription_createdDate")
+                      .HasDefaultValueSql("GETDATE()");
+
+                entity.HasIndex(e => e.academiccontrol_preinscription_folio)
+                      .IsUnique()
+                      .HasFilter("[academiccontrol_preinscription_folio] IS NOT NULL");
             });
 
+            //  PREINSCRIPCION DATOS PERSONALES
             modelBuilder.Entity<PreinscripcionDatosPersonalesEntity>(entity =>
             {
                 entity.ToTable("academiccontrol_preinscription_personaldata_table");
-                entity.HasKey(e => e.Id);
-                entity.Property(e => e.Id).HasColumnName("academiccontrol_preinscription_personaldata_ID");
-                entity.Property(e => e.PreinscripcionId).HasColumnName("academiccontrol_preinscription_personaldata_preinscriptionID");
-                entity.Property(e => e.Nombre).HasColumnName("academiccontrol_preinscription_personaldata_name").IsRequired().HasMaxLength(100);
-                entity.Property(e => e.ApellidoPaterno).HasColumnName("academiccontrol_preinscription_personaldata_paternalSurname").IsRequired().HasMaxLength(100);
-                entity.Property(e => e.ApellidoMaterno).HasColumnName("academiccontrol_preinscription_personaldata_maternalSurname").HasMaxLength(100);
-                entity.Property(e => e.CURP).HasColumnName("academiccontrol_preinscription_personaldata_CURP").IsRequired().HasMaxLength(18).IsFixedLength();
-                entity.Property(e => e.FechaNacimiento).HasColumnName("academiccontrol_preinscription_personaldata_birthDate");
-                entity.Property(e => e.Sexo).HasColumnName("academiccontrol_preinscription_personaldata_gender").IsRequired().HasMaxLength(20);
-                entity.Property(e => e.EstadoCivil).HasColumnName("academiccontrol_preinscription_personaldata_maritalStatus").HasMaxLength(50);
-                entity.Property(e => e.Email).HasColumnName("academiccontrol_preinscription_personaldata_email").IsRequired().HasMaxLength(200);
-                entity.Property(e => e.Telefono).HasColumnName("academiccontrol_preinscription_personaldata_phone").HasMaxLength(20);
+                entity.HasKey(e => e.academiccontrol_preinscription_personaldata_ID);
+                entity.Property(e => e.academiccontrol_preinscription_personaldata_ID)
+                      .HasColumnName("academiccontrol_preinscription_personaldata_ID");
+                entity.Property(e => e.academiccontrol_preinscription_personaldata_preinscriptionID)
+                      .HasColumnName("academiccontrol_preinscription_personaldata_preinscriptionID");
+                entity.Property(e => e.academiccontrol_preinscription_personaldata_name)
+                      .HasColumnName("academiccontrol_preinscription_personaldata_name")
+                      .IsRequired().HasMaxLength(100);
+                entity.Property(e => e.academiccontrol_preinscription_personaldata_paternalSurname)
+                      .HasColumnName("academiccontrol_preinscription_personaldata_paternalSurname")
+                      .IsRequired().HasMaxLength(100);
+                entity.Property(e => e.academiccontrol_preinscription_personaldata_maternalSurname)
+                      .HasColumnName("academiccontrol_preinscription_personaldata_maternalSurname")
+                      .HasMaxLength(100);
+                entity.Property(e => e.academiccontrol_preinscription_personaldata_CURP)
+                      .HasColumnName("academiccontrol_preinscription_personaldata_CURP")
+                      .IsRequired().HasMaxLength(18).IsFixedLength();
+                entity.Property(e => e.academiccontrol_preinscription_personaldata_birthDate)
+                      .HasColumnName("academiccontrol_preinscription_personaldata_birthDate");
+                entity.Property(e => e.academiccontrol_preinscription_personaldata_gender)
+                      .HasColumnName("academiccontrol_preinscription_personaldata_gender")
+                      .IsRequired().HasMaxLength(20);
+                entity.Property(e => e.academiccontrol_preinscription_personaldata_maritalStatus)
+                      .HasColumnName("academiccontrol_preinscription_personaldata_maritalStatus")
+                      .HasMaxLength(50);
+                entity.Property(e => e.academiccontrol_preinscription_personaldata_email)
+                      .HasColumnName("academiccontrol_preinscription_personaldata_email")
+                      .IsRequired().HasMaxLength(200);
+                entity.Property(e => e.academiccontrol_preinscription_personaldata_phone)
+                      .HasColumnName("academiccontrol_preinscription_personaldata_phone")
+                      .HasMaxLength(20);
+                entity.Property(e => e.academiccontrol_preinscription_personaldata_status)
+                      .HasColumnName("academiccontrol_preinscription_personaldata_status")
+                      .HasDefaultValue(true);
+                entity.Property(e => e.academiccontrol_preinscription_personaldata_createdDate)
+                      .HasColumnName("academiccontrol_preinscription_personaldata_createdDate")
+                      .HasDefaultValueSql("GETDATE()");
 
                 entity.HasOne(e => e.Preinscripcion)
                       .WithOne(p => p.DatosPersonales)
-                      .HasForeignKey<PreinscripcionDatosPersonalesEntity>(e => e.PreinscripcionId)
+                      .HasForeignKey<PreinscripcionDatosPersonalesEntity>(
+                          e => e.academiccontrol_preinscription_personaldata_preinscriptionID)
                       .OnDelete(DeleteBehavior.Cascade);
             });
 
+            //  PREINSCRIPCION DOMICILIO 
             modelBuilder.Entity<PreinscripcionDomicilioEntity>(entity =>
             {
                 entity.ToTable("academiccontrol_preinscription_address_table");
-                entity.HasKey(e => e.Id);
-                entity.Property(e => e.Id).HasColumnName("academiccontrol_preinscription_address_ID");
-                entity.Property(e => e.PreinscripcionId).HasColumnName("academiccontrol_preinscription_address_preinscriptionID");
-                entity.Property(e => e.Estado).HasColumnName("academiccontrol_preinscription_address_state").IsRequired().HasMaxLength(100);
-                entity.Property(e => e.Municipio).HasColumnName("academiccontrol_preinscription_address_municipality").IsRequired().HasMaxLength(100);
-                entity.Property(e => e.CodigoPostal).HasColumnName("academiccontrol_preinscription_address_zipCode").HasMaxLength(5).IsFixedLength();
-                entity.Property(e => e.Colonia).HasColumnName("academiccontrol_preinscription_address_neighborhood").IsRequired().HasMaxLength(150);
-                entity.Property(e => e.Calle).HasColumnName("academiccontrol_preinscription_address_street").IsRequired().HasMaxLength(200);
-                entity.Property(e => e.NumeroExterior).HasColumnName("academiccontrol_preinscription_address_exteriorNumber").IsRequired().HasMaxLength(50);
+                entity.HasKey(e => e.academiccontrol_preinscription_address_ID);
+                entity.Property(e => e.academiccontrol_preinscription_address_ID)
+                      .HasColumnName("academiccontrol_preinscription_address_ID");
+                entity.Property(e => e.academiccontrol_preinscription_address_preinscriptionID)
+                      .HasColumnName("academiccontrol_preinscription_address_preinscriptionID");
+                entity.Property(e => e.academiccontrol_preinscription_address_state)
+                      .HasColumnName("academiccontrol_preinscription_address_state")
+                      .IsRequired().HasMaxLength(100);
+                entity.Property(e => e.academiccontrol_preinscription_address_municipality)
+                      .HasColumnName("academiccontrol_preinscription_address_municipality")
+                      .IsRequired().HasMaxLength(100);
+                entity.Property(e => e.academiccontrol_preinscription_address_zipCode)
+                      .HasColumnName("academiccontrol_preinscription_address_zipCode")
+                      .HasMaxLength(5).IsFixedLength();
+                entity.Property(e => e.academiccontrol_preinscription_address_neighborhood)
+                      .HasColumnName("academiccontrol_preinscription_address_neighborhood")
+                      .IsRequired().HasMaxLength(150);
+                entity.Property(e => e.academiccontrol_preinscription_address_street)
+                      .HasColumnName("academiccontrol_preinscription_address_street")
+                      .IsRequired().HasMaxLength(200);
+                entity.Property(e => e.academiccontrol_preinscription_address_exteriorNumber)
+                      .HasColumnName("academiccontrol_preinscription_address_exteriorNumber")
+                      .IsRequired().HasMaxLength(50);
+                entity.Property(e => e.academiccontrol_preinscription_address_status)
+                      .HasColumnName("academiccontrol_preinscription_address_status")
+                      .HasDefaultValue(true);
+                entity.Property(e => e.academiccontrol_preinscription_address_createdDate)
+                      .HasColumnName("academiccontrol_preinscription_address_createdDate")
+                      .HasDefaultValueSql("GETDATE()");
 
                 entity.HasOne(e => e.Preinscripcion)
                       .WithOne(p => p.Domicilio)
-                      .HasForeignKey<PreinscripcionDomicilioEntity>(e => e.PreinscripcionId)
+                      .HasForeignKey<PreinscripcionDomicilioEntity>(
+                          e => e.academiccontrol_preinscription_address_preinscriptionID)
                       .OnDelete(DeleteBehavior.Cascade);
             });
 
+            //  PREINSCRIPCION TUTOR 
             modelBuilder.Entity<PreinscripcionTutorEntity>(entity =>
             {
                 entity.ToTable("academiccontrol_preinscription_tutor_table");
-                entity.HasKey(e => e.Id);
-                entity.Property(e => e.Id).HasColumnName("academiccontrol_preinscription_tutor_ID");
-                entity.Property(e => e.PreinscripcionId).HasColumnName("academiccontrol_preinscription_tutor_preinscriptionID");
-                entity.Property(e => e.TutorNombre).HasColumnName("academiccontrol_preinscription_tutor_fullName").IsRequired().HasMaxLength(200);
-                entity.Property(e => e.Parentesco).HasColumnName("academiccontrol_preinscription_tutor_relationship").IsRequired().HasMaxLength(50);
-                entity.Property(e => e.Telefono).HasColumnName("academiccontrol_preinscription_tutor_phone").IsRequired().HasMaxLength(20);
+                entity.HasKey(e => e.academiccontrol_preinscription_tutor_ID);
+                entity.Property(e => e.academiccontrol_preinscription_tutor_ID)
+                      .HasColumnName("academiccontrol_preinscription_tutor_ID");
+                entity.Property(e => e.academiccontrol_preinscription_tutor_preinscriptionID)
+                      .HasColumnName("academiccontrol_preinscription_tutor_preinscriptionID");
+                entity.Property(e => e.academiccontrol_preinscription_tutor_fullName)
+                      .HasColumnName("academiccontrol_preinscription_tutor_fullName")
+                      .IsRequired().HasMaxLength(200);
+                entity.Property(e => e.academiccontrol_preinscription_tutor_relationship)
+                      .HasColumnName("academiccontrol_preinscription_tutor_relationship")
+                      .IsRequired().HasMaxLength(50);
+                entity.Property(e => e.academiccontrol_preinscription_tutor_phone)
+                      .HasColumnName("academiccontrol_preinscription_tutor_phone")
+                      .IsRequired().HasMaxLength(20);
+                entity.Property(e => e.academiccontrol_preinscription_tutor_status)
+                      .HasColumnName("academiccontrol_preinscription_tutor_status")
+                      .HasDefaultValue(true);
+                entity.Property(e => e.academiccontrol_preinscription_tutor_createdDate)
+                      .HasColumnName("academiccontrol_preinscription_tutor_createdDate")
+                      .HasDefaultValueSql("GETDATE()");
 
                 entity.HasOne(e => e.Preinscripcion)
                       .WithOne(p => p.Tutor)
-                      .HasForeignKey<PreinscripcionTutorEntity>(e => e.PreinscripcionId)
+                      .HasForeignKey<PreinscripcionTutorEntity>(
+                          e => e.academiccontrol_preinscription_tutor_preinscriptionID)
                       .OnDelete(DeleteBehavior.Cascade);
             });
 
+            //  PREINSCRIPCION ESCOLAR 
             modelBuilder.Entity<PreinscripcionEscolarEntity>(entity =>
             {
                 entity.ToTable("academiccontrol_preinscription_academic_table");
-                entity.HasKey(e => e.Id);
-                entity.Property(e => e.Id).HasColumnName("academiccontrol_preinscription_academic_ID");
-                entity.Property(e => e.PreinscripcionId).HasColumnName("academiccontrol_preinscription_academic_preinscriptionID");
-                entity.Property(e => e.EscuelaProcedencia).HasColumnName("academiccontrol_preinscription_academic_originSchool").IsRequired().HasMaxLength(200);
-                entity.Property(e => e.EstadoEscuela).HasColumnName("academiccontrol_preinscription_academic_schoolState").HasMaxLength(100);
-                entity.Property(e => e.MunicipioEscuela).HasColumnName("academiccontrol_preinscription_academic_schoolMunicipality").HasMaxLength(100);
-                entity.Property(e => e.CCT).HasColumnName("academiccontrol_preinscription_academic_CCT").HasMaxLength(20);
-                entity.Property(e => e.InicioBachillerato).HasColumnName("academiccontrol_preinscription_academic_startDate");
-                entity.Property(e => e.FinBachillerato).HasColumnName("academiccontrol_preinscription_academic_endDate");
+                entity.HasKey(e => e.academiccontrol_preinscription_academic_ID);
+                entity.Property(e => e.academiccontrol_preinscription_academic_ID)
+                      .HasColumnName("academiccontrol_preinscription_academic_ID");
+                entity.Property(e => e.academiccontrol_preinscription_academic_preinscriptionID)
+                      .HasColumnName("academiccontrol_preinscription_academic_preinscriptionID");
+                entity.Property(e => e.academiccontrol_preinscription_academic_originSchool)
+                      .HasColumnName("academiccontrol_preinscription_academic_originSchool")
+                      .IsRequired().HasMaxLength(200);
+                entity.Property(e => e.academiccontrol_preinscription_academic_schoolState)
+                      .HasColumnName("academiccontrol_preinscription_academic_schoolState")
+                      .HasMaxLength(100);
+                entity.Property(e => e.academiccontrol_preinscription_academic_schoolMunicipality)
+                      .HasColumnName("academiccontrol_preinscription_academic_schoolMunicipality")
+                      .HasMaxLength(100);
+                entity.Property(e => e.academiccontrol_preinscription_academic_CCT)
+                      .HasColumnName("academiccontrol_preinscription_academic_CCT")
+                      .HasMaxLength(20);
+                entity.Property(e => e.academiccontrol_preinscription_academic_startDate)
+                      .HasColumnName("academiccontrol_preinscription_academic_startDate");
+                entity.Property(e => e.academiccontrol_preinscription_academic_endDate)
+                      .HasColumnName("academiccontrol_preinscription_academic_endDate");
+                entity.Property(e => e.academiccontrol_preinscription_academic_status)
+                      .HasColumnName("academiccontrol_preinscription_academic_status")
+                      .HasDefaultValue(true);
+                entity.Property(e => e.academiccontrol_preinscription_academic_createdDate)
+                      .HasColumnName("academiccontrol_preinscription_academic_createdDate")
+                      .HasDefaultValueSql("GETDATE()");
 
                 entity.HasOne(e => e.Preinscripcion)
                       .WithOne(p => p.DatosEscolares)
-                      .HasForeignKey<PreinscripcionEscolarEntity>(e => e.PreinscripcionId)
+                      .HasForeignKey<PreinscripcionEscolarEntity>(
+                          e => e.academiccontrol_preinscription_academic_preinscriptionID)
                       .OnDelete(DeleteBehavior.Cascade);
             });
 
+            //  PREINSCRIPCION SALUD 
             modelBuilder.Entity<PreinscripcionSaludEntity>(entity =>
             {
                 entity.ToTable("academiccontrol_preinscription_health_table");
-                entity.HasKey(e => e.Id);
-                entity.Property(e => e.Id).HasColumnName("academiccontrol_preinscription_health_ID");
-                entity.Property(e => e.PreinscripcionId).HasColumnName("academiccontrol_preinscription_health_preinscriptionID");
-                entity.Property(e => e.ServicioMedico).HasColumnName("academiccontrol_preinscription_health_medicalService").HasMaxLength(100);
-                entity.Property(e => e.TieneDiscapacidad).HasColumnName("academiccontrol_preinscription_health_hasDisability");
-                entity.Property(e => e.DiscapacidadDescripcion).HasColumnName("academiccontrol_preinscription_health_disabilityDescription").HasMaxLength(250);
-                entity.Property(e => e.ComunidadIndigena).HasColumnName("academiccontrol_preinscription_health_indigenousCommunity");
-                entity.Property(e => e.ComunidadIndigenaDescripcion).HasColumnName("academiccontrol_preinscription_health_indigenousCommunityDescription").HasMaxLength(150);
-                entity.Property(e => e.Comentarios).HasColumnName("academiccontrol_preinscription_health_comments").HasMaxLength(500);
+                entity.HasKey(e => e.academiccontrol_preinscription_health_ID);
+                entity.Property(e => e.academiccontrol_preinscription_health_ID)
+                      .HasColumnName("academiccontrol_preinscription_health_ID");
+                entity.Property(e => e.academiccontrol_preinscription_health_preinscriptionID)
+                      .HasColumnName("academiccontrol_preinscription_health_preinscriptionID");
+                entity.Property(e => e.academiccontrol_preinscription_health_medicalService)
+                      .HasColumnName("academiccontrol_preinscription_health_medicalService")
+                      .HasMaxLength(100);
+                entity.Property(e => e.academiccontrol_preinscription_health_hasDisability)
+                      .HasColumnName("academiccontrol_preinscription_health_hasDisability");
+                entity.Property(e => e.academiccontrol_preinscription_health_disabilityDescription)
+                      .HasColumnName("academiccontrol_preinscription_health_disabilityDescription")
+                      .HasMaxLength(250);
+                entity.Property(e => e.academiccontrol_preinscription_health_indigenousCommunity)
+                      .HasColumnName("academiccontrol_preinscription_health_indigenousCommunity");
+                entity.Property(e => e.academiccontrol_preinscription_health_indigenousCommunityDescription)
+                      .HasColumnName("academiccontrol_preinscription_health_indigenousCommunityDescription")
+                      .HasMaxLength(150);
+                entity.Property(e => e.academiccontrol_preinscription_health_comments)
+                      .HasColumnName("academiccontrol_preinscription_health_comments")
+                      .HasMaxLength(500);
+                entity.Property(e => e.academiccontrol_preinscription_health_hasChildren)
+                      .HasColumnName("academiccontrol_preinscription_health_hasChildren");
+                entity.Property(e => e.academiccontrol_preinscription_health_status)
+                      .HasColumnName("academiccontrol_preinscription_health_status")
+                      .HasDefaultValue(true);
+                entity.Property(e => e.academiccontrol_preinscription_health_createdDate)
+                      .HasColumnName("academiccontrol_preinscription_health_createdDate")
+                      .HasDefaultValueSql("GETDATE()");
 
                 entity.HasOne(e => e.Preinscripcion)
                       .WithOne(p => p.Salud)
-                      .HasForeignKey<PreinscripcionSaludEntity>(e => e.PreinscripcionId)
+                      .HasForeignKey<PreinscripcionSaludEntity>(
+                          e => e.academiccontrol_preinscription_health_preinscriptionID)
                       .OnDelete(DeleteBehavior.Cascade);
             });
 
+            //  INSCRIPCION 
             modelBuilder.Entity<InscripcionEntity>(entity =>
             {
                 entity.ToTable("academiccontrol_inscription_table");
-                entity.HasKey(e => e.Id);
-                entity.Property(e => e.Id).HasColumnName("academiccontrol_inscription_ID");
-                entity.Property(e => e.PreinscripcionId).HasColumnName("academiccontrol_inscription_preinscriptionID");
-                entity.HasIndex(e => e.Matricula).IsUnique();
-                entity.Property(e => e.CarreraSolicitada).HasColumnName("academiccontrol_inscription_careerRequested").IsRequired().HasMaxLength(200);
-                entity.Property(e => e.TieneMatriculaTSU).HasColumnName("academiccontrol_inscription_hasTSUEnrollment");
-                entity.Property(e => e.MatriculaTSU).HasColumnName("academiccontrol_inscription_TSUEnrollment").HasMaxLength(20);
-                entity.Property(e => e.Matricula).HasColumnName("academiccontrol_inscription_enrollment").HasMaxLength(20);
-                entity.Property(e => e.ActaNacimientoPath).HasColumnName("academiccontrol_inscription_birthCertificatePath").HasMaxLength(500);
-                entity.Property(e => e.CurpPdfPath).HasColumnName("academiccontrol_inscription_curpPdfPath").HasMaxLength(500);
-                entity.Property(e => e.BoletaPdfPath).HasColumnName("academiccontrol_inscription_transcriptPath").HasMaxLength(500);
-                entity.Property(e => e.EstadoInscripcion).HasColumnName("academiccontrol_inscription_state").HasMaxLength(50).HasDefaultValue("Pendiente");
-                entity.Property(e => e.FechaInscripcion).HasColumnName("academiccontrol_inscription_registrationDate");
+                entity.HasKey(e => e.academiccontrol_inscription_ID);
+                entity.Property(e => e.academiccontrol_inscription_ID)
+                      .HasColumnName("academiccontrol_inscription_ID");
+                entity.Property(e => e.academiccontrol_inscription_preinscriptionID)
+                      .HasColumnName("academiccontrol_inscription_preinscriptionID");
+                entity.Property(e => e.academiccontrol_inscription_careerRequested)
+                      .HasColumnName("academiccontrol_inscription_careerRequested")
+                      .IsRequired().HasMaxLength(200);
+                entity.Property(e => e.academiccontrol_inscription_hasTSUEnrollment)
+                      .HasColumnName("academiccontrol_inscription_hasTSUEnrollment");
+                entity.Property(e => e.academiccontrol_inscription_TSUEnrollment)
+                      .HasColumnName("academiccontrol_inscription_TSUEnrollment")
+                      .HasMaxLength(20);
+                entity.Property(e => e.academiccontrol_inscription_enrollment)
+                      .HasColumnName("academiccontrol_inscription_enrollment")
+                      .HasMaxLength(20);
+                entity.Property(e => e.academiccontrol_inscription_birthCertificatePath)
+                      .HasColumnName("academiccontrol_inscription_birthCertificatePath")
+                      .HasMaxLength(500);
+                entity.Property(e => e.academiccontrol_inscription_curpPdfPath)
+                      .HasColumnName("academiccontrol_inscription_curpPdfPath")
+                      .HasMaxLength(500);
+                entity.Property(e => e.academiccontrol_inscription_transcriptPath)
+                      .HasColumnName("academiccontrol_inscription_transcriptPath")
+                      .HasMaxLength(500);
+                entity.Property(e => e.academiccontrol_inscription_registrationDate)
+                      .HasColumnName("academiccontrol_inscription_registrationDate")
+                      .HasDefaultValueSql("GETDATE()");
+                entity.Property(e => e.academiccontrol_inscription_state)
+                      .HasColumnName("academiccontrol_inscription_state")
+                      .HasMaxLength(50).HasDefaultValue("Pendiente");
+                entity.Property(e => e.academiccontrol_inscription_status)
+                      .HasColumnName("academiccontrol_inscription_status")
+                      .HasDefaultValue(true);
+                entity.Property(e => e.academiccontrol_inscription_createdDate)
+                      .HasColumnName("academiccontrol_inscription_createdDate")
+                      .HasDefaultValueSql("GETDATE()");
+
+                entity.HasIndex(e => e.academiccontrol_inscription_enrollment)
+                      .IsUnique()
+                      .HasFilter("[academiccontrol_inscription_enrollment] IS NOT NULL");
 
                 entity.HasOne(e => e.Preinscripcion)
                       .WithMany()
-                      .HasForeignKey(e => e.PreinscripcionId)
+                      .HasForeignKey(e => e.academiccontrol_inscription_preinscriptionID)
                       .OnDelete(DeleteBehavior.Restrict);
+                entity.Property(e => e.academiccontrol_inscription_actaValidada)
+                      .HasColumnName("academiccontrol_inscription_actaValidada")
+                      .HasDefaultValue(false);
+
+                entity.Property(e => e.academiccontrol_inscription_curpValidado)
+                      .HasColumnName("academiccontrol_inscription_curpValidado")
+                      .HasDefaultValue(false);
+
+                entity.Property(e => e.academiccontrol_inscription_boletaValidada)
+                      .HasColumnName("academiccontrol_inscription_boletaValidada")
+                      .HasDefaultValue(false);
+            });
+
+            //  CONFIGURACION FICHAS 
+            modelBuilder.Entity<ConfiguracionFichasEntity>(entity =>
+            {
+                entity.ToTable("academiccontrol_inscription_ticketconfig_table");
+                entity.HasKey(e => e.academiccontrol_inscription_ticketconfig_ID);
+                entity.Property(e => e.academiccontrol_inscription_ticketconfig_ID)
+                      .HasColumnName("academiccontrol_inscription_ticketconfig_ID");
+                entity.Property(e => e.academiccontrol_inscription_ticketconfig_career)
+                      .HasColumnName("academiccontrol_inscription_ticketconfig_career")
+                      .IsRequired().HasMaxLength(200);
+                entity.Property(e => e.academiccontrol_inscription_ticketconfig_limit)
+                      .HasColumnName("academiccontrol_inscription_ticketconfig_limit");
+                entity.Property(e => e.academiccontrol_inscription_ticketconfig_startDate)
+                      .HasColumnName("academiccontrol_inscription_ticketconfig_startDate");
+                entity.Property(e => e.academiccontrol_inscription_ticketconfig_endDate)
+                      .HasColumnName("academiccontrol_inscription_ticketconfig_endDate");
+                entity.Property(e => e.academiccontrol_inscription_ticketconfig_status)
+                      .HasColumnName("academiccontrol_inscription_ticketconfig_status")
+                      .HasDefaultValue(true);
+                entity.Property(e => e.academiccontrol_inscription_ticketconfig_createdDate)
+                      .HasColumnName("academiccontrol_inscription_ticketconfig_createdDate")
+                      .HasDefaultValueSql("GETDATE()");
+                entity.Property(e => e.academiccontrol_inscription_ticketconfig_updatedDate)
+                      .HasColumnName("academiccontrol_inscription_ticketconfig_updatedDate")
+                      .HasDefaultValueSql("GETDATE()");
+            });
+
+            //  PERIODO INSCRIPCION 
+            modelBuilder.Entity<PeriodoInscripcionEntity>(entity =>
+            {
+                entity.ToTable("academiccontrol_inscription_period_table");
+                entity.HasKey(e => e.academiccontrol_inscription_period_ID);
+                entity.Property(e => e.academiccontrol_inscription_period_ID)
+                      .HasColumnName("academiccontrol_inscription_period_ID");
+                entity.Property(e => e.academiccontrol_inscription_period_name)
+                      .HasColumnName("academiccontrol_inscription_period_name")
+                      .IsRequired().HasMaxLength(100);
+                entity.Property(e => e.academiccontrol_inscription_period_startDate)
+                      .HasColumnName("academiccontrol_inscription_period_startDate");
+                entity.Property(e => e.academiccontrol_inscription_period_endDate)
+                      .HasColumnName("academiccontrol_inscription_period_endDate");
+                entity.Property(e => e.academiccontrol_inscription_period_status)
+                      .HasColumnName("academiccontrol_inscription_period_status")
+                      .HasDefaultValue(true);
+                entity.Property(e => e.academiccontrol_inscription_period_createdDate)
+                      .HasColumnName("academiccontrol_inscription_period_createdDate")
+                      .HasDefaultValueSql("GETDATE()");
             });
 
             // ==========================================
@@ -196,30 +422,26 @@ namespace ControlEscolar.Data
             modelBuilder.Entity<ArchivoDescargaViewModel>().HasNoKey();
             modelBuilder.Entity<RequisitoRevisionViewModel>().HasNoKey();
             modelBuilder.Entity<RequisitoSolicitudViewModel>().HasNoKey();
-            modelBuilder.Entity<ConfiguracionFichasEntity>(entity =>
+
+            // ==========================================
+            // NUEVO: Configuración de Tablas de Salud
+            // ==========================================
+            modelBuilder.Entity<VisitaMedica>(entity =>
             {
-                entity.ToTable("academiccontrol_inscription_ticketconfig_table");
+                entity.ToTable("Visitas"); // Nombre físico de la tabla en SQL
                 entity.HasKey(e => e.Id);
-                entity.Property(e => e.Id).HasColumnName("academiccontrol_inscription_ticketconfig_ID");
-                entity.Property(e => e.Carrera).HasColumnName("academiccontrol_inscription_ticketconfig_career").IsRequired().HasMaxLength(200);
-                entity.Property(e => e.LimiteFichas).HasColumnName("academiccontrol_inscription_ticketconfig_limit");
-                entity.Property(e => e.FechaInicio).HasColumnName("academiccontrol_inscription_ticketconfig_startDate");
-                entity.Property(e => e.FechaFin).HasColumnName("academiccontrol_inscription_ticketconfig_endDate");
-                entity.Property(e => e.Activo).HasColumnName("academiccontrol_inscription_ticketconfig_status");
-                entity.Property(e => e.FechaCreacion).HasColumnName("academiccontrol_inscription_ticketconfig_createdDate");
-                entity.Property(e => e.FechaActualizacion).HasColumnName("academiccontrol_inscription_ticketconfig_updatedDate");
+                entity.Property(e => e.Matricula).IsRequired().HasMaxLength(20);
+                entity.Property(e => e.FechaVisita).HasDefaultValueSql("CURRENT_TIMESTAMP");
+                entity.Property(e => e.Diagnostico).IsRequired();
             });
 
-            modelBuilder.Entity<PeriodoInscripcionEntity>(entity =>
+            modelBuilder.Entity<VisitaPsicologica>(entity =>
             {
-                entity.ToTable("academiccontrol_inscription_period_table");
+                entity.ToTable("VisitasPsicologicas"); // Nombre físico de la tabla en SQL
                 entity.HasKey(e => e.Id);
-                entity.Property(e => e.Id).HasColumnName("academiccontrol_inscription_period_ID");
-                entity.Property(e => e.Nombre).HasColumnName("academiccontrol_inscription_period_name").IsRequired().HasMaxLength(100);
-                entity.Property(e => e.FechaInicio).HasColumnName("academiccontrol_inscription_period_startDate");
-                entity.Property(e => e.FechaFin).HasColumnName("academiccontrol_inscription_period_endDate");
-                entity.Property(e => e.Activo).HasColumnName("academiccontrol_inscription_period_status");
-                entity.Property(e => e.FechaCreacion).HasColumnName("academiccontrol_inscription_period_createdDate");
+                entity.Property(e => e.Matricula).IsRequired().HasMaxLength(20);
+                entity.Property(e => e.FechaVisita).HasDefaultValueSql("CURRENT_TIMESTAMP");
+                entity.Property(e => e.MotivoConsulta).IsRequired();
             });
 
             // ==========================================

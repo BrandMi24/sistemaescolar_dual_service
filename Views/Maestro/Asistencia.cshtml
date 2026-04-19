@@ -1,0 +1,176 @@
+﻿@{
+    var materiaId = Context.Request.Query["materiaId"].ToString();
+    ViewData["Title"] = "Control de Asistencia";
+    Layout = "_LayoutMaestro";
+}
+
+<div class="d-flex flex-column gap-4 fade-in" style="min-height: 82vh;">
+
+    <div class="bg-surface p-4 rounded-4 border border-light shadow-sm d-flex flex-column flex-xl-row justify-content-between align-items-xl-center gap-3">
+        <div class="d-flex flex-column flex-md-row gap-3 flex-grow-1" style="max-width: 800px;">
+            <div class="position-relative flex-grow-1">
+                <i class="bi bi-search position-absolute top-50 start-0 translate-middle-y ms-3 text-secondary"></i>
+                <input type="text" id="searchInput" class="form-control border-0 bg-app py-2 ps-5 text-sm fw-medium shadow-none" placeholder="BUSCAR POR NOMBRE O MATRÍCULA...">
+            </div>
+
+            <div style="width: auto; min-width: 200px;">
+                <input type="date" class="form-control border-0 bg-app txt-title fw-bold text-xs shadow-none py-2" value="2026-04-17">
+            </div>
+        </div>
+
+        <div class="d-flex flex-wrap gap-2">
+            <button class="btn btn-sm bg-app text-secondary border-0 px-4 py-2 fw-bold text-xxs tracking-widest" onclick="exportarAsistencia()">
+                EXPORTAR CSV
+            </button>
+            <button class="btn-primary-sep border-0 py-2 px-4 text-xxs fw-bold tracking-widest shadow-sm">
+                GUARDAR CAMBIOS
+            </button>
+        </div>
+    </div>
+
+    <div class="bg-surface p-0 rounded-4 border border-light shadow-sm overflow-hidden d-flex flex-column flex-grow-1">
+        
+        <div class="bg-app p-3 border-bottom border-light d-flex justify-content-between align-items-center">
+            <div class="d-flex align-items-center gap-3">
+                <span class="badge status-aceptado px-3 py-2 text-xxs fw-bold">GRUPO 4º A</span>
+                <span class="txt-primary-dark fw-bold text-xs text-uppercase tracking-wider">Programación Orientada a Objetos</span>
+            </div>
+            <div class="txt-primary-dark fw-bold text-uppercase tracking-tighter" style="font-size: 0.65rem; opacity: 0.8;">
+                30 REGISTROS ENCONTRADOS
+            </div>
+        </div>
+
+        <div class="table-responsive flex-grow-1 custom-scroll">
+            <table class="table table-borderless align-middle mb-0 text-center" id="tablaAsistencia">
+                <thead class="bg-app sticky-top" style="z-index: 10;">
+                    <tr class="border-bottom border-light">
+                        <th class="py-3 px-4 text-start text-xxs fw-bold text-uppercase tracking-wider" style="min-width: 320px; position: sticky; left: 0; background: var(--bg-main); z-index: 11;">
+                            Nombre del Estudiante
+                        </th>
+                        <th class="py-3 text-xxs fw-bold text-uppercase tracking-wider">Lun 13</th>
+                        <th class="py-3 text-xxs fw-bold text-uppercase tracking-wider">Mar 14</th>
+                        <th class="py-3 text-xxs fw-bold text-uppercase tracking-wider">Mie 15</th>
+                        <th class="py-3 text-xxs fw-bold text-uppercase tracking-wider">Jue 16</th>
+                        
+                        <th class="py-3 text-xxs fw-bold text-uppercase tracking-wider border-start border-light bg-app" style="width: 90px; position: sticky; right: 90px; z-index: 11;">Faltas</th>
+                        <th class="py-3 text-xxs fw-bold text-uppercase tracking-wider border-start border-light bg-app" style="width: 90px; position: sticky; right: 0; z-index: 11;">% Asist</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @for(int i=1; i<=15; i++) {
+                        <tr class="border-bottom border-light data-row">
+                            <td class="px-4 py-3 text-start search-target bg-white" style="position: sticky; left: 0; z-index: 1;">
+                                <div class="txt-title fw-bold text-xs text-uppercase">Perez Cadena Roberto Carlos</div>
+                                <div class="text-xxs fw-bold text-muted tracking-tighter">MAT: 24001504</div>
+                            </td>
+                            <td class="p-2">
+                                <select class="select-asistencia form-select form-select-sm border-0 bg-app text-center fw-bold shadow-none text-xxs">
+                                    <option value="A" selected>ASISTIÓ</option>
+                                    <option value="R">RETARDO</option>
+                                    <option value="F">FALTA</option>
+                                    <option value="J">JUSTIF.</option>
+                                </select>
+                            </td>
+                            <td class="p-2">
+                                <select class="select-asistencia form-select form-select-sm border-0 bg-app text-center fw-bold shadow-none text-xxs">
+                                    <option value="A">ASISTIÓ</option>
+                                    <option value="R" selected>RETARDO</option>
+                                    <option value="F">FALTA</option>
+                                    <option value="J">JUSTIF.</option>
+                                </select>
+                            </td>
+                            <td class="p-2">
+                                <select class="select-asistencia form-select form-select-sm border-0 bg-app text-center fw-bold shadow-none text-xxs">
+                                    <option value="A">ASISTIÓ</option>
+                                    <option value="R">RETARDO</option>
+                                    <option value="F" selected>FALTA</option>
+                                    <option value="J">JUSTIF.</option>
+                                </select>
+                            </td>
+                            <td class="p-2">
+                                <select class="select-asistencia form-select form-select-sm border-0 bg-app text-center fw-bold shadow-none text-xxs">
+                                    <option value="A" selected>ASISTIÓ</option>
+                                    <option value="R">RETARDO</option>
+                                    <option value="F">FALTA</option>
+                                    <option value="J">JUSTIF.</option>
+                                </select>
+                            </td>
+                            <td class="fw-bold text-danger text-xs border-start border-light bg-app" style="position: sticky; right: 90px; z-index: 1;">1</td>
+                            <td class="fw-bold text-success text-xs border-start border-light bg-white" style="position: sticky; right: 0; z-index: 1;">75%</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <div class="bg-white p-3 border-top border-light d-flex flex-column flex-md-row justify-content-between align-items-center gap-3">
+            <div class="d-flex align-items-center gap-3">
+                <span class="text-secondary fw-bold" style="font-size: 0.65rem;">MOSTRAR:</span>
+                <select id="rowsPerPage" class="form-select form-select-sm border-0 bg-app fw-bold text-xs shadow-none" style="width: 70px;">
+                    <option value="10" selected>10</option>
+                    <option value="25">25</option>
+                </select>
+                <div id="tableInfo" class="txt-primary-dark fw-bold text-uppercase tracking-tighter" style="font-size: 0.65rem; opacity: 0.8;"></div>
+            </div>
+
+            <nav>
+                <ul class="pagination pagination-sm mb-0 gap-1" id="paginationControls">
+                    <li class="page-item disabled"><a class="page-link border-0 bg-app rounded-2 txt-title fw-bold text-xxs" href="#"><i class="bi bi-chevron-left"></i></a></li>
+                    <li class="page-item active"><a class="page-link border-0 bg-primary-dark text-white rounded-2 mx-1 fw-bold text-xxs px-3" href="#">1</a></li>
+                    <li class="page-item"><a class="page-link border-0 bg-app rounded-2 txt-title fw-bold text-xxs" href="#"><i class="bi bi-chevron-right"></i></a></li>
+                </ul>
+            </nav>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Selects sutiles para no romper el diseño de Ciclos */
+    .select-asistencia {
+        cursor: pointer;
+        border-radius: 4px !important;
+        transition: all 0.2s ease;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: var(--text-body);
+        background-color: #f8fafc !important; /* Mismo gris que el fondo de ciclos */
+    }
+    
+    .select-asistencia:hover {
+        background-color: #f1f5f9 !important;
+    }
+
+    .select-asistencia:focus {
+        background-color: #fff !important;
+        box-shadow: 0 0 0 2px var(--primary-900) !important;
+    }
+
+    /* Paginación sólida idéntica a Ciclos */
+    .page-link {
+        padding: 6px 12px;
+        color: var(--primary-900);
+        transition: all 0.2s;
+    }
+    
+    .page-item.active .page-link {
+        background-color: var(--primary-900) !important;
+        border-color: var(--primary-900) !important;
+        color: white !important;
+    }
+
+    /* Scrollbar técnico */
+    .custom-scroll::-webkit-scrollbar { width: 6px; height: 6px; }
+    .custom-scroll::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
+</style>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            $('#tableInfo').text('1 - 10 DE 30 REGISTROS');
+        });
+
+        function exportarAsistencia() {
+            console.log("Exportando CSV...");
+        }
+    </script>
+}

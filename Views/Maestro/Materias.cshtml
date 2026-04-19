@@ -1,0 +1,199 @@
+﻿@{
+    var grupoId = Context.Request.Query["grupoId"].ToString();
+    ViewData["Title"] = !string.IsNullOrEmpty(grupoId) ? "Materias del Grupo" : "Mis Materias";
+    Layout = "_LayoutMaestro";
+}
+
+<div class="d-flex flex-column gap-4 fade-in" style="min-height: 82vh;">
+
+    <div class="bg-surface p-4 rounded-4 border border-light shadow-sm d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+        <div class="d-flex flex-column flex-md-row gap-3 flex-grow-1" style="max-width: 750px;">
+            <div class="position-relative flex-grow-1">
+                <i class="bi bi-search position-absolute top-50 start-0 translate-middle-y ms-3 text-secondary"></i>
+                <input type="text" id="searchInput" class="form-control border-0 bg-app py-2 ps-5 text-sm fw-medium shadow-none" placeholder="BUSCAR MATERIA POR NOMBRE O GRUPO...">
+            </div>
+
+            <select id="statusFilter" class="form-select border-0 bg-app txt-title fw-bold text-xs shadow-none" style="width: auto; min-width: 180px; cursor: pointer;">
+                <option value="todos">TODOS LOS ESTADOS</option>
+                <option value="activo">IMPARTIENDO</option>
+                <option value="finalizado">FINALIZADAS</option>
+            </select>
+        </div>
+
+        <button class="btn-primary-sep border-0 py-2 px-4 text-xxs fw-bold tracking-widest shadow-sm flex-shrink-0" data-bs-toggle="modal" data-bs-target="#modalMateria">
+            AGREGAR MATERIA
+        </button>
+    </div>
+
+    <div class="bg-surface p-0 rounded-4 border border-light shadow-sm overflow-hidden d-flex flex-column flex-grow-1">
+        <div class="table-responsive flex-grow-1">
+            <table class="table table-borderless align-middle mb-0" id="materiasTable">
+                <thead class="bg-app sticky-top" style="z-index: 5;">
+                    <tr>
+                        <th class="py-3 px-4 text-xxs fw-bold text-uppercase tracking-wider">Nombre de la Materia</th>
+                        <th class="py-3 text-center text-xxs fw-bold text-uppercase tracking-wider">Grupo</th>
+                        <th class="py-3 text-center text-xxs fw-bold text-uppercase tracking-wider">Horas/Sem</th>
+                        <th class="py-3 text-center text-xxs fw-bold text-uppercase tracking-wider">Estado</th>
+                        <th class="py-3 text-end px-4 text-xxs fw-bold text-uppercase tracking-wider">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody id="materiasBody">
+                    <tr class="border-bottom border-light data-row" data-estado="activo">
+                        <td class="px-4 py-3 search-target">
+                            <div class="txt-title fw-bold text-xs text-uppercase">Programación Orientada a Objetos</div>
+                            <div class="text-xxs fw-bold text-muted tracking-tighter opacity-75 uppercase">ESPECIALIDAD: SOFTWARE</div>
+                        </td>
+                        <td class="text-center text-xs fw-bold txt-primary-dark">4º A</td>
+                        <td class="text-center text-xs fw-medium text-secondary">5</td>
+                        <td class="text-center">
+                            <span class="badge status-aceptado px-3 py-2 text-xxs fw-bold border">ACTIVA</span>
+                        </td>
+                        <td class="text-end px-4">
+                            <div class="d-flex justify-content-end gap-2">
+                                <a href="@Url.Action("Asistencia", "Maestro", new { materiaId = 101 })" 
+                                   class="btn btn-sm border-0 bg-primary-100 txt-primary-dark rounded-2 py-1 px-3 text-xxs fw-bold tracking-widest">
+                                    LISTA
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr class="border-bottom border-light data-row" data-estado="activo">
+                        <td class="px-4 py-3 search-target">
+                            <div class="txt-title fw-bold text-xs text-uppercase">Base de Datos para Aplicaciones</div>
+                            <div class="text-xxs fw-bold text-muted tracking-tighter opacity-75 uppercase">ESPECIALIDAD: SOFTWARE</div>
+                        </td>
+                        <td class="text-center text-xs fw-bold txt-primary-dark">4º A</td>
+                        <td class="text-center text-xs fw-medium text-secondary">4</td>
+                        <td class="text-center">
+                            <span class="badge status-aceptado px-3 py-2 text-xxs fw-bold border">ACTIVA</span>
+                        </td>
+                        <td class="text-end px-4">
+                            <div class="d-flex justify-content-end gap-2">
+                                <a href="@Url.Action("Asistencia", "Maestro", new { materiaId = 102 })" 
+                                   class="btn btn-sm border-0 bg-primary-100 txt-primary-dark rounded-2 py-1 px-3 text-xxs fw-bold tracking-widest">
+                                    LISTA
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="bg-white p-3 border-top border-light d-flex flex-column flex-md-row justify-content-between align-items-center gap-3">
+            <div class="d-flex align-items-center gap-3">
+                <span class="text-secondary fw-bold text-uppercase tracking-tighter" style="font-size: 0.65rem;">Mostrar:</span>
+                <select id="rowsPerPage" class="form-select form-select-sm border-0 bg-app fw-bold text-xs shadow-none" style="width: 70px;">
+                    <option value="5" selected>5</option>
+                    <option value="10">10</option>
+                </select>
+                <div id="tableInfo" class="txt-primary-dark fw-bold text-uppercase tracking-tighter" style="font-size: 0.65rem; opacity: 0.8;"></div>
+            </div>
+
+            <nav>
+                <ul class="pagination pagination-sm mb-0 gap-1" id="paginationControls">
+                </ul>
+            </nav>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="modalMateria" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+            <div class="modal-header bg-primary-dark text-white p-4 border-0">
+                <h6 class="modal-title fw-bold text-uppercase tracking-widest text-white">REGISTRAR NUEVA MATERIA</h6>
+                <button type="button" class="btn-close btn-close-white shadow-none" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4 bg-app">
+                <div class="mb-3">
+                    <label class="text-xxs fw-bold text-muted text-uppercase tracking-widest mb-2 d-block">NOMBRE DE LA ASIGNATURA</label>
+                    <input type="text" class="form-control border-0 py-2 fw-bold text-sm shadow-sm" placeholder="EJ: CÁLCULO INTEGRAL">
+                </div>
+                <div class="mb-3">
+                    <label class="text-xxs fw-bold text-muted text-uppercase tracking-widest mb-2 d-block">GRUPO ASIGNADO</label>
+                    <select class="form-select border-0 py-2 fw-bold text-sm shadow-sm">
+                        <option>4º A</option>
+                        <option>1º C</option>
+                    </select>
+                </div>
+            </div>
+            <div class="modal-footer bg-white border-top border-light p-3">
+                <button type="button" class="btn btn-sm bg-app text-secondary border-0 px-4 py-2 text-xxs fw-bold tracking-widest" data-bs-dismiss="modal">CANCELAR</button>
+                <button type="button" class="btn-primary-sep border-0 px-4 py-2 text-xxs fw-bold tracking-widest shadow-sm">GUARDAR MATERIA</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Paginación sólida idéntica a Ciclos */
+    .page-link-custom {
+        display: flex; align-items: center; justify-content: center;
+        min-width: 32px; height: 32px; padding: 0 12px;
+        font-size: 0.7rem; font-weight: 700; border-radius: 6px !important;
+        background-color: var(--bg-main); color: var(--primary-900);
+        text-decoration: none; transition: all 0.2s;
+    }
+    .page-item.active .page-link-custom {
+        background-color: var(--primary-900) !important;
+        color: white !important;
+    }
+    .uppercase { text-transform: uppercase; }
+</style>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            let currentPage = 1;
+
+            function updateTable() {
+                let searchTerm = $('#searchInput').val().toLowerCase();
+                let statusFilter = $('#statusFilter').val();
+                let rowsPerPage = parseInt($('#rowsPerPage').val());
+
+                let $allRows = $('.data-row');
+                let filteredRows = [];
+
+                $allRows.each(function () {
+                    let text = $(this).find('.search-target').text().toLowerCase();
+                    let status = $(this).data('estado');
+                    let matchesSearch = text.indexOf(searchTerm) > -1;
+                    let matchesStatus = (statusFilter === 'todos') || (status === statusFilter);
+
+                    if (matchesSearch && matchesStatus) filteredRows.push($(this));
+                    $(this).hide(); 
+                });
+
+                let total = filteredRows.length;
+                let pages = Math.ceil(total / rowsPerPage) || 1;
+                if (currentPage > pages) currentPage = pages;
+                let start = (currentPage - 1) * rowsPerPage;
+                let end = Math.min(start + rowsPerPage, total);
+
+                for (let i = start; i < end; i++) filteredRows[i].show();
+                
+                $('#tableInfo').text(total === 0 ? '0 REGISTROS' : `${start + 1} - ${end} DE ${total}`);
+                renderPager(pages);
+            }
+
+            function renderPager(pages) {
+                let html = `<li class="page-item ${currentPage === 1 ? 'disabled' : ''}"><a class="page-link-custom" href="#" data-page="${currentPage - 1}"><i class="bi bi-chevron-left"></i></a></li>`;
+                for (let i = 1; i <= pages; i++) {
+                    html += `<li class="page-item ${i === currentPage ? 'active' : ''}"><a class="page-link-custom mx-1" href="#" data-page="${i}">${i}</a></li>`;
+                }
+                html += `<li class="page-item ${currentPage === pages || pages === 0 ? 'disabled' : ''}"><a class="page-link-custom" href="#" data-page="${currentPage + 1}"><i class="bi bi-chevron-right"></i></a></li>`;
+                $('#paginationControls').html(html);
+            }
+
+            $('#searchInput, #statusFilter, #rowsPerPage').on('input change', function() { currentPage = 1; updateTable(); });
+            $(document).on('click', '.page-link-custom', function(e) {
+                e.preventDefault();
+                let p = parseInt($(this).data('page'));
+                if (p && p !== currentPage) { currentPage = p; updateTable(); }
+            });
+
+            updateTable();
+        });
+    </script>
+}

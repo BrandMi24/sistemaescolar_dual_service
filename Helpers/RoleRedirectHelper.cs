@@ -9,10 +9,10 @@ namespace ControlEscolar.Helpers
             // MAPA CENTRALIZADO
             var roleRoutes = new Dictionary<string, (string controller, string action)>
         {
-            { "ADMIN", ("Coordinador", "Index") },
-            { "COORDINADOR", ("Coordinador", "Index") },
             { "COORDINADORSERVICIOSOCIAL", ("Coordinador", "Index") },
             { "COORDINADORDUAL", ("Coordinador", "Index") },
+            { "ADMIN", ("Coordinador", "Catalogos") },
+            { "COORDINADOR", ("Coordinador", "Catalogos") },
             { "DOCENTE", ("Docente", "Index") },
             { "TEACHER", ("Docente", "Index") },
             { "ALUMNO", ("Alumno", "Index") },

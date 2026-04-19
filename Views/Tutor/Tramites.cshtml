@@ -4,85 +4,102 @@
     Layout = "_LayoutTutor";
 }
 
-<link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css" />
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
 
-<div class="row g-4">
-    <div class="col-12">
-        <div class="bg-white p-4 rounded-4 shadow-sm border-0 d-flex flex-column flex-md-row justify-content-between align-items-center gap-3">
-            <div class="btn-group shadow-sm" role="group">
-                <button type="button" onclick="filtrarPorEstatusDataTable('Todos', this)" class="btn btn-outline-secondary btn-sm px-4">Todos</button>
-                <button type="button" onclick="filtrarPorEstatusDataTable('Pendiente', this)" class="btn btn-outline-warning btn-sm px-4 active fw-bold">Pendientes</button>
-                <button type="button" onclick="filtrarPorEstatusDataTable('Aprobado', this)" class="btn btn-outline-success btn-sm px-4">Aprobados</button>
-                <button type="button" onclick="filtrarPorEstatusDataTable('Rechazado', this)" class="btn btn-outline-danger btn-sm px-4">Rechazados</button>
-            </div>
+<div class="d-flex flex-column gap-4" style="min-height: 82vh;">
 
-            <div class="d-flex align-items-center gap-4">
-                <div id="containerLength" class="d-flex align-items-center gap-2 text-muted text-xs fw-bold">
-                </div>
-                <div class="input-group shadow-sm" style="max-width: 300px;">
-                    <span class="input-group-text bg-white border-end-0"><i class="bi bi-search text-muted"></i></span>
-                    <input type="text" id="txtBusqueda" class="form-control border-start-0 text-sm" placeholder="Buscar...">
-                </div>
+    <div class="bg-surface p-4 rounded-4 border border-light shadow-sm d-flex flex-column flex-xl-row justify-content-between align-items-center gap-3">
+        
+        <div class="btn-group shadow-none border border-light rounded-3 overflow-hidden bg-app" role="group">
+            <button type="button" onclick="filterStatus('Todos', this)" class="btn btn-sm btn-status-filter px-4 fw-bold text-xxs tracking-widest py-2">TODOS</button>
+            <button type="button" onclick="filterStatus('Pendiente', this)" class="btn btn-sm btn-status-filter px-4 fw-bold text-xxs tracking-widest py-2 active">PENDIENTES</button>
+            <button type="button" onclick="filterStatus('Aprobado', this)" class="btn btn-sm btn-status-filter px-4 fw-bold text-xxs tracking-widest py-2">APROBADOS</button>
+            <button type="button" onclick="filterStatus('Rechazado', this)" class="btn btn-sm btn-status-filter px-4 fw-bold text-xxs tracking-widest py-2">RECHAZADOS</button>
+        </div>
+
+        <div class="d-flex align-items-center gap-3 flex-grow-1 justify-content-xl-end" style="max-width: 650px;">
+            <div class="position-relative flex-grow-1">
+                <i class="bi bi-search position-absolute top-50 start-0 translate-middle-y ms-3 text-secondary"></i>
+                <input type="text" id="searchInput" class="form-control border-0 bg-app py-2 ps-5 text-sm fw-medium shadow-none" placeholder="Nombre, matrícula o folio...">
             </div>
         </div>
     </div>
 
-    <div class="col-12">
-        <div class="bg-white p-0 rounded-4 shadow-sm border-0 overflow-hidden">
-            <div class="table-responsive">
-                <table class="table table-hover align-middle mb-0 text-sm" id="tablaTutor">
-                    <thead class="bg-light text-muted border-bottom">
-                        <tr>
-                            <th class="py-3 px-4 fw-bold text-xs text-center">FOLIO</th>
-                            <th class="py-3 fw-bold text-xs">FECHA</th>
-                            <th class="py-3 fw-bold text-xs">MATRÍCULA</th>
-                            <th class="py-3 fw-bold text-xs">NOMBRE</th>
-                            <th class="py-3 fw-bold text-xs text-center">GRADO</th>
-                            <th class="py-3 fw-bold text-xs text-center">GRUPO</th>
-                            <th class="py-3 fw-bold text-xs">TRÁMITE</th>
-                            <th class="py-3 fw-bold text-xs text-center">ESTADO</th>
-                            <th class="py-3 px-4 fw-bold text-xs text-center">ACCIÓN</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @if (Model != null)
+    <div class="bg-surface p-0 rounded-4 border border-light shadow-sm overflow-hidden d-flex flex-column flex-grow-1">
+        <div class="table-responsive flex-grow-1">
+            <table class="table table-borderless align-middle mb-0">
+                <thead class="bg-app sticky-top" style="z-index: 5;">
+                    <tr>
+                        <th class="py-3 px-4 text-xxs fw-bold text-uppercase tracking-wider text-center">Folio</th>
+                        <th class="py-3 text-xxs fw-bold text-uppercase tracking-wider">Fecha</th>
+                        <th class="py-3 text-xxs fw-bold text-uppercase tracking-wider">Matrícula</th>
+                        <th class="py-3 text-xxs fw-bold text-uppercase tracking-wider">Nombre del Alumno</th>
+                        <th class="py-3 text-center text-xxs fw-bold text-uppercase tracking-wider">G/G</th>
+                        <th class="py-3 text-xxs fw-bold text-uppercase tracking-wider">Trámite</th>
+                        <th class="py-3 text-center text-xxs fw-bold text-uppercase tracking-wider">Estado</th>
+                        <th class="py-3 px-4 text-end text-xxs fw-bold text-uppercase tracking-wider">Acción</th>
+                    </tr>
+                </thead>
+                <tbody id="tramitesBody">
+                    @if (Model != null)
+                    {
+                        @foreach (var item in Model)
                         {
-                            @foreach (var item in Model)
-                            {
-                                <tr class="border-bottom hover-bg-light transition-all">
-                                    <td class="px-4 py-3 text-center text-primary fw-bold">#@item.Id</td>
-                                    <td class="text-muted text-xs">@item.Fecha.ToString("dd/MM/yyyy")</td>
-                                    <td class="text-dark fw-bold">@item.Matricula</td>
-                                    <td class="text-dark fw-bold">@item.Nombre</td>
-                                    <td class="text-center text-dark fw-bold">@item.Grado°</td>
-                                    <td class="text-center text-dark fw-bold">@item.Grupo</td>
-                                    <td><span class="text-dark fw-bold text-xs">@item.Tipo</span></td>
-                                    <td class="text-center">
-                                        <span class="badge bg-white border shadow-sm rounded-pill px-3 py-1 @(item.Estatus == "Pendiente" ? "border-warning text-warning" : item.Estatus == "Rechazado" ? "border-danger text-danger" : "border-success text-success")">
-                                            @item.Estatus.ToUpper()
-                                        </span>
-                                    </td>
-                                    <td class="text-center px-4">
-                                        <button type="button" class="btn btn-sm btn-dark rounded-pill px-4 fw-bold shadow-sm btn-revisar"
-                                                data-id="@item.Id"
-                                                data-idtramite="@item.IdTramite"
-                                                data-nombre="@item.Nombre"
-                                                data-matricula="@item.Matricula"
-                                                data-grado="@item.Grado"
-                                                data-grupo="@item.Grupo"
-                                                data-tipo="@item.Tipo"
-                                                data-archivopath="@item.ArchivoPath"
-                                                data-estatus="@item.Estatus">
-                                            Revisar
-                                        </button>
-                                    </td>
-                                </tr>
-                            }
+                            <tr class="border-bottom border-light hover-bg-app data-row" 
+                                data-estatus="@item.Estatus" 
+                                data-search="@(item.Id + " " + item.Nombre + " " + item.Matricula)">
+                                <td class="px-4 py-3 text-center">
+                                    <span class="txt-primary-dark fw-bold text-xs">#@item.Id</span>
+                                </td>
+                                <td class="text-secondary fw-medium text-xs">@item.Fecha.ToString("dd/MM/yyyy")</td>
+                                <td class="txt-title fw-bold text-xs">@item.Matricula</td>
+                                <td class="txt-title fw-bold text-xs text-uppercase">@item.Nombre</td>
+                                <td class="text-center text-secondary fw-bold text-xs">@item.Grado° "@item.Grupo"</td>
+                                <td class="text-xs fw-bold text-uppercase tracking-tighter">@item.Tipo</td>
+                                <td class="text-center">
+                                    @{
+                                        string badgeClass = item.Estatus == "Pendiente" ? "bg-warning bg-opacity-10 text-warning border-warning" : 
+                                                           item.Estatus == "Rechazado" ? "bg-error-100 text-danger border-danger" : "status-aceptado";
+                                    }
+                                    <span class="badge rounded-pill px-3 py-2 text-xxs fw-bold border @badgeClass">
+                                        @item.Estatus.ToUpper()
+                                    </span>
+                                </td>
+                                <td class="text-end px-4">
+                                    <button type="button" class="btn btn-sm border-0 bg-primary-dark text-white rounded-2 py-1 px-3 text-xxs fw-bold tracking-widest btn-revisar shadow-sm"
+                                            data-id="@item.Id"
+                                            data-idtramite="@item.IdTramite"
+                                            data-nombre="@item.Nombre"
+                                            data-matricula="@item.Matricula"
+                                            data-grado="@item.Grado"
+                                            data-grupo="@item.Grupo"
+                                            data-tipo="@item.Tipo"
+                                            data-archivopath="@item.ArchivoPath"
+                                            data-estatus="@item.Estatus">
+                                        REVISAR
+                                    </button>
+                                </td>
+                            </tr>
                         }
-                    </tbody>
-                </table>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <div class="bg-white p-3 border-top border-light d-flex flex-column flex-md-row justify-content-between align-items-center gap-3">
+            <div class="d-flex align-items-center gap-3">
+                <span class="text-secondary fw-bold text-xxs">MOSTRAR:</span>
+                <select id="rowsPerPage" class="form-select form-select-sm border-0 bg-app fw-bold text-xs" style="width: 70px; cursor: pointer;">
+                    <option value="10" selected>10</option>
+                    <option value="25">25</option>
+                    <option value="50">50</option>
+                </select>
+                <div id="tableInfo" class="txt-primary-dark fw-bold text-uppercase tracking-tighter" style="font-size: 0.65rem; opacity: 0.8;"></div>
             </div>
+
+            <nav>
+                <ul class="pagination pagination-sm mb-0 gap-1" id="paginationControls"></ul>
+            </nav>
         </div>
     </div>
 </div>
@@ -90,337 +107,331 @@
 <div class="modal fade" id="revisarModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
     <div class="modal-dialog modal-xl modal-dialog-centered">
         <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
-            <form asp-controller="Tramites" asp-action="ActualizarEstatus" method="post" enctype="multipart/form-data">
-
-                <div class="modal-header bg-dark text-white p-4 border-0">
+            <form asp-controller="Tramites" asp-action="ActualizarEstatus" method="post">
+                
+                <div class="modal-header p-4 border-0" style="background-color: #13322B; color: white;">
                     <div class="w-100">
                         <div class="d-flex justify-content-between align-items-center">
-                            <h5 class="modal-title fw-bold text-white">
-                                Expediente: <span id="modalNombreAlumno" class="text-info"></span>
-                                <small class="ms-2 opacity-75 text-xs" id="modalMatriculaAlumno"></small>
-                            </h5>
-                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                          <h6 class="modal-title fw-bold text-uppercase tracking-widest mb-0">
+    Auditoría de Expediente: <span id="modalNombreAlumno" class="text-white"></span>
+</h6>
+                            <button type="button" class="btn-close btn-close-white shadow-none" data-bs-dismiss="modal"></button>
                         </div>
-                        <div class="mt-2 text-xs opacity-75 fw-bold tracking-wide">
-                            <span id="modalTipoTramite" class="me-3"></span>
+                        <div class="mt-2 d-flex gap-3 text-xxs fw-bold tracking-widest opacity-75 text-uppercase">
+                            <span id="modalMatriculaAlumno"></span> <span class="opacity-25">|</span>
+                            <span id="modalTipoTramite"></span> <span class="opacity-25">|</span>
                             <span id="modalGradoGrupoHist"></span>
                         </div>
                     </div>
                 </div>
 
-                <div class="modal-body p-0">
-                    <div class="d-flex flex-column flex-md-row" style="height: 65vh; min-height: 500px;">
-
-                        <div class="bg-light border-end d-flex flex-column" style="width: 350px;">
-                            <div class="p-3 border-bottom bg-white d-flex justify-content-between align-items-center shadow-sm z-1">
-                                <h6 class="fw-bold mb-0 text-xs tracking-widest text-muted">REQUISITOS DEL TRÁMITE</h6>
-                                <span id="contadorProgreso" class="badge rounded-pill bg-secondary shadow-sm">0/0</span>
+                <div class="modal-body p-0 bg-light">
+                    <div class="d-flex flex-column flex-md-row" style="height: 70vh; min-height: 550px;">
+                        
+                        <div class="bg-white border-end d-flex flex-column shadow-sm" style="width: 350px;">
+                            <div class="p-3 border-bottom d-flex justify-content-between align-items-center" style="background-color: #f8f9fa;">
+                                <h6 class="fw-bold mb-0 text-xxs tracking-widest text-muted text-uppercase">Documentación</h6>
+                                <span id="contadorProgreso" class="badge rounded-pill bg-secondary text-xxs">0/0</span>
                             </div>
-                            <div id="listaDocumentos" class="flex-grow-1 overflow-auto p-3">
-                            </div>
+                            <div id="listaDocumentos" class="flex-grow-1 overflow-auto p-3 custom-scroll"></div>
                         </div>
 
-                        <div class="flex-grow-1 bg-white d-flex flex-column">
-                            <div class="bg-secondary bg-opacity-10 border-bottom p-2 d-flex justify-content-between align-items-center shadow-sm z-1">
-                                <span class="text-sm fw-bold px-2 text-dark" id="nombreDocActivo">Seleccione un archivo de la lista</span>
-                                <a id="btnLinkIndividual" href="#" download class="btn btn-sm btn-outline-dark py-1 px-3 fw-bold rounded-pill" style="display:none; font-size: 0.75rem;">
-                                    <i class="bi bi-download me-1"></i> Descargar
+                        <div class="flex-grow-1 d-flex flex-column">
+                            <div class="bg-white border-bottom p-2 d-flex justify-content-between align-items-center px-3">
+                                <span class="text-xxs fw-bold text-muted text-uppercase tracking-wider" id="nombreDocActivo">Vista Previa</span>
+                                <a id="btnLinkIndividual" href="#" download class="btn btn-sm btn-light border py-1 px-3 fw-bold rounded-2 text-xxs tracking-widest" style="display:none; color: #13322B;">
+                                    <i class="bi bi-download me-1"></i> DESCARGAR
                                 </a>
                             </div>
-                            <div id="pdfContainer" class="flex-grow-1 bg-light d-flex align-items-center justify-content-center">
+                            <div id="pdfContainer" class="flex-grow-1 d-flex align-items-center justify-content-center" style="background-color: #f1f5f9;">
                                 <div class="text-center text-muted opacity-50">
-                                    <i class="bi bi-file-earmark-pdf mb-3" style="font-size: 5rem;"></i>
-                                    <p class="text-sm fw-bold">Vista previa del documento</p>
+                                    <i class="bi bi-file-earmark-text mb-3" style="font-size: 4rem;"></i>
+                                    <p class="text-xxs fw-bold text-uppercase tracking-widest">Seleccione un documento</p>
                                 </div>
                             </div>
                         </div>
+
                     </div>
                 </div>
 
-                <div class="modal-footer bg-light p-3 border-top">
+                <div class="modal-footer bg-white p-3 border-top">
                     <div class="row w-100 align-items-center g-3">
-
-                        <div class="col-md-3 text-start">
-                            <button type="button" id="btnDescargaCarpeta" class="btn btn-outline-secondary btn-sm rounded-pill fw-bold w-100">
-                                <i class="bi bi-file-earmark-zip me-1"></i> Exportar ZIP
+                        <div class="col-md-3">
+                            <button type="button" id="btnDescargaCarpeta" class="btn btn-sm btn-light border rounded-2 fw-bold text-xxs tracking-widest w-100 py-2 text-muted">
+                                <i class="bi bi-archive-fill me-1"></i> EXPORTAR ZIP
                             </button>
                         </div>
-
                         <div class="col-md-5" id="contenedorObservacionesFooter" style="display:none;">
-                            <textarea name="observaciones" id="modalObservacionesFooter" class="form-control form-control-sm border-warning shadow-sm rounded-3" rows="2" placeholder="Describa aquí el motivo del rechazo (Obligatorio)..." oninput="validarTextoRechazo()"></textarea>
+                            <textarea name="observaciones" id="modalObservacionesFooter" class="form-control text-xs fw-medium shadow-none" rows="2" placeholder="Motivo del rechazo (obligatorio)..." oninput="validarTextoRechazo()" style="border-color: #e2e8f0; background-color: #f8fafc;"></textarea>
                         </div>
-
-                        <div class="col-md-5 text-center text-muted text-sm fw-bold" id="mensajeTramiteCerradoFooter" style="display:none;">
-                            <i class="bi bi-lock-fill me-1"></i> Este trámite ya fue dictaminado.
+                        <div class="col-md-5 text-center text-muted text-xxs fw-bold text-uppercase tracking-widest" id="mensajeTramiteCerradoFooter" style="display:none;">
+                            <i class="bi bi-lock-fill me-1"></i> Expediente Cerrado
                         </div>
-
                         <div class="col-md-4 text-end" id="accionesPendientesFooter" style="display:none;">
-                            <button type="button" id="btnRechazarFooter" onclick="confirmarDictamen('Rechazado')" class="btn btn-danger btn-sm px-4 rounded-pill fw-bold shadow-sm disabled" disabled>RECHAZAR</button>
-                            <button type="button" id="btnAceptarFooter" onclick="confirmarDictamen('Aprobado')" class="btn btn-success btn-sm px-4 rounded-pill fw-bold shadow-sm disabled ms-2" disabled>APROBAR</button>
+                            <button type="button" id="btnRechazarFooter" onclick="confirmarDictamen('Rechazado')" class="btn btn-sm btn-outline-danger px-4 rounded-2 fw-bold text-xxs tracking-widest py-2" disabled>RECHAZAR</button>
+                            <button type="button" id="btnAceptarFooter" onclick="confirmarDictamen('Aprobado')" class="btn btn-sm px-4 rounded-2 fw-bold text-xxs tracking-widest ms-2 py-2" style="background-color: #13322B; color: white;" disabled>APROBAR</button>
                         </div>
-
                     </div>
                     <input type="hidden" name="id" id="inputSolicitudId" />
                     <input type="hidden" name="estatus" id="inputEstatus" />
                 </div>
+
             </form>
         </div>
     </div>
 </div>
+<style>
+    .btn-status-filter { color: #6B7280; background: transparent; border: none; transition: all 0.2s; }
+    .btn-status-filter:hover { background: rgba(0,0,0,0.03); color: var(--primary-900); }
+    .btn-status-filter.active { background: var(--primary-900) !important; color: white !important; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
+    .hover-bg-app:hover { background-color: var(--bg-app) !important; }
+    
+    /* Paginación Institucional Verde */
+    .page-link-custom { display: flex; align-items: center; justify-content: center; min-width: 32px; height: 32px; padding: 0 10px; font-size: 0.7rem; font-weight: 700; border-radius: 6px !important; border: none; background-color: var(--bg-app); color: var(--primary-900); transition: all 0.2s ease; }
+    .page-item.active .page-link-custom { background-color: var(--primary-900) !important; color: white !important; }
+    .page-item.disabled .page-link-custom { opacity: 0.5; cursor: not-allowed; color: var(--text-body); }
+    
+    .req-card { border-left-width: 4px !important; transition: all 0.1s; }
+    .req-card:hover { transform: translateX(4px); background-color: var(--bg-app) !important; }
+    .custom-scroll::-webkit-scrollbar { width: 5px; }
+    .custom-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+</style>
 
 @section Scripts {
-    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
-    <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
     <script>
+        let currentPage = 1;
+        let currentStatus = 'Pendiente'; // Filtro por defecto
         let matriculaActiva = "";
-        let table; // Definimos la tabla de forma global para que los filtros la vean
 
         $(document).ready(function () {
-        table = $('#tablaTutor').DataTable({
-        language: { url: 'https://cdn.datatables.net/plug-ins/1.13.6/i18n/es-ES.json' },
-        order: [[0, 'desc']],
-        dom: "rt<'d-flex justify-content-between align-items-center p-3 bg-light border-top text-muted text-xs'ip>",
-        initComplete: function() {
-        const lengthMenu = $(`
-        <div class="d-flex align-items-center gap-2 text-muted text-xs fw-bold">
-        <span>Mostrar</span>
-        <select class="form-select form-select-sm border shadow-sm py-1" style="width: 75px; height: 32px; font-size: 0.75rem;">
-        <option value="10">10</option>
-        <option value="25">25</option>
-        <option value="50">50</option>
-        <option value="100">100</option>
-        </select>
-        <span>registros</span>
-        </div>
-        `);
+            
+            // ==========================================
+            // INYECCIÓN DE DATOS DE PRUEBA (DUMMIES)
+            // ==========================================
+            if ($('#tramitesBody .data-row').length === 0) {
+                const dummies = [
+                    { Id: 101, Fecha: '17/04/2026', Matricula: '24001504', Nombre: 'Perez Cadena Roberto', Grado: 4, Grupo: 'A', Tipo: 'Inscripción', Estatus: 'Pendiente', IdTramite: 1, ArchivoPath: 'f1' },
+                    { Id: 102, Fecha: '16/04/2026', Matricula: '24001892', Nombre: 'García González Luis', Grado: 1, Grupo: 'C', Tipo: 'Beca', Estatus: 'Aprobado', IdTramite: 2, ArchivoPath: 'f2' },
+                    { Id: 103, Fecha: '15/04/2026', Matricula: '24002010', Nombre: 'Martínez López Ana', Grado: 4, Grupo: 'A', Tipo: 'Inscripción', Estatus: 'Rechazado', IdTramite: 1, ArchivoPath: 'f3' },
+                    { Id: 104, Fecha: '14/04/2026', Matricula: '24003055', Nombre: 'Hernández Ruiz Carlos', Grado: 2, Grupo: 'B', Tipo: 'Servicio Social', Estatus: 'Pendiente', IdTramite: 3, ArchivoPath: 'f4' },
+                    { Id: 105, Fecha: '12/04/2026', Matricula: '24004088', Nombre: 'López Díaz María', Grado: 6, Grupo: 'A', Tipo: 'Titulación', Estatus: 'Pendiente', IdTramite: 4, ArchivoPath: 'f5' },
+                    { Id: 106, Fecha: '10/04/2026', Matricula: '24005112', Nombre: 'Torres Garza Fernando', Grado: 1, Grupo: 'A', Tipo: 'Inscripción', Estatus: 'Pendiente', IdTramite: 1, ArchivoPath: 'f6' },
+                    { Id: 107, Fecha: '08/04/2026', Matricula: '24006223', Nombre: 'Ramírez Silva Valeria', Grado: 4, Grupo: 'C', Tipo: 'Beca', Estatus: 'Aprobado', IdTramite: 2, ArchivoPath: 'f7' }
+                ];
 
-        lengthMenu.find('select').on('change', function() {
-        table.page.len($(this).val()).draw();
+                let htmlDummies = '';
+                dummies.forEach(item => {
+                    let badgeClass = item.Estatus === "Pendiente" ? "bg-warning bg-opacity-10 text-warning border-warning" : 
+                                     item.Estatus === "Rechazado" ? "bg-error-100 text-danger border-danger" : "bg-success-100 text-success border-success";
+                    
+                    htmlDummies += `
+                        <tr class="border-bottom border-light hover-bg-app data-row" 
+                            data-estatus="${item.Estatus}" 
+                            data-search="${item.Id} ${item.Nombre} ${item.Matricula}">
+                            <td class="px-4 py-3 text-center"><span class="txt-primary-dark fw-bold text-xs">#${item.Id}</span></td>
+                            <td class="text-secondary fw-medium text-xs">${item.Fecha}</td>
+                            <td class="txt-title fw-bold text-xs">${item.Matricula}</td>
+                            <td class="txt-title fw-bold text-xs text-uppercase">${item.Nombre}</td>
+                            <td class="text-center text-secondary fw-bold text-xs">${item.Grado}° "${item.Grupo}"</td>
+                            <td class="text-xs fw-bold text-uppercase tracking-tighter">${item.Tipo}</td>
+                            <td class="text-center">
+                                <span class="badge rounded-pill px-3 py-2 text-xxs fw-bold border ${badgeClass}">${item.Estatus.toUpperCase()}</span>
+                            </td>
+                            <td class="text-end px-4">
+                                <button type="button" class="btn btn-sm border-0 bg-primary-dark text-white rounded-2 py-1 px-3 text-xxs fw-bold tracking-widest btn-revisar shadow-sm"
+                                        data-id="${item.Id}" data-idtramite="${item.IdTramite}" data-nombre="${item.Nombre}" data-matricula="${item.Matricula}" data-grado="${item.Grado}" data-grupo="${item.Grupo}" data-tipo="${item.Tipo}" data-archivopath="${item.ArchivoPath}" data-estatus="${item.Estatus}">
+                                    REVISAR
+                                </button>
+                            </td>
+                        </tr>`;
+                });
+                $('#tramitesBody').html(htmlDummies);
+            }
+            // ==========================================
+
+            updateTable();
+
+            $('#searchInput').on('input', () => { currentPage = 1; updateTable(); });
+            $('#rowsPerPage').on('change', () => { currentPage = 1; updateTable(); });
         });
 
-        $('#containerLength').empty().append(lengthMenu);
+        function filterStatus(status, btn) {
+            $('.btn-status-filter').removeClass('active');
+            $(btn).addClass('active');
+            currentStatus = status;
+            currentPage = 1;
+            updateTable();
         }
+
+        function updateTable() {
+            const searchTerm = $('#searchInput').val().toLowerCase();
+            const rpp = parseInt($('#rowsPerPage').val());
+            const $rows = $('.data-row');
+            let filtered = [];
+
+            $rows.each(function() {
+                const rowStatus = $(this).data('estatus');
+                const rowText = $(this).data('search').toLowerCase();
+                const matchesStatus = (currentStatus === 'Todos') || (rowStatus === currentStatus);
+                const matchesSearch = rowText.includes(searchTerm);
+
+                if (matchesStatus && matchesSearch) {
+                    filtered.push($(this));
+                }
+                $(this).hide();
+            });
+
+            const total = filtered.length;
+            const pages = Math.ceil(total / rpp) || 1;
+            if (currentPage > pages) currentPage = pages;
+
+            const start = (currentPage - 1) * rpp;
+            const end = Math.min(start + rpp, total);
+
+            for (let i = start; i < end; i++) {
+                filtered[i].show();
+            }
+
+            $('#tableInfo').text(total === 0 ? '0 REGISTROS' : `${start + 1} - ${end} DE ${total}`);
+            renderPager(pages);
+        }
+
+        function renderPager(pages) {
+            let html = `<li class="page-item ${currentPage === 1 ? 'disabled' : ''}"><a class="page-link page-link-custom shadow-none" href="#" onclick="changePage(${currentPage-1})"><i class="bi bi-chevron-left"></i></a></li>`;
+            for (let i = 1; i <= pages; i++) {
+                html += `<li class="page-item ${i === currentPage ? 'active' : ''}"><a class="page-link page-link-custom shadow-none" href="#" onclick="changePage(${i})">${i}</a></li>`;
+            }
+            html += `<li class="page-item ${currentPage === pages || pages === 0 ? 'disabled' : ''}"><a class="page-link page-link-custom shadow-none" href="#" onclick="changePage(${currentPage+1})"><i class="bi bi-chevron-right"></i></a></li>`;
+            $('#paginationControls').html(html);
+        }
+
+        window.changePage = (p) => { if (p > 0) { currentPage = p; updateTable(); } };
+
+        // LÓGICA DE REVISIÓN (MODAL)
+        $(document).on('click', '.btn-revisar', function() {
+            const data = $(this).data();
+            matriculaActiva = data.matricula;
+            $('#modalNombreAlumno').text(data.nombre);
+            $('#modalMatriculaAlumno').text(`MATRÍCULA: ${data.matricula}`);
+            $('#modalTipoTramite').text(data.tipo);
+            $('#modalGradoGrupoHist').text(`GRUPO: ${data.grado}° "${data.grupo}"`);
+            $('#inputSolicitudId').val(data.id);
+
+            const isPendiente = data.estatus.toLowerCase() === "pendiente";
+            $('#accionesPendientesFooter, #contenedorObservacionesFooter').toggle(isPendiente);
+            $('#mensajeTramiteCerradoFooter').toggle(!isPendiente);
+
+            $('#pdfContainer').html('<div class="text-center opacity-25"><i class="bi bi-file-earmark-text mb-3" style="font-size: 4rem;"></i><p class="text-xxs fw-bold text-uppercase">Seleccione un archivo</p></div>');
+            
+            const $lista = $('#listaDocumentos').html('<div class="text-center p-4"><div class="spinner-border spinner-border-sm text-secondary"></div></div>');
+            
+            // SIMULACIÓN DE DOCUMENTOS DE PRUEBA
+            const mockRequisitos = [
+                { estatus: "Pendiente", nombreArchivoFisico: "null", esFotografia: false, nombreRequisito: "Acta de Nacimiento", idRequisito: 1 },
+                { estatus: "Pendiente", nombreArchivoFisico: "null", esFotografia: false, nombreRequisito: "Certificado de Secundaria", idRequisito: 2 },
+                { estatus: "Pendiente", nombreArchivoFisico: "null", esFotografia: false, nombreRequisito: "CURP Actualizada", idRequisito: 3 }
+            ];
+
+            const dataPromise = data.id < 2000 
+                ? Promise.resolve({ json: () => Promise.resolve(mockRequisitos) })
+                : fetch(`/Tramites/ObtenerDetalleRequisitos?idSolicitud=${data.id}`);
+
+            dataPromise.then(r => r.json()).then(requisitos => {
+                $lista.empty();
+                requisitos.forEach(req => {
+                    let borderColor = req.estatus === "Aprobado" ? "border-success" : req.estatus === "Rechazado" ? "border-danger" : "border-light";
+                    let icon = req.estatus === "Aprobado" ? "bi-check-circle-fill text-success" : req.estatus === "Rechazado" ? "bi-x-circle-fill text-danger" : "bi-circle text-muted";
+                    $lista.append(`
+                        <div class="bg-white border rounded-3 p-3 mb-2 req-card shadow-sm border-start ${borderColor}" style="cursor: pointer;" onclick="cargarVisor('${data.archivopath}', '${req.nombreArchivoFisico}', ${req.esFotografia}, '${req.nombreRequisito}', ${req.idRequisito}, ${data.id})">
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <span class="fw-bold text-dark text-xxs text-uppercase text-truncate" style="max-width: 85%;"><i class="bi bi-file-earmark-pdf me-1"></i> ${req.nombreRequisito}</span>
+                                <i class="bi ${icon}"></i>
+                            </div>
+                            ${isPendiente ? `<div class="d-flex gap-2 justify-content-end mt-2 pt-2 border-top">
+                                <button type="button" class="btn btn-sm bg-error-100 text-danger border-0 text-xxs fw-bold px-3 py-1 rounded-pill" onclick="event.stopPropagation(); setStatusDoc(${data.id}, ${req.idRequisito}, 'Rechazado', this)">MAL</button>
+                                <button type="button" class="btn btn-sm bg-success-100 text-success border-0 text-xxs fw-bold px-3 py-1 rounded-pill" onclick="event.stopPropagation(); setStatusDoc(${data.id}, ${req.idRequisito}, 'Aprobado', this)">BIEN</button>
+                            </div>` : ''}
+                        </div>`);
+                });
+                validarChecklist();
+            });
+            new bootstrap.Modal('#revisarModal').show();
         });
 
-        // Filtro inicial por columna 7 (Estado)
-        table.column(7).search('PENDIENTE').draw();
+        function cargarVisor(folder, archivo, isFoto, nombre, idReq, idSol) {
+            $('#nombreDocActivo').text(nombre.toUpperCase());
+            const $container = $('#pdfContainer').html('<div class="spinner-border text-primary"></div>');
+            
+            if (idSol < 2000) {
+                setTimeout(() => {
+                    $container.html('<div class="text-center opacity-50"><i class="bi bi-file-earmark-pdf fs-1 mb-2 text-secondary"></i><p class="text-xxs fw-bold text-uppercase">VISTA PREVIA SIMULADA<br>(DUMMY)</p></div>');
+                }, 400);
+                return;
+            }
 
-        $('#txtBusqueda').on('keyup', function () {
-        table.search(this.value).draw();
-        });
-        });
-
-
-        function filtrarPorEstatusDataTable(estatus, boton) {
-        document.querySelectorAll('.btn-group .btn').forEach(x => x.classList.remove('active', 'fw-bold'));
-        boton.classList.add('active', 'fw-bold');
-
-        const query = estatus === 'Todos' ? '' : estatus.toUpperCase();
-        // Filtramos específicamente la columna 7
-        table.column(7).search(query).draw();
+            if (archivo && archivo !== "null" && !isFoto) {
+                const url = `/uploads/tramites/${folder.replace(/\\/g, '/')}/${archivo}`.replace(/\/+/g, '/');
+                $container.html(`<iframe src="${url}?v=${new Date().getTime()}#toolbar=1" style="width:100%; height:100%; border:none;"></iframe>`);
+                $('#btnLinkIndividual').show().attr('href', `/Tramites/DescargarArchivoIndividual?idSolicitud=${idSol}&idRequisito=${idReq}&matricula=${encodeURIComponent(matriculaActiva)}`);
+            } else {
+                $container.html('<div class="text-center opacity-50"><i class="bi bi-file-earmark-x fs-1 mb-2"></i><p class="text-xxs fw-bold text-uppercase">ARCHIVO NO DISPONIBLE</p></div>');
+                $('#btnLinkIndividual').hide();
+            }
         }
 
-        // Lógica al hacer clic en "Revisar"
-        document.addEventListener('click', function (e) {
-        const btn = e.target.closest('.btn-revisar');
-        if (btn) {
-        const data = btn.dataset;
-        matriculaActiva = data.matricula;
+        function setStatusDoc(idSol, idReq, estatus, btn) {
+            if (idSol < 2000) {
+                const $card = $(btn).closest('.req-card');
+                $card.removeClass('border-light border-success border-danger').addClass(estatus === 'Aprobado' ? 'border-success' : 'border-danger');
+                $card.find('.bi-circle, .bi-check-circle-fill, .bi-x-circle-fill').attr('class', `bi ${estatus === 'Aprobado' ? 'bi-check-circle-fill text-success' : 'bi-x-circle-fill text-danger'}`);
+                validarChecklist();
+                return;
+            }
 
-        // Llenar encabezado del modal
-        document.getElementById('modalNombreAlumno').innerText = data.nombre;
-        document.getElementById('modalMatriculaAlumno').innerText = `(${data.matricula})`;
-        document.getElementById('modalTipoTramite').innerText = `Trámite: ${data.tipo}`;
-        document.getElementById('modalGradoGrupoHist').innerText = `Grupo: ${data.grado}° "${data.grupo}"`;
-        document.getElementById('inputSolicitudId').value = data.id;
-
-        const txtObservaciones = document.getElementById('modalObservacionesFooter');
-        txtObservaciones.value = data.observaciones || "";
-
-        // Configurar Descarga ZIP
-        document.getElementById('btnDescargaCarpeta').onclick = () => {
-        window.location.href = `/Tramites/DescargarCarpeta?idSolicitud=${data.id}&matricula=${data.matricula}&tipo=${data.tipo}`;
-        };
-
-        // Lógica de Estatus General
-        const estatus = data.estatus.toLowerCase();
-        const divAcciones = document.getElementById('accionesPendientesFooter');
-        const contenedorObs = document.getElementById('contenedorObservacionesFooter');
-        const mensajeCerrado = document.getElementById('mensajeTramiteCerradoFooter');
-
-        if (estatus === "pendiente") {
-        divAcciones.style.display = "block";
-        contenedorObs.style.display = "block";
-        mensajeCerrado.style.display = "none";
-        txtObservaciones.readOnly = false;
-        validarTextoRechazo();
-        } else {
-        divAcciones.style.display = "none";
-        contenedorObs.style.display = "none";
-        mensajeCerrado.style.display = "block";
-        txtObservaciones.readOnly = true;
+            fetch('/Tramites/ActualizarEstatusDocumento', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ idSolicitud: idSol, idRequisito: idReq, estatus: estatus })
+            }).then(res => { if (res.ok) {
+                const $card = $(btn).closest('.req-card');
+                $card.removeClass('border-light border-success border-danger').addClass(estatus === 'Aprobado' ? 'border-success' : 'border-danger');
+                $card.find('.bi-circle, .bi-check-circle-fill, .bi-x-circle-fill').attr('class', `bi ${estatus === 'Aprobado' ? 'bi-check-circle-fill text-success' : 'bi-x-circle-fill text-danger'}`);
+                validarChecklist();
+            }});
         }
 
-        // Resetear Visor
-        document.getElementById('pdfContainer').innerHTML = `<div class="text-center text-muted opacity-50"><i class="bi bi-file-earmark-pdf mb-3" style="font-size: 5rem;"></i><p class="text-sm fw-bold">Vista previa del documento</p></div>`;
-        document.getElementById('nombreDocActivo').innerText = "Seleccione un archivo de la lista";
-        document.getElementById('btnLinkIndividual').style.display = "none";
-
-        // Cargar Documentos (Fetch)
-        const listaDoc = document.getElementById('listaDocumentos');
-        listaDoc.innerHTML = '<div class="text-center p-4"><div class="spinner-border spinner-border-sm"></div></div>';
-
-        fetch(`/Tramites/ObtenerDetalleRequisitos?idSolicitud=${data.id}`)
-        .then(r => r.json())
-        .then(requisitos => {
-        listaDoc.innerHTML = "";
-        requisitos.forEach(req => {
-        let colorClase = "border-light";
-        let checkIcon = "bi-circle";
-        let checkColor = "text-muted";
-
-        if (req.estatus === "Aprobado") { colorClase = "border-success"; checkIcon = "bi-check-circle-fill"; checkColor = "text-success"; }
-        if (req.estatus === "Rechazado") { colorClase = "border-danger"; checkIcon = "bi-x-circle-fill"; checkColor = "text-danger"; }
-
-        // Render de la tarjeta del documento
-        const html = `
-        <div class="bg-white border rounded-3 p-3 mb-2 shadow-sm border-start border-4 ${colorClase} cursor-pointer hover-shadow transition-all"
-        style="cursor: pointer;"
-        onclick="manejadorCargarVisor('${data.archivopath}', '${req.nombreArchivoFisico}', ${req.esFotografia}, '${req.nombreRequisito}', ${req.idRequisito}, ${data.id})">
-
-        <div class="d-flex justify-content-between align-items-center mb-2">
-        <span class="fw-bold text-dark text-xs text-truncate" style="max-width: 85%;">
-        <i class="bi bi-file-pdf me-1"></i> ${req.nombreRequisito}
-        </span>
-        <i class="bi ${checkIcon} ${checkColor}" style="font-size: 1rem;"></i>
-        </div>
-
-        ${estatus === "pendiente" ? `
-        <div class="d-flex gap-2 justify-content-end mt-2 border-top pt-2">
-        <button type="button" class="btn btn-outline-danger btn-sm text-xs py-1 px-3 rounded-pill"
-        onclick="event.stopPropagation(); confirmarEstatusIndividual(${data.id}, ${req.idRequisito}, 'Rechazado', this)">Mal</button>
-        <button type="button" class="btn btn-outline-success btn-sm text-xs py-1 px-3 rounded-pill"
-        onclick="event.stopPropagation(); confirmarEstatusIndividual(${data.id}, ${req.idRequisito}, 'Aprobado', this)">Correcto</button>
-        </div>` : ''}
-        </div>`;
-        listaDoc.insertAdjacentHTML('beforeend', html);
-        });
-        validarAprobacionTotal();
-        });
-
-        new bootstrap.Modal(document.getElementById('revisarModal')).show();
-        }
-        });
-
-        // Cargar Visor PDF
-        function manejadorCargarVisor(folder, archivo, esFoto, nombre, idReq, idSol) {
-        const container = document.getElementById('pdfContainer');
-        const btnDescarga = document.getElementById('btnLinkIndividual');
-        document.getElementById('nombreDocActivo').innerHTML = `<i class="bi bi-file-earmark-pdf me-2"></i> ${nombre}`;
-
-        if (archivo && archivo !== "null" && archivo !== "" && !esFoto) {
-        let pathParts = folder.replace(/\\/g, '/');
-        if (!pathParts.includes('/Carpetas_ZIP/')) pathParts = pathParts.replace('Carpetas_ZIP', '/Carpetas_ZIP/');
-        const urlVisor = `/uploads/tramites/${pathParts}/${archivo}`.replace(/\/+/g, '/');
-
-        container.innerHTML = `<div class="w-100 h-100 d-flex justify-content-center align-items-center"><div class="spinner-border"></div></div>`;
-
-        setTimeout(() => {
-        container.innerHTML = `<iframe src="${urlVisor}?v=${new Date().getTime()}#toolbar=1" style="width:100%; height:100%; border:none;"></iframe>`;
-        }, 300);
-
-        btnDescarga.style.display = "inline-flex";
-        btnDescarga.href = `/Tramites/DescargarArchivoIndividual?idSolicitud=${idSol}&idRequisito=${idReq}&matricula=${encodeURIComponent(matriculaActiva)}`;
-        } else {
-        container.innerHTML = `<div class="text-center text-muted opacity-50 p-5"><i class="bi ${esFoto ? 'bi-camera' : 'bi-file-earmark-x'} mb-3" style="font-size: 4rem;"></i><h5>${esFoto ? 'Requisito Físico' : 'El alumno no subió este archivo'}</h5></div>`;
-        btnDescarga.style.display = "none";
-        }
-        }
-
-        // Aprobar/Rechazar Documento Individual (Fetch)
-        function confirmarEstatusIndividual(idSolicitud, idReq, nuevoEstatus, btn) {
-        fetch('/Tramites/ActualizarEstatusDocumento', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ idSolicitud: parseInt(idSolicitud), idRequisito: parseInt(idReq), estatus: nuevoEstatus })
-        }).then(res => {
-        if (res.ok) {
-        const card = btn.closest('.bg-white');
-        const icon = card.querySelector('.bi-circle, .bi-check-circle-fill, .bi-x-circle-fill');
-
-        card.classList.remove('border-light', 'border-success', 'border-danger');
-        icon.classList.remove('bi-circle', 'bi-check-circle-fill', 'bi-x-circle-fill', 'text-muted', 'text-success', 'text-danger');
-
-        if(nuevoEstatus === 'Aprobado') {
-        card.classList.add('border-success');
-        icon.classList.add('bi-check-circle-fill', 'text-success');
-        } else {
-        card.classList.add('border-danger');
-        icon.classList.add('bi-x-circle-fill', 'text-danger');
-        }
-
-        Swal.fire({ toast: true, position: 'top-end', showConfirmButton: false, timer: 1000, icon: 'success', title: `Marcado como ${nuevoEstatus}` });
-        validarAprobacionTotal();
-        }
-        });
-        }
-
-        // Validación Final
-        function validarAprobacionTotal() {
-        const listaDoc = document.getElementById('listaDocumentos');
-        const total = listaDoc.children.length;
-        const aprobados = listaDoc.querySelectorAll('.border-success').length;
-        const btnAceptar = document.getElementById('btnAceptarFooter');
-
-        document.getElementById('contadorProgreso').innerText = `${aprobados}/${total}`;
-        document.getElementById('contadorProgreso').className = aprobados === total ? "badge rounded-pill bg-success shadow-sm" : "badge rounded-pill bg-secondary shadow-sm";
-
-        if (total > 0 && aprobados === total) {
-        btnAceptar.disabled = false;
-        btnAceptar.classList.remove('disabled');
-        } else {
-        btnAceptar.disabled = true;
-        btnAceptar.classList.add('disabled');
-        }
+        function validarChecklist() {
+            const total = $('#listaDocumentos .req-card').length;
+            const aprobados = $('#listaDocumentos .border-success').length;
+            $('#contadorProgreso').text(`${aprobados}/${total}`).toggleClass('bg-success text-white', total > 0 && aprobados === total);
+            $('#btnAceptarFooter').prop('disabled', !(total > 0 && aprobados === total)).toggleClass('disabled', !(total > 0 && aprobados === total));
         }
 
         function validarTextoRechazo() {
-        const txt = document.getElementById('modalObservacionesFooter').value.trim();
-        const btnRechazar = document.getElementById('btnRechazarFooter');
-        if (txt.length > 0) {
-        btnRechazar.disabled = false;
-        btnRechazar.classList.remove('disabled');
-        } else {
-        btnRechazar.disabled = true;
-        btnRechazar.classList.add('disabled');
-        }
+            const hasText = $('#modalObservacionesFooter').val().trim().length > 0;
+            $('#btnRechazarFooter').prop('disabled', !hasText).toggleClass('disabled', !hasText);
         }
 
-        // Dictamen Final Trámite
         function confirmarDictamen(v) {
-        const esAprobacion = (v === 'Aprobado');
-        if (!esAprobacion && document.getElementById('modalObservacionesFooter').value.trim().length < 5) {
-        Swal.fire({ icon: 'warning', title: 'Faltan observaciones', text: 'Detalla el motivo del rechazo.' });
-        return;
-        }
-
-        Swal.fire({
-        title: esAprobacion ? '¿Aprobar Trámite?' : '¿Rechazar Trámite?',
-        text: esAprobacion ? "Se notificará al alumno." : "El alumno deberá corregir los documentos.",
-        icon: esAprobacion ? 'success' : 'warning',
-        showCancelButton: true,
-        confirmButtonColor: esAprobacion ? '#198754' : '#dc3545',
-        cancelButtonColor: '#6c757d',
-        confirmButtonText: 'Sí, confirmar',
-        cancelButtonText: 'Cancelar'
-        }).then((result) => {
-        if (result.isConfirmed) {
-        document.getElementById('inputEstatus').value = v;
-        document.querySelector('#revisarModal form').submit();
-        }
-        });
+            const isApprove = v === 'Aprobado';
+            if (!isApprove && $('#modalObservacionesFooter').val().trim().length < 5) { Swal.fire('Error', 'Debe detallar el motivo del rechazo.', 'warning'); return; }
+            Swal.fire({
+                title: isApprove ? '¿APROBAR TRÁMITE?' : '¿RECHAZAR TRÁMITE?',
+                icon: isApprove ? 'success' : 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'CONFIRMAR',
+                confirmButtonColor: isApprove ? '#15803D' : '#B91C1C'
+            }).then((r) => { 
+                if (r.isConfirmed) { 
+                    $('#inputEstatus').val(v); 
+                    if ($('#inputSolicitudId').val() < 2000) {
+                        Swal.fire('Guardado', `Trámite marcado como ${v} (Prueba Local)`, 'success');
+                    } else {
+                        $('#revisarModal form').submit(); 
+                    }
+                } 
+            });
         }
     </script>
 }

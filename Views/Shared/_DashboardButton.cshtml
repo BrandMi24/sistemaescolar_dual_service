@@ -1,0 +1,37 @@
+﻿@{
+    // Decide el destino según el rol del usuario
+    string? dashboardUrl = null;
+    string dashboardLabel = "Dashboards Analíticos";
+
+    if (User.IsInRole("ADMIN") || User.IsInRole("Coordinador"))
+    {
+        dashboardUrl = Url.Action("Index", "Dashboard");
+    }
+    else if (User.IsInRole("Administrativo"))
+    {
+        dashboardUrl = Url.Action("Admisiones", "Dashboard");
+    }
+    else if (User.IsInRole("Administrativo de Vinculación"))
+    {
+        dashboardUrl = Url.Action("Vinculacion", "Dashboard");
+        dashboardLabel = "Dashboard de Vinculación";
+    }
+    else if (User.IsInRole("TEACHER"))
+    {
+        dashboardUrl = Url.Action("Calidad", "Dashboard");
+        dashboardLabel = "Dashboard de Calidad";
+    }
+    else if (User.IsInRole("Head Nurse") || User.IsInRole("Nurse") || User.IsInRole("Physicologyst"))
+    {
+        dashboardUrl = Url.Action("Salud", "Dashboard");
+        dashboardLabel = "Dashboard de Salud";
+    }
+}
+
+@if (dashboardUrl != null)
+{
+    <div class="nav-group-label">Analítica</div>
+    <a class="nav-link" href="@dashboardUrl">
+        <i class="bi bi-graph-up-arrow"></i> @dashboardLabel
+    </a>
+}
