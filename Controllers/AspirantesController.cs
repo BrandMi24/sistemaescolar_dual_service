@@ -32,19 +32,44 @@ namespace ControlEscolar.Controllers
             return View(entidades.Select(e => MapToViewModel(e)).ToList());
         }
 
-        [Authorize]
-        public async Task<IActionResult> Details(int? id)
-        {
-            if (id == null) return NotFound();
+        //[Authorize]
+        //public async Task<IActionResult> Details(int? id, string? returnUrl = null)
+        //{
+        //    if (id == null) return NotFound();
 
+        //    var entidad = await _context.Inscripciones
+        //        .Include(i => i.Preinscripcion)
+        //            .ThenInclude(p => p.DatosPersonales)
+        //        .Include(i => i.Preinscripcion)
+        //            .ThenInclude(p => p.Domicilio)
+        //        .FirstOrDefaultAsync(i => i.academiccontrol_inscription_ID == id);
+
+        //    if (entidad == null) return NotFound();
+
+        //    ViewBag.ReturnUrl = returnUrl;
+        //    return View(MapToViewModel(entidad));
+        //}
+
+        public async Task<IActionResult> Details(int id)
+        {
             var entidad = await _context.Inscripciones
                 .Include(i => i.Preinscripcion)
                     .ThenInclude(p => p.DatosPersonales)
                 .Include(i => i.Preinscripcion)
                     .ThenInclude(p => p.Domicilio)
+                .Include(i => i.Preinscripcion)
+                    .ThenInclude(p => p.DatosEscolares)
+                .Include(i => i.Preinscripcion)
+                    .ThenInclude(p => p.Tutor)
                 .FirstOrDefaultAsync(i => i.academiccontrol_inscription_ID == id);
 
             if (entidad == null) return NotFound();
+
+            var referer = Request.Headers["Referer"].ToString();
+            if (referer.Contains("ControlEscolar") || referer.Contains("Historial"))
+                ViewBag.ReturnUrl = referer;
+            else
+                ViewBag.ReturnUrl = Url.Action("Index", "Home");
 
             return View(MapToViewModel(entidad));
         }
@@ -104,6 +129,26 @@ namespace ControlEscolar.Controllers
                 if (inscripcionExistente)
                 {
                     return Json(new { success = false, message = "Este folio ya cuenta con una inscripción registrada." });
+                }
+
+                var configInscripcion = await _context.ConfiguracionFichas
+    .FirstOrDefaultAsync(c => c.academiccontrol_inscription_ticketconfig_career == preinscripcion.academiccontrol_preinscription_careerRequested
+                           && c.academiccontrol_inscription_ticketconfig_status
+                           && c.academiccontrol_inscription_ticketconfig_startDate <= DateTime.Today
+                           && c.academiccontrol_inscription_ticketconfig_endDate >= DateTime.Today);
+
+                if (configInscripcion == null)
+                    return Json(new { success = false, message = $"El periodo de inscripción para '{preinscripcion.academiccontrol_preinscription_careerRequested}' no está activo en este momento." });
+
+                if (configInscripcion.academiccontrol_inscription_ticketconfig_inscriptionLimit.HasValue)
+                {
+                    var inscripcionesUsadas = await _context.Inscripciones
+                        .CountAsync(i => i.academiccontrol_inscription_careerRequested == preinscripcion.academiccontrol_preinscription_careerRequested
+                                      && i.academiccontrol_inscription_registrationDate >= configInscripcion.academiccontrol_inscription_ticketconfig_startDate
+                                      && i.academiccontrol_inscription_registrationDate <= configInscripcion.academiccontrol_inscription_ticketconfig_endDate);
+
+                    if (inscripcionesUsadas >= configInscripcion.academiccontrol_inscription_ticketconfig_inscriptionLimit.Value)
+                        return Json(new { success = false, message = $"Cupo completo para inscripción en '{preinscripcion.academiccontrol_preinscription_careerRequested}'." });
                 }
 
                 // 2. Procesamiento de Archivos (Usando IFileService)

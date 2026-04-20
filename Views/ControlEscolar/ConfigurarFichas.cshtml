@@ -50,6 +50,7 @@
                     <tr>
                         <th class="ps-3 border-0 py-3">Carrera</th>
                         <th class="border-0 py-3">Límite</th>
+                        <th class="fw-bold pb-3">Límite Inscripciones</th>
                         <th class="border-0 py-3">Fecha Inicio</th>
                         <th class="border-0 py-3">Fecha Fin</th>
                         <th class="border-0 py-3">Estado</th>
@@ -66,6 +67,11 @@
                                     @item.academiccontrol_inscription_ticketconfig_limit fichas
                                 </span>
                             </td>
+                            <td class="txt-body">
+                                @(item.academiccontrol_inscription_ticketconfig_inscriptionLimit.HasValue
+                                                        ? $"{item.academiccontrol_inscription_ticketconfig_inscriptionLimit} fichas"
+                                                        : "Sin límite")
+                    </td>
                             <td class="text-muted text-xs">@item.academiccontrol_inscription_ticketconfig_startDate.ToString("dd/MM/yyyy")</td>
                             <td class="text-muted text-xs">@item.academiccontrol_inscription_ticketconfig_endDate.ToString("dd/MM/yyyy")</td>
                             <td>
@@ -84,6 +90,7 @@
                                         data-id="@item.academiccontrol_inscription_ticketconfig_ID"
                                         data-carrera="@item.academiccontrol_inscription_ticketconfig_career"
                                         data-limite="@item.academiccontrol_inscription_ticketconfig_limit"
+                                        data-limiteins="@item.academiccontrol_inscription_ticketconfig_inscriptionLimit"
                                         data-inicio="@item.academiccontrol_inscription_ticketconfig_startDate.ToString("yyyy-MM-dd")"
                                         data-fin="@item.academiccontrol_inscription_ticketconfig_endDate.ToString("yyyy-MM-dd")"
                                         data-activo="@item.academiccontrol_inscription_ticketconfig_status.ToString().ToLower()">
@@ -195,6 +202,12 @@
                         <label class="section-label text-muted mb-2 d-block">LÍMITE *</label>
                         <input type="number" name="academiccontrol_inscription_ticketconfig_limit" class="form-control text-sm fw-semibold" required />
                     </div>
+                    <div class="mb-3">
+                        <label class="form-label txt-body text-xs fw-bold tracking-wide">LÍMITE INSCRIPCIONES</label>
+                        <input type="number" name="academiccontrol_inscription_ticketconfig_inscriptionLimit"
+                               class="form-control bg-app border-theme txt-title fw-bold"
+                               placeholder="Dejar vacío si no aplica" />
+                    </div>
                     <div class="row g-3">
                         <div class="col-md-6">
                             <label class="section-label text-muted mb-2 d-block">INICIO</label>
@@ -237,6 +250,13 @@
                     <div class="mb-3">
                         <label class="section-label text-muted mb-2 d-block">LÍMITE</label>
                         <input type="number" name="academiccontrol_inscription_ticketconfig_limit" id="editLimite" class="form-control text-sm fw-semibold" required />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label txt-body text-xs fw-bold tracking-wide">LÍMITE INSCRIPCIONES</label>
+                        <input type="number" name="academiccontrol_inscription_ticketconfig_inscriptionLimit"
+                               id="editLimiteIns"
+                               class="form-control bg-app border-theme txt-title fw-bold"
+                               placeholder="Dejar vacío si no aplica" />
                     </div>
                     <div class="row g-3">
                         <div class="col-md-6">
@@ -354,6 +374,7 @@
             const btn = e.relatedTarget;
             document.getElementById('editId').value = btn.dataset.id;
             document.getElementById('editLimite').value = btn.dataset.limite;
+            document.getElementById('editLimiteIns').value = btn.dataset.limiteins ?? '';
             document.getElementById('editInicio').value = btn.dataset.inicio;
             document.getElementById('editFin').value = btn.dataset.fin;
             const isActivo = btn.dataset.activo === 'true';

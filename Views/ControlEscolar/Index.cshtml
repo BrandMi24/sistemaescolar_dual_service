@@ -169,7 +169,8 @@
                             <a asp-controller="Preinscripciones"
                                asp-action="Details"
                                asp-route-id="@item.academiccontrol_preinscription_ID"
-                               class="btn btn-sm btn-light border text-xxs fw-bold px-3">
+                               asp-route-returnUrl="@Url.Action("Index", "ControlEscolar", new { tab = "preinscripciones", carrera = Model.FiltroCarrera, estado = Model.FiltroEstado })"
+                               class="btn btn-sm btn-ghost-sep px-3">
                                 <i class="bi bi-eye me-1"></i> Ver
                             </a>
                             @if (item.academiccontrol_preinscription_state == EstadoPreinscripcion.Pendiente.ToString())
@@ -355,6 +356,12 @@
                     </td>
                     <td class="pe-4 text-end">
                         <div class="d-flex justify-content-end gap-2">
+                            <a asp-controller="Aspirantes"
+                               asp-action="Details"
+                               asp-route-id="@item.academiccontrol_inscription_ID"
+                               class="btn btn-sm btn-ghost-sep px-3">
+                                <i class="bi bi-eye me-1"></i> Ver
+                            </a>
                             @if (item.academiccontrol_inscription_state == EstadoInscripcion.PagoValidado.ToString())
                                         {
                                             <form asp-action="AprobarInscripcion" method="post" class="d-inline">

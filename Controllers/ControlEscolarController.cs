@@ -413,6 +413,7 @@ namespace ControlEscolar.Controllers
 
                 existing.academiccontrol_inscription_ticketconfig_career = config.academiccontrol_inscription_ticketconfig_career;
                 existing.academiccontrol_inscription_ticketconfig_limit = config.academiccontrol_inscription_ticketconfig_limit;
+                existing.academiccontrol_inscription_ticketconfig_inscriptionLimit = config.academiccontrol_inscription_ticketconfig_inscriptionLimit;
                 existing.academiccontrol_inscription_ticketconfig_startDate = config.academiccontrol_inscription_ticketconfig_startDate;
                 existing.academiccontrol_inscription_ticketconfig_endDate = config.academiccontrol_inscription_ticketconfig_endDate;
                 existing.academiccontrol_inscription_ticketconfig_status = config.academiccontrol_inscription_ticketconfig_status;
