@@ -61,40 +61,20 @@
 
                 @* PASO 2: INGRESO ACADÉMICO *@
                 <div class="wizard-step" data-step="2">
-                    <h3 class="fw-bold mb-1 txt-primary-dark">Datos de Ingreso</h3>
-                    <p class="txt-body mb-4 small">Confirme la carrera a inscribirse y su historial en la institución.</p>
+                    <h3 class="fw-bold mb-1 txt-primary-dark">Ingreso Académico</h3>
+                    <p class="txt-body mb-4 small">Confirme la especialidad a la que desea inscribirse.</p>
 
                     <div class="row g-4 mb-4">
-                        <div class="col-md-6">
-                            <label class="form-label txt-body text-xs fw-bold tracking-wide">CARRERA SOLICITADA (1ª OPCIÓN) *</label>
-                            <select name="academiccontrol_inscription_careerRequested" class="form-select bg-app border-theme txt-title fw-bold" required>
-                                <option value="">SIN SELECCIÓN</option>
+                        <div class="col-md-8">
+                            <label class="form-label txt-body text-xs fw-bold tracking-wide">ESPECIALIDAD (1ª OPCIÓN) *</label>
+                            <select name="academiccontrol_inscription_careerRequested" id="especialidadSelect" class="form-select bg-app border-theme txt-title fw-bold" required>
+                                <option value="">-- SIN SELECCIÓN --</option>
                                 @foreach (var c in CatalogosHelper.Carreras)
                                 {
                                     <option value="@c">@c</option>
                                 }
                             </select>
-                        </div>
-
-                        <div class="col-md-6">
-                            <label class="form-label txt-body text-xs fw-bold tracking-wide">¿YA CUENTAS CON MATRÍCULA DEL NIVEL TSU?</label>
-                            <div class="d-flex gap-4 mt-2">
-                                <div class="form-check">
-                                    <input class="form-check-input form-check-custom" type="radio" name="academiccontrol_inscription_hasTSUEnrollment" value="false" checked id="matriculaNo">
-                                    <label class="form-check-label fw-bold txt-title" for="matriculaNo">No</label>
-                                </div>
-                                <div class="form-check">
-                                    <input class="form-check-input form-check-custom" type="radio" name="academiccontrol_inscription_hasTSUEnrollment" value="true" id="matriculaSi" data-toggle-target="#matriculaGroup" data-toggle-value="true">
-                                    <label class="form-check-label fw-bold txt-title" for="matriculaSi">Sí</label>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="row g-4 conditional-field" id="matriculaGroup" style="display:none;">
-                        <div class="col-md-6">
-                            <label class="form-label txt-body text-xs fw-bold tracking-wide">MATRÍCULA PREVIA</label>
-                            <input name="academiccontrol_inscription_TSUEnrollment" class="form-control bg-app border-theme txt-title fw-bold" placeholder="Ej. 20240001" />
+                            <small class="txt-body text-xs mt-1 d-block" style="opacity:.7;">Seleccione la especialidad de su preferencia.</small>
                         </div>
                     </div>
                 </div>
@@ -209,52 +189,49 @@
             nextBtn.addEventListener('click', () => { if (currentStep < totalSteps) { currentStep++; updateUI(); } });
             prevBtn.addEventListener('click', () => { if (currentStep > 1) { currentStep--; updateUI(); } });
 
-            // Lógica para mostrar matrícula TSU
-            document.getElementsByName('academiccontrol_inscription_hasTSUEnrollment').forEach(radio => {
-                radio.addEventListener('change', (e) => {
-                    document.getElementById('matriculaGroup').style.display = (e.target.value === 'true') ? 'block' : 'none';
-                });
-            });
+            submitBtn.addEventListener('click', async () => {
+                // Validar especialidad seleccionada
+                const especialidad = document.getElementById('especialidadSelect');
+                if (!especialidad.value) {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Especialidad requerida',
+                        text: 'Por favor selecciona una especialidad antes de continuar.',
+                        confirmButtonText: 'Entendido',
+                        confirmButtonColor: '#13322B'
+                    });
+                    return;
+                }
 
-                submitBtn.addEventListener('click', async () => {
-        // Validar archivos antes de enviar
-        const acta = document.querySelector('input[name="ActaNacimientoFile"]');
-        const curp = document.querySelector('input[name="CurpPdfFile"]');
-        const boleta = document.querySelector('input[name="BoletaPdfFile"]');
+                // Validar archivos antes de enviar
+                const acta = document.querySelector('input[name="ActaNacimientoFile"]');
+                const curp = document.querySelector('input[name="CurpPdfFile"]');
+                const boleta = document.querySelector('input[name="BoletaPdfFile"]');
 
-        const faltantes = [];
-        if (!acta.files || acta.files.length === 0) faltantes.push('• Acta de Nacimiento');
-        if (!curp.files || curp.files.length === 0) faltantes.push('• CURP');
-        if (!boleta.files || boleta.files.length === 0) faltantes.push('• Certificado de Estudios o Boleta');
+                const faltantes = [];
+                if (!acta.files || acta.files.length === 0) faltantes.push('• Acta de Nacimiento');
+                if (!curp.files || curp.files.length === 0) faltantes.push('• CURP');
+                if (!boleta.files || boleta.files.length === 0) faltantes.push('• Certificado de Estudios o Boleta');
 
-        if (faltantes.length > 0) {
-            Swal.fire({
-                icon: 'warning',
-                title: 'Documentos faltantes',
-                html: `Por favor adjunta los siguientes documentos antes de continuar:<br><br><span style="text-align:left; display:block;">${faltantes.join('<br>')}</span>`,
-                confirmButtonText: 'Entendido',
-                confirmButtonColor: '#13322B'
-            });
-            return;
-        }
+                if (faltantes.length > 0) {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Documentos faltantes',
+                        html: `Por favor adjunta los siguientes documentos antes de continuar:<br><br><span style="text-align:left; display:block;">${faltantes.join('<br>')}</span>`,
+                        confirmButtonText: 'Entendido',
+                        confirmButtonColor: '#13322B'
+                    });
+                    return;
+                }
 
-        const form = document.getElementById('aspiranteForm');
-        const formData = new FormData(form);
-        // resto del código igual...
+                const form = document.getElementById('aspiranteForm');
+                const formData = new FormData(form);
 
                 try {
                     const response = await fetch(CreateUrl, {
                         method: 'POST',
-                        body: formData,
-                        headers: {
-                            'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
-                        }
+                        body: formData
                     });
-
-                    if (!response.ok) {
-                        console.error('Error en el servidor:', response.status);
-                        return;
-                    }
 
                     const contentType = response.headers.get('Content-Type') || '';
 
@@ -286,6 +263,12 @@
                     }
                 } catch (error) {
                     console.error('Error:', error);
+                    Swal.fire({
+                        title: 'Error de conexión',
+                        text: 'Ocurrió un error al enviar la inscripción. Intente nuevamente.',
+                        icon: 'error',
+                        confirmButtonColor: '#13322B'
+                    });
                 }
             });
             updateUI();
