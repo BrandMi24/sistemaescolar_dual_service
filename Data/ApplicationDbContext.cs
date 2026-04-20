@@ -80,6 +80,10 @@ namespace ControlEscolar.Data
                 entity.HasIndex(e => e.academiccontrol_preinscription_folio)
                       .IsUnique()
                       .HasFilter("[academiccontrol_preinscription_folio] IS NOT NULL");
+
+                      entity.Property(e => e.academiccontrol_preinscription_rejectionReason)
+      .HasColumnName("academiccontrol_preinscription_rejectionReason")
+      .HasMaxLength(500);
             });
 
             //  PREINSCRIPCION DATOS PERSONALES
@@ -345,6 +349,9 @@ namespace ControlEscolar.Data
                 entity.Property(e => e.academiccontrol_inscription_boletaValidada)
                       .HasColumnName("academiccontrol_inscription_boletaValidada")
                       .HasDefaultValue(false);
+                entity.Property(e => e.academiccontrol_inscription_rejectionReason)
+      .HasColumnName("academiccontrol_inscription_rejectionReason")
+      .HasMaxLength(500);
             });
 
             //  CONFIGURACION FICHAS 

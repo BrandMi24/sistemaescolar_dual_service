@@ -14,6 +14,7 @@ namespace ControlEscolar.Models
 
         [Display(Name = "Folio")]
         public string? academiccontrol_preinscription_folio { get; set; }
+        public string? MotivoRechazo { get; set; }
 
         #region Datos Académicos y Carrera
 
