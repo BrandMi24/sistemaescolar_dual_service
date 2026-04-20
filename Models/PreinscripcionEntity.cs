@@ -11,6 +11,7 @@
         public string academiccontrol_preinscription_state { get; set; } = "Pendiente";
         public bool academiccontrol_preinscription_status { get; set; } = true;
         public DateTime academiccontrol_preinscription_createdDate { get; set; }
+        public string? academiccontrol_preinscription_rejectionReason { get; set; }
 
         // Navigation properties
         public PreinscripcionDatosPersonalesEntity? DatosPersonales { get; set; }

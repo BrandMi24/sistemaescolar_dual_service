@@ -243,6 +243,7 @@ namespace ControlEscolar.Controllers
             academiccontrol_inscription_transcriptPath = e.academiccontrol_inscription_transcriptPath,
             academiccontrol_inscription_registrationDate = e.academiccontrol_inscription_registrationDate,
             academiccontrol_inscription_state = e.academiccontrol_inscription_state,
+            MotivoRechazo = e.academiccontrol_inscription_rejectionReason,
 
             // Datos personales mapeados desde la preinscripción
             academiccontrol_preinscription_personaldata_name = e.Preinscripcion?.DatosPersonales?.academiccontrol_preinscription_personaldata_name ?? string.Empty,

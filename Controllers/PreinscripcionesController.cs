@@ -86,17 +86,6 @@ namespace ControlEscolar.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(Preinscripcion vm)
         {
-            // Validar que exista un período de inscripción activo
-            //var periodoActivo = await _context.PeriodosInscripcion
-            //    .AnyAsync(p => p.academiccontrol_inscription_period_status
-            //                && p.academiccontrol_inscription_period_startDate <= DateTime.Today
-            //                && p.academiccontrol_inscription_period_endDate >= DateTime.Today);
-
-            //if (!periodoActivo)
-            //{
-            //    TempData["ErrorMessage"] = "El periodo de preinscripción no está activo. No es posible registrarse en este momento.";
-            //    return View(vm);
-            //}
 
             // Validar unicidad de CURP en el periodo activo actual
             var activePeriodConfig = await _context.PeriodosInscripcion
@@ -118,24 +107,26 @@ namespace ControlEscolar.Controllers
                 }
             }
 
-            // Validar límite de fichas por carrera
+            // Validar que exista configuración activa para la carrera y que esté dentro del periodo
             var config = await _context.ConfiguracionFichas
                 .FirstOrDefaultAsync(c => c.academiccontrol_inscription_ticketconfig_career == vm.academiccontrol_preinscription_careerRequested
                                        && c.academiccontrol_inscription_ticketconfig_status
                                        && c.academiccontrol_inscription_ticketconfig_startDate <= DateTime.Today
                                        && c.academiccontrol_inscription_ticketconfig_endDate >= DateTime.Today);
 
-            if (config != null)
+            if (config == null)
             {
-                var fichasUsadas = await _context.Preinscripciones
-                    .CountAsync(p => p.academiccontrol_preinscription_careerRequested == vm.academiccontrol_preinscription_careerRequested
-                                  && p.academiccontrol_preinscription_registrationDate >= config.academiccontrol_inscription_ticketconfig_startDate
-                                  && p.academiccontrol_preinscription_registrationDate <= config.academiccontrol_inscription_ticketconfig_endDate);
+                return Json(new { success = false, message = $"El periodo de preinscripción para '{vm.academiccontrol_preinscription_careerRequested}' no está activo en este momento." });
+            }
 
-                if (fichasUsadas >= config.academiccontrol_inscription_ticketconfig_limit)
-                {
-                    return Json(new { success = false, message = $"Cupo completo para '{vm.academiccontrol_preinscription_careerRequested}'." });
-                }
+            var fichasUsadas = await _context.Preinscripciones
+                .CountAsync(p => p.academiccontrol_preinscription_careerRequested == vm.academiccontrol_preinscription_careerRequested
+                              && p.academiccontrol_preinscription_registrationDate >= config.academiccontrol_inscription_ticketconfig_startDate
+                              && p.academiccontrol_preinscription_registrationDate <= config.academiccontrol_inscription_ticketconfig_endDate);
+
+            if (fichasUsadas >= config.academiccontrol_inscription_ticketconfig_limit)
+            {
+                return Json(new { success = false, message = $"Cupo completo para '{vm.academiccontrol_preinscription_careerRequested}'." });
             }
 
             // ── Validación de coherencia de negocio (doble seguro servidor) ──────────────
@@ -430,7 +421,8 @@ namespace ControlEscolar.Controllers
             academiccontrol_preinscription_health_comments = e.Salud?.academiccontrol_preinscription_health_comments,
             academiccontrol_preinscription_health_hasChildren = e.Salud?.academiccontrol_preinscription_health_hasChildren ?? false,
 
-            academiccontrol_preinscription_state = e.academiccontrol_preinscription_state
+            academiccontrol_preinscription_state = e.academiccontrol_preinscription_state,
+            MotivoRechazo = e.academiccontrol_preinscription_rejectionReason
         };
     }
 }
