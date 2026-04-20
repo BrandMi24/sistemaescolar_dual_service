@@ -1,4 +1,4 @@
-﻿using MailKit.Net.Smtp;
+using MailKit.Net.Smtp;
 using MailKit.Security;
 using MimeKit;
 
@@ -15,17 +15,25 @@ namespace ControlEscolar.Services
 
         public async Task EnviarAsync(string destinatario, string asunto, string cuerpo)
         {
-            var email = new MimeMessage();
+            await EnviarInternamente(destinatario, asunto, cuerpo, null, null);
+        }
 
+        public async Task EnviarConAdjuntoAsync(string destinatario, string asunto, string cuerpo, byte[] adjunto, string nombreArchivo)
+        {
+            await EnviarInternamente(destinatario, asunto, cuerpo, adjunto, nombreArchivo);
+        }
+
+        private async Task EnviarInternamente(string destinatario, string asunto, string cuerpo, byte[]? adjunto, string? nombreArchivo)
+        {
+            var email = new MimeMessage();
             email.From.Add(new MailboxAddress(
                 _config["Email:NombreRemitente"],
                 _config["Email:Remitente"]
             ));
-
             email.To.Add(MailboxAddress.Parse(destinatario));
             email.Subject = asunto;
 
-            email.Body = new TextPart("html")
+            var html = new TextPart("html")
             {
                 Text = $@"
                 <!DOCTYPE html>
@@ -45,19 +53,33 @@ namespace ControlEscolar.Services
                 </html>"
             };
 
-            using var smtp = new SmtpClient();
+            if (adjunto != null && nombreArchivo != null)
+            {
+                var multipart = new Multipart("mixed");
+                multipart.Add(html);
 
+                var attachment = new MimePart("application", "pdf")
+                {
+                    Content = new MimeContent(new MemoryStream(adjunto)),
+                    ContentDisposition = new ContentDisposition(ContentDisposition.Attachment),
+                    ContentTransferEncoding = ContentEncoding.Base64,
+                    FileName = nombreArchivo
+                };
+                multipart.Add(attachment);
+                email.Body = multipart;
+            }
+            else
+            {
+                email.Body = html;
+            }
+
+            using var smtp = new SmtpClient();
             await smtp.ConnectAsync(
                 _config["Email:Host"],
                 int.Parse(_config["Email:Puerto"]!),
                 SecureSocketOptions.StartTls
             );
-
-            await smtp.AuthenticateAsync(
-                _config["Email:Remitente"],
-                _config["Email:Password"]
-            );
-
+            await smtp.AuthenticateAsync(_config["Email:Remitente"], _config["Email:Password"]);
             await smtp.SendAsync(email);
             await smtp.DisconnectAsync(true);
         }
