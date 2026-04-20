@@ -1,4 +1,4 @@
-@using ControlEscolar.Enums
+@* @using ControlEscolar.Enums
 @model ControlEscolar.Models.Preinscripcion
 
 @{
@@ -120,8 +120,217 @@
         </div>
 
         <div class="d-flex justify-content-between mt-4">
-            @* <a asp-controller="Preinscripciones" asp-action="Index" class="btn btn-secondary">Volver al listado</a> *@
-            @* <a asp-action="Edit" asp-route-id="@Model.academiccontrol_preinscription_ID" class="btn btn-warning">Editar</a> *@
+             <a asp-controller="Preinscripciones" asp-action="Index" class="btn btn-secondary">Volver al listado</a> 
+             <a asp-action="Edit" asp-route-id="@Model.academiccontrol_preinscription_ID" class="btn btn-warning">Editar</a> 
+        </div>
+    </div>
+</div> *@
+
+@using ControlEscolar.Enums
+@model ControlEscolar.Models.Preinscripcion
+
+@{
+    ViewData["Title"] = "Comprobante de Preinscripción";
+    Layout = "_Layout";
+}
+
+<div class="wizard-wrapper pt-5 mb-5">
+    <div class="container">
+        <div class="form-container bg-surface rounded-4 shadow-sm border-theme p-4 p-md-5" style="max-width: 800px; margin: 0 auto;">
+
+            <div class="text-center mb-4">
+                <div class="rounded-circle d-inline-flex align-items-center justify-content-center mb-3"
+                     style="width: 80px; height: 80px; background-color: var(--accent-light, #f0f9f6);">
+                    <i class="bi bi-person-lines-fill txt-primary-dark" style="font-size: 2.5rem;"></i>
+                </div>
+                <h3 class="fw-bold txt-primary-dark mb-1">Comprobante de Preinscripción</h3>
+                <p class="txt-body small">Folio: <strong class="txt-primary-dark">@(Model.academiccontrol_preinscription_folio ?? $"#{Model.academiccontrol_preinscription_ID}")</strong></p>
+            </div>
+
+            <div class="d-flex justify-content-between align-items-center mb-4 bg-app rounded-3 border-theme p-3">
+                @await Html.PartialAsync("_StatusBadge", null, new ViewDataDictionary(ViewData)
+                {
+                    { "StatusValue", Model.academiccontrol_preinscription_state },
+                                { "StatusType", "preinscripcion" }
+                })
+                <small class="txt-body text-xs fw-bold">
+                    <i class="bi bi-calendar3 me-1"></i>
+                    Registrado el @Model.academiccontrol_preinscription_registrationDate.ToString("dd/MM/yyyy HH:mm")
+                </small>
+            </div>
+
+            @if (Model.academiccontrol_preinscription_state == EstadoPreinscripcion.Rechazada.ToString())
+            {
+                <div class="rounded-3 p-4 mb-4 d-flex align-items-start gap-3"
+                     style="background-color: #fee2e2; border: 1px solid #fca5a5;">
+                    <i class="bi bi-x-circle-fill fs-4" style="color: #dc3545;"></i>
+                    <div>
+                        <h6 class="fw-bold text-sm mb-1" style="color: #dc3545;">Preinscripción Rechazada</h6>
+                        @if (!string.IsNullOrEmpty(Model.MotivoRechazo))
+                        {
+                            <p class="text-xs mb-0" style="color: #7f1d1d;">
+                                <strong>Motivo:</strong> @Model.MotivoRechazo
+                            </p>
+                        }
+                        else
+                        {
+                            <p class="text-xs mb-0" style="color: #7f1d1d;">
+                                No se especificó un motivo de rechazo.
+                            </p>
+                        }
+                    </div>
+                </div>
+            }
+
+            <div class="bg-app rounded-3 border-theme p-4 mb-4">
+                <h6 class="fw-bold txt-primary-dark text-xs text-uppercase tracking-wide mb-3 pb-2 border-bottom border-theme">
+                    <i class="bi bi-person-fill me-2"></i>Datos Personales
+                </h6>
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <div class="txt-body text-xs fw-bold tracking-wide mb-1">NOMBRE COMPLETO</div>
+                        <div class="fw-bold txt-title">
+                            @Model.academiccontrol_preinscription_personaldata_paternalSurname
+                            @Model.academiccontrol_preinscription_personaldata_maternalSurname,
+                            @Model.academiccontrol_preinscription_personaldata_name
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="txt-body text-xs fw-bold tracking-wide mb-1">CURP</div>
+                        <div class="fw-bold txt-title">@Model.academiccontrol_preinscription_personaldata_CURP</div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="txt-body text-xs fw-bold tracking-wide mb-1">FECHA DE NACIMIENTO</div>
+                        <div class="fw-bold txt-title">
+                            @Model.academiccontrol_preinscription_personaldata_birthDate.ToString("dd/MM/yyyy")
+                            <small class="txt-body">(@Model.Edad años)</small>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="txt-body text-xs fw-bold tracking-wide mb-1">SEXO</div>
+                        <div class="fw-bold txt-title">@Model.academiccontrol_preinscription_personaldata_gender</div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="txt-body text-xs fw-bold tracking-wide mb-1">ESTADO CIVIL</div>
+                        <div class="fw-bold txt-title">@(Model.academiccontrol_preinscription_personaldata_maritalStatus ?? "No especificado")</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-app rounded-3 border-theme p-4 mb-4">
+                <h6 class="fw-bold txt-primary-dark text-xs text-uppercase tracking-wide mb-3 pb-2 border-bottom border-theme">
+                    <i class="bi bi-geo-alt-fill me-2"></i>Contacto y Domicilio
+                </h6>
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <div class="txt-body text-xs fw-bold tracking-wide mb-1">CORREO ELECTRÓNICO</div>
+                        <div class="fw-bold txt-title">@Model.academiccontrol_preinscription_personaldata_email</div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="txt-body text-xs fw-bold tracking-wide mb-1">TELÉFONO</div>
+                        <div class="fw-bold txt-title">@(Model.academiccontrol_preinscription_personaldata_phone ?? "—")</div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="txt-body text-xs fw-bold tracking-wide mb-1">TEL. TUTOR</div>
+                        <div class="fw-bold txt-title">@(Model.academiccontrol_preinscription_tutor_phone ?? "—")</div>
+                    </div>
+                    <div class="col-md-12">
+                        <div class="txt-body text-xs fw-bold tracking-wide mb-1">DIRECCIÓN</div>
+                        <div class="fw-bold txt-title">
+                            @Model.academiccontrol_preinscription_address_street #@Model.academiccontrol_preinscription_address_exteriorNumber,
+                            @Model.academiccontrol_preinscription_address_neighborhood,
+                            @Model.academiccontrol_preinscription_address_municipality,
+                            @Model.academiccontrol_preinscription_address_state
+                            C.P. @Model.academiccontrol_preinscription_address_zipCode
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-app rounded-3 border-theme p-4 mb-4">
+                <h6 class="fw-bold txt-primary-dark text-xs text-uppercase tracking-wide mb-3 pb-2 border-bottom border-theme">
+                    <i class="bi bi-heart-pulse-fill me-2"></i>Salud y Otros Datos
+                </h6>
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <div class="txt-body text-xs fw-bold tracking-wide mb-1">INSTITUCIÓN MÉDICA</div>
+                        <div class="fw-bold txt-title">@(Model.academiccontrol_preinscription_health_medicalService ?? "Ninguna")</div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="txt-body text-xs fw-bold tracking-wide mb-1">COMUNIDAD INDÍGENA</div>
+                        <div class="fw-bold txt-title">
+                            @(Model.academiccontrol_preinscription_health_indigenousCommunity ? "Sí" : "No")
+                            @if (!string.IsNullOrWhiteSpace(Model.academiccontrol_preinscription_health_indigenousCommunityDescription))
+                            {
+                                <small class="txt-body"> — @Model.academiccontrol_preinscription_health_indigenousCommunityDescription</small>
+                            }
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="txt-body text-xs fw-bold tracking-wide mb-1">DISCAPACIDAD</div>
+                        <div class="fw-bold txt-title">
+                            @(Model.academiccontrol_preinscription_health_hasDisability
+                                                        ? Model.academiccontrol_preinscription_health_disabilityDescription
+                                                        : "Ninguna")
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="txt-body text-xs fw-bold tracking-wide mb-1">¿TIENE HIJOS?</div>
+                        <div class="fw-bold txt-title">@(Model.academiccontrol_preinscription_health_hasChildren ? "Sí" : "No")</div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="txt-body text-xs fw-bold tracking-wide mb-1">¿CÓMO SE ENTERÓ?</div>
+                        <div class="fw-bold txt-title">@(Model.academiccontrol_preinscription_diffusionMedia ?? "—")</div>
+                    </div>
+                    @if (!string.IsNullOrEmpty(Model.academiccontrol_preinscription_health_comments))
+                    {
+                        <div class="col-md-12">
+                            <div class="txt-body text-xs fw-bold tracking-wide mb-1">COMENTARIOS MÉDICOS</div>
+                            <div class="fw-bold txt-title">@Model.academiccontrol_preinscription_health_comments</div>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <div class="bg-app rounded-3 border-theme p-4 mb-4">
+                <h6 class="fw-bold txt-primary-dark text-xs text-uppercase tracking-wide mb-3 pb-2 border-bottom border-theme">
+                    <i class="bi bi-mortarboard-fill me-2"></i>Datos Académicos y Carrera
+                </h6>
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <div class="txt-body text-xs fw-bold tracking-wide mb-1">ESCUELA DE EGRESO</div>
+                        <div class="fw-bold txt-title">@Model.academiccontrol_preinscription_academic_originSchool</div>
+                        <small class="txt-body">@Model.academiccontrol_preinscription_academic_schoolMunicipality, @Model.academiccontrol_preinscription_academic_schoolState</small>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="txt-body text-xs fw-bold tracking-wide mb-1">PROMEDIO</div>
+                        <div class="fw-bold txt-primary-dark" style="font-size: 1.2rem;">
+                            @(Model.academiccontrol_preinscription_average?.ToString("0.00") ?? "0.00")
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="txt-body text-xs fw-bold tracking-wide mb-1">PERIODO SECUNDARIA</div>
+                        <div class="fw-bold txt-title text-xs">
+                            @Model.academiccontrol_preinscription_academic_startDate?.ToString("dd/MM/yyyy") —
+                            @Model.academiccontrol_preinscription_academic_endDate?.ToString("dd/MM/yyyy")
+                        </div>
+                    </div>
+                    <div class="col-md-12">
+                        <div class="txt-body text-xs fw-bold tracking-wide mb-1">CARRERA SOLICITADA</div>
+                        <div class="fw-bold txt-primary-dark">@Model.academiccontrol_preinscription_careerRequested</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="d-flex justify-content-between mt-4">
+                <a asp-controller="Home" asp-action="Index" class="btn btn-ghost-sep px-4">
+                    <i class="bi bi-house me-2"></i> Volver al Inicio
+                </a>
+            </div>
+        </div>
+
+        <div class="text-center mt-5 txt-body pb-4 fw-bold text-xxs tracking-wide opacity-50">
+            SISTEMA INTEGRAL ESCOLAR © 2026 - TODOS LOS DERECHOS RESERVADOS
         </div>
     </div>
 </div>

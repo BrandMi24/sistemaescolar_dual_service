@@ -64,7 +64,14 @@
                     <div class="row g-4 mb-4">
                         <div class="col-md-4">
                             <label class="form-label txt-body text-xs fw-bold tracking-wide">CURP *</label>
-                            <input name="academiccontrol_preinscription_personaldata_CURP" class="form-control bg-app border-theme txt-title fw-bold text-uppercase" maxlength="18" required placeholder="XXXXYYYYZZZZ0000AA" />
+                            <input name="academiccontrol_preinscription_personaldata_CURP"
+                                   class="form-control bg-app border-theme txt-title fw-bold text-uppercase"
+                                   minlength="18" maxlength="18"
+                                   pattern="[A-Za-z0-9]{18}"
+                                   required
+                                   placeholder="18 caracteres (ej. GOML900101HDFNZR09)"
+                                   title="La CURP debe tener exactamente 18 caracteres alfanuméricos"
+                                   oninput="this.value=this.value.replace(/[^A-Za-z0-9]/g,'').toUpperCase().slice(0,18)" />
                         </div>
                         <div class="col-md-4">
                             <label class="form-label txt-body text-xs fw-bold tracking-wide">FECHA DE NACIMIENTO *</label>
@@ -108,8 +115,17 @@
                             <input name="academiccontrol_preinscription_personaldata_email" type="email" class="form-control bg-app border-theme txt-title fw-bold" required placeholder="correo@ejemplo.com" />
                         </div>
                         <div class="col-md-4">
-                            <label class="form-label txt-body text-xs fw-bold tracking-wide">TELÉFONO PERSONAL</label>
-                            <input name="academiccontrol_preinscription_personaldata_phone" class="form-control bg-app border-theme txt-title fw-bold" placeholder="10 dígitos" />
+                            <label class="form-label txt-body text-xs fw-bold tracking-wide">TELÉFONO PERSONAL *</label>
+                            <input name="academiccontrol_preinscription_personaldata_phone"
+                                   class="form-control bg-app border-theme txt-title fw-bold"
+                                   type="tel"
+                                   inputmode="numeric"
+                                   pattern="[0-9]{10}"
+                                   minlength="10" maxlength="10"
+                                   required
+                                   placeholder="10 dígitos numéricos"
+                                   title="El teléfono debe contener exactamente 10 dígitos numéricos"
+                                   oninput="this.value=this.value.replace(/[^0-9]/g,'').slice(0,10)" />
                         </div>
                     </div>
                 </div>
@@ -122,7 +138,15 @@
                     <div class="row g-4 mb-4">
                         <div class="col-md-3">
                             <label class="form-label txt-body text-xs fw-bold tracking-wide">CÓDIGO POSTAL</label>
-                            <input name="academiccontrol_preinscription_address_zipCode" class="form-control bg-app border-theme txt-title fw-bold" placeholder="5 dígitos" maxlength="5" />
+                            <input name="academiccontrol_preinscription_address_zipCode"
+                                   class="form-control bg-app border-theme txt-title fw-bold"
+                                   type="tel"
+                                   inputmode="numeric"
+                                   pattern="[0-9]{5}"
+                                   minlength="5" maxlength="5"
+                                   placeholder="5 dígitos"
+                                   title="El código postal debe tener exactamente 5 dígitos numéricos"
+                                   oninput="this.value=this.value.replace(/[^0-9]/g,'').slice(0,5)" />
                         </div>
                         <div class="col-md-4">
                             <label class="form-label txt-body text-xs fw-bold tracking-wide">ESTADO *</label>
@@ -149,7 +173,16 @@
                         </div>
                         <div class="col-md-3">
                             <label class="form-label txt-body text-xs fw-bold tracking-wide">NÚMERO *</label>
-                            <input name="academiccontrol_preinscription_address_exteriorNumber" class="form-control bg-app border-theme txt-title fw-bold" required placeholder="Ej. 123" />
+                            <input name="academiccontrol_preinscription_address_exteriorNumber"
+                                   class="form-control bg-app border-theme txt-title fw-bold"
+                                   type="tel"
+                                   inputmode="numeric"
+                                   pattern="[0-9]{1,6}"
+                                   maxlength="6"
+                                   required
+                                   placeholder="Ej. 123"
+                                   title="El número debe ser numérico"
+                                   oninput="this.value=this.value.replace(/[^0-9]/g,'').slice(0,6)" />
                         </div>
                     </div>
 
@@ -174,7 +207,16 @@
                         </div>
                         <div class="col-md-3">
                             <label class="form-label txt-body text-xs fw-bold tracking-wide">TELÉFONO *</label>
-                            <input name="academiccontrol_preinscription_tutor_phone" class="form-control bg-app border-theme txt-title fw-bold" required placeholder="10 dígitos" />
+                            <input name="academiccontrol_preinscription_tutor_phone"
+                                   class="form-control bg-app border-theme txt-title fw-bold"
+                                   type="tel"
+                                   inputmode="numeric"
+                                   pattern="[0-9]{10}"
+                                   minlength="10" maxlength="10"
+                                   required
+                                   placeholder="10 dígitos numéricos"
+                                   title="El teléfono debe contener exactamente 10 dígitos numéricos"
+                                   oninput="this.value=this.value.replace(/[^0-9]/g,'').slice(0,10)" />
                         </div>
                     </div>
                 </div>
@@ -307,7 +349,7 @@
                                 <option value="">Selecciona una opción</option>
                                 @if (!carrerasDisponibles.Any())
                                 {
-                                    <option disabled value="">No hay carreras disponibles en este momento</option>
+                                    <option disabled value="">No hay carreras disponibles — El periodo ha concluido o los cupos están agotados</option>
                                 }
                                 else
                                 {
@@ -401,36 +443,37 @@
                     campo.style.borderColor = '';
                     campo.style.boxShadow = '';
 
-                    let campoInvalido = false;
+                    // Usa la API nativa de validación del navegador:
+                    // Evalúa required, minlength, maxlength, pattern, type, min, max automáticamente.
+                    const campoInvalido = !campo.checkValidity();
                     let mensajeExtra = '';
 
-                    if (campo.type === 'number') {
-                        const val = parseFloat(campo.value);
-                        const min = campo.min !== '' ? parseFloat(campo.min) : null;
-                        const max = campo.max !== '' ? parseFloat(campo.max) : null;
-                        if (campo.value.trim() === '' || isNaN(val)) {
-                            campoInvalido = true;
-                        } else if (min !== null && val < min) {
-                            campoInvalido = true;
-                            mensajeExtra = ` (mínimo: ${min})`;
-                        } else if (max !== null && val > max) {
-                            campoInvalido = true;
-                            mensajeExtra = ` (máximo: ${max})`;
+                    if (campoInvalido) {
+                        const v = campo.validity;
+                        if (v.valueMissing) {
+                            mensajeExtra = ' (obligatorio)';
+                        } else if (v.tooShort) {
+                            mensajeExtra = ` (mínimo ${campo.minLength} caracteres, tienes ${campo.value.length})`;
+                        } else if (v.tooLong) {
+                            mensajeExtra = ` (máximo ${campo.maxLength} caracteres)`;
+                        } else if (v.patternMismatch) {
+                            mensajeExtra = ' (formato incorrecto)';
+                        } else if (v.rangeUnderflow) {
+                            mensajeExtra = ` (mínimo: ${campo.min})`;
+                        } else if (v.rangeOverflow) {
+                            mensajeExtra = ` (máximo: ${campo.max})`;
+                        } else if (v.typeMismatch) {
+                            mensajeExtra = ' (formato inválido)';
                         }
-                    } else {
-                        campoInvalido = campo.value.trim() === '' ||
-                            (campo.tagName === 'SELECT' && campo.value === '');
                     }
 
                     if (campoInvalido) {
                         valido = false;
                         campo.style.borderColor = 'var(--error-500, #dc3545)';
                         campo.style.boxShadow = '0 0 0 3px rgba(220,53,69,.2)';
-                        // Obtener etiqueta
                         const label = campo.closest('.col-md-1, .col-md-2, .col-md-3, .col-md-4, .col-md-5, .col-md-6, .col-md-7, .col-md-8, .col-md-9, .col-md-10, .col-md-11, .col-md-12, .col')?.querySelector('label');
                         faltantes.push((label ? label.textContent.replace('*', '').trim() : 'Campo requerido') + mensajeExtra);
                     } else {
-                        // Restaurar si ya tiene valor
                         campo.addEventListener('input', () => {
                             campo.style.borderColor = '';
                             campo.style.boxShadow = '';
@@ -538,26 +581,41 @@
                 const actionUrl = '@Url.Action("Create", "Preinscripciones")';
 
                 try {
-                    const response = await fetch(actionUrl, {
-                        method: 'POST',
-                        body: formData,
-                        headers: { 'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value }
-                    });
+        const response = await fetch(actionUrl, {
+            method: 'POST',
+            body: formData,
+            headers: { 'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value }
+        });
 
-                    if (response.ok) {
-                        const contentType = response.headers.get('Content-Type');
-                        if (contentType && contentType.includes('application/pdf')) {
-                            const blob = await response.blob();
-                            const url = window.URL.createObjectURL(blob);
-                            const a = document.createElement('a');
-                            a.href = url;
-                            a.download = 'FichaPreinscripcion.pdf';
-                            a.click();
-                            window.location.href = response.headers.get('X-Details-Url') || '/';
-                        } else {
-                            window.location.href = response.url;
-                        }
-                    }
+        if (!response.ok) return;
+
+        const contentType = response.headers.get('Content-Type') || '';
+
+        if (contentType.includes('application/json')) {
+            const data = await response.json();
+            if (!data.success) {
+                Swal.fire({
+                    title: 'No fue posible continuar',
+                    text: data.message,
+                    icon: 'error',
+                    confirmButtonText: 'Entendido',
+                    confirmButtonColor: '#13322B'
+                });
+            }
+            return;
+        }
+
+        if (contentType.includes('application/pdf')) {
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'FichaPreinscripcion.pdf';
+            a.click();
+            window.location.href = response.headers.get('X-Details-Url') || '/';
+        } else {
+            window.location.href = response.url;
+        }
                 } catch (error) { console.error('Error al enviar:', error); }
             });
         });

@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace ControlEscolar.Controllers
 {
+    [Authorize(Roles = "ADMIN")]
     public class AdminController : Controller
     {
         private readonly ApplicationDbContext _context;

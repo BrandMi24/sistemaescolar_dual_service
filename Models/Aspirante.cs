@@ -96,6 +96,7 @@ namespace ControlEscolar.Models
         public string? academiccontrol_inscription_curpPdfPath { get; set; }
         public string? academiccontrol_inscription_transcriptPath { get; set; }
         #endregion
+        public string? MotivoRechazo { get; set; }
 
         [NotMapped]
         public PreinscripcionEntity? Preinscripcion { get; set; }

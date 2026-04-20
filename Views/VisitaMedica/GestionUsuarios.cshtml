@@ -4,87 +4,95 @@
     Layout = "_LayoutSalud";
 }
 
-<div class="d-flex flex-column gap-4 fade-in" style="min-height: 82vh;">
+<div class="admin-card-white shadow-sm border-0 p-0 rounded-4 overflow-hidden fade-in mb-5">
 
-    <div class="bg-surface p-4 rounded-4 border border-light shadow-sm d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
-        <div class="d-flex flex-column flex-md-row gap-3 flex-grow-1" style="max-width: 750px;">
-            <div class="position-relative flex-grow-1">
-                <i class="bi bi-search position-absolute top-50 start-0 translate-middle-y ms-3 text-secondary"></i>
-                <input type="text" id="searchInput" class="form-control border-0 bg-app py-2 ps-5 text-sm fw-medium shadow-none" placeholder="Buscar personal por nombre o correo...">
+    @* ── Cabecera ── *@
+    <div class="bg-surface p-4 border-bottom border-theme d-flex flex-column gap-3">
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+            <div>
+                <h5 class="txt-primary-dark fw-bold mb-1">
+                    <i class="bi bi-person-gear me-2"></i>Control de Accesos Médicos
+                </h5>
+                <p class="text-muted text-xxs text-uppercase tracking-wide mb-0">
+                    Administración de permisos para Enfermería y Psicología
+                </p>
             </div>
-
-            <select id="statusFilter" class="form-select border-0 bg-app txt-title fw-bold text-xs shadow-none" style="width: auto; min-width: 200px; cursor: pointer;">
-                <option value="">TODOS LOS ROLES</option>
-                <option value="HEAD NURSE">JEFE DE ENFERMERÍA</option>
-                <option value="NURSE">ENFERMERÍA</option>
-                <option value="PSYCHOLOGIST">PSICOLOGÍA</option>
-                <option value="SIN ROL">SIN ASIGNACIÓN</option>
-            </select>
+            <div class="position-relative" style="max-width: 320px; width: 100%;">
+                <i class="bi bi-search position-absolute text-muted" style="top: 50%; left: 14px; transform: translateY(-50%); pointer-events:none;"></i>
+                <input type="text" id="searchInput" class="form-control ps-5"
+                       placeholder="Buscar por nombre..."
+                       style="height: 40px; border-radius: 8px; border: 1px solid var(--border-color); box-shadow: none; background-color: var(--app-bg);">
+            </div>
+        </div>
+        <div class="d-flex align-items-center gap-3">
+            <button id="btnSort" class="btn btn-sm d-flex align-items-center gap-2 fw-bold px-3"
+                    style="height: 36px; border-radius: 8px; border: 1.5px solid var(--border-color); background-color: var(--app-bg);">
+                <i class="bi bi-sort-alpha-down" id="sortIcon"></i>
+                <span id="sortLabel">A → Z</span>
+            </button>
         </div>
     </div>
 
-    <div class="bg-surface p-0 rounded-4 border border-light shadow-sm overflow-hidden d-flex flex-column flex-grow-1">
-        <div class="table-responsive flex-grow-1">
-            <table class="table table-borderless align-middle mb-0">
-                <thead class="bg-app sticky-top" style="z-index: 5;">
-                    <tr>
-                        <th class="py-3 px-4 text-xxs fw-bold text-uppercase tracking-wider">Nombre del Personal</th>
-                        <th class="py-3 text-xxs fw-bold text-uppercase tracking-wider">Correo Institucional</th>
-                        <th class="py-3 text-center text-xxs fw-bold text-uppercase tracking-wider">Rol Actual</th>
-                        <th class="py-3 text-end px-4 text-xxs fw-bold text-uppercase tracking-wider">Acciones</th>
-                    </tr>
-                </thead>
-                <tbody id="usuariosBody">
-                    @if (Model.Users != null && Model.Users.Any())
+    @* ── Tabla ── *@
+    <div class="table-responsive custom-scroll">
+        <table class="table table-hover align-middle table-borderless mb-0">
+            <thead class="admin-table-header text-xxs">
+                <tr>
+                    <th class="ps-4 py-3">NOMBRE DEL PERSONAL</th>
+                    <th>CORREO INSTITUCIONAL</th>
+                    <th class="text-center">ROL ACTUAL</th>
+                    <th class="text-end pe-4">ACCIONES</th>
+                </tr>
+            </thead>
+            <tbody id="tbodyUsuarios">
+                @if (Model.Users != null && Model.Users.Any())
+                {
+                    @foreach (var usuario in Model.Users)
                     {
-                        @foreach (var usuario in Model.Users)
-                        {
-                            var tieneRolSalud = usuario.Rol == "Nurse" || usuario.Rol == "Head Nurse" || usuario.Rol == "Psychologist";
-                            var rolLimpio = string.IsNullOrEmpty(usuario.Rol) ? "SIN ROL" : usuario.Rol.ToUpper();
-                            
-                            // Mapeo de colores del Design System
-                            var statusClass = "bg-app text-secondary border"; // Default
-                            if (rolLimpio.Contains("HEAD")) statusClass = "status-aceptado";
-                            else if (rolLimpio.Contains("NURSE") || rolLimpio.Contains("PSYCH")) statusClass = "status-pendiente";
-                            else if (rolLimpio.Contains("SIN")) statusClass = "status-rechazado";
+                        var tieneRolSalud = usuario.Rol.Contains("Nurse") || usuario.Rol.Contains("Head Nurse") || usuario.Rol.Contains("Physicologyst");
+                        var statusClass = "status-pendiente";
+                        if (usuario.Rol.Contains("Head") || usuario.Rol.Contains("Jefe"))
+                            statusClass = "status-aceptado";
+                        else if (usuario.Rol.Contains("Sin") || string.IsNullOrEmpty(usuario.Rol))
+                            statusClass = "status-rechazado";
 
-                            <tr class="border-bottom border-light hover-bg-app data-row" 
-                                data-estado="@rolLimpio" 
-                                data-search="@(usuario.Nombre + " " + usuario.Email)">
-                                <td class="px-4 py-3">
-                                    <div class="d-flex align-items-center gap-3">
-                                        <div class="user-initial-avatar shadow-sm" style="width:35px; height:35px; font-size: 0.75rem; background-color: var(--accent-100); color: var(--primary-900);">
-                                            @(string.IsNullOrEmpty(usuario.Nombre) ? "?" : usuario.Nombre.Substring(0, 1).ToUpper())
-                                        </div>
-                                        <div class="txt-title fw-bold text-xs text-uppercase">@usuario.Nombre</div>
+                        <tr class="border-bottom border-theme hover-bg-app fila-usuario"
+                            data-nombre="@usuario.Nombre.ToLower()"
+                            data-id="@usuario.Id"
+                            data-nombre-safe="@Uri.EscapeDataString(usuario.Nombre)"
+                            data-rol="@usuario.Rol"
+                            data-tiene-rol-salud="@tieneRolSalud.ToString().ToLower()">
+                            <td class="ps-4 py-3">
+                                <div class="d-flex align-items-center gap-3">
+                                    <div class="avatar-sm bg-primary-100 txt-primary-dark fw-bold d-flex align-items-center justify-content-center rounded-circle">
+                                        @(string.IsNullOrEmpty(usuario.Nombre) ? "?" : usuario.Nombre.Substring(0, 1).ToUpper())
                                     </div>
-                                </td>
-                                <td class="text-secondary fw-medium text-xs">@usuario.Email</td>
-                                <td class="text-center">
-                                    <span class="badge rounded-pill px-3 py-2 text-xxs fw-bold border @statusClass">
-                                        @rolLimpio
-                                    </span>
-                                </td>
-                                <td class="text-end px-4">
-                                    <div class="d-flex justify-content-end gap-2">
-                                        <button type="button" class="btn btn-sm border-0 bg-primary-100 txt-primary-dark rounded-2 py-1 px-3 text-xxs fw-bold tracking-widest"
-                                                onclick="abrirModalRol(@usuario.Id, '@usuario.Nombre')">
-                                            EDITAR ROL
-                                        </button>
-                                        @if (tieneRolSalud)
-                                        {
-                                            <button type="button" class="btn btn-sm border-0 bg-error-100 text-danger rounded-2 py-1 px-2"
-                                                    onclick="confirmarQuitarRol(@usuario.Id, '@usuario.Nombre', '@usuario.Rol')">
-                                                <i class="bi bi-x-lg"></i>
-                                            </button>
-                                        }
-                                    </div>
-                                </td>
-                            </tr>
-                        }
+                                    <span class="fw-semibold txt-title nombre-celda">@usuario.Nombre</span>
+                                </div>
+                            </td>
+                            <td class="text-muted text-xs">@usuario.Email</td>
+                            <td class="text-center">
+                                <span class="badge badge-status @statusClass shadow-sm px-3 text-xxs">
+                                    @(string.IsNullOrEmpty(usuario.Rol) ? "SIN ROL" : usuario.Rol.ToUpper())
+                                </span>
+                            </td>
+                            <td class="text-end pe-4">
+                                <button type="button" class="btn btn-sm btn-ghost-sep border-theme text-primary fw-bold text-xxs py-2 btn-editar-rol">
+                                    <i class="bi bi-pencil-square me-1"></i> EDITAR ROL
+                                </button>
+                            </td>
+                        </tr>
                     }
-                </tbody>
-            </table>
+                }
+                else
+                {
+                    <tr><td colspan="4" class="text-center py-5 text-muted">No se encontraron usuarios activos.</td></tr>
+                }
+            </tbody>
+        </table>
+        <div id="sinResultados" class="text-center py-5 text-muted d-none">
+            <i class="bi bi-search fs-3 mb-2 d-block"></i>
+            <span class="text-sm fw-bold">No se encontraron resultados</span>
         </div>
 
         <div class="bg-white p-3 border-top border-light d-flex flex-column flex-md-row justify-content-between align-items-center gap-3">
@@ -106,63 +114,74 @@
     </div>
 </div>
 
-@* MODAL EDITAR ROL (ESTILO LIMPIO) *@
+@* ── Modal ── *@
 <div class="modal fade" id="modalRol" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
-            <div class="modal-header bg-primary-dark text-white p-4 border-0">
-                <h6 class="modal-title fw-bold text-uppercase tracking-widest text-white">Actualizar Perfil de Acceso</h6>
-                <button type="button" class="btn-close btn-close-white shadow-none" data-bs-dismiss="modal"></button>
+        <div class="modal-content border-0 shadow-lg rounded-4">
+            <div class="modal-header border-0 ps-4 pt-4">
+                <h5 class="txt-primary-dark fw-bold mb-0">Actualizar Perfil Médico</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body p-4 bg-app">
                 <div class="bg-white p-3 rounded-3 border border-light mb-4 d-flex align-items-center gap-3 shadow-sm">
                     <i class="bi bi-info-circle-fill fs-4 txt-primary-dark"></i>
-                    <div class="text-xxs fw-bold text-secondary text-uppercase tracking-tighter">
-                        Modificando permisos para:<br />
-                        <span id="modalUserName" class="txt-title text-xs"></span>
+                    <div class="text-xs">
+                        Modificando permisos de:<br />
+                        <strong id="modalUserName" class="txt-title text-sm"></strong>
                     </div>
                 </div>
+
                 <input type="hidden" id="inputUsuarioId" />
-                <div class="px-1">
-                    <label class="text-xxs fw-bold text-muted text-uppercase tracking-widest mb-2 d-block">Nueva Asignación de Rol</label>
-                    <select id="selectRolId" class="form-select border-0 py-2 fw-bold text-sm txt-primary-dark shadow-sm">
+
+                <div class="mb-4">
+                    <label class="text-muted mb-2 d-block text-xxs fw-bold">NUEVA ASIGNACIÓN</label>
+                    <select id="selectRolId" class="form-select form-select-lg fw-semibold text-sm border-theme">
                         <option value="5">ENFERMERA(O)</option>
                         <option value="6">PSICÓLOGA(O)</option>
                         <option value="4">JEFE DE ENFERMERÍA</option>
                     </select>
                 </div>
+
+                <div id="seccionQuitarRol" class="d-none border-top border-theme pt-4 mt-2">
+                    <p class="text-xs text-muted fw-bold text-uppercase mb-2">Zona de riesgo</p>
+                    <div class="d-flex align-items-center justify-content-between p-3 rounded-3"
+                         style="background-color:#fff5f5; border:1px solid #fecaca;">
+                        <div>
+                            <p class="text-sm fw-bold mb-0" style="color:#dc2626;">Quitar rol asignado</p>
+                            <p class="text-xs text-muted mb-0">Revoca el acceso al módulo correspondiente.</p>
+                        </div>
+                        <button type="button" id="btnQuitarRol" class="btn btn-sm fw-bold text-xxs px-3"
+                                style="background-color:#dc2626; color:white; border-radius:6px;">
+                            <i class="bi bi-x-lg me-1"></i> QUITAR ROL
+                        </button>
+                    </div>
+                    <div id="confirmacionQuitar" class="d-none mt-3 p-3 rounded-3"
+                         style="background-color:#fef2f2; border:1px solid #fca5a5;">
+                        <p class="text-sm fw-semibold mb-3" style="color:#dc2626;">
+                            ¿Confirmas quitar el rol a <span id="confirmarNombreUsuario"></span>?
+                        </p>
+                        <div class="d-flex gap-2">
+                            <button type="button" id="btnCancelarQuitar"
+                                    class="btn btn-sm btn-ghost-sep border-theme fw-bold text-xxs px-3">
+                                CANCELAR
+                            </button>
+                            <button type="button" id="btnConfirmarQuitar"
+                                    class="btn btn-sm fw-bold text-xxs px-3"
+                                    style="background-color:#dc2626; color:white; border-radius:6px;">
+                                <i class="bi bi-check-lg me-1"></i> SÍ, QUITAR
+                            </button>
+                        </div>
+                    </div>
+                </div>
             </div>
-            <div class="modal-footer bg-white border-top border-light p-3 d-flex justify-content-between">
-                <span id="modalMsg" class="text-xxs fw-bold"></span>
+            <div class="modal-footer border-0 p-4 pt-0 d-flex justify-content-between align-items-center">
+                <span id="modalMsg" class="text-xs fw-bold"></span>
                 <div class="d-flex gap-2">
-                    <button type="button" class="btn btn-sm bg-app text-secondary border-0 px-4 py-2 text-xxs fw-bold tracking-widest" data-bs-dismiss="modal">CANCELAR</button>
-                    <button type="button" class="btn-primary-sep border-0 px-4 py-2 text-xxs fw-bold tracking-widest shadow-sm" id="btnGuardarRol" onclick="guardarCambioRol()">
-                        GUARDAR CAMBIOS
+                    <button type="button" class="btn btn-ghost-sep text-xxs px-4 fw-bold" data-bs-dismiss="modal">CANCELAR</button>
+                    <button type="button" id="btnGuardarRol" class="btn btn-primary-sep text-xxs px-4 fw-bold">
+                        <i class="bi bi-check-lg me-1"></i> GUARDAR CAMBIOS
                     </button>
                 </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-@* MODAL CONFIRMAR QUITAR *@
-<div class="modal fade" id="modalQuitarRol" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered" style="max-width: 400px;">
-        <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
-            <div class="modal-body p-4 text-center">
-                <div class="bg-error-100 text-danger rounded-circle d-flex align-items-center justify-content-center mx-auto mb-3" style="width: 60px; height: 60px;">
-                    <i class="bi bi-exclamation-triangle fs-2"></i>
-                </div>
-                <h6 class="txt-title fw-bold text-uppercase tracking-wide">Revocar Acceso</h6>
-                <p class="text-xs text-muted mb-4">
-                    ¿Seguro que deseas quitar el rol de <strong id="quitarRolNombre"></strong> a <strong id="quitarRolUsuario"></strong>? 
-                    Esta acción es inmediata.
-                </p>
-                <div class="d-grid gap-2">
-                    <button type="button" class="btn btn-danger py-2 text-xxs fw-bold tracking-widest shadow-sm" onclick="ejecutarQuitarRol()" id="btnConfirmarQuitar">CONFIRMAR REVOCACIÓN</button>
-                    <button type="button" class="btn btn-ghost-sep border-0 py-2 text-xxs fw-bold tracking-widest" data-bs-dismiss="modal">CANCELAR</button>
-                </div>
-                <div id="modalQuitarMsg" class="mt-2 text-xxs fw-bold"></div>
             </div>
         </div>
     </div>
@@ -192,132 +211,136 @@
 
 @section Scripts {
     <script>
-        let currentPage = 1;
-        let usuarioIdQuitar = null;
+        $(function () {
+            var urlAsignar   = '@Url.Action("AsignarRol", "VisitaMedica")';
+            var urlQuitarRol = '@Url.Action("QuitarRol", "VisitaMedica")';
+            var sortDir      = 'asc';
 
-        $(document).ready(function () {
-            // Lógica de Tabla (Filtro y Paginación)
-            function updateTable() {
-                let searchTerm = $('#searchInput').val().toLowerCase();
-                let statusFilter = $('#statusFilter').val();
-                let rowsPerPage = parseInt($('#rowsPerPage').val());
-
-                let $allRows = $('.data-row');
-                let filteredRows = [];
-
-                $allRows.each(function () {
-                    let rowData = $(this).data('search').toLowerCase();
-                    let rowEstado = $(this).data('estado');
-
-                    let matchesSearch = rowData.includes(searchTerm);
-                    let matchesStatus = (!statusFilter) || (rowEstado.includes(statusFilter));
-
-                    if (matchesSearch && matchesStatus) {
-                        filteredRows.push($(this));
-                    }
-                    $(this).hide();
+            // ── Buscador ─────────────────────────────────────────────────────────────
+            $('#searchInput').on('input', function () {
+                var term = $(this).val().toLowerCase().trim();
+                var visibles = 0;
+                $('#tbodyUsuarios tr.fila-usuario').each(function () {
+                    var nombre = $(this).find('.nombre-celda').text().toLowerCase();
+                    var ok = nombre.indexOf(term) >= 0;
+                    $(this).toggle(ok);
+                    if (ok) visibles++;
                 });
-
-                let totalRecords = filteredRows.length;
-                let totalPages = Math.ceil(totalRecords / rowsPerPage) || 1;
-                if (currentPage > totalPages) currentPage = totalPages;
-
-                let start = (currentPage - 1) * rowsPerPage;
-                let end = Math.min(start + rowsPerPage, totalRecords);
-
-                for (let i = start; i < end; i++) {
-                    filteredRows[i].show();
-                }
-
-                $('#tableInfo').text(totalRecords === 0 ? '0 REGISTROS' : `${start + 1} - ${end} DE ${totalRecords}`);
-                renderPager(totalPages);
-            }
-
-            function renderPager(pages) {
-                let html = `<li class="page-item ${currentPage === 1 ? 'disabled' : ''}"><a class="page-link page-link-custom" href="#" data-page="${currentPage - 1}"><i class="bi bi-chevron-left"></i></a></li>`;
-                for (let i = 1; i <= pages; i++) {
-                    html += `<li class="page-item ${i === currentPage ? 'active' : ''}"><a class="page-link page-link-custom" href="#" data-page="${i}">${i}</a></li>`;
-                }
-                html += `<li class="page-item ${currentPage === pages || pages === 0 ? 'disabled' : ''}"><a class="page-link page-link-custom" href="#" data-page="${currentPage + 1}"><i class="bi bi-chevron-right"></i></a></li>`;
-                $('#paginationControls').html(html);
-            }
-
-            $('#searchInput, #statusFilter, #rowsPerPage').on('input change', function() {
-                currentPage = 1;
-                updateTable();
+                $('#sinResultados').toggleClass('d-none', visibles > 0);
             });
 
-            $(document).on('click', '.page-link', function(e) {
-                e.preventDefault();
-                let p = parseInt($(this).data('page'));
-                if (p && p !== currentPage) { currentPage = p; updateTable(); }
+            // ── Ordenar ───────────────────────────────────────────────────────────────
+            $('#btnSort').on('click', function () {
+                sortDir = sortDir === 'asc' ? 'desc' : 'asc';
+                $('#sortIcon').attr('class', sortDir === 'asc' ? 'bi bi-sort-alpha-down' : 'bi bi-sort-alpha-down-alt');
+                $('#sortLabel').text(sortDir === 'asc' ? 'A → Z' : 'Z → A');
+                var filas = $('#tbodyUsuarios tr.fila-usuario').get();
+                filas.sort(function (a, b) {
+                    var na = $(a).data('nombre') || '';
+                    var nb = $(b).data('nombre') || '';
+                    return sortDir === 'asc' ? na.localeCompare(nb, 'es') : nb.localeCompare(na, 'es');
+                });
+                $.each(filas, function (i, f) { $('#tbodyUsuarios').append(f); });
             });
 
-            updateTable();
-        });
+            // ── Abrir modal ───────────────────────────────────────────────────────────
+            $('#tbodyUsuarios').on('click', '.btn-editar-rol', function () {
+                var fila         = $(this).closest('tr');
+                var id           = fila.data('id');
+                var nombreSafe   = fila.data('nombre-safe');
+                var nombre       = decodeURIComponent(nombreSafe);
+                var tieneRol     = fila.data('tiene-rol-salud') === true || fila.data('tiene-rol-salud') === 'true';
 
-        // FUNCIONES DE MODAL
-        function abrirModalRol(id, nombre) {
-            $('#inputUsuarioId').val(id);
-            $('#modalUserName').text(nombre);
-            $('#modalMsg').text('');
-            new bootstrap.Modal('#modalRol').show();
-        }
+                $('#inputUsuarioId').val(id);
+                $('#modalUserName').text(nombre);
+                $('#confirmarNombreUsuario').text(nombre);
+                $('#modalMsg').text('').attr('class', 'text-xs fw-bold');
+                $('#btnGuardarRol').prop('disabled', false).html('<i class="bi bi-check-lg me-1"></i> GUARDAR CAMBIOS');
+                $('#confirmacionQuitar').addClass('d-none');
+                $('#btnQuitarRol').prop('disabled', false).html('<i class="bi bi-x-lg me-1"></i> QUITAR ROL').removeClass('d-none');
 
-        async function guardarCambioRol() {
-            const $btn = $('#btnGuardarRol');
-            const userId = $('#inputUsuarioId').val();
-            const rolId = $('#selectRolId').val();
-
-            $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-1"></span> GUARDANDO...');
-
-            try {
-                const response = await fetch('@Url.Action("AsignarRol", "VisitaMedica")', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ userId: parseInt(userId), rolId: parseInt(rolId) })
-                });
-                const result = await response.json();
-                if (result.success) location.reload();
-                else {
-                    $('#modalMsg').text(result.message).addClass('text-danger');
-                    $btn.prop('disabled', false).text('GUARDAR CAMBIOS');
-                }
-            } catch {
-                $('#modalMsg').text('Error de conexión.').addClass('text-danger');
-                $btn.prop('disabled', false).text('GUARDAR CAMBIOS');
-            }
-        }
-
-        function confirmarQuitarRol(userId, nombre, rol) {
-            usuarioIdQuitar = userId;
-            $('#quitarRolUsuario').text(nombre);
-            $('#quitarRolNombre').text(rol.toUpperCase());
-            new bootstrap.Modal('#modalQuitarRol').show();
-        }
-
-        async function ejecutarQuitarRol() {
-            const $btn = $('#btnConfirmarQuitar');
-            $btn.prop('disabled', true).text('PROCESANDO...');
-
-            try {
-                const response = await fetch('/VisitaMedica/QuitarRol', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ userId: usuarioIdQuitar })
-                });
-                const data = await response.json();
-                if (data.success) {
-                    $('#modalQuitarMsg').text('Revocado con éxito').addClass('text-success');
-                    setTimeout(() => location.reload(), 800);
+                if (tieneRol) {
+                    $('#seccionQuitarRol').removeClass('d-none');
                 } else {
-                    alert(data.message);
-                    $btn.prop('disabled', false).text('CONFIRMAR REVOCACIÓN');
+                    $('#seccionQuitarRol').addClass('d-none');
                 }
-            } catch {
-                alert('Error de conexión');
-                $btn.prop('disabled', false).text('CONFIRMAR REVOCACIÓN');
-            }
-        }
+
+                $('#modalRol').modal('show');
+            });
+
+            // ── Guardar rol ───────────────────────────────────────────────────────────
+            $('#btnGuardarRol').on('click', function () {
+                var userId = parseInt($('#inputUsuarioId').val());
+                var rolId  = parseInt($('#selectRolId').val());
+                var $btn   = $(this);
+
+                if (!userId) return;
+
+                $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-1"></span> PROCESANDO...');
+
+                $.ajax({
+                    url:         urlAsignar,
+                    type:        'POST',
+                    contentType: 'application/json',
+                    data:        JSON.stringify({ userId: userId, rolId: rolId }),
+                    success: function (data) {
+                        if (data.success) {
+                            $('#modalMsg').text('✓ Rol asignado correctamente.').attr('class', 'text-xs fw-bold text-success');
+                            setTimeout(function () { location.reload(); }, 900);
+                        } else {
+                            $('#modalMsg').text(data.message || 'Error al asignar el rol.').attr('class', 'text-xs fw-bold text-danger');
+                            $btn.prop('disabled', false).html('<i class="bi bi-check-lg me-1"></i> GUARDAR CAMBIOS');
+                        }
+                    },
+                    error: function () {
+                        $('#modalMsg').text('Error de conexión.').attr('class', 'text-xs fw-bold text-danger');
+                        $btn.prop('disabled', false).html('<i class="bi bi-check-lg me-1"></i> GUARDAR CAMBIOS');
+                    }
+                });
+            });
+
+            // ── Quitar rol: mostrar confirmación ──────────────────────────────────────
+            $('#btnQuitarRol').on('click', function () {
+                $('#confirmacionQuitar').removeClass('d-none');
+                $(this).addClass('d-none');
+            });
+
+            $('#btnCancelarQuitar').on('click', function () {
+                $('#confirmacionQuitar').addClass('d-none');
+                $('#btnQuitarRol').prop('disabled', false)
+                                 .html('<i class="bi bi-x-lg me-1"></i> QUITAR ROL')
+                                 .removeClass('d-none');
+            });
+
+            // ── Quitar rol: confirmar ─────────────────────────────────────────────────
+            $('#btnConfirmarQuitar').on('click', function () {
+                var userId = parseInt($('#inputUsuarioId').val());
+                var $btn   = $(this);
+
+                if (!userId) return;
+
+                $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-1"></span> Quitando...');
+
+                $.ajax({
+                    url:         urlQuitarRol,
+                    type:        'POST',
+                    contentType: 'application/json',
+                    data:        JSON.stringify({ userId: userId }),
+                    success: function (data) {
+                        if (data.success) {
+                            $('#modalMsg').text('✓ Rol eliminado correctamente.').attr('class', 'text-xs fw-bold text-success');
+                            setTimeout(function () { location.reload(); }, 900);
+                        } else {
+                            $('#modalMsg').text(data.message || 'Error al quitar el rol.').attr('class', 'text-xs fw-bold text-danger');
+                            $btn.prop('disabled', false).html('<i class="bi bi-check-lg me-1"></i> SÍ, QUITAR');
+                        }
+                    },
+                    error: function () {
+                        $('#modalMsg').text('Error de conexión.').attr('class', 'text-xs fw-bold text-danger');
+                        $btn.prop('disabled', false).html('<i class="bi bi-check-lg me-1"></i> SÍ, QUITAR');
+                    }
+                });
+            });
+        });
     </script>
 }
