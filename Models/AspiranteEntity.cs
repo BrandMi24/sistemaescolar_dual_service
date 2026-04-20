@@ -20,6 +20,7 @@ public class InscripcionEntity
     public bool academiccontrol_inscription_actaValidada { get; set; }
     public bool academiccontrol_inscription_curpValidado { get; set; }
     public bool academiccontrol_inscription_boletaValidada { get; set; }
+    public string? academiccontrol_inscription_rejectionReason { get; set; }
 
     public PreinscripcionEntity Preinscripcion { get; set; } = null!;
 }
