@@ -13,6 +13,7 @@ using System.IO.Compression;
 using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
+using ClosedXML.Excel;
 
 namespace ControlEscolar.Controllers
 {
@@ -117,7 +118,7 @@ namespace ControlEscolar.Controllers
         }
 
         [HttpPost]
-        [RequestSizeLimit(104857600)]
+        [RequestSizeLimit(10485760)]
         public async Task<IActionResult> GuardarSolicitud(List<IFormFile> archivos)
         {
             int userIdActual = await GetLegacyUserIdAsync();
@@ -298,52 +299,43 @@ namespace ControlEscolar.Controllers
                 return StatusCode(500, ex.Message);
             }
         }
-
         [HttpPost]
-        [RequestSizeLimit(104857600)]
+        [RequestSizeLimit(10485760)]
         public async Task<IActionResult> SubsanarDocumento(int idDetalle, int idSolicitud, IFormFile archivoNuevo)
         {
             try
             {
-                // 1. Buscamos solo lo mínimo necesario y de forma plana
-                var detalle = await _context.TramitesDetalleDocumentos
-                    .Select(d => new {
-                        d.id_solicitud,
-                        d.id_requisito,
-                        nombre_archivo = d.nombre_archivo_fisico
-                    })
-                    .FirstOrDefaultAsync(d => d.id_solicitud == idSolicitud && d.id_requisito == idDetalle);
-
+                // 1. Obtenemos la solicitud (esta sí debe existir siempre)
                 var solicitud = await _context.TramitesSolicitudes
-                    .Select(s => new {
-                        s.tramites_solicitud_id,
-                        s.tramites_solicitud_archivo_path
-                    })
                     .FirstOrDefaultAsync(s => s.tramites_solicitud_id == idSolicitud);
 
-                if (detalle == null || solicitud == null)
-                    return Json(new { success = false, message = "Datos no encontrados." });
+                if (solicitud == null)
+                    return Json(new { success = false, message = "Solicitud no encontrada." });
 
-                // 2. Ruta de carpeta
-                string pathCarpeta = solicitud.tramites_solicitud_archivo_path ?? "";
-                string folderPath = Path.Combine(_webHostEnvironment.WebRootPath, "uploads", "tramites", pathCarpeta);
+                // 2. Buscamos el detalle del documento
+                var detalle = await _context.TramitesDetalleDocumentos
+                    .FirstOrDefaultAsync(d => d.id_solicitud == idSolicitud && d.id_requisito == idDetalle);
 
-                // 3. Borrado seguro
-                if (!string.IsNullOrEmpty(detalle.nombre_archivo))
+                // 3. RUTA
+                string folderPath = Path.Combine(_webHostEnvironment.WebRootPath, "uploads", "tramites", solicitud.tramites_solicitud_archivo_path);
+
+                // 4. SI EL DETALLE YA EXISTÍA, BORRAMOS EL VIEJO FÍSICAMENTE
+                if (detalle != null && !string.IsNullOrEmpty(detalle.nombre_archivo_fisico))
                 {
-                    string oldPath = Path.Combine(folderPath, detalle.nombre_archivo);
+                    string oldPath = Path.Combine(folderPath, detalle.nombre_archivo_fisico);
                     if (System.IO.File.Exists(oldPath)) System.IO.File.Delete(oldPath);
                 }
 
-                // 4. Guardado y SP
+                // 5. GUARDAMOS EL ARCHIVO NUEVO
                 string nuevoNombre = $"Doc_{idDetalle}_{DateTime.Now:yyyyMMddHHmmss}.pdf";
                 string fullPath = Path.Combine(folderPath, nuevoNombre);
-
                 using (var stream = new FileStream(fullPath, FileMode.Create))
                 {
                     await archivoNuevo.CopyToAsync(stream);
                 }
 
+                // 6. SI EL DETALLE NO EXISTÍA (es un campo nuevo), LO CREAMOS CON EL SP
+                // Si el detalle YA existía, el SP lo actualizará.
                 await _context.Database.ExecuteSqlInterpolatedAsync(
                     $"EXEC sp_tramites @Option='tramites_documento_subsanar', @ID={idSolicitud}, @RequisitoID={idDetalle}, @NombreArchivo={nuevoNombre}"
                 );
@@ -352,14 +344,12 @@ namespace ControlEscolar.Controllers
             }
             catch (Exception ex)
             {
-                return Json(new { success = false, message = "Error en el servidor: " + ex.Message });
+                return Json(new { success = false, message = "Error: " + ex.Message });
             }
         }
-
         [HttpPost]
         public async Task<IActionResult> ActualizarDocumentoAlumno(int idSolicitud, int idRequisito, IFormFile archivoNuevo)
         {
-            // Obtenemos info de la solicitud y el documento actual
             var solicitud = await _context.TramitesSolicitudes.FindAsync(idSolicitud);
             var detalle = await _context.TramitesDetalleDocumentos
                 .FirstOrDefaultAsync(d => d.id_solicitud == idSolicitud && d.id_requisito == idRequisito);
@@ -369,21 +359,25 @@ namespace ControlEscolar.Controllers
 
             string folderPath = Path.Combine(_webHostEnvironment.WebRootPath, "uploads", "tramites", solicitud.tramites_solicitud_archivo_path);
 
-            // Mantenemos el mismo nombre de archivo físico
-            string nombreArchivo = detalle.nombre_archivo_fisico;
+            // 1. GENERAR NOMBRE: Si ya tenía uno, lo usamos; si no, creamos uno nuevo.
+            string nombreArchivo = detalle.nombre_archivo_fisico ?? $"Doc_{idRequisito}_{DateTime.Now:yyyyMMddHHmmss}.pdf";
             string fullPath = Path.Combine(folderPath, nombreArchivo);
 
-            // Borramos el anterior y guardamos el nuevo con el MISMO nombre
-            if (System.IO.File.Exists(fullPath)) System.IO.File.Delete(fullPath);
+            // 2. BORRADO CONDICIONAL: Solo borramos si el archivo físicamente existe
+            if (System.IO.File.Exists(fullPath))
+            {
+                System.IO.File.Delete(fullPath);
+            }
 
+            // 3. GUARDAR NUEVO
             using (var stream = new FileStream(fullPath, FileMode.Create))
             {
                 await archivoNuevo.CopyToAsync(stream);
             }
 
-            // Actualizamos a Pendiente para nueva revisión
+            // 4. ACTUALIZAR BD: Incluimos el nombre del archivo por si antes era NULL
             await _context.Database.ExecuteSqlInterpolatedAsync(
-                $"UPDATE CE_TramitesDetalleDocumentos SET estatus_documento='Pendiente', fecha_validacion=NULL WHERE id_solicitud={idSolicitud} AND id_requisito={idRequisito}"
+                $"UPDATE CE_TramitesDetalleDocumentos SET nombre_archivo_fisico={nombreArchivo}, estatus_documento='Pendiente', fecha_validacion=NULL WHERE id_solicitud={idSolicitud} AND id_requisito={idRequisito}"
             );
 
             return Json(new { success = true });
@@ -396,6 +390,147 @@ namespace ControlEscolar.Controllers
                 $"EXEC sp_tramites @Option='tramites_revertir_estatus', @ID={idSolicitud}"
             );
             return Json(new { success = true });
+        }
+        [HttpPost]
+        public async Task<IActionResult> GuardarNuevoTramite([FromBody] TramitesCRUDViewModel model)
+        {
+            try
+            {
+                // 1. Guardar la Categoría
+                var nuevaCat = new Cat_Tramites { nombre_tramite = model.nombre };
+                _context.CategoriasTramites.Add(nuevaCat);
+                await _context.SaveChangesAsync();
+
+                // 2. Guardar los Requisitos
+                foreach (var req in model.listaRequisitos)
+                {
+                    var nuevoReq = new Requisito_Tramite
+                    {
+                        id_tramite = nuevaCat.id_tramite,
+                        nombre_documento = req.nombre,
+                        // Usamos la propiedad de tu DTO
+                    };
+                    _context.TramitesRequisitos.Add(nuevoReq);
+                }
+
+                await _context.SaveChangesAsync();
+                return Json(new { success = true });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+        [HttpGet]
+        public async Task<IActionResult> ObtenerCategorias()
+        {
+            // Solo traemos los que están activos
+            var categorias = await _context.CategoriasTramites
+                .Where(c => c.activo == true) // <--- FILTRO CRUCIAL
+                .Select(c => new { c.id_tramite, c.nombre_tramite })
+                .ToListAsync();
+            return Json(categorias);
+        }
+        [HttpPost]
+        public async Task<IActionResult> EliminarTramite(int id)
+        {
+            try
+            {
+                var tramite = await _context.CategoriasTramites.FindAsync(id);
+                if (tramite == null) return Json(new { success = false, message = "Trámite no encontrado." });
+
+                // Simplemente cambiamos el estado
+                tramite.activo = false;
+
+                await _context.SaveChangesAsync();
+                return Json(new { success = true, message = "Trámite desactivado correctamente." });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = "Error: " + ex.Message });
+            }
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> GuardarEdicion([FromBody] TramitesCRUDViewModel model)
+        {
+            try
+            {
+                // 1. Bloqueo solo si hay Pendientes (solicitudes vivas)
+                bool tienePendientes = await _context.TramitesSolicitudes
+                    .AnyAsync(s => s.id_tramite == model.id && s.tramites_solicitud_estatus == "Pendiente");
+                if (tienePendientes)
+                    return Json(new { success = false, message = "No puedes editar: hay solicitudes pendientes." });
+
+                var tramite = await _context.CategoriasTramites.FindAsync(model.id);
+                tramite.nombre_tramite = model.nombre;
+
+                // 2. EDICIÓN SEGURA: En lugar de borrar todos y crear, actualizamos los que existen
+                // y solo agregamos los nuevos.
+                var existentes = await _context.TramitesRequisitos.Where(r => r.id_tramite == model.id).ToListAsync();
+
+                // Marcamos para borrar solo los que ya no están en la lista nueva (si no tienen documentos asociados)
+                // O mejor aún: solo permitimos renombrar.
+                foreach (var req in model.listaRequisitos)
+                {
+                    var existente = existentes.FirstOrDefault(e => e.nombre_documento == req.nombre); // Lógica simplificada
+                    if (existente == null)
+                    {
+                        _context.TramitesRequisitos.Add(new Requisito_Tramite { id_tramite = model.id, nombre_documento = req.nombre });
+                    }
+                }
+
+                await _context.SaveChangesAsync();
+                return Json(new { success = true });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = "Error: " + ex.Message });
+            }
+        }
+        [HttpGet]
+        public async Task<IActionResult> ExportarExcel(string estatus)
+        {
+            // 1. Obtenemos los datos filtrados (mismo proceso que tu tabla)
+            var listado = _context.Set<DetalleSolicitudViewModel>()
+                .FromSqlInterpolated($"EXEC sp_tramites @Option='tramites_admin_get_solicitudes'")
+                .AsEnumerable();
+
+            if (estatus != "Todos") listado = listado.Where(x => x.Estatus == estatus);
+
+            // 2. Creamos el archivo Excel en memoria
+            using (var workbook = new ClosedXML.Excel.XLWorkbook())
+            {
+                var worksheet = workbook.Worksheets.Add("Solicitudes");
+
+                // Encabezados
+                worksheet.Cell(1, 1).Value = "Folio";
+                worksheet.Cell(1, 2).Value = "Fecha";
+                worksheet.Cell(1, 3).Value = "Matrícula";
+                worksheet.Cell(1, 4).Value = "Nombre";
+                worksheet.Cell(1, 5).Value = "Trámite";
+                worksheet.Cell(1, 6).Value = "Estado";
+
+                // Llenar datos
+                int row = 2;
+                foreach (var item in listado)
+                {
+                    worksheet.Cell(row, 1).Value = item.Id;
+                    worksheet.Cell(row, 2).Value = item.Fecha.ToString("dd/MM/yyyy");
+                    worksheet.Cell(row, 3).Value = item.Matricula;
+                    worksheet.Cell(row, 4).Value = item.Nombre;
+                    worksheet.Cell(row, 5).Value = item.Tipo;
+                    worksheet.Cell(row, 6).Value = item.Estatus;
+                    row++;
+                }
+
+                using (var stream = new MemoryStream())
+                {
+                    workbook.SaveAs(stream);
+                    var fileName = $"Solicitudes_{estatus}_{DateTime.Now:yyyyMMdd}.xlsx";
+                    return File(stream.ToArray(), "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
+                }
+            }
         }
     }
 }

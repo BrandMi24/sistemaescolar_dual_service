@@ -16,6 +16,17 @@
             <button type="button" onclick="filterStatus('Aprobado', this)" class="btn btn-sm btn-status-filter px-4 fw-bold text-xxs tracking-widest py-2">APROBADOS</button>
             <button type="button" onclick="filterStatus('Rechazado', this)" class="btn btn-sm btn-status-filter px-4 fw-bold text-xxs tracking-widest py-2">RECHAZADOS</button>
         </div>
+<div class="d-flex align-items-center gap-2">
+    <button type="button" class="btn btn-sm btn-outline-dark px-4 py-2 fw-bold text-xxs tracking-widest rounded-3" 
+            onclick="abrirModalAjustes()">
+        <i class="bi bi-gear-fill me-1"></i> AJUSTE DE TRÁMITES
+    </button>
+    
+    <button type="button" class="btn btn-sm btn-success px-4 py-2 fw-bold text-xxs tracking-widest rounded-3" 
+            onclick="exportarExcel()">
+        <i class="bi bi-file-earmark-excel-fill me-1"></i> EXPORTAR EXCEL
+    </button>
+</div>
 
         <div class="d-flex align-items-center gap-3 flex-grow-1 justify-content-xl-end" style="max-width: 650px;">
             <div class="position-relative flex-grow-1">
@@ -183,6 +194,29 @@
                 </div>
 
             </form>
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="modalAjustes" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content border-0 shadow rounded-4 p-4">
+            <h5 class="fw-bold mb-4 text-center">AJUSTES DE TRÁMITE</h5>
+            
+            <div class="row g-3 mb-4">
+                <div class="col-4">
+                    <button class="btn btn-success w-100 py-3 fw-bold" onclick="seleccionarAccion('agregar')">AGREGAR</button>
+                </div>
+                <div class="col-4">
+                    <button class="btn btn-primary w-100 py-3 fw-bold" onclick="seleccionarAccion('editar')">EDITAR</button>
+                </div>
+                <div class="col-4">
+                    <button class="btn btn-danger w-100 py-3 fw-bold" onclick="seleccionarAccion('eliminar')">ELIMINAR</button>
+                </div>
+            </div>
+
+            <div id="contenedorAccion" class="border-top pt-3">
+                <p class="text-center text-muted">Selecciona una opción para comenzar.</p>
+            </div>
         </div>
     </div>
 </div>
@@ -442,6 +476,251 @@ const idSolicitud = $('#inputSolicitudId').val();
             });
         }
     });
+}
+function abrirModalAjustes() {
+    new bootstrap.Modal(document.getElementById('modalAjustes')).show();
+}
+
+function seleccionarAccion(accion) {
+    const contenedor = $('#contenedorAccion');
+    contenedor.empty(); // <--- ESTO ES LO MÁS IMPORTANTE: Limpia el contenido anterior
+
+    if (accion === 'agregar') {
+        contenedor.html(`
+            <div class="p-3">
+                <input type="text" id="txtNombreTramite" class="form-control mb-3" placeholder="Título del Trámite">
+                <div id="contenedorRequisitos"></div>
+                <button class="btn btn-sm btn-outline-primary mb-3" onclick="agregarCampo()">+ Requisito</button>
+                <button class="btn btn-success w-100" onclick="guardarTramite()">GUARDAR NUEVO TRÁMITE</button>
+            </div>
+        `);
+    } else if (accion === 'editar' || accion === 'eliminar') {
+        // ... (Tu código actual para listar los trámites) ...
+        fetch('/Tramites/ObtenerCategorias')
+        .then(r => r.json())
+        .then(data => {
+            let html = `<div class="list-group">`;
+            data.forEach(t => {
+                html += `
+                    <div class="list-group-item d-flex justify-content-between align-items-center">
+                        ${t.nombre_tramite}
+                        <div>
+                            ${accion === 'editar' ? 
+                                `<button class="btn btn-sm btn-primary" onclick="cargarEdicion(${t.id_tramite}, '${t.nombre_tramite}')">Editar</button>` : 
+                                `<button class="btn btn-sm btn-danger" onclick="eliminarTramite(${t.id_tramite})">Eliminar</button>`}
+                        </div>
+                    </div>`;
+            });
+            html += `</div>`;
+            contenedor.html(html);
+        });
+    }
+}
+function agregarCampo() {
+    $('#contenedorRequisitos').append(`
+        <div class="input-group mb-2 req-row">
+            <input type="text" class="form-control req-nombre" placeholder="Nombre del requisito">
+            <button class="btn btn-outline-secondary btn-foto" type="button" data-es-foto="false" onclick="marcarComoFoto(this)">
+                <i class="bi bi-camera"></i>
+            </button>
+            <button class="btn btn-outline-danger" type="button" onclick="$(this).parent().remove()">
+                <i class="bi bi-trash"></i>
+            </button>
+        </div>`);
+}
+
+function marcarComoFoto(btn) {
+    const $row = $(btn).closest('.req-row');
+    const $input = $row.find('.req-nombre');
+    const esFoto = $(btn).data('es-foto') === true;
+
+    if (!esFoto) {
+        // ACTIVAR MODO FOTO:
+        // Solo bloqueamos y añadimos la marca, manteniendo el nombre original
+        $(btn).removeClass('btn-outline-secondary').addClass('btn-primary text-white');
+        $(btn).data('es-foto', true);
+        
+        let nombreOriginal = $input.val().trim();
+        // Si estaba vacío, ponemos algo por defecto, si tenía texto, le agregamos la marca
+        let nombreMarcado = (nombreOriginal === "") ? "Fotografía" : nombreOriginal;
+        
+        // Agregamos la marca solo si no la tiene ya
+        if (!nombreMarcado.includes("(FOTO)")) {
+            nombreMarcado += " (FOTO)";
+        }
+        
+        $input.val(nombreMarcado);
+        $input.prop('disabled', true);
+        $input.addClass('bg-light text-muted fw-bold');
+    } else {
+        // DESACTIVAR MODO FOTO:
+        // Quitamos la marca y desbloqueamos
+        $(btn).removeClass('btn-primary text-white').addClass('btn-outline-secondary');
+        $(btn).data('es-foto', false);
+        
+        let nombreActual = $input.val();
+        let nombreLimpio = nombreActual.replace(" (FOTO)", "").trim();
+        
+        $input.val(nombreLimpio);
+        $input.prop('disabled', false);
+        $input.removeClass('bg-light text-muted fw-bold');
+        $input.focus();
+    }
+}
+
+function guardarTramite() {
+    if ($('.req-row').length === 0) {
+        Swal.fire('Error', 'Debes agregar al menos un requisito.', 'warning');
+        return;
+    }
+    // VALIDACIÓN: El nombre no debe estar vacío
+    if ($('#txtNombreTramite').val().trim() === "") {
+        Swal.fire('Error', 'El nombre del trámite es obligatorio.', 'warning');
+        return;
+    }
+    const data = {
+        nombre: $('#txtNombreTramite').val(),
+        listaRequisitos: []
+    };
+
+$('.req-row').each(function() {
+    const $input = $(this).find('.req-nombre');
+    const esFoto = $(this).find('.btn-foto').data('es-foto') === true;
+
+    // Guardamos el nombre TAL CUAL lo escribió el admin
+    const nombreReq = $input.val().trim();
+
+    if(nombreReq !== "") {
+        data.listaRequisitos.push({
+            nombre: nombreReq,
+            esFoto: esFoto // Enviamos un valor booleano puro
+        });
+    }
+});
+    fetch('/Tramites/GuardarNuevoTramite', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+    })
+    .then(r => r.json())
+    .then(data => {
+        if(data.success) {
+            Swal.fire('¡Éxito!', 'Trámite registrado.', 'success')
+                .then(() => window.location.reload());
+        } else {
+            Swal.fire('Error', data.message, 'error');
+        }
+    });
+}
+function cargarEdicion(id, nombre) {
+    const contenedor = $('#contenedorAccion');
+    contenedor.html(`
+        <input type="hidden" id="editId" value="${id}">
+        <label class="text-xs fw-bold text-muted">NOMBRE DEL TRÁMITE</label>
+        <input type="text" id="editNombre" class="form-control mb-3" value="${nombre}">
+        <label class="text-xs fw-bold text-muted">REQUISITOS ACTUALES</label>
+        <div id="editRequisitos" class="mb-3"></div>
+        <button class="btn btn-sm btn-outline-primary mb-2" onclick="agregarCampoEdit()">+ Agregar Requisito</button>
+        <button class="btn btn-success w-100 mt-2" onclick="guardarEdicion()">GUARDAR CAMBIOS</button>
+    `);
+
+    // Hacemos el fetch para traer los requisitos que ya tiene ese trámite
+    fetch(`/Tramites/ObtenerRequisitosJson?id=${id}`)
+    .then(r => r.json())
+    .then(requisitos => {
+        requisitos.forEach(req => {
+            agregarCampoEdit(req.nombre_documento);
+        });
+    });
+}
+
+// Función auxiliar para agregar campos en el modo edición
+function agregarCampoEdit(valor = "") {
+    const esFoto = valor.toLowerCase().includes('(foto)');
+    // Si es foto, definimos las clases iniciales para que el botón se vea activo
+    const btnClase = esFoto ? 'btn-primary text-white' : 'btn-outline-secondary';
+    $('#editRequisitos').append(`
+        <div class="input-group mb-2 req-row">
+            <input type="text" class="form-control req-nombre" value="${valor}" placeholder="Nombre del requisito">
+            <button class="btn btn-outline-secondary btn-foto" type="button" data-es-foto="${valor.toLowerCase().includes('(foto)')}" onclick="marcarComoFoto(this)">
+                <i class="bi bi-camera"></i>
+            </button>
+            <button class="btn btn-outline-danger" type="button" onclick="$(this).parent().remove()">
+                <i class="bi bi-trash"></i>
+            </button>
+        </div>`);
+}
+function guardarEdicion() {
+    if ($('#editRequisitos .req-row').length === 0) {
+        Swal.fire('Error', 'Debes agregar al menos un requisito.', 'warning');
+        return;
+    }
+    // VALIDACIÓN: El nombre no debe estar vacío
+    if ($('#editNombre').val().trim() === "") {
+        Swal.fire('Error', 'El nombre del trámite es obligatorio.', 'warning');
+        return;
+    }
+    const data = {
+        id: parseInt($('#editId').val()), // Asegúrate que el hidden tiene este ID
+        nombre: $('#editNombre').val(),
+        listaRequisitos: []
+    };
+
+    $('#editRequisitos .req-row').each(function() {
+        // Obtenemos el valor del input
+        let nombreReq = $(this).find('.req-nombre').val();
+        
+        if (nombreReq && nombreReq.trim() !== "") {
+            // Empujamos un objeto con la propiedad "nombre" (tal como espera el DTO)
+            data.listaRequisitos.push({ nombre: nombreReq });
+        }
+    });
+
+    fetch('/Tramites/GuardarEdicion', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data) // Esto envía el objeto al [FromBody] del controlador
+    })
+    .then(r => r.json())
+    .then(data => {
+        if(data.success) {
+            Swal.fire('¡Éxito!', 'Trámite actualizado correctamente.', 'success')
+                .then(() => window.location.reload());
+        } else {
+            Swal.fire('Error', data.message || 'No se pudo guardar.', 'error');
+        }
+    });
+}
+
+// Lógica de eliminación
+function eliminarTramite(id) {
+    Swal.fire({
+        title: '¿Estás seguro?',
+        text: "Esta acción no se puede deshacer.",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Sí, eliminar'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            fetch(`/Tramites/EliminarTramite?id=${id}`, { method: 'POST' })
+            .then(r => r.json())
+            .then(data => {
+                if(data.success) {
+                    Swal.fire('Eliminado', '', 'success').then(() => window.location.reload());
+                } else {
+                    // AQUÍ MOSTRAMOS EL MENSAJE QUE VIENE DEL CONTROLADOR
+                    Swal.fire('Error', data.message, 'error');
+                }
+            });
+        }
+    });
+}
+function exportarExcel() {
+    // Usamos el filtro actual (Pendientes, Aprobados, etc.)
+    const status = currentStatus; 
+    
+    // Redirigimos al controlador pasando el filtro
+    window.location.href = `/Tramites/ExportarExcel?estatus=${status}`;
 }
     </script>
 }
