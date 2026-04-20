@@ -1,5 +1,7 @@
-﻿using ControlEscolar.Data;
+﻿using ClosedXML.Excel;
+using ControlEscolar.Data;
 using ControlEscolar.Models;
+using DocumentFormat.OpenXml.Spreadsheet;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
@@ -13,7 +15,6 @@ using System.IO.Compression;
 using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
-using ClosedXML.Excel;
 
 namespace ControlEscolar.Controllers
 {
@@ -489,7 +490,7 @@ namespace ControlEscolar.Controllers
             }
         }
         [HttpGet]
-        public async Task<IActionResult> ExportarExcel(string estatus)
+        public async Task<IActionResult> ExportarExcel(string estatus, DateTime? min, DateTime? max)
         {
             // 1. Obtenemos los datos filtrados (mismo proceso que tu tabla)
             var listado = _context.Set<DetalleSolicitudViewModel>()
@@ -497,6 +498,10 @@ namespace ControlEscolar.Controllers
                 .AsEnumerable();
 
             if (estatus != "Todos") listado = listado.Where(x => x.Estatus == estatus);
+
+            // Filtrar por fechas recibidas
+            if (min.HasValue) listado = listado.Where(x => x.Fecha >= min.Value);
+            if (max.HasValue) listado = listado.Where(x => x.Fecha <= max.Value.AddDays(1));
 
             // 2. Creamos el archivo Excel en memoria
             using (var workbook = new ClosedXML.Excel.XLWorkbook())

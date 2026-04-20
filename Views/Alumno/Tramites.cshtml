@@ -418,7 +418,7 @@
         requisitos.forEach(req => {
         // AQUÍ ESTÁ EL CAMBIO: usamos nombre_documento
         const nombre = req.nombre_documento;
-        const esFoto = nombre.toLowerCase().includes("(foto)");
+        const esFoto = nombre.toLowerCase().includes("foto");
                 
         html += `
         <div class="col-md-6 mb-3">
