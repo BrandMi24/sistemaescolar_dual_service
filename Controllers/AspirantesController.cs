@@ -128,7 +128,7 @@ namespace ControlEscolar.Controllers
 
                 if (inscripcionExistente)
                 {
-                    return Json(new { success = false, message = "Este folio ya cuenta con una inscripción registrada." });
+                    return Json(new { success = false, message = "Aspirante ya inscrito" });
                 }
 
                 var configInscripcion = await _context.ConfiguracionFichas
@@ -165,9 +165,9 @@ namespace ControlEscolar.Controllers
                 var entidad = new InscripcionEntity
                 {
                     academiccontrol_inscription_preinscriptionID = preinscripcion.academiccontrol_preinscription_ID,
-                    academiccontrol_inscription_careerRequested = vm.academiccontrol_inscription_careerRequested,
-                    academiccontrol_inscription_hasTSUEnrollment = vm.academiccontrol_inscription_hasTSUEnrollment,
-                    academiccontrol_inscription_TSUEnrollment = vm.academiccontrol_inscription_TSUEnrollment,
+                    academiccontrol_inscription_careerRequested = !string.IsNullOrWhiteSpace(vm.academiccontrol_inscription_careerRequested)
+                        ? vm.academiccontrol_inscription_careerRequested
+                        : preinscripcion.academiccontrol_preinscription_careerRequested,
                     academiccontrol_inscription_birthCertificatePath = vm.academiccontrol_inscription_birthCertificatePath,
                     academiccontrol_inscription_curpPdfPath = vm.academiccontrol_inscription_curpPdfPath,
                     academiccontrol_inscription_transcriptPath = vm.academiccontrol_inscription_transcriptPath,
@@ -414,9 +414,6 @@ namespace ControlEscolar.Controllers
 
             if (ModelState.IsValid)
             {
-                entidad.academiccontrol_inscription_careerRequested = vm.academiccontrol_inscription_careerRequested;
-                entidad.academiccontrol_inscription_hasTSUEnrollment = vm.academiccontrol_inscription_hasTSUEnrollment;
-                entidad.academiccontrol_inscription_TSUEnrollment = vm.academiccontrol_inscription_TSUEnrollment;
 
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
@@ -447,8 +444,6 @@ namespace ControlEscolar.Controllers
             academiccontrol_inscription_ID = e.academiccontrol_inscription_ID,
             FolioValidacion = e.Preinscripcion?.academiccontrol_preinscription_folio ?? string.Empty,
             academiccontrol_inscription_careerRequested = e.academiccontrol_inscription_careerRequested,
-            academiccontrol_inscription_hasTSUEnrollment = e.academiccontrol_inscription_hasTSUEnrollment,
-            academiccontrol_inscription_TSUEnrollment = e.academiccontrol_inscription_TSUEnrollment,
             academiccontrol_inscription_enrollment = e.academiccontrol_inscription_enrollment,
             academiccontrol_inscription_birthCertificatePath = e.academiccontrol_inscription_birthCertificatePath,
             academiccontrol_inscription_curpPdfPath = e.academiccontrol_inscription_curpPdfPath,
