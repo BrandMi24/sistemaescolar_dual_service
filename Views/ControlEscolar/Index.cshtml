@@ -260,6 +260,7 @@
                                 <td class="text-muted text-xs">@item.academiccontrol_inscription_careerRequested</td>
                                 <td>
                                     <div class="d-flex flex-column gap-1">
+                                        @* ── Acta de Nacimiento ── *@
                                         <div class="d-flex align-items-center gap-1">
                                             @if (!string.IsNullOrEmpty(item.academiccontrol_inscription_birthCertificatePath))
                                             {
@@ -267,7 +268,15 @@
                                                    class="btn btn-sm btn-light border text-xxs px-2">
                                                     <i class="bi bi-file-earmark-pdf text-danger"></i> Acta
                                                 </a>
-                                                @if (!item.academiccontrol_inscription_actaValidada)
+                                                @if (item.academiccontrol_inscription_actaConError)
+                                                {
+                                                    <span class="badge text-xxs" style="background:#fed7d7;color:#c53030;"><i class="bi bi-exclamation-triangle-fill me-1"></i>Error</span>
+                                                }
+                                                else if (item.academiccontrol_inscription_actaValidada)
+                                                {
+                                                    <span class="badge bg-success text-xxs"><i class="bi bi-check2-circle me-1"></i>OK</span>
+                                                }
+                                                else
                                                 {
                                                     <form asp-action="ValidarActa" method="post" class="d-inline">
                                                         @Html.AntiForgeryToken()
@@ -277,10 +286,16 @@
                                                             <i class="bi bi-check2"></i>
                                                         </button>
                                                     </form>
-                                                }
-                                                else
-                                                {
-                                                    <span class="badge bg-success text-xxs"><i class="bi bi-check2-circle me-1"></i>OK</span>
+                                                    <button type="button" class="btn btn-sm text-xxs px-2 btn-solicitar-correccion"
+                                                            style="background:#fff3cd;border:1px solid #ffc107;color:#856404;"
+                                                            data-bs-toggle="modal" data-bs-target="#modalCorreccionDoc"
+                                                            data-id="@item.academiccontrol_inscription_ID"
+                                                            data-matricula="@item.academiccontrol_inscription_enrollment"
+                                                            data-documento="acta"
+                                                            data-docnombre="Acta de Nacimiento"
+                                                            title="Solicitar corrección del Acta">
+                                                        <i class="bi bi-exclamation-triangle"></i>
+                                                    </button>
                                                 }
                                             }
                                             else
@@ -288,6 +303,8 @@
                                                 <span class="badge bg-secondary bg-opacity-50 text-xxs">Sin Acta</span>
                                             }
                                         </div>
+
+                                        @* ── CURP ── *@
                                         <div class="d-flex align-items-center gap-1">
                                             @if (!string.IsNullOrEmpty(item.academiccontrol_inscription_curpPdfPath))
                                             {
@@ -295,7 +312,15 @@
                                                    class="btn btn-sm btn-light border text-xxs px-2">
                                                     <i class="bi bi-file-earmark-pdf text-danger"></i> CURP
                                                 </a>
-                                                @if (!item.academiccontrol_inscription_curpValidado)
+                                                @if (item.academiccontrol_inscription_curpConError)
+                                                {
+                                                    <span class="badge text-xxs" style="background:#fed7d7;color:#c53030;"><i class="bi bi-exclamation-triangle-fill me-1"></i>Error</span>
+                                                }
+                                                else if (item.academiccontrol_inscription_curpValidado)
+                                                {
+                                                    <span class="badge bg-success text-xxs"><i class="bi bi-check2-circle me-1"></i>OK</span>
+                                                }
+                                                else
                                                 {
                                                     <form asp-action="ValidarCurp" method="post" class="d-inline">
                                                         @Html.AntiForgeryToken()
@@ -305,10 +330,16 @@
                                                             <i class="bi bi-check2"></i>
                                                         </button>
                                                     </form>
-                                                }
-                                                else
-                                                {
-                                                    <span class="badge bg-success text-xxs"><i class="bi bi-check2-circle me-1"></i>OK</span>
+                                                    <button type="button" class="btn btn-sm text-xxs px-2 btn-solicitar-correccion"
+                                                            style="background:#fff3cd;border:1px solid #ffc107;color:#856404;"
+                                                            data-bs-toggle="modal" data-bs-target="#modalCorreccionDoc"
+                                                            data-id="@item.academiccontrol_inscription_ID"
+                                                            data-matricula="@item.academiccontrol_inscription_enrollment"
+                                                            data-documento="curp"
+                                                            data-docnombre="CURP"
+                                                            title="Solicitar corrección del CURP">
+                                                        <i class="bi bi-exclamation-triangle"></i>
+                                                    </button>
                                                 }
                                             }
                                             else
@@ -316,6 +347,8 @@
                                                 <span class="badge bg-secondary bg-opacity-50 text-xxs">Sin CURP</span>
                                             }
                                         </div>
+
+                                        @* ── Boleta ── *@
                                         <div class="d-flex align-items-center gap-1">
                                             @if (!string.IsNullOrEmpty(item.academiccontrol_inscription_transcriptPath))
                                             {
@@ -323,7 +356,15 @@
                                                    class="btn btn-sm btn-light border text-xxs px-2">
                                                     <i class="bi bi-file-earmark-pdf text-danger"></i> Boleta
                                                 </a>
-                                                @if (!item.academiccontrol_inscription_boletaValidada)
+                                                @if (item.academiccontrol_inscription_boletaConError)
+                                                {
+                                                    <span class="badge text-xxs" style="background:#fed7d7;color:#c53030;"><i class="bi bi-exclamation-triangle-fill me-1"></i>Error</span>
+                                                }
+                                                else if (item.academiccontrol_inscription_boletaValidada)
+                                                {
+                                                    <span class="badge bg-success text-xxs"><i class="bi bi-check2-circle me-1"></i>OK</span>
+                                                }
+                                                else
                                                 {
                                                     <form asp-action="ValidarBoleta" method="post" class="d-inline">
                                                         @Html.AntiForgeryToken()
@@ -333,10 +374,16 @@
                                                             <i class="bi bi-check2"></i>
                                                         </button>
                                                     </form>
-                                                }
-                                                else
-                                                {
-                                                    <span class="badge bg-success text-xxs"><i class="bi bi-check2-circle me-1"></i>OK</span>
+                                                    <button type="button" class="btn btn-sm text-xxs px-2 btn-solicitar-correccion"
+                                                            style="background:#fff3cd;border:1px solid #ffc107;color:#856404;"
+                                                            data-bs-toggle="modal" data-bs-target="#modalCorreccionDoc"
+                                                            data-id="@item.academiccontrol_inscription_ID"
+                                                            data-matricula="@item.academiccontrol_inscription_enrollment"
+                                                            data-documento="boleta"
+                                                            data-docnombre="Boleta/Certificado"
+                                                            title="Solicitar corrección de la Boleta">
+                                                        <i class="bi bi-exclamation-triangle"></i>
+                                                    </button>
                                                 }
                                             }
                                             else
@@ -415,6 +462,48 @@
                 <div class="modal-footer border-top">
                     <button type="button" class="btn-ghost-sep text-xs px-4" data-bs-dismiss="modal">Cancelar</button>
                     <button type="submit" class="btn btn-danger text-xs px-4 fw-bold">Confirmar Rechazo</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Solicitar corrección de documento -->
+<div class="modal fade" id="modalCorreccionDoc" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header border-bottom" style="background:#fffbeb;">
+                <h5 class="modal-title fw-bold text-sm" style="color:#92400e;">
+                    <i class="bi bi-exclamation-triangle-fill me-2 text-warning"></i>Solicitar Corrección de Documento
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form asp-action="SolicitarCorreccionDocumento" method="post">
+                @Html.AntiForgeryToken()
+                <div class="modal-body">
+                    <input type="hidden" name="id" id="correccionDocId" />
+                    <input type="hidden" name="documento" id="correccionDocNombre" />
+                    <p class="text-sm text-muted mb-3">
+                        Se notificará al aspirante <strong id="correccionMatricula"></strong> que debe corregir
+                        el documento: <strong id="correccionDocDisplay"></strong>.
+                    </p>
+                    <div class="mb-3">
+                        <label class="section-label text-muted mb-2 d-block">MOTIVO DEL ERROR (OPCIONAL)</label>
+                        <textarea name="motivo" class="form-control text-sm" rows="3"
+                                  placeholder="Ej: Documento ilegible, fecha incorrecta, etc."></textarea>
+                        <div class="form-text text-xs">Este mensaje se enviará al alumno por correo electrónico.</div>
+                    </div>
+                    <div class="alert alert-warning py-2 text-xs mb-0">
+                        <i class="bi bi-info-circle me-1"></i>
+                        El estado de la inscripción cambiará a <strong>"Documento Con Error"</strong>.
+                        El alumno deberá subir el archivo corregido para continuar el proceso.
+                    </div>
+                </div>
+                <div class="modal-footer border-top">
+                    <button type="button" class="btn-ghost-sep text-xs px-4" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-warning text-xs px-4 fw-bold" style="color:#92400e;">
+                        <i class="bi bi-send me-1"></i>Enviar Solicitud
+                    </button>
                 </div>
             </form>
         </div>
@@ -519,6 +608,17 @@
             const btn = e.relatedTarget;
             document.getElementById('insRechazarId').value = btn.dataset.id;
             document.getElementById('insRechazarMatricula').textContent = btn.dataset.matricula || `#${btn.dataset.id}`;
+        });
+
+        document.getElementById('modalCorreccionDoc')?.addEventListener('show.bs.modal', function (e) {
+            const btn = e.relatedTarget;
+            document.getElementById('correccionDocId').value = btn.dataset.id;
+            document.getElementById('correccionDocNombre').value = btn.dataset.documento;
+            document.getElementById('correccionDocDisplay').textContent = btn.dataset.docnombre;
+            document.getElementById('correccionMatricula').textContent = btn.dataset.matricula || `#${btn.dataset.id}`;
+            // Limpiar motivo al abrir
+            const textarea = document.querySelector('#modalCorreccionDoc textarea[name="motivo"]');
+            if (textarea) textarea.value = '';
         });
     </script>
 }

@@ -1,4 +1,4 @@
-﻿using ControlEscolar.Models;
+using ControlEscolar.Models;
 
 namespace ControlEscolar.Models;
 
@@ -20,7 +20,11 @@ public class InscripcionEntity
     public bool academiccontrol_inscription_actaValidada { get; set; }
     public bool academiccontrol_inscription_curpValidado { get; set; }
     public bool academiccontrol_inscription_boletaValidada { get; set; }
+    public bool academiccontrol_inscription_actaConError { get; set; }
+    public bool academiccontrol_inscription_curpConError { get; set; }
+    public bool academiccontrol_inscription_boletaConError { get; set; }
     public string? academiccontrol_inscription_rejectionReason { get; set; }
+    public string? academiccontrol_inscription_errorReason { get; set; }
 
     public PreinscripcionEntity Preinscripcion { get; set; } = null!;
 }

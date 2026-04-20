@@ -309,6 +309,74 @@ namespace ControlEscolar.Controllers
         }
 
         [HttpPost]
+        public async Task<IActionResult> SolicitarCorreccionDocumento(int id, string documento, string? motivo)
+        {
+            var entidad = await _context.Inscripciones
+                .Include(i => i.Preinscripcion)
+                    .ThenInclude(p => p.DatosPersonales)
+                .FirstOrDefaultAsync(i => i.academiccontrol_inscription_ID == id);
+
+            if (entidad == null) return NotFound();
+
+            // Marcar el documento específico con error
+            switch (documento?.ToLower())
+            {
+                case "acta":
+                    entidad.academiccontrol_inscription_actaConError = true;
+                    entidad.academiccontrol_inscription_actaValidada = false;
+                    break;
+                case "curp":
+                    entidad.academiccontrol_inscription_curpConError = true;
+                    entidad.academiccontrol_inscription_curpValidado = false;
+                    break;
+                case "boleta":
+                    entidad.academiccontrol_inscription_boletaConError = true;
+                    entidad.academiccontrol_inscription_boletaValidada = false;
+                    break;
+                default:
+                    TempData["ErrorMessage"] = "Documento no reconocido.";
+                    return RedirectToAction(nameof(Index), new { tab = "inscripciones" });
+            }
+
+            entidad.academiccontrol_inscription_state = EstadoInscripcion.DocumentoConError.ToString();
+            entidad.academiccontrol_inscription_errorReason = motivo;
+
+            await _context.SaveChangesAsync();
+
+            // Notificar al alumno por correo con el enlace directo de corrección
+            var email = entidad.Preinscripcion?.DatosPersonales?.academiccontrol_preinscription_personaldata_email;
+            var nombre = entidad.Preinscripcion?.DatosPersonales?.academiccontrol_preinscription_personaldata_name;
+            var folio = entidad.Preinscripcion?.academiccontrol_preinscription_folio;
+            var curp = entidad.Preinscripcion?.DatosPersonales?.academiccontrol_preinscription_personaldata_CURP;
+
+            if (email != null)
+            {
+                var enlace = Url.Action("AccesoCorreccion", "Aspirantes", null, Request.Scheme);
+
+                var nombreDoc = documento.ToLower() switch
+                {
+                    "acta" => "Acta de Nacimiento",
+                    "curp" => "CURP",
+                    "boleta" => "Boleta / Certificado de Estudios",
+                    _ => documento
+                };
+
+                var motivoTexto = string.IsNullOrEmpty(motivo) ? "" : $" Motivo: {motivo}.";
+                await _emailService.EnviarAsync(
+                    email,
+                    "Corrección de Documento Requerida — Inscripción",
+                    $"Estimado(a) {nombre}, su documento <strong>{nombreDoc}</strong> requiere corrección.{motivoTexto}<br/><br/>" +
+                    $"Por favor ingrese al siguiente enlace para subir el documento corregido:<br/>" +
+                    $"<a href='{enlace}'>{enlace}</a><br/><br/>" +
+                    $"Matrícula: {entidad.academiccontrol_inscription_enrollment}"
+                );
+            }
+
+            TempData["SuccessMessage"] = $"Se solicitó corrección del documento al aspirante.";
+            return RedirectToAction(nameof(Index), new { tab = "inscripciones" });
+        }
+
+        [HttpPost]
         public async Task<IActionResult> RechazarInscripcion(int id, string? motivo)
         {
             var entidad = await _context.Inscripciones
