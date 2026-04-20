@@ -7,7 +7,7 @@ using ControlEscolar.Models;
 
 namespace ControlEscolar.Controllers
 {
-    [Authorize(Roles = "Admin,Administrator,Master")]
+    [Authorize(Roles = "ADMIN")]
     public class AdminController : Controller
     {
         private readonly ApplicationDbContext _context;

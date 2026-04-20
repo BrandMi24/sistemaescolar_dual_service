@@ -216,9 +216,31 @@
                 });
             });
 
-            submitBtn.addEventListener('click', async () => {
-                const form = document.getElementById('aspiranteForm');
-                const formData = new FormData(form);
+                submitBtn.addEventListener('click', async () => {
+        // Validar archivos antes de enviar
+        const acta = document.querySelector('input[name="ActaNacimientoFile"]');
+        const curp = document.querySelector('input[name="CurpPdfFile"]');
+        const boleta = document.querySelector('input[name="BoletaPdfFile"]');
+
+        const faltantes = [];
+        if (!acta.files || acta.files.length === 0) faltantes.push('• Acta de Nacimiento');
+        if (!curp.files || curp.files.length === 0) faltantes.push('• CURP');
+        if (!boleta.files || boleta.files.length === 0) faltantes.push('• Certificado de Estudios o Boleta');
+
+        if (faltantes.length > 0) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Documentos faltantes',
+                html: `Por favor adjunta los siguientes documentos antes de continuar:<br><br><span style="text-align:left; display:block;">${faltantes.join('<br>')}</span>`,
+                confirmButtonText: 'Entendido',
+                confirmButtonColor: '#13322B'
+            });
+            return;
+        }
+
+        const form = document.getElementById('aspiranteForm');
+        const formData = new FormData(form);
+        // resto del código igual...
 
                 try {
                     const response = await fetch(CreateUrl, {

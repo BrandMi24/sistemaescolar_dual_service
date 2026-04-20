@@ -135,27 +135,52 @@ namespace ControlEscolar.Controllers
 
             try
             {
-                using var cmd = conn.CreateCommand();
-                cmd.CommandText = @"
-            SELECT r.management_role_Name
-            FROM dbo.management_userrole_table ur
-            INNER JOIN dbo.management_role_table r
-                ON r.management_role_ID = ur.management_userrole_RoleID
-            WHERE ur.management_userrole_UserID = @UserID
-              AND ur.management_userrole_status = 1
-              AND r.management_role_status = 1";
-
-                cmd.Parameters.Add(new SqlParameter("@UserID", userId));
-
                 if (conn.State != ConnectionState.Open)
                     await conn.OpenAsync();
 
-                using var reader = await cmd.ExecuteReaderAsync();
-                while (await reader.ReadAsync())
+                // 1. Roles desde management_userrole_table (tabla relacional)
+                using (var cmd = conn.CreateCommand())
                 {
-                    if (!reader.IsDBNull(0))
+                    cmd.CommandText = @"
+                SELECT r.management_role_Name
+                FROM dbo.management_userrole_table ur
+                INNER JOIN dbo.management_role_table r
+                    ON r.management_role_ID = ur.management_userrole_RoleID
+                WHERE ur.management_userrole_UserID = @UserID
+                  AND ur.management_userrole_status = 1
+                  AND r.management_role_status = 1";
+
+                    cmd.Parameters.Add(new SqlParameter("@UserID", userId));
+
+                    using var reader = await cmd.ExecuteReaderAsync();
+                    while (await reader.ReadAsync())
                     {
-                        roles.Add(reader.GetString(0));
+                        if (!reader.IsDBNull(0))
+                            roles.Add(reader.GetString(0));
+                    }
+                }
+
+                // 2. Fallback: si no tiene roles en la tabla relacional,
+                //    leer el RoleID directo de management_user_table
+                if (roles.Count == 0)
+                {
+                    using var cmd2 = conn.CreateCommand();
+                    cmd2.CommandText = @"
+                SELECT r.management_role_Name
+                FROM dbo.management_user_table u
+                INNER JOIN dbo.management_role_table r
+                    ON r.management_role_ID = u.management_user_RoleID
+                WHERE u.management_user_ID = @UserID
+                  AND u.management_user_RoleID IS NOT NULL
+                  AND r.management_role_status = 1";
+
+                    cmd2.Parameters.Add(new SqlParameter("@UserID", userId));
+
+                    using var reader2 = await cmd2.ExecuteReaderAsync();
+                    while (await reader2.ReadAsync())
+                    {
+                        if (!reader2.IsDBNull(0))
+                            roles.Add(reader2.GetString(0));
                     }
                 }
             }
