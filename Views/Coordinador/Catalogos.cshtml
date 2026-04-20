@@ -1615,6 +1615,8 @@
                 return $('input[name="__RequestVerificationToken"]').val();
             }
 
+            const csrfToken = getToken();
+
             function recargarTodo() {
                 tblPersonas.reload();
                 tblAlumnos.reload();
@@ -1717,16 +1719,8 @@
                 .catch(err => alert(err.message));
             };
 
-            function recargarTodo() {
-                dtPersonas.ajax.reload(null, false);
-                dtAlumnos.ajax.reload(null, false);
-                dtDocentes.ajax.reload(null, false);
-                dtGrupos.ajax.reload(null, false);
-                dtCarreras.ajax.reload(null, false);
-                dtBajas.ajax.reload(null, false);
-                dtCuentas.ajax.reload(null, false);
-                dtRoles.ajax.reload(null, false);
-            }
+            // Carga inicial de tablas al abrir la vista.
+            recargarTodo();
         });
     </script>
 }

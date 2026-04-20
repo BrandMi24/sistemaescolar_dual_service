@@ -114,14 +114,12 @@
             @if (canShowSocialPortal)
             {
             <div class="col">
-                <a href="@Url.Action("ServicioSocial", "Alumno")" class="student-menu-card">
-                    <div class="menu-icon-wrapper icon-cyan"><i class="bi bi-briefcase"></i></div>
-                    <div>
-                        <h6 class="txt-title fw-bold text-sm mb-1">Servicio Social</h6>
-                        <p class="txt-body text-xs mb-0 d-none d-md-block opacity-75">Gestión de cartas, reportes y liberación.</p>
+                <a href="@Url.Action("ServicioSocial", "Alumno")" class="admin-card-white text-decoration-none d-flex flex-column align-items-center text-center h-100">
+                    <div class="icon-circle-lg bg-app txt-primary-dark mb-3">
+                        <i class="bi bi-briefcase fs-3"></i>
                     </div>
-                    <h6 class="txt-title fw-bold text-xs text-uppercase tracking-wide mb-2">Estadías</h6>
-                    <p class="txt-body text-xxs fw-medium mb-0 opacity-75">Seguimiento de prácticas.</p>
+                    <h6 class="txt-title fw-bold text-xs text-uppercase tracking-wide mb-2">Servicio Social</h6>
+                    <p class="txt-body text-xxs fw-medium mb-0 opacity-75">Gestión de cartas, reportes y liberación.</p>
                 </a>
             </div>
             }
