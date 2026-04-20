@@ -107,9 +107,9 @@ namespace ControlEscolar.Controllers
                         {
                             lista.Add(new VisitaPsicologica
                             {
-                                Matricula = reader["Matricula"].ToString(),
-                                NombreCompleto = reader["NombreCompleto"].ToString(),
-                                Carrera = reader["Carrera"].ToString(),
+                                Matricula = reader["Matricula"].ToString() ?? string.Empty,
+                                NombreCompleto = reader["NombreCompleto"].ToString() ?? string.Empty,
+                                Carrera = reader["Carrera"].ToString() ?? string.Empty,
                                 FechaVisita = (DateTime)reader["FechaVisita"]
                             });
                         }

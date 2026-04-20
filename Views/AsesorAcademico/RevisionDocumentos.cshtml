@@ -24,24 +24,31 @@
         </div>
     }
 
-    <div class="bg-surface p-4 rounded-4 border-theme shadow-sm d-flex flex-column flex-xl-row justify-content-between align-items-xl-center gap-3">
+    <!-- HEADER -->
+    <div class="d-flex flex-column gap-2 mb-2">
+        <h1 class="txt-title fw-bold mb-0">Revisión de Documentos</h1>
+        <p class="text-muted text-sm mb-0">Aprueba o rechaza los documentos que envían tus estudiantes</p>
+    </div>
+
+    <!-- FILTERS & ALERTS -->
+    <div class="bg-surface p-4 rounded-4 border-theme shadow-sm d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3">
         <form method="get" class="d-flex flex-column flex-md-row gap-3 flex-grow-1 w-100">
             <div class="position-relative search-wrapper flex-grow-1">
                 <i class="bi bi-search position-absolute search-icon-left txt-body"></i>
                 <input type="text" name="search" class="form-control search-input-custom tab-search" placeholder="Buscar por alumno o matrícula..." value="@search">
             </div>
-            <select name="estado" class="form-select bg-app border-theme txt-title fw-bold tab-filter" style="width: auto;">
+            <select name="estado" class="form-select bg-app border-theme txt-title fw-bold tab-filter" style="width: auto; min-width: 150px;">
                 <option value="">Todos los Documentos</option>
                 <option value="PENDING" selected="@(estadoFilter == "PENDING")">Solo Pendientes</option>
                 <option value="APPROVED" selected="@(estadoFilter == "APPROVED")">Aprobados</option>
                 <option value="REJECTED" selected="@(estadoFilter == "REJECTED")">Rechazados</option>
             </select>
-            <div class="d-flex gap-2">
+            <div class="d-flex gap-2 flex-shrink-0">
                 <button type="submit" class="btn btn-primary-sep bg-primary-900 text-white shadow-sm">
-                    <i class="bi bi-funnel-fill"></i>
+                    <i class="bi bi-funnel-fill me-1"></i> Filtrar
                 </button>
                 <a href="@Url.Action("RevisionDocumentos")" class="btn btn-ghost-sep shadow-sm">
-                    <i class="bi bi-x-lg"></i>
+                    <i class="bi bi-x-lg me-1"></i> Limpiar
                 </a>
             </div>
         </form>
@@ -53,16 +60,17 @@
         }
     </div>
 
+    <!-- TABLE -->
     <div class="admin-card-white p-0 rounded-4 border-theme shadow-sm overflow-hidden d-flex flex-column">
         <div class="table-responsive bg-surface">
-            <table class="table table-borderless align-middle mb-0" style="min-width: 1000px;">
+            <table class="table table-borderless align-middle mb-0" style="min-width: 1100px;">
                 <thead class="admin-table-header">
                     <tr>
                         <th class="py-3 px-4">Estudiante</th>
-                        <th class="py-3">Tipo de Documento</th>
+                        <th class="py-3">Documento</th>
                         <th class="py-3">Fecha Envío</th>
                         <th class="py-3 text-center">Estado</th>
-                        <th class="py-3 text-end px-4">Dictamen</th>
+                        <th class="py-3 text-end px-4">Acciones</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -79,56 +87,81 @@
                     {
                         var statusBadge = doc.StatusCode switch
                         {
-                            "APPROVED" => ("bg-success text-white", "APROBADO"),
-                            "REJECTED" => ("bg-danger text-white", "RECHAZADO"),
-                            _ => ("bg-warning text-dark", "PENDIENTE")
+                            "APPROVED" => ("bg-success text-white", "APROBADO", "bi-check-circle-fill"),
+                            "REJECTED" => ("bg-danger text-white", "RECHAZADO", "bi-x-circle-fill"),
+                            _ => ("bg-warning text-dark", "PENDIENTE", "bi-clock-history")
                         };
-                        <tr class="border-bottom border-theme hover-bg-app">
+                        <tr class="border-bottom border-theme hover-bg-app data-row">
                             <td class="px-4 py-3">
-                                <div class="txt-title fw-bold text-sm">@doc.StudentName</div>
-                                <div class="txt-body text-xxs">Mat: @doc.Matricula</div>
+                                <div class="d-flex align-items-center gap-2">
+                                    <div class="avatar-sm bg-info-light text-info fw-bold d-flex align-items-center justify-content-center flex-shrink-0">
+                                        @doc.StudentName.Split(' ')[0][0]@(doc.StudentName.Split(' ').Length > 1 ? doc.StudentName.Split(' ')[1][0] : doc.StudentName[1])
+                                    </div>
+                                    <div>
+                                        <div class="txt-title fw-bold text-sm mb-0">@doc.StudentName</div>
+                                        <div class="txt-body text-xxs">
+                                            <i class="bi bi-shield-check me-1"></i> @doc.Matricula
+                                        </div>
+                                    </div>
+                                </div>
                             </td>
                             <td>
-                                <div class="txt-title fw-bold text-sm">@doc.Title</div>
-                                <span class="txt-body text-xxs">@doc.DocumentType</span>
-                                @if (!string.IsNullOrEmpty(doc.FilePath))
-                                {
-                                    <a href="@doc.FilePath" target="_blank" class="text-primary text-xs text-decoration-none fw-bold d-block mt-1">
-                                        <i class="bi bi-file-earmark-pdf-fill me-1"></i>VER DOCUMENTO
-                                    </a>
-                                }
+                                <div class="txt-title fw-bold text-sm mb-1">@doc.Title</div>
+                                <div class="d-flex align-items-center gap-2">
+                                    <span class="badge bg-light border border-theme text-dark text-xxs px-2 py-1">
+                                        <i class="bi bi-file-earmark me-1"></i> @doc.DocumentType
+                                    </span>
+                                    @if (!string.IsNullOrEmpty(doc.FilePath))
+                                    {
+                                        <a href="@doc.FilePath" target="_blank" class="text-primary text-xs fw-bold text-decoration-none">
+                                            <i class="bi bi-download me-1"></i>Descargar
+                                        </a>
+                                    }
+                                </div>
                             </td>
-                            <td class="txt-body text-xs">@doc.UploadDate.ToString("dd/MM/yyyy")</td>
+                            <td class="txt-body text-xs">
+                                <i class="bi bi-calendar-event me-1"></i>
+                                @doc.UploadDate.ToString("dd/MM/yyyy")
+                            </td>
                             <td class="text-center">
-                                <span class="badge @statusBadge.Item1 text-xxs px-2 py-1 shadow-sm">@statusBadge.Item2</span>
-                                @if (!string.IsNullOrEmpty(doc.ReviewComments))
-                                {
-                                    <div class="txt-body text-xxs mt-1 text-muted" title="@doc.ReviewComments">
-                                        <i class="bi bi-chat-text me-1"></i>Con comentarios
-                                    </div>
-                                }
+                                <div class="d-flex flex-column align-items-center gap-2">
+                                    <span class="badge @statusBadge.Item1 text-xxs px-3 py-2 shadow-sm">
+                                        <i class="bi @statusBadge.Item3 me-1"></i> @statusBadge.Item2
+                                    </span>
+                                    @if (!string.IsNullOrEmpty(doc.ReviewComments))
+                                    {
+                                        <button type="button" class="btn btn-xs btn-outline-secondary" 
+                                                data-bs-toggle="popover" 
+                                                data-bs-trigger="hover" 
+                                                title="Comentarios"
+                                                data-bs-content="@doc.ReviewComments">
+                                            <i class="bi bi-chat-left-text"></i> Ver comentarios
+                                        </button>
+                                    }
+                                </div>
                             </td>
                             <td class="text-end px-4">
                                 @if (doc.StatusCode == "PENDING")
                                 {
-                                    <div class="d-flex gap-2 justify-content-end">
-                                        <form asp-action="AprobarDocumento" asp-controller="AsesorAcademico" method="post" class="d-inline">
+                                    <div class="btn-group btn-group-sm gap-1" role="group">
+                                        <form asp-action="AprobarDocumento" asp-controller="AsesorAcademico" method="post" class="d-inline" style="margin: 0;">
                                             @Html.AntiForgeryToken()
                                             <input type="hidden" name="documentId" value="@doc.DocumentId" />
-                                            <button type="submit" class="btn btn-sm btn-ghost-sep text-success border border-success border-opacity-25" title="Aprobar">
-                                                <i class="bi bi-check-lg"></i>
+                                            <button type="submit" class="btn btn-sm btn-outline-success" title="Aprobar documento">
+                                                <i class="bi bi-check-lg me-1"></i> Aprobar
                                             </button>
                                         </form>
-                                        <button type="button" class="btn btn-sm btn-ghost-sep text-danger border border-danger border-opacity-25"
+                                        <button type="button" class="btn btn-sm btn-outline-danger"
                                                 data-bs-toggle="modal" data-bs-target="#modalRechazo"
-                                                data-doc-id="@doc.DocumentId" title="Rechazar">
-                                            <i class="bi bi-x-lg"></i>
+                                                data-doc-id="@doc.DocumentId" 
+                                                title="Rechazar documento">
+                                            <i class="bi bi-x-lg me-1"></i> Rechazar
                                         </button>
                                     </div>
                                 }
                                 else
                                 {
-                                    <span class="txt-body text-xxs opacity-50">—</span>
+                                    <span class="txt-body text-xxs opacity-50">Sin acciones</span>
                                 }
                             </td>
                         </tr>
@@ -136,6 +169,15 @@
                 </tbody>
             </table>
         </div>
+        @if (Model.Any())
+        {
+            <div class="p-3 border-top border-theme bg-app d-flex justify-content-between align-items-center">
+                <span class="txt-body text-xs">
+                    <i class="bi bi-info-circle me-1"></i>
+                    @Model.Count documento(s) encontrado(s)
+                </span>
+            </div>
+        }
     </div>
 </div>
 
@@ -148,17 +190,23 @@
                 <input type="hidden" id="rechazarDocId" name="documentId" value="" />
                 <div class="modal-header border-bottom border-theme p-4">
                     <h5 class="modal-title txt-title fw-bold">
-                        <i class="bi bi-exclamation-circle me-2 text-danger"></i> Rechazar Documento
+                        <i class="bi bi-exclamation-circle-fill me-2 text-danger"></i> Rechazar Documento
                     </h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body p-4">
-                    <label class="txt-body text-xs fw-bold tracking-wide mb-2 d-block">MOTIVO DEL RECHAZO / CORRECCIONES</label>
-                    <textarea name="comments" class="form-control bg-app border-theme text-sm" rows="4" placeholder="Describa qué debe cambiar el alumno..." required></textarea>
+                    <p class="text-muted text-sm mb-3">
+                        Proporciona retroalimentación detallada sobre qué debe corregir el estudiante.
+                    </p>
+                    <label class="txt-body text-xs fw-bold tracking-wide mb-2 d-block">COMENTARIOS Y CORRECCIONES REQUERIDAS*</label>
+                    <textarea name="comments" class="form-control bg-app border-theme text-sm" rows="5" placeholder="Ej: Falta la firma del responsable, revisa el formato de fechas..." required></textarea>
+                    <small class="text-muted d-block mt-2">Estos comentarios se enviarán al estudiante para que realice las correcciones necesarias.</small>
                 </div>
                 <div class="modal-footer border-top border-theme bg-app p-3">
                     <button type="button" class="btn btn-ghost-sep" data-bs-dismiss="modal">Cancelar</button>
-                    <button type="submit" class="btn btn-primary-sep bg-primary-900 text-white shadow-sm">Enviar Retroalimentación</button>
+                    <button type="submit" class="btn btn-primary-sep bg-danger text-white shadow-sm">
+                        <i class="bi bi-send-fill me-1"></i> Enviar Retroalimentación
+                    </button>
                 </div>
             </form>
         </div>
@@ -171,5 +219,11 @@
             var btn = event.relatedTarget;
             document.getElementById('rechazarDocId').value = btn.getAttribute('data-doc-id');
         });
+
+        // Inicializar popovers
+        var popoverTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="popover"]'))
+        var popoverList = popoverTriggerList.map(function (popoverTriggerEl) {
+            return new bootstrap.Popover(popoverTriggerEl)
+        })
     </script>
 }

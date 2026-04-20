@@ -1,9 +1,10 @@
 ﻿@{
     var currentController = ViewContext.RouteData.Values["controller"]?.ToString();
     var currentAction = ViewContext.RouteData.Values["action"]?.ToString();
+    var displayName = User.Identity?.Name ?? "Usuario";
 
     // Función auxiliar para gestionar la clase activa en el menú
-    string IsActive(string controller, string action = null)
+    string IsActive(string controller, string? action = null)
     {
         if (action == null)
             return currentController == controller ? "active" : "";
@@ -178,10 +179,10 @@
             <div class="sidebar-footer p-4 mt-auto border-top border-white border-opacity-10 bg-black bg-opacity-10">
                 <div class="d-flex align-items-center gap-3">
                     <div class="user-initial-avatar shadow-sm">
-                        @(User.Identity.Name?.Substring(0, 1).ToUpper() ?? "U")
+                        @(displayName.Substring(0, 1).ToUpper())
                     </div>
                     <div class="overflow-hidden">
-                        <div class="fw-bold text-white text-xs text-truncate">@User.Identity.Name</div>
+                        <div class="fw-bold text-white text-xs text-truncate">@displayName</div>
                         <form asp-controller="Account" asp-action="Logout" method="post" class="m-0">
                             <button type="submit" class="btn btn-link p-0 text-white opacity-50 text-xxs text-decoration-none shadow-none border-0 text-uppercase fw-bold tracking-tighter">
                                 Cerrar Sesión

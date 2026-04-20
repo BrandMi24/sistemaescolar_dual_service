@@ -70,7 +70,7 @@ namespace ControlEscolar.Controllers
         public async Task<IActionResult> ValidarMatricula()
         {
             // --- BLOQUE DE DEBUG (Mantenlo para que en el servidor puedan ver qué pasa) ---
-            Console.WriteLine("Tramites/ValidarMatricula - IsAuthenticated: " + User.Identity.IsAuthenticated);
+            Console.WriteLine("Tramites/ValidarMatricula - IsAuthenticated: " + (User.Identity?.IsAuthenticated ?? false));
             var debugClaims = User.Claims.Select(c => $"{c.Type} = {c.Value}").ToList();
             foreach (var c in debugClaims)
             {

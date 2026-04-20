@@ -10,6 +10,10 @@
     {
         activeTab = "tab-personas";
     }
+    else if (string.Equals(activeTab, "tab-flujo-modulos", StringComparison.OrdinalIgnoreCase))
+    {
+        activeTab = "tab-cuatrimestre";
+    }
 
     var cuatrimestres = (ViewBag.Cuatrimestres as IEnumerable<ControlEscolar.Models.ManagementOperational.CuatrimestreCatalog>)
         ?? Enumerable.Empty<ControlEscolar.Models.ManagementOperational.CuatrimestreCatalog>();
@@ -17,6 +21,10 @@
         ?? Enumerable.Empty<ControlEscolar.Models.Operational.OperationalModuleFlowConfig>();
     var moduleStepRules = (ViewBag.ModuleStepRules as IEnumerable<ControlEscolar.Models.Operational.OperationalModuleStepRule>)
         ?? Enumerable.Empty<ControlEscolar.Models.Operational.OperationalModuleStepRule>();
+    var dualSupportPlaces = (ViewBag.DualSupportPlaces as IEnumerable<ControlEscolar.Models.Operational.OperationalOrganization>)
+        ?? Enumerable.Empty<ControlEscolar.Models.Operational.OperationalOrganization>();
+    var socialSupportPlaces = (ViewBag.SocialSupportPlaces as IEnumerable<ControlEscolar.Models.Operational.OperationalOrganization>)
+        ?? Enumerable.Empty<ControlEscolar.Models.Operational.OperationalOrganization>();
 }
 
 <input type="hidden" name="__RequestVerificationToken" value="@token" />
@@ -31,7 +39,10 @@
         <a href="#" class="nav-tab-item text-decoration-none @(activeTab == "tab-grupos" ? "active" : "")" data-target="#tab-grupos">Grupos</a>
         <a href="#" class="nav-tab-item text-decoration-none @(activeTab == "tab-career" ? "active" : "")" data-target="#tab-career">Carreras</a>
         <a href="#" class="nav-tab-item text-decoration-none @(activeTab == "tab-bajas" ? "active" : "")" data-target="#tab-bajas">Histórico de Bajas</a>
-        <a href="#" class="nav-tab-item text-decoration-none @(activeTab == "tab-flujo-modulos" ? "active" : "")" data-target="#tab-flujo-modulos">Flujo Módulos</a>
+        <a href="#" class="nav-tab-item text-decoration-none @(activeTab == "tab-cuatrimestre" ? "active" : "")" data-target="#tab-cuatrimestre">Cuatrimestre</a>
+        <a href="#" class="nav-tab-item text-decoration-none @(activeTab == "tab-config-modulos" ? "active" : "")" data-target="#tab-config-modulos">Configuración por Módulos</a>
+        <a href="#" class="nav-tab-item text-decoration-none @(activeTab == "tab-lugares-dual" ? "active" : "")" data-target="#tab-lugares-dual">Lugar de Apoyo Módulo Dual</a>
+        <a href="#" class="nav-tab-item text-decoration-none @(activeTab == "tab-lugares-ss" ? "active" : "")" data-target="#tab-lugares-ss">Lugar de Apoyo Servicio Social</a>
         <a href="#" class="nav-tab-item text-decoration-none @(activeTab == "tab-roles" ? "active" : "")" data-target="#tab-roles">Roles</a>
         <a href="#" class="nav-tab-item text-decoration-none @(activeTab == "tab-cuentas" ? "active" : "")" data-target="#tab-cuentas">Creación y Gestión de cuentas</a>
     </div>
@@ -649,10 +660,10 @@
         </div>
     </div>
 
-    <div id="tab-flujo-modulos" class="tab-content-pane" style="display:@(activeTab == "tab-flujo-modulos" ? "block" : "none");">
+    <div id="tab-cuatrimestre" class="tab-content-pane" style="display:@(activeTab == "tab-cuatrimestre" ? "block" : "none");">
         <div class="bg-surface p-4 rounded-4 border-theme shadow-sm mb-4">
-            <h5 class="txt-title fw-bold mb-1">Configuración Dinámica de Módulos</h5>
-            <p class="txt-body text-xs mb-0">Administra cuatrimestres disponibles, configuración base de Dual/Servicio Social y reglas de visibilidad por estatus.</p>
+            <h5 class="txt-title fw-bold mb-1">Cuatrimestres Activos del Sistema</h5>
+            <p class="txt-body text-xs mb-0">Gestiona los cuatrimestres disponibles para operación académica y habilitación de módulos.</p>
         </div>
 
         <div class="admin-card-white p-4 rounded-4 border-theme shadow-sm mb-4 bg-white">
@@ -661,7 +672,7 @@
                     <h6 class="txt-title fw-bold mb-1">Catálogo de Cuatrimestres</h6>
                     <p class="txt-body text-xs mb-0">Crear, editar y borrar cuatrimestres habilitados para flujos de alumnos.</p>
                 </div>
-                <a href="@Url.Action("CreateCuatrimestre", "Coordinador", new { tab = "tab-flujo-modulos" })" class="btn btn-primary-sep shadow-sm">Nuevo Cuatrimestre</a>
+                <a href="@Url.Action("CreateCuatrimestre", "Coordinador", new { tab = "tab-cuatrimestre" })" class="btn btn-primary-sep shadow-sm">Nuevo Cuatrimestre</a>
             </div>
 
             <div class="table-responsive">
@@ -684,7 +695,7 @@
                                     <span class="badge @(item.IsActive ? "status-aceptado" : "status-rechazado") text-xxs px-2 py-1">@(item.IsActive ? "Sí" : "No")</span>
                                 </td>
                                 <td class="text-end px-3">
-                                    <a href="@Url.Action("EditCuatrimestre", "Coordinador", new { id = item.Id, tab = "tab-flujo-modulos" })" class="btn btn-sm btn-ghost-sep text-primary px-2"><i class="bi bi-pencil"></i></a>
+                                    <a href="@Url.Action("EditCuatrimestre", "Coordinador", new { id = item.Id, tab = "tab-cuatrimestre" })" class="btn btn-sm btn-ghost-sep text-primary px-2"><i class="bi bi-pencil"></i></a>
                                     <button type="button" class="btn btn-sm btn-ghost-sep text-danger px-2" onclick="deleteCuatrimestre(@item.Id)"><i class="bi bi-trash"></i></button>
                                 </td>
                             </tr>
@@ -693,6 +704,13 @@
                 </table>
             </div>
         </div>
+    </div>
+
+    <div id="tab-config-modulos" class="tab-content-pane" style="display:@(activeTab == "tab-config-modulos" ? "block" : "none");">
+        <div class="bg-surface p-4 rounded-4 border-theme shadow-sm mb-4">
+            <h5 class="txt-title fw-bold mb-1">Configuración por Módulos y Reglas de Paso</h5>
+            <p class="txt-body text-xs mb-0">Define arranque de portal/seguimiento por módulo y las reglas de visibilidad por estatus.</p>
+        </div>
 
         <div class="admin-card-white p-4 rounded-4 border-theme shadow-sm mb-4 bg-white">
             <div class="d-flex justify-content-between align-items-center mb-3">
@@ -700,7 +718,7 @@
                     <h6 class="txt-title fw-bold mb-1">Configuración por Módulo</h6>
                     <p class="txt-body text-xs mb-0">Define cuatrimestre de apertura de portal y de etapa de seguimiento.</p>
                 </div>
-                <a href="@Url.Action("CreateModuleFlowConfig", "Coordinador", new { tab = "tab-flujo-modulos" })" class="btn btn-primary-sep shadow-sm">Nueva Configuración</a>
+                <a href="@Url.Action("CreateModuleFlowConfig", "Coordinador", new { tab = "tab-config-modulos" })" class="btn btn-primary-sep shadow-sm">Nueva Configuración</a>
             </div>
 
             <div class="table-responsive">
@@ -721,7 +739,7 @@
                                 <td>@item.PortalStartCuatrimestre</td>
                                 <td>@item.TrackingStartCuatrimestre</td>
                                 <td class="text-end px-3">
-                                    <a href="@Url.Action("EditModuleFlowConfig", "Coordinador", new { id = item.Id, tab = "tab-flujo-modulos" })" class="btn btn-sm btn-ghost-sep text-primary px-2"><i class="bi bi-pencil"></i></a>
+                                    <a href="@Url.Action("EditModuleFlowConfig", "Coordinador", new { id = item.Id, tab = "tab-config-modulos" })" class="btn btn-sm btn-ghost-sep text-primary px-2"><i class="bi bi-pencil"></i></a>
                                     <button type="button" class="btn btn-sm btn-ghost-sep text-danger px-2" onclick="deleteModuleFlowConfig(@item.Id)"><i class="bi bi-trash"></i></button>
                                 </td>
                             </tr>
@@ -737,7 +755,7 @@
                     <h6 class="txt-title fw-bold mb-1">Reglas de Paso por Estatus</h6>
                     <p class="txt-body text-xs mb-0">Controla visibilidad de cada paso usando cuatrimestre mínimo y lista de estatus permitidos.</p>
                 </div>
-                <a href="@Url.Action("CreateModuleStepRule", "Coordinador", new { tab = "tab-flujo-modulos" })" class="btn btn-primary-sep shadow-sm">Nueva Regla</a>
+                <a href="@Url.Action("CreateModuleStepRule", "Coordinador", new { tab = "tab-config-modulos" })" class="btn btn-primary-sep shadow-sm">Nueva Regla</a>
             </div>
 
             <div class="table-responsive">
@@ -762,10 +780,98 @@
                                 <td>@(item.MinCuatrimestre?.ToString() ?? "-")</td>
                                 <td class="text-xs">@(string.IsNullOrWhiteSpace(item.AllowedStatusesCsv) ? "Todos" : item.AllowedStatusesCsv)</td>
                                 <td class="text-end px-3">
-                                    <a href="@Url.Action("EditModuleStepRule", "Coordinador", new { id = item.Id, tab = "tab-flujo-modulos" })" class="btn btn-sm btn-ghost-sep text-primary px-2"><i class="bi bi-pencil"></i></a>
+                                    <a href="@Url.Action("EditModuleStepRule", "Coordinador", new { id = item.Id, tab = "tab-config-modulos" })" class="btn btn-sm btn-ghost-sep text-primary px-2"><i class="bi bi-pencil"></i></a>
                                     <button type="button" class="btn btn-sm btn-ghost-sep text-danger px-2" onclick="deleteModuleStepRule(@item.Id)"><i class="bi bi-trash"></i></button>
                                 </td>
                             </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div id="tab-lugares-dual" class="tab-content-pane" style="display:@(activeTab == "tab-lugares-dual" ? "block" : "none");">
+        <div class="catalog-filter-card mb-4">
+            <h5 class="fw-bold mb-1">Lugar de Apoyo para el Módulo Dual</h5>
+            <p class="text-xs mb-0">Instituciones y empresas disponibles para asignación de estudiantes del módulo dual.</p>
+        </div>
+
+        <div class="catalog-table-card">
+            <div class="table-responsive">
+                <table class="table table-borderless align-middle mb-0">
+                    <thead>
+                        <tr>
+                            <th class="px-4">Nombre</th>
+                            <th>Dirección</th>
+                            <th>Contacto</th>
+                            <th>Correo</th>
+                            <th>Teléfono</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (!dualSupportPlaces.Any())
+                        {
+                            <tr>
+                                <td colspan="5" class="px-4 py-4 text-center text-muted">No hay lugares de apoyo registrados para módulo dual.</td>
+                            </tr>
+                        }
+                        else
+                        {
+                            @foreach (var place in dualSupportPlaces)
+                            {
+                                <tr>
+                                    <td class="px-4 fw-bold txt-title">@place.Name</td>
+                                    <td>@(string.IsNullOrWhiteSpace(place.Address) ? "-" : place.Address)</td>
+                                    <td>@(string.IsNullOrWhiteSpace(place.ContactName) ? "-" : place.ContactName)</td>
+                                    <td>@(string.IsNullOrWhiteSpace(place.Email) ? "-" : place.Email)</td>
+                                    <td>@(string.IsNullOrWhiteSpace(place.Phone) ? "-" : place.Phone)</td>
+                                </tr>
+                            }
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div id="tab-lugares-ss" class="tab-content-pane" style="display:@(activeTab == "tab-lugares-ss" ? "block" : "none");">
+        <div class="catalog-filter-card mb-4">
+            <h5 class="fw-bold mb-1">Lugar de Apoyo para Servicio Social</h5>
+            <p class="text-xs mb-0">Instituciones y dependencias disponibles para asignación de estudiantes de servicio social.</p>
+        </div>
+
+        <div class="catalog-table-card">
+            <div class="table-responsive">
+                <table class="table table-borderless align-middle mb-0">
+                    <thead>
+                        <tr>
+                            <th class="px-4">Nombre</th>
+                            <th>Dirección</th>
+                            <th>Contacto</th>
+                            <th>Correo</th>
+                            <th>Teléfono</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (!socialSupportPlaces.Any())
+                        {
+                            <tr>
+                                <td colspan="5" class="px-4 py-4 text-center text-muted">No hay lugares de apoyo registrados para servicio social.</td>
+                            </tr>
+                        }
+                        else
+                        {
+                            @foreach (var place in socialSupportPlaces)
+                            {
+                                <tr>
+                                    <td class="px-4 fw-bold txt-title">@place.Name</td>
+                                    <td>@(string.IsNullOrWhiteSpace(place.Address) ? "-" : place.Address)</td>
+                                    <td>@(string.IsNullOrWhiteSpace(place.ContactName) ? "-" : place.ContactName)</td>
+                                    <td>@(string.IsNullOrWhiteSpace(place.Email) ? "-" : place.Email)</td>
+                                    <td>@(string.IsNullOrWhiteSpace(place.Phone) ? "-" : place.Phone)</td>
+                                </tr>
+                            }
                         }
                     </tbody>
                 </table>
@@ -1118,6 +1224,11 @@
             // Navegación entre pestañas
             // =============================================================
             function setActiveTab(tabId) {
+                const tabExists = $(`.nav-tab-item[data-target="#${tabId}"]`).length > 0;
+                if (!tabExists) {
+                    tabId = 'tab-personas';
+                }
+
                 $('.nav-tab-item').removeClass('active');
                 $(`.nav-tab-item[data-target="#${tabId}"]`).addClass('active');
                 $('.tab-content-pane').hide();
@@ -1686,7 +1797,7 @@
                 })
                 .then(r => {
                     if (!r.ok) throw new Error('No fue posible eliminar el cuatrimestre');
-                    window.location.href = '@Url.Action("Catalogos", "Coordinador", new { tab = "tab-flujo-modulos" })';
+                    window.location.href = '@Url.Action("Catalogos", "Coordinador", new { tab = "tab-cuatrimestre" })';
                 })
                 .catch(err => alert(err.message));
             };
@@ -1700,7 +1811,7 @@
                 })
                 .then(r => {
                     if (!r.ok) throw new Error('No fue posible eliminar la configuración');
-                    window.location.href = '@Url.Action("Catalogos", "Coordinador", new { tab = "tab-flujo-modulos" })';
+                    window.location.href = '@Url.Action("Catalogos", "Coordinador", new { tab = "tab-config-modulos" })';
                 })
                 .catch(err => alert(err.message));
             };
@@ -1714,7 +1825,7 @@
                 })
                 .then(r => {
                     if (!r.ok) throw new Error('No fue posible eliminar la regla');
-                    window.location.href = '@Url.Action("Catalogos", "Coordinador", new { tab = "tab-flujo-modulos" })';
+                    window.location.href = '@Url.Action("Catalogos", "Coordinador", new { tab = "tab-config-modulos" })';
                 })
                 .catch(err => alert(err.message));
             };

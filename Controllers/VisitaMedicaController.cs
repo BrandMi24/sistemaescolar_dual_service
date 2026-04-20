@@ -48,9 +48,9 @@ namespace ControlEscolar.Controllers
                             viewModel.Users.Add(new UserDetalle
                             {
                                 Id = (int)reader["Id"],
-                                Nombre = reader["Nombre"].ToString(),
-                                Email = reader["Email"].ToString(),
-                                Rol = reader["Rol"].ToString()
+                                Nombre = reader["Nombre"].ToString() ?? string.Empty,
+                                Email = reader["Email"].ToString() ?? string.Empty,
+                                Rol = reader["Rol"].ToString() ?? string.Empty
                             });
                         }
                     }
@@ -265,9 +265,9 @@ namespace ControlEscolar.Controllers
                         {
                             lista.Add(new VisitaMedica
                             {
-                                Matricula = reader["Matricula"].ToString(),
-                                NombreCompleto = reader["NombreCompleto"].ToString(),
-                                Carrera = reader["Carrera"].ToString(),
+                                Matricula = reader["Matricula"].ToString() ?? string.Empty,
+                                NombreCompleto = reader["NombreCompleto"].ToString() ?? string.Empty,
+                                Carrera = reader["Carrera"].ToString() ?? string.Empty,
                                 FechaVisita = (DateTime)reader["FechaVisita"]
                             });
                         }

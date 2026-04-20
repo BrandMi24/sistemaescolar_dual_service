@@ -9,7 +9,7 @@ namespace ControlEscolar.Models
     {
         [Key]
         public int id_tramite { get; set; }
-        public string nombre_tramite { get; set; }
+        public string nombre_tramite { get; set; } = string.Empty;
     }
 
     [Table("CE_TramitesRequisitos", Schema = "dbo")]
@@ -21,7 +21,7 @@ namespace ControlEscolar.Models
         public string nombre_documento { get; set; } = "";
 
         [ForeignKey("id_tramite")]
-        public virtual Cat_Tramites Categoria { get; set; }
+        public virtual Cat_Tramites Categoria { get; set; } = null!;
     }
 
     [Table("CE_TramitesSolicitud", Schema = "dbo")]
@@ -40,16 +40,16 @@ namespace ControlEscolar.Models
 
         public string tramites_solicitud_estatus { get; set; } = "Pendiente";
         public string tramites_solicitud_archivo_path { get; set; } = "";
-        public string tramites_solicitud_observaciones { get; set; }
+        public string tramites_solicitud_observaciones { get; set; } = string.Empty;
 
         [NotMapped]
         public int grado_solicitud { get; set; }
 
         [NotMapped]
-        public string grupo_solicitud { get; set; }
+        public string grupo_solicitud { get; set; } = string.Empty;
 
         [ForeignKey("id_tramite")]
-        public virtual Cat_Tramites Categoria { get; set; }
+        public virtual Cat_Tramites Categoria { get; set; } = null!;
     }
 
     [Table("CE_TramitesDetalleDocumentos", Schema = "dbo")]

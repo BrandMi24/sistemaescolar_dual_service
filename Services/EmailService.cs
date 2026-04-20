@@ -15,11 +15,25 @@ namespace ControlEscolar.Services
 
         public async Task EnviarAsync(string destinatario, string asunto, string cuerpo)
         {
+            var remitente = _config["Email:Remitente"];
+            var nombreRemitente = _config["Email:NombreRemitente"] ?? "Control Escolar";
+            var host = _config["Email:Host"];
+            var puertoRaw = _config["Email:Puerto"];
+            var password = _config["Email:Password"];
+
+            if (string.IsNullOrWhiteSpace(remitente) ||
+                string.IsNullOrWhiteSpace(host) ||
+                string.IsNullOrWhiteSpace(puertoRaw) ||
+                string.IsNullOrWhiteSpace(password))
+            {
+                throw new InvalidOperationException("Configuracion de correo incompleta en appsettings (Email:*).");
+            }
+
             var email = new MimeMessage();
 
             email.From.Add(new MailboxAddress(
-                _config["Email:NombreRemitente"],
-                _config["Email:Remitente"]
+                nombreRemitente,
+                remitente
             ));
 
             email.To.Add(MailboxAddress.Parse(destinatario));
@@ -48,14 +62,14 @@ namespace ControlEscolar.Services
             using var smtp = new SmtpClient();
 
             await smtp.ConnectAsync(
-                _config["Email:Host"],
-                int.Parse(_config["Email:Puerto"]!),
+                host,
+                int.Parse(puertoRaw),
                 SecureSocketOptions.StartTls
             );
 
             await smtp.AuthenticateAsync(
-                _config["Email:Remitente"],
-                _config["Email:Password"]
+                remitente,
+                password
             );
 
             await smtp.SendAsync(email);

@@ -1,6 +1,7 @@
 ﻿@{
     ViewData["Title"] = "Resumen de Actividades";
     Layout = "_LayoutMaestro";
+    var displayName = User.Identity?.Name ?? "Maestro";
 }
 
 <div class="d-flex flex-column gap-4 fade-in" style="min-height: 82vh;">
@@ -8,7 +9,7 @@
     <div class="bg-surface p-4 rounded-4 border border-light shadow-sm">
         <h5 class="txt-primary-dark fw-bold mb-1 text-uppercase tracking-tight">Panel de Control Docente</h5>
         <div class="text-xxs fw-bold text-muted text-uppercase tracking-widest">
-            Bienvenido, @User.Identity.Name • Ciclo Escolar 2026
+            Bienvenido, @displayName • Ciclo Escolar 2026
         </div>
     </div>
 

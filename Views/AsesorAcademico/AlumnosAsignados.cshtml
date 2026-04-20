@@ -23,6 +23,13 @@
         </div>
     }
 
+    <!-- HEADER -->
+    <div class="d-flex flex-column gap-2">
+        <h1 class="txt-title fw-bold mb-0">Mis Estudiantes Asignados</h1>
+        <p class="text-muted text-sm mb-0">Gestiona y supervisa el progreso de tus estudiantes</p>
+    </div>
+
+    <!-- FILTERS -->
     <div class="bg-surface p-4 rounded-4 border-theme shadow-sm d-flex flex-column flex-xl-row justify-content-between align-items-xl-center gap-3">
         <form method="get" class="d-flex flex-column flex-md-row gap-3 flex-grow-1 w-100" style="max-width: 1000px;">
             <div class="position-relative search-wrapper flex-grow-1">
@@ -48,13 +55,14 @@
         </form>
     </div>
 
+    <!-- TABLE -->
     <div class="admin-card-white p-0 rounded-4 border-theme shadow-sm overflow-hidden d-flex flex-column">
         <div class="table-responsive bg-surface">
-            <table class="table table-borderless align-middle mb-0" style="min-width: 1000px;">
+            <table class="table table-borderless align-middle mb-0" style="min-width: 1100px;">
                 <thead class="admin-table-header">
                     <tr>
                         <th class="py-3 px-4">Estudiante</th>
-                        <th class="py-3">Programa / Org.</th>
+                        <th class="py-3">Programa</th>
                         <th class="py-3 text-center">Estado</th>
                         <th class="py-3 text-center">Horas / Progreso</th>
                         <th class="py-3 text-end px-4">Acciones</th>
@@ -96,30 +104,56 @@
                         <tr class="border-bottom border-theme hover-bg-app data-row">
                             <td class="px-4 py-3">
                                 <div class="d-flex align-items-center gap-3">
-                                    <div class="avatar-md avatar-sm bg-accent-light txt-primary-dark fw-bold flex-shrink-0">@row.Initials</div>
+                                    <div class="avatar-md bg-primary-light text-primary fw-bold flex-shrink-0 d-flex align-items-center justify-content-center">
+                                        @row.Initials
+                                    </div>
                                     <div>
                                         <div class="txt-title fw-bold text-sm mb-1">@row.StudentName</div>
-                                        <div class="txt-body text-xs">Mat: @row.Matricula</div>
+                                        <div class="txt-body text-xs">
+                                            <i class="bi bi-shield-check me-1"></i> @row.Matricula
+                                        </div>
                                     </div>
                                 </div>
                             </td>
                             <td>
                                 <div class="txt-title fw-bold text-sm mb-1">@programLabel</div>
-                                <span class="badge bg-app border border-theme txt-title text-xxs px-2 py-1">@row.OrganizationName.ToUpper()</span>
+                                <span class="badge bg-light border border-theme text-dark text-xxs px-2 py-1">
+                                    <i class="bi bi-building me-1"></i> @row.OrganizationName
+                                </span>
                             </td>
                             <td class="text-center">
-                                <span class="badge @statusBadge.Item1 text-xxs px-2 py-1 shadow-sm">@statusBadge.Item2</span>
+                                <span class="badge @statusBadge.Item1 text-xxs px-3 py-2 shadow-sm">@statusBadge.Item2</span>
                             </td>
                             <td class="text-center">
-                                <div class="txt-title fw-bold text-sm mb-1">@row.ApprovedHours / @row.RequiredHours hrs</div>
-                                <div class="progress" style="height: 6px; width: 100px; margin: 0 auto; background-color: var(--bg-main);">
-                                    <div class="progress-bar bg-primary-900" style="width: @row.ProgressPercent%"></div>
+                                <div class="txt-title fw-bold text-sm mb-2">@row.ApprovedHours.ToString("F1") / @row.RequiredHours hrs</div>
+                                <div class="d-flex align-items-center gap-2 justify-content-center">
+                                    <div class="progress flex-grow-1" style="height: 6px; width: 80px; background-color: var(--bg-main);">
+                                        <div class="progress-bar bg-primary" style="width: @row.ProgressPercent%"></div>
+                                    </div>
+                                    <span class="text-xs text-muted fw-bold">@row.ProgressPercent%</span>
                                 </div>
                             </td>
                             <td class="text-end px-4">
-                                <a href="@Url.Action("Seguimiento", "Tutor", new { assignmentId = row.AssignmentId })" class="btn btn-sm btn-ghost-sep px-2 py-1 text-body" title="Ver seguimiento">
-                                    <i class="bi bi-eye"></i>
-                                </a>
+                                <div class="btn-group btn-group-sm" role="group">
+                                    <a href="@Url.Action("BitacoraSeguimiento", new { assignmentId = row.AssignmentId })" 
+                                       class="btn btn-outline-primary" 
+                                       title="Ver bitácora de seguimiento" 
+                                       data-bs-toggle="tooltip">
+                                        <i class="bi bi-clock-history"></i>
+                                    </a>
+                                    <a href="@Url.Action("RevisionDocumentos")" 
+                                       class="btn btn-outline-warning" 
+                                       title="Revisar documentos" 
+                                       data-bs-toggle="tooltip">
+                                        <i class="bi bi-file-earmark"></i>
+                                    </a>
+                                    <a href="@Url.Action("Evaluaciones")" 
+                                       class="btn btn-outline-success" 
+                                       title="Evaluar estudiante" 
+                                       data-bs-toggle="tooltip">
+                                        <i class="bi bi-graph-up"></i>
+                                    </a>
+                                </div>
                             </td>
                         </tr>
                     }
@@ -129,7 +163,10 @@
         @if (Model.Any())
         {
             <div class="p-3 border-top border-theme bg-app d-flex justify-content-between align-items-center">
-                <span class="txt-body text-xs">@Model.Count estudiante(s) encontrado(s)</span>
+                <span class="txt-body text-xs">
+                    <i class="bi bi-info-circle me-1"></i>
+                    @Model.Count estudiante(s) encontrado(s)
+                </span>
             </div>
         }
     </div>

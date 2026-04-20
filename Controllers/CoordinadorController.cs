@@ -76,6 +76,23 @@ namespace ControlEscolar.Controllers
                 .ThenBy(x => x.Id)
                 .ToListAsync();
 
+            ViewBag.DualSupportPlaces = await _context.OperationalOrganizations
+                .AsNoTracking()
+                .Where(x => x.Status && x.Type == ProgramTypes.PRACTICAS_PROFESIONALES)
+                .OrderBy(x => x.Name)
+                .ToListAsync();
+
+            ViewBag.SocialSupportPlaces = await _context.OperationalOrganizations
+                .AsNoTracking()
+                .Where(x => x.Status && x.Type == ProgramTypes.SERVICIO_SOCIAL)
+                .OrderBy(x => x.Name)
+                .ToListAsync();
+
+            if (string.Equals(tab, "tab-flujo-modulos", StringComparison.OrdinalIgnoreCase))
+            {
+                tab = "tab-cuatrimestre";
+            }
+
             ViewBag.ActiveTab = string.IsNullOrWhiteSpace(tab) ? "tab-personas" : tab;
             return View();
         }
@@ -105,7 +122,7 @@ namespace ControlEscolar.Controllers
         public IActionResult CreateCuatrimestre(string? tab = null)
         {
             ViewBag.IsEdit = false;
-            ViewBag.ReturnTab = string.IsNullOrWhiteSpace(tab) ? "tab-flujo-modulos" : tab;
+            ViewBag.ReturnTab = string.IsNullOrWhiteSpace(tab) ? "tab-cuatrimestre" : tab;
             return View(new CuatrimestreCatalogViewModel());
         }
 
@@ -113,7 +130,7 @@ namespace ControlEscolar.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> CreateCuatrimestre(CuatrimestreCatalogViewModel model, string? returnTab = null)
         {
-            returnTab = string.IsNullOrWhiteSpace(returnTab) ? "tab-flujo-modulos" : returnTab;
+            returnTab = string.IsNullOrWhiteSpace(returnTab) ? "tab-cuatrimestre" : returnTab;
             await _moduleFlowConfigurationService.EnsureInfrastructureAsync();
 
             if (await _context.CuatrimestresCatalog.AnyAsync(x => x.Status && x.Number == model.Number))
@@ -154,7 +171,7 @@ namespace ControlEscolar.Controllers
             }
 
             ViewBag.IsEdit = true;
-            ViewBag.ReturnTab = string.IsNullOrWhiteSpace(tab) ? "tab-flujo-modulos" : tab;
+            ViewBag.ReturnTab = string.IsNullOrWhiteSpace(tab) ? "tab-cuatrimestre" : tab;
 
             return View("CreateCuatrimestre", new CuatrimestreCatalogViewModel
             {
@@ -169,7 +186,7 @@ namespace ControlEscolar.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> EditCuatrimestre(CuatrimestreCatalogViewModel model, string? returnTab = null)
         {
-            returnTab = string.IsNullOrWhiteSpace(returnTab) ? "tab-flujo-modulos" : returnTab;
+            returnTab = string.IsNullOrWhiteSpace(returnTab) ? "tab-cuatrimestre" : returnTab;
             await _moduleFlowConfigurationService.EnsureInfrastructureAsync();
 
             if (!model.Id.HasValue)
@@ -230,7 +247,7 @@ namespace ControlEscolar.Controllers
             await _moduleFlowConfigurationService.EnsureInfrastructureAsync();
 
             ViewBag.IsEdit = false;
-            ViewBag.ReturnTab = string.IsNullOrWhiteSpace(tab) ? "tab-flujo-modulos" : tab;
+            ViewBag.ReturnTab = string.IsNullOrWhiteSpace(tab) ? "tab-config-modulos" : tab;
             return View(new ModuleFlowConfigViewModel());
         }
 
@@ -238,7 +255,7 @@ namespace ControlEscolar.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> CreateModuleFlowConfig(ModuleFlowConfigViewModel model, string? returnTab = null)
         {
-            returnTab = string.IsNullOrWhiteSpace(returnTab) ? "tab-flujo-modulos" : returnTab;
+            returnTab = string.IsNullOrWhiteSpace(returnTab) ? "tab-config-modulos" : returnTab;
             await _moduleFlowConfigurationService.EnsureInfrastructureAsync();
 
             if (await _context.OperationalModuleFlowConfigs.AnyAsync(x => x.Status && x.ModuleType == model.ModuleType))
@@ -279,7 +296,7 @@ namespace ControlEscolar.Controllers
             }
 
             ViewBag.IsEdit = true;
-            ViewBag.ReturnTab = string.IsNullOrWhiteSpace(tab) ? "tab-flujo-modulos" : tab;
+            ViewBag.ReturnTab = string.IsNullOrWhiteSpace(tab) ? "tab-config-modulos" : tab;
 
             return View("CreateModuleFlowConfig", new ModuleFlowConfigViewModel
             {
@@ -294,7 +311,7 @@ namespace ControlEscolar.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> EditModuleFlowConfig(ModuleFlowConfigViewModel model, string? returnTab = null)
         {
-            returnTab = string.IsNullOrWhiteSpace(returnTab) ? "tab-flujo-modulos" : returnTab;
+            returnTab = string.IsNullOrWhiteSpace(returnTab) ? "tab-config-modulos" : returnTab;
             await _moduleFlowConfigurationService.EnsureInfrastructureAsync();
 
             if (!model.Id.HasValue)
@@ -350,7 +367,7 @@ namespace ControlEscolar.Controllers
             await PopulateModuleStepRuleFormDataAsync();
 
             ViewBag.IsEdit = false;
-            ViewBag.ReturnTab = string.IsNullOrWhiteSpace(tab) ? "tab-flujo-modulos" : tab;
+            ViewBag.ReturnTab = string.IsNullOrWhiteSpace(tab) ? "tab-config-modulos" : tab;
             return View(new ModuleStepRuleViewModel());
         }
 
@@ -358,7 +375,7 @@ namespace ControlEscolar.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> CreateModuleStepRule(ModuleStepRuleViewModel model, string? returnTab = null)
         {
-            returnTab = string.IsNullOrWhiteSpace(returnTab) ? "tab-flujo-modulos" : returnTab;
+            returnTab = string.IsNullOrWhiteSpace(returnTab) ? "tab-config-modulos" : returnTab;
             await _moduleFlowConfigurationService.EnsureInfrastructureAsync();
 
             if (!ModelState.IsValid)
@@ -400,7 +417,7 @@ namespace ControlEscolar.Controllers
             await PopulateModuleStepRuleFormDataAsync(entity.ModuleType);
 
             ViewBag.IsEdit = true;
-            ViewBag.ReturnTab = string.IsNullOrWhiteSpace(tab) ? "tab-flujo-modulos" : tab;
+            ViewBag.ReturnTab = string.IsNullOrWhiteSpace(tab) ? "tab-config-modulos" : tab;
 
             return View("CreateModuleStepRule", new ModuleStepRuleViewModel
             {
@@ -419,7 +436,7 @@ namespace ControlEscolar.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> EditModuleStepRule(ModuleStepRuleViewModel model, string? returnTab = null)
         {
-            returnTab = string.IsNullOrWhiteSpace(returnTab) ? "tab-flujo-modulos" : returnTab;
+            returnTab = string.IsNullOrWhiteSpace(returnTab) ? "tab-config-modulos" : returnTab;
             await _moduleFlowConfigurationService.EnsureInfrastructureAsync();
 
             if (!model.Id.HasValue)
@@ -833,6 +850,16 @@ namespace ControlEscolar.Controllers
             try
             {
                 var roles = await _repo.GetRolesAsync();
+
+                if (!model.PersonId.HasValue || !model.UserId.HasValue)
+                {
+                    ModelState.AddModelError("", "IDs de usuario/persona no válidos.");
+                    ViewBag.Roles = roles;
+                    ViewBag.AvailableStudents = await GetAvailableStudentsForAccountAsync(model.PersonId);
+                    ViewBag.IsEdit = true;
+                    ViewBag.ReturnTab = returnTab;
+                    return View("CreateUser", model);
+                }
 
                 int targetPersonId = model.PersonId.Value;
 
@@ -1461,6 +1488,11 @@ namespace ControlEscolar.Controllers
             if (string.IsNullOrWhiteSpace(model.StatusCode))
                 model.StatusCode = "INSCRITO";
 
+            if (!model.StudentId.HasValue || !model.PersonId.HasValue)
+            {
+                ModelState.AddModelError("", "IDs de alumno/persona no válidos.");
+            }
+
             if (!ModelState.IsValid)
             {
                 ViewBag.Careers = await _repo.GetCareersAsync();
@@ -1470,11 +1502,14 @@ namespace ControlEscolar.Controllers
                 return View("CreateStudent", model);
             }
 
+            var studentId = model.StudentId!.Value;
+            var personId = model.PersonId!.Value;
+
             try
             {
                 var oldStudentResult = await _repo.ExecuteStoredProcedureAsync(
                     "getview_student_full",
-                    new Dictionary<string, object> { { "@ID", model.StudentId } },
+                    new Dictionary<string, object> { { "@ID", studentId } },
                     ModelMappers.MapToStudent
                 );
 
@@ -1489,7 +1524,7 @@ namespace ControlEscolar.Controllers
                     await _repo.ExecuteNonQueryAsync("management_studentcareer_history_insert",
                         new Dictionary<string, object>
                         {
-                            { "@StudentCareerHistory_StudentID", model.StudentId },
+                            { "@StudentCareerHistory_StudentID", studentId },
                             { "@StudentCareerHistory_CareerID", model.CareerId },
                             { "@StudentCareerHistory_StartDate", DateTime.Now },
                             { "@StudentCareerHistory_EndDate", DBNull.Value },
@@ -1502,7 +1537,7 @@ namespace ControlEscolar.Controllers
                     await _repo.ExecuteNonQueryAsync("management_studentgroup_history_insert",
                         new Dictionary<string, object>
                         {
-                            { "@StudentGroupHistory_StudentID", model.StudentId },
+                            { "@StudentGroupHistory_StudentID", studentId },
                             { "@StudentGroupHistory_GroupID", model.GroupId ?? (object)DBNull.Value },
                             { "@StudentGroupHistory_StartDate", DateTime.Now },
                             { "@StudentGroupHistory_EndDate", DBNull.Value },
@@ -1512,7 +1547,7 @@ namespace ControlEscolar.Controllers
 
                 await _repo.ExecuteNonQueryAsync("management_person_update", new Dictionary<string, object>
                 {
-                    { "@ID", model.PersonId },
+                            { "@ID", personId },
                     { "@FirstName", model.FirstName },
                     { "@LastNamePaternal", model.LastNamePaternal },
                     { "@LastNameMaternal", (object?)model.LastNameMaternal ?? DBNull.Value },
@@ -1523,19 +1558,19 @@ namespace ControlEscolar.Controllers
 
                 await _repo.ExecuteNonQueryAsync("management_student_update", new Dictionary<string, object>
                 {
-                    { "@ID", model.StudentId },
+                    { "@ID", studentId },
                     { "@StudentCareerID", model.CareerId },
                     { "@StudentGroupID", model.GroupId ?? (object)DBNull.Value },
                     { "@Student_StatusCode", model.StatusCode }
                 });
 
-                if (pasaAInscrito && model.StudentId.HasValue)
+                if (pasaAInscrito)
                 {
                     await _repo.ExecuteStoredProcedureAsync(
                         "management_student_assign_matricula",
                         new Dictionary<string, object>
                         {
-                            { "@ID", model.StudentId.Value },
+                            { "@ID", studentId },
                             { "@Student_StatusCode", "INSCRITO" }
                         },
                         r => 0
@@ -1988,7 +2023,7 @@ namespace ControlEscolar.Controllers
             {
                 await _repo.ExecuteNonQueryAsync("management_person_update", new Dictionary<string, object>
                 {
-                    { "@ID", model.PersonId },
+                    { "@ID", model.PersonId ?? (object)DBNull.Value },
                     { "@FirstName", model.FirstName },
                     { "@LastNamePaternal", model.LastNamePaternal },
                     { "@LastNameMaternal", (object?)model.LastNameMaternal ?? DBNull.Value },
@@ -1998,7 +2033,7 @@ namespace ControlEscolar.Controllers
 
                 await _repo.ExecuteNonQueryAsync("management_teacher_update", new Dictionary<string, object>
                 {
-                    { "@ID", model.TeacherId },
+                    { "@ID", model.TeacherId ?? (object)DBNull.Value },
                     { "@EmployeeNumber", (object?)model.EmployeeNumber ?? DBNull.Value },
                     { "@Teacher_StatusCode", string.IsNullOrWhiteSpace(model.StatusCode) ? "ACTIVO" : model.StatusCode }
                 });
@@ -2422,8 +2457,8 @@ namespace ControlEscolar.Controllers
             {
                 await _repo.ExecuteNonQueryAsync("management_group_update", new Dictionary<string, object>
                 {
-                    { "@ID", model.Id },
-                    { "@GroupCareerID", model.CareerId },
+                    { "@ID", model.Id ?? (object)DBNull.Value },
+                    { "@GroupCareerID", model.CareerId ?? (object)DBNull.Value },
                     { "@GroupCode", model.GroupCode },
                     { "@GroupName", model.GroupName },
                     { "@GroupShift", model.Shift }
@@ -2881,7 +2916,7 @@ namespace ControlEscolar.Controllers
             {
                 await _repo.ExecuteNonQueryAsync("management_role_update", new Dictionary<string, object>
                 {
-                    { "@ID", model.RoleId },
+                    { "@ID", model.RoleId ?? (object)DBNull.Value },
                     { "@RoleName", model.RoleName },
                     { "@RoleDescription", (object?)model.RoleDescription ?? DBNull.Value }
                 });
@@ -2969,7 +3004,7 @@ namespace ControlEscolar.Controllers
                 .Include(x => x.Program)
                 .Include(x => x.Organization)
                 .Include(x => x.Teacher)
-                    .ThenInclude(x => x.Person)
+                    .ThenInclude(x => x != null ? x.Person : null)
                 .Where(x => x.Status));
 
             if (!string.IsNullOrWhiteSpace(module))

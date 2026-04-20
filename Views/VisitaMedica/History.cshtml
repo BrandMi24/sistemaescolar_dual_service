@@ -138,7 +138,7 @@
                                                 <div class="bg-surface p-3 rounded-4 border border-theme h-100 shadow-sm">
                                                     <span class="section-label d-block mb-2">Alergias</span>
                                                     <div class="text-sm fw-bold @(visita.TieneAlergias ? "txt-error" : "txt-title")">
-                                                        @(visita.TieneAlergias ? visita.EspecificarAlergia.ToUpper() : "NINGUNA REPORTADA")
+                                                        @(visita.TieneAlergias ? (visita.EspecificarAlergia ?? "NO ESPECIFICADA").ToUpper() : "NINGUNA REPORTADA")
                                                     </div>
                                                 </div>
                                             </div>

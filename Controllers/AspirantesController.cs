@@ -245,10 +245,10 @@ namespace ControlEscolar.Controllers
             academiccontrol_inscription_state = e.academiccontrol_inscription_state,
 
             // Datos personales mapeados desde la preinscripción
-            academiccontrol_preinscription_personaldata_name = e.Preinscripcion?.DatosPersonales?.academiccontrol_preinscription_personaldata_name,
-            academiccontrol_preinscription_personaldata_paternalSurname = e.Preinscripcion?.DatosPersonales?.academiccontrol_preinscription_personaldata_paternalSurname,
-            academiccontrol_preinscription_personaldata_CURP = e.Preinscripcion?.DatosPersonales?.academiccontrol_preinscription_personaldata_CURP,
-            academiccontrol_preinscription_personaldata_email = e.Preinscripcion?.DatosPersonales?.academiccontrol_preinscription_personaldata_email
+            academiccontrol_preinscription_personaldata_name = e.Preinscripcion?.DatosPersonales?.academiccontrol_preinscription_personaldata_name ?? string.Empty,
+            academiccontrol_preinscription_personaldata_paternalSurname = e.Preinscripcion?.DatosPersonales?.academiccontrol_preinscription_personaldata_paternalSurname ?? string.Empty,
+            academiccontrol_preinscription_personaldata_CURP = e.Preinscripcion?.DatosPersonales?.academiccontrol_preinscription_personaldata_CURP ?? string.Empty,
+            academiccontrol_preinscription_personaldata_email = e.Preinscripcion?.DatosPersonales?.academiccontrol_preinscription_personaldata_email ?? string.Empty
         };
     }
 }

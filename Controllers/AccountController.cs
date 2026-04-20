@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using System.Data;
+using System.Globalization;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
@@ -61,7 +62,8 @@ namespace ControlEscolar.Controllers
             }
 
             // Validar contraseña
-            if (!VerifyPassword(model.Password, user.management_user_PasswordHash))
+            if (string.IsNullOrWhiteSpace(user.management_user_PasswordHash) ||
+                !VerifyPassword(model.Password, user.management_user_PasswordHash))
             {
                 ModelState.AddModelError("", "Contraseña incorrecta");
                 return View(model);
@@ -81,7 +83,8 @@ namespace ControlEscolar.Controllers
 
             // Roles
             var roles = await GetUserRoles(user.management_user_ID);
-            foreach (var role in roles)
+            var expandedRoles = ExpandRoles(roles);
+            foreach (var role in expandedRoles)
             {
                 claims.Add(new Claim(ClaimTypes.Role, role));
             }
@@ -93,13 +96,13 @@ namespace ControlEscolar.Controllers
                 new ClaimsPrincipal(identity));
 
             // PRIORIDAD: returnUrl solo si es compatible con el rol autenticado.
-            if (!string.IsNullOrEmpty(returnUrl) && IsReturnUrlAllowedForRoles(returnUrl, roles))
+            if (!string.IsNullOrEmpty(returnUrl) && IsReturnUrlAllowedForRoles(returnUrl, expandedRoles))
             {
                 return LocalRedirect(returnUrl);
             }
 
             // REDIRECCIÓN DINÁMICA
-            var (controller, action) = RoleRedirectHelper.GetRedirect(roles);
+            var (controller, action) = RoleRedirectHelper.GetRedirect(expandedRoles);
 
             return RedirectToAction(action, controller);
         }
@@ -197,6 +200,31 @@ namespace ControlEscolar.Controllers
             return roles;
         }
 
+        private static List<string> ExpandRoles(IEnumerable<string> roles)
+        {
+            var expanded = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+            foreach (var role in roles.Where(r => !string.IsNullOrWhiteSpace(r)))
+            {
+                var trimmed = role.Trim();
+                expanded.Add(trimmed);
+
+                var compact = RemoveRoleSeparators(RemoveDiacritics(trimmed));
+                if (!string.IsNullOrWhiteSpace(compact))
+                    expanded.Add(compact);
+
+                var normalized = RemoveRoleSeparators(RemoveDiacritics(trimmed)).ToUpperInvariant();
+                if (normalized == "ASESORACADEMICO" || normalized == "ACADEMICSUPERVISOR")
+                {
+                    expanded.Add("AsesorAcademico");
+                    expanded.Add("Asesor");
+                    expanded.Add("AcademicSupervisor");
+                }
+            }
+
+            return expanded.ToList();
+        }
+
         private static bool IsReturnUrlAllowedForRoles(string returnUrl, List<string> roles)
         {
             if (string.IsNullOrWhiteSpace(returnUrl))
@@ -204,7 +232,7 @@ namespace ControlEscolar.Controllers
                 return false;
             }
 
-            var normalizedRoles = new HashSet<string>(roles.Select(r => r.ToUpperInvariant()));
+            var normalizedRoles = new HashSet<string>(roles.Select(r => RemoveRoleSeparators(RemoveDiacritics(r)).ToUpperInvariant()));
             if (normalizedRoles.Contains("ADMIN") || normalizedRoles.Contains("MASTER") || normalizedRoles.Contains("ADMINISTRATOR"))
             {
                 return true;
@@ -216,6 +244,11 @@ namespace ControlEscolar.Controllers
                 return normalizedRoles.Contains("COORDINADOR")
                     || normalizedRoles.Contains("COORDINADORDUAL")
                     || normalizedRoles.Contains("COORDINADORSERVICIOSOCIAL");
+            }
+
+            if (url.StartsWith("/AsesorAcademico", StringComparison.OrdinalIgnoreCase))
+            {
+                return normalizedRoles.Contains("ASESORACADEMICO");
             }
 
             if (url.StartsWith("/Docente", StringComparison.OrdinalIgnoreCase))
@@ -231,6 +264,29 @@ namespace ControlEscolar.Controllers
 
             // Home/u otras rutas públicas
             return true;
+        }
+
+        private static string RemoveDiacritics(string text)
+        {
+            var normalized = text.Normalize(NormalizationForm.FormD);
+            var builder = new StringBuilder(normalized.Length);
+
+            foreach (var ch in normalized)
+            {
+                if (CharUnicodeInfo.GetUnicodeCategory(ch) != UnicodeCategory.NonSpacingMark)
+                {
+                    builder.Append(ch);
+                }
+            }
+
+            return builder.ToString().Normalize(NormalizationForm.FormC);
+        }
+
+        private static string RemoveRoleSeparators(string text)
+        {
+            return text.Replace(" ", string.Empty)
+                       .Replace("_", string.Empty)
+                       .Replace("-", string.Empty);
         }
     }
 }

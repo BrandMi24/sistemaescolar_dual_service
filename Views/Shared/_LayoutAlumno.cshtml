@@ -44,7 +44,7 @@
     <nav class="alumno-app-bar py-2 px-3 d-flex justify-content-between align-items-center">
         
         <div class="d-flex align-items-center gap-2">
-            @if (ViewData["ShowBackButton"] != null && (bool)ViewData["ShowBackButton"])
+            @if (ViewData["ShowBackButton"] is bool showBackButton && showBackButton)
             {
                 <a href="@Url.Action("Index", "Alumno")" class="btn btn-link text-white p-0 me-2 text-decoration-none shadow-none">
                     <i class="bi bi-arrow-left fs-4"></i>
