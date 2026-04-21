@@ -11,7 +11,7 @@
 <div class="fade-in">
     @if (TempData["SuccessMessage"] != null)
     {
-        <div class="alert-box-sep mb-4 shadow-sm border-theme alert-dismissible fade show" role="alert">
+        <div class="alert bg-success bg-opacity-10 border border-success text-success rounded-3 alert-dismissible fade show shadow-sm mb-4" role="alert">
             <i class="bi bi-check-circle-fill me-2"></i> @TempData["SuccessMessage"]
             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         </div>
@@ -19,7 +19,7 @@
 
     @if (TempData["ErrorMessage"] != null)
     {
-        <div class="alert-box-sep mb-4 shadow-sm border-theme alert-dismissible fade show" role="alert">
+        <div class="alert bg-danger-100 border border-danger text-danger rounded-3 alert-dismissible fade show shadow-sm mb-4" role="alert">
             <i class="bi bi-exclamation-circle-fill me-2"></i> @TempData["ErrorMessage"]
             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         </div>
@@ -253,17 +253,17 @@
 <!-- Modal Horas Manual -->
 <div class="modal fade" id="modalHorasManual" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content border-theme shadow-sm rounded-4 overflow-hidden bg-surface">
+        <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden bg-white">
             <form asp-action="AsignarHorasManual" asp-controller="AsesorAcademico" method="post">
                 @Html.AntiForgeryToken()
                 <input type="hidden" id="manualAssignmentId" name="assignmentId" value="" />
-                <div class="modal-header border-bottom border-theme p-4">
+                <div class="modal-header bg-surface border-bottom border-theme p-4">
                     <h5 class="modal-title txt-title fw-bold">
                         <i class="bi bi-clock-history me-2 text-primary"></i> Asignar Horas Manualmente
                     </h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
-                <div class="modal-body p-4">
+                <div class="modal-body p-4 bg-white">
                     <div class="bg-white p-3 rounded-3 border border-theme mb-4">
                         <div class="txt-body text-xxs fw-bold mb-1">ESTUDIANTE</div>
                         <div class="txt-title fw-bold" id="manualStudentName">—</div>
@@ -285,7 +285,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="modal-footer border-top border-theme bg-app p-3">
+                <div class="modal-footer border-top border-theme bg-surface p-3">
                     <button type="button" class="btn btn-ghost-sep" data-bs-dismiss="modal">Cancelar</button>
                     <button type="submit" class="btn btn-primary-sep bg-primary-900 shadow-sm text-white px-4">
                         Guardar Horas
@@ -299,17 +299,17 @@
 <!-- Modal Rechazo Horas -->
 <div class="modal fade" id="modalRechazarHoras" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content border-theme shadow-sm rounded-4 overflow-hidden bg-surface">
+        <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden bg-white">
             <form asp-action="RechazarHorasPendientes" asp-controller="AsesorAcademico" method="post">
                 @Html.AntiForgeryToken()
                 <input type="hidden" id="rechazoAssignmentId" name="assignmentId" value="" />
-                <div class="modal-header border-bottom border-theme p-4">
+                <div class="modal-header bg-surface border-bottom border-theme p-4">
                     <h5 class="modal-title txt-title fw-bold">
                         <i class="bi bi-exclamation-circle-fill me-2 text-danger"></i> Rechazar Reportes Pendientes
                     </h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
-                <div class="modal-body p-4">
+                <div class="modal-body p-4 bg-white">
                     <div class="bg-white p-3 rounded-3 border border-theme mb-4">
                         <div class="txt-body text-xxs fw-bold mb-1">ESTUDIANTE</div>
                         <div class="txt-title fw-bold" id="rechazoStudentName">—</div>
@@ -318,7 +318,7 @@
                     <textarea name="comments" class="form-control bg-app border-theme text-sm" rows="4" required
                               placeholder="Explica al alumno qué debe corregir en su bitácora/reporte semanal..."></textarea>
                 </div>
-                <div class="modal-footer border-top border-theme bg-app p-3">
+                <div class="modal-footer border-top border-theme bg-surface p-3">
                     <button type="button" class="btn btn-ghost-sep" data-bs-dismiss="modal">Cancelar</button>
                     <button type="submit" class="btn btn-primary-sep bg-danger text-white shadow-sm px-4">
                         Rechazar Reportes

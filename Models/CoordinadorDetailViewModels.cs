@@ -65,6 +65,7 @@ public class CoordinadorTeacherDetailViewModel
     public int PendingDocuments { get; set; }
     public int EvaluationsCount { get; set; }
     public decimal CompletionRate { get; set; }
+    public bool IsAcademicAdvisorRole { get; set; }
     public List<CoordinadorTeacherStudentRowViewModel> AssignedStudents { get; set; } = new();
 }
 

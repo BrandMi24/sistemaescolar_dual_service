@@ -2305,6 +2305,7 @@ namespace ControlEscolar.Controllers
             var completedStudents = assignments.Count(x => x.Program.RequiredHours > 0 && x.ApprovedHours >= x.Program.RequiredHours);
             var completionRate = totalStudents > 0 ? Math.Round((decimal)completedStudents / totalStudents * 100m, 1) : 0m;
             var pendingHours = assignments.Sum(x => Math.Max(0m, x.Program.RequiredHours - x.ApprovedHours));
+            var isAcademicAdvisorRole = await TeacherHasAcademicAdvisorRoleAsync(id);
 
             ViewBag.ModuleScopeLabel = GetModuleScopeLabel(null);
 
@@ -2323,6 +2324,7 @@ namespace ControlEscolar.Controllers
                 PendingDocuments = pendingDocs,
                 EvaluationsCount = assignments.Count(x => x.EvaluationScore.HasValue),
                 CompletionRate = completionRate,
+                IsAcademicAdvisorRole = isAcademicAdvisorRole,
                 AssignedStudents = assignments.Select(x => new CoordinadorTeacherStudentRowViewModel
                 {
                     AssignmentId = x.Id,
@@ -2347,6 +2349,11 @@ namespace ControlEscolar.Controllers
         [HttpGet]
         public async Task<IActionResult> GetAssignableStudents(int teacherId)
         {
+            if (!await TeacherHasAcademicAdvisorRoleAsync(teacherId))
+            {
+                return Json(new { data = new object[0], error = "Solo se pueden asignar alumnos a docentes con rol de asesor académico." });
+            }
+
             var assignments = await FilterAssignmentsByCurrentModule(
                     _context.OperationalStudentAssignments
                         .AsNoTracking()
@@ -2392,6 +2399,12 @@ namespace ControlEscolar.Controllers
             if (!teacherExists)
             {
                 TempData["ErrorMessage"] = "No se encontró el docente seleccionado.";
+                return RedirectToAction("TeacherDetail", new { id = teacherId });
+            }
+
+            if (!await TeacherHasAcademicAdvisorRoleAsync(teacherId))
+            {
+                TempData["ErrorMessage"] = "Solo puedes asignar alumnos a docentes con rol de asesor académico.";
                 return RedirectToAction("TeacherDetail", new { id = teacherId });
             }
 
@@ -3823,6 +3836,70 @@ namespace ControlEscolar.Controllers
             }
 
             return null;
+        }
+
+        private async Task<bool> TeacherHasAcademicAdvisorRoleAsync(int teacherId)
+        {
+            if (teacherId <= 0)
+            {
+                return false;
+            }
+
+            var roles = await _repo.ExecuteQueryAsync(
+                @"SELECT DISTINCT RoleName
+                  FROM (
+                      SELECT r.management_role_Name AS RoleName
+                      FROM dbo.management_teacher_table t
+                      INNER JOIN dbo.management_person_table p
+                          ON p.management_person_ID = t.management_teacher_PersonID
+                      INNER JOIN dbo.management_user_table u
+                          ON u.management_user_PersonID = p.management_person_ID
+                         AND u.management_user_status = 1
+                      INNER JOIN dbo.management_userrole_table ur
+                          ON ur.management_userrole_UserID = u.management_user_ID
+                         AND ur.management_userrole_status = 1
+                      INNER JOIN dbo.management_role_table r
+                          ON r.management_role_ID = ur.management_userrole_RoleID
+                         AND r.management_role_status = 1
+                      WHERE t.management_teacher_ID = @TeacherId
+                        AND t.management_teacher_status = 1
+
+                      UNION ALL
+
+                      SELECT r2.management_role_Name AS RoleName
+                      FROM dbo.management_teacher_table t
+                      INNER JOIN dbo.management_person_table p
+                          ON p.management_person_ID = t.management_teacher_PersonID
+                      INNER JOIN dbo.management_user_table u
+                          ON u.management_user_PersonID = p.management_person_ID
+                         AND u.management_user_status = 1
+                      INNER JOIN dbo.management_role_table r2
+                          ON r2.management_role_ID = u.management_user_RoleID
+                         AND r2.management_role_status = 1
+                      WHERE t.management_teacher_ID = @TeacherId
+                        AND t.management_teacher_status = 1
+                        AND u.management_user_RoleID IS NOT NULL
+                  ) AS rolesRaw;",
+                new Dictionary<string, object>
+                {
+                    { "@TeacherId", teacherId }
+                },
+                reader => (Management.GetValue<string>(reader, "RoleName") ?? string.Empty).Trim());
+
+            return roles
+                .Where(x => !string.IsNullOrWhiteSpace(x))
+                .Select(NormalizeRoleName)
+                .Any(x => x == "ASESORACADEMICO" || x == "ACADEMICSUPERVISOR");
+        }
+
+        private static string NormalizeRoleName(string roleName)
+        {
+            return (roleName ?? string.Empty)
+                .Trim()
+                .Replace(" ", string.Empty, StringComparison.Ordinal)
+                .Replace("_", string.Empty, StringComparison.Ordinal)
+                .Replace("-", string.Empty, StringComparison.Ordinal)
+                .ToUpperInvariant();
         }
 
         private string GetModuleScopeLabel(string? module)

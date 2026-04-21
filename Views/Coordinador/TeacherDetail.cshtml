@@ -5,12 +5,36 @@
 
     var statusBadgeClass = Model.IsActive ? "status-aceptado" : "status-rechazado";
     var moduleScopeLabel = ViewBag.ModuleScopeLabel as string ?? "Todos los módulos";
+    var canAssignToAdvisorRole = Model.IsAcademicAdvisorRole;
     string ModuleLabel(string programType) => programType == "SERVICIO_SOCIAL" ? "Servicio Social" : "Módulo Dual";
 }
 
-<div class="container-fluid d-flex flex-column gap-4 p-0 fade-in">
+<div class="d-flex flex-column gap-4 fade-in">
 
-    <div class="bg-surface p-4 rounded-4 border-theme shadow-sm d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert bg-success bg-opacity-10 border border-success text-success rounded-3 alert-dismissible fade show shadow-sm" role="alert">
+            <i class="bi bi-check-circle-fill me-2"></i> @TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert bg-danger-100 border border-danger text-danger rounded-3 alert-dismissible fade show shadow-sm" role="alert">
+            <i class="bi bi-exclamation-circle-fill me-2"></i> @TempData["ErrorMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <div class="catalog-filter-card">
+        <div class="d-flex flex-column gap-2">
+            <h1 class="txt-title fw-bold mb-0">Detalle de Profesor</h1>
+            <p class="text-muted text-sm mb-0">Vista consolidada de asignaciones con el diseño del panel global de asesoría académica.</p>
+        </div>
+    </div>
+
+    <div class="catalog-filter-card d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
         <div>
             <h3 class="txt-title fw-bold mb-1">@Model.FullName</h3>
             <div class="d-flex align-items-center gap-3 mt-2 txt-body text-xs">
@@ -32,7 +56,7 @@
         </div>
     </div>
 
-    <div class="admin-card-white p-4 rounded-4 border-0 shadow-sm bg-white">
+    <div class="catalog-filter-card p-4">
         <h6 class="txt-title fw-bold text-xs text-uppercase tracking-widest mb-4 border-bottom border-light pb-2">
             Resumen de Carga Laboral
         </h6>
@@ -64,12 +88,21 @@
         </div>
     </div>
 
-    <div class="admin-card-white p-0 rounded-4 border-theme shadow-sm overflow-hidden mt-2 bg-white">
+    <div class="catalog-table-card p-0 overflow-hidden mt-2">
         <div class="bg-surface p-3 border-bottom border-theme d-flex justify-content-between align-items-center">
             <h6 class="txt-title fw-bold mb-0">Estudiantes Asignados (@Model.AssignedStudents.Count)</h6>
-            <button type="button" class="btn btn-sm btn-primary-sep bg-primary-900 text-white fw-semibold" data-bs-toggle="modal" data-bs-target="#assignStudentsModal">
-                Asignar Estudiantes
-            </button>
+            @if (canAssignToAdvisorRole)
+            {
+                <button type="button" class="btn btn-sm btn-primary-sep bg-primary-900 text-white fw-semibold" data-bs-toggle="modal" data-bs-target="#assignStudentsModal">
+                    Asignar Estudiantes
+                </button>
+            }
+            else
+            {
+                <button type="button" class="btn btn-sm btn-outline-secondary fw-semibold" disabled title="Solo docentes con rol Asesor Académico pueden recibir asignaciones.">
+                    Asignar Estudiantes
+                </button>
+            }
         </div>
         <div class="table-responsive">
             <table class="table align-middle mb-0">
@@ -141,6 +174,15 @@
             </div>
             
             <div class="modal-body p-4 bg-white">
+                @if (!canAssignToAdvisorRole)
+                {
+                    <div class="alert bg-warning bg-opacity-10 border border-warning rounded-3 text-dark mb-0">
+                        <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                        Este docente no tiene rol de asesor académico. Solo ese rol puede recibir alumnos.
+                    </div>
+                }
+                else
+                {
                 <div class="row g-3 mb-4">
                     <div class="col-md-4">
                         <label class="text-xxs fw-bold text-muted text-uppercase mb-2 d-block">Buscar Alumno</label>
@@ -199,6 +241,7 @@
                         </div>
                     </div>
                 </form>
+                }
             </div>
         </div>
     </div>
@@ -224,9 +267,14 @@
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             const teacherId = @Model.TeacherId;
+            const canAssignToAdvisorRole = @Model.IsAcademicAdvisorRole.ToString().ToLowerInvariant();
             const assignEndpoint = '@Url.Action("GetAssignableStudents", "Coordinador")';
             const tableBody = document.getElementById('assignStudentsTableBody');
             let rowsCache = [];
+
+            if (!canAssignToAdvisorRole) {
+                return;
+            }
 
             function getTeacherLabel(id) {
                 if (!id) {
@@ -296,6 +344,9 @@
                     }
 
                     const payload = await response.json();
+                    if (payload.error) {
+                        throw new Error(payload.error);
+                    }
                     rowsCache = payload.data || [];
                     applyFilters();
                 } catch (error) {
@@ -316,7 +367,6 @@
             }
 
             // Checkbox individuales
-            const tableBody = document.getElementById('assignStudentsTableBody');
             if(tableBody) {
                 tableBody.addEventListener('change', function (e) {
                     if (e.target.classList.contains('assign-check')) {
