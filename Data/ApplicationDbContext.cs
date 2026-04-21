@@ -394,6 +394,8 @@ namespace ControlEscolar.Data
                 entity.Property(e => e.academiccontrol_inscription_ticketconfig_updatedDate)
                       .HasColumnName("academiccontrol_inscription_ticketconfig_updatedDate")
                       .HasDefaultValueSql("GETDATE()");
+                entity.Property(e => e.academiccontrol_inscription_ticketconfig_inscriptionLimit)
+      .HasColumnName("academiccontrol_inscription_ticketconfig_inscriptionLimit");
             });
 
             //  PERIODO INSCRIPCION 

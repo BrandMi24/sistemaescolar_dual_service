@@ -1,4 +1,4 @@
-﻿using MailKit.Net.Smtp;
+using MailKit.Net.Smtp;
 using MailKit.Security;
 using MimeKit;
 
@@ -15,6 +15,16 @@ namespace ControlEscolar.Services
 
         public async Task EnviarAsync(string destinatario, string asunto, string cuerpo)
         {
+            await EnviarInternamente(destinatario, asunto, cuerpo, null, null);
+        }
+
+        public async Task EnviarConAdjuntoAsync(string destinatario, string asunto, string cuerpo, byte[] adjunto, string nombreArchivo)
+        {
+            await EnviarInternamente(destinatario, asunto, cuerpo, adjunto, nombreArchivo);
+        }
+
+        private async Task EnviarInternamente(string destinatario, string asunto, string cuerpo, byte[]? adjunto, string? nombreArchivo)
+        {
             var remitente = _config["Email:Remitente"];
             var nombreRemitente = _config["Email:NombreRemitente"] ?? "Control Escolar";
             var host = _config["Email:Host"];
@@ -30,16 +40,14 @@ namespace ControlEscolar.Services
             }
 
             var email = new MimeMessage();
-
             email.From.Add(new MailboxAddress(
                 nombreRemitente,
                 remitente
             ));
-
             email.To.Add(MailboxAddress.Parse(destinatario));
             email.Subject = asunto;
 
-            email.Body = new TextPart("html")
+            var html = new TextPart("html")
             {
                 Text = $@"
                 <!DOCTYPE html>
@@ -59,8 +67,27 @@ namespace ControlEscolar.Services
                 </html>"
             };
 
-            using var smtp = new SmtpClient();
+            if (adjunto != null && nombreArchivo != null)
+            {
+                var multipart = new Multipart("mixed");
+                multipart.Add(html);
 
+                var attachment = new MimePart("application", "pdf")
+                {
+                    Content = new MimeContent(new MemoryStream(adjunto)),
+                    ContentDisposition = new ContentDisposition(ContentDisposition.Attachment),
+                    ContentTransferEncoding = ContentEncoding.Base64,
+                    FileName = nombreArchivo
+                };
+                multipart.Add(attachment);
+                email.Body = multipart;
+            }
+            else
+            {
+                email.Body = html;
+            }
+
+            using var smtp = new SmtpClient();
             await smtp.ConnectAsync(
                 host,
                 int.Parse(puertoRaw),

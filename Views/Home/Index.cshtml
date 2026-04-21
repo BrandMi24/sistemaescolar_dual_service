@@ -11,7 +11,7 @@
 
 <div class="container pb-5" style="max-width: 1100px;">
 
-    <div class="bg-white rounded-4 p-4 shadow-sm border border-light mb-5 d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-4">
+   @*  <div class="bg-white rounded-4 p-4 shadow-sm border border-light mb-5 d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-4">
         <div class="d-flex align-items-start gap-3">
             <i class="bi bi-info-circle text-warning fs-3"></i>
             <div>
@@ -26,7 +26,7 @@
                 VER REQUISITOS
             </button>
         </div>
-    </div>
+    </div> *@
 
     <div class="row g-4">
 
@@ -99,6 +99,36 @@
         </div>
 
     </div>
+
+    <!-- Tarjeta: Corrección de Documentos -->
+    <div class="row g-4 mt-2">
+        <div class="col-12">
+            <div class="bg-white d-flex flex-column flex-md-row align-items-md-center gap-4 p-4 p-lg-5 rounded-4 shadow-sm border border-light border-start-0 position-relative" style="border-left: 4px solid #e53e3e !important;">
+                <div class="flex-shrink-0 text-center">
+                    <div style="width:56px;height:56px;background:#fff5f5;border-radius:14px;display:flex;align-items:center;justify-content:center;">
+                        <i class="bi bi-exclamation-triangle-fill" style="font-size:1.5rem;color:#c53030;"></i>
+                    </div>
+                </div>
+                <div class="flex-grow-1">
+                    <div class="d-flex align-items-center gap-3 mb-1">
+                        <h5 class="fw-bold m-0 text-dark">Corrección de Documentos</h5>
+                        <span class="badge text-xxs fw-bold px-2 py-1" style="background:#fff5f5;color:#c53030;border:1px solid #feb2b2;">ACCIÓN REQUERIDA</span>
+                    </div>
+                    <p class="text-muted mb-0 text-sm fw-medium" style="line-height:1.6;max-width:600px;">
+                        ¿Recibiste un correo indicando que uno de tus documentos necesita corrección? Ingresa aquí con tu <strong>Folio</strong> y <strong>CURP</strong> para subir el archivo corregido.
+                    </p>
+                </div>
+                <div class="flex-shrink-0">
+                    <a asp-controller="Aspirantes" asp-action="AccesoCorreccion"
+                       class="btn fw-bold text-xxs tracking-widest px-4 py-3 rounded-3"
+                       style="background:#c53030;color:white;border:none;white-space:nowrap;">
+                        <i class="bi bi-cloud-arrow-up me-2"></i>CORREGIR DOCUMENTO
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
 
     <div class="text-center mt-5 py-4 border-top border-light">
         <p class="text-muted fw-bold text-xxs tracking-widest mb-0 opacity-50 uppercase">

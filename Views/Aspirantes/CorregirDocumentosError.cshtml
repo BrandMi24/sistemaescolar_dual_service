@@ -1,0 +1,57 @@
+@model string
+
+@{
+    ViewData["Title"] = "Error — Corrección de Documentos";
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Error — ITC Control Escolar</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #0f2922 0%, #1a4a3e 50%, #13322B 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+        .error-card {
+            background: white;
+            border-radius: 16px;
+            padding: 2.5rem 2rem;
+            max-width: 480px;
+            width: 100%;
+            text-align: center;
+            box-shadow: 0 25px 60px rgba(0,0,0,0.3);
+        }
+        .error-icon {
+            width: 72px; height: 72px;
+            background: #fff5f5;
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            margin: 0 auto 1.25rem;
+            color: #c53030;
+            font-size: 2rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="error-card">
+        <div class="error-icon"><i class="bi bi-exclamation-triangle-fill"></i></div>
+        <h1 style="font-size:1.1rem; font-weight:700; color:#1a202c; margin-bottom:0.5rem;">No fue posible acceder</h1>
+        <p style="font-size:0.875rem; color:#718096; margin-bottom:1.5rem;">@Model</p>
+        <p style="font-size:0.75rem; color:#a0aec0;">
+            Si crees que esto es un error, contacta a Control Escolar directamente.
+        </p>
+    </div>
+</body>
+</html>

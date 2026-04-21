@@ -32,7 +32,25 @@ namespace ControlEscolar.Controllers
             return View(entidades.Select(e => MapToViewModel(e)).ToList());
         }
 
-        [Authorize]
+        //[Authorize]
+        //public async Task<IActionResult> Details(int? id, string? returnUrl = null)
+        //{
+        //    if (id == null) return NotFound();
+
+        //    var entidad = await _context.Preinscripciones
+        //        .Include(p => p.DatosPersonales)
+        //        .Include(p => p.Domicilio)
+        //        .Include(p => p.Tutor)
+        //        .Include(p => p.DatosEscolares)
+        //        .Include(p => p.Salud)
+        //        .FirstOrDefaultAsync(p => p.academiccontrol_preinscription_ID == id);
+
+        //    if (entidad == null) return NotFound();
+
+        //    ViewBag.ReturnUrl = returnUrl;
+        //    return View(MapToViewModel(entidad));
+        //}
+
         public async Task<IActionResult> Details(int? id)
         {
             if (id == null) return NotFound();
@@ -46,6 +64,13 @@ namespace ControlEscolar.Controllers
                 .FirstOrDefaultAsync(p => p.academiccontrol_preinscription_ID == id);
 
             if (entidad == null) return NotFound();
+
+            // Detectar de dónde viene
+            var referer = Request.Headers["Referer"].ToString();
+            if (referer.Contains("ControlEscolar") || referer.Contains("Historial"))
+                ViewBag.ReturnUrl = referer;
+            else
+                ViewBag.ReturnUrl = Url.Action("Index", "Home");
 
             return View(MapToViewModel(entidad));
         }

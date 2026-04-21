@@ -93,8 +93,8 @@
             }
 
             <div class="d-flex justify-content-between mt-4">
-                <a asp-controller="Home" asp-action="Index" class="btn btn-ghost-sep px-4">
-                    <i class="bi bi-house me-2"></i> Volver al Inicio
+                <a href="@ViewBag.ReturnUrl" class="btn btn-ghost-sep px-4">
+                    <i class="bi bi-arrow-left me-2"></i> Volver
                 </a>
 @*                 <a asp-controller="Inscripciones" asp-action="DescargarFicha" asp-route-id="@Model.academiccontrol_inscription_ID"
                    class="btn btn-primary-sep px-4">
