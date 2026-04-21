@@ -6,12 +6,15 @@ public class AsesorAlumnoRowViewModel
     public string StudentName { get; set; } = string.Empty;
     public string Initials { get; set; } = "?";
     public string Matricula { get; set; } = "N/A";
+    public string AdvisorName { get; set; } = "Sin asesor";
     public string ProgramName { get; set; } = string.Empty;
     public string ProgramType { get; set; } = string.Empty;
     public string OrganizationName { get; set; } = "Sin organización";
     public string StatusCode { get; set; } = string.Empty;
     public decimal ApprovedHours { get; set; }
     public int RequiredHours { get; set; }
+    public bool IsEvaluated { get; set; }
+    public DateTime CreatedDate { get; set; }
     public int ProgressPercent => RequiredHours > 0
         ? (int)Math.Min(100, Math.Round((ApprovedHours / RequiredHours) * 100m))
         : 0;
@@ -23,6 +26,8 @@ public class AsesorDocumentoRowViewModel
     public int AssignmentId { get; set; }
     public string StudentName { get; set; } = string.Empty;
     public string Matricula { get; set; } = "N/A";
+    public string AdvisorName { get; set; } = "Sin asesor";
+    public string ProgramType { get; set; } = string.Empty;
     public string Title { get; set; } = string.Empty;
     public string DocumentType { get; set; } = string.Empty;
     public string? FilePath { get; set; }
@@ -37,8 +42,10 @@ public class AsesorEvaluacionRowViewModel
     public string StudentName { get; set; } = string.Empty;
     public string Initials { get; set; } = "?";
     public string Matricula { get; set; } = "N/A";
+    public string AdvisorName { get; set; } = "Sin asesor";
     public string ProgramName { get; set; } = string.Empty;
     public string ProgramType { get; set; } = string.Empty;
+    public decimal TotalHours { get; set; }
     public decimal ApprovedHours { get; set; }
     public int RequiredHours { get; set; }
     public int ProgressPercent => RequiredHours > 0
@@ -47,7 +54,12 @@ public class AsesorEvaluacionRowViewModel
     public decimal? EvaluationScore { get; set; }
     public string? EvaluationNotes { get; set; }
     public string StatusCode { get; set; } = string.Empty;
+    public int TotalReports { get; set; }
+    public int PendingReports { get; set; }
+    public int ApprovedReports { get; set; }
     public bool IsEvaluated => EvaluationScore.HasValue;
+    public bool HasPendingReports => PendingReports > 0;
+    public bool ReadyForEvaluation => !IsEvaluated && !HasPendingReports && TotalReports > 0 && ProgressPercent >= 80;
 }
 
 public class AsesorEvaluacionesPageViewModel
@@ -72,6 +84,7 @@ public class AsesorDashboardViewModel
     public int Evaluated { get; set; }
     public decimal AverageHours { get; set; }
     public int PendingDocuments { get; set; }
+    public List<AsesorAlumnoRowViewModel> Students { get; set; } = new();
     public List<AsesorAlumnoRowViewModel> RecentStudents { get; set; } = new();
 }
 
@@ -107,6 +120,7 @@ public class AsesorSeguimientoViewModel
     public int StudentId { get; set; }
     public string StudentName { get; set; } = string.Empty;
     public string Matricula { get; set; } = "N/A";
+    public string AdvisorName { get; set; } = "Sin asesor";
     public string CareerCode { get; set; } = "N/A";
     public string GroupCode { get; set; } = "N/A";
     public string ProgramName { get; set; } = string.Empty;

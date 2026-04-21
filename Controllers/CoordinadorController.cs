@@ -23,7 +23,7 @@ using System.Threading.Tasks;
 
 namespace ControlEscolar.Controllers
 {
-    [Authorize(Roles = "Coordinador,CoordinadorServicioSocial,CoordinadorDual,Admin,ADMIN,Administrator,Master")]
+    [Authorize(Roles = "COORDINADOR,ADMIN")]
     public class CoordinadorController : Controller
     {
         private readonly ApplicationDbContext _context;
@@ -488,6 +488,156 @@ namespace ControlEscolar.Controllers
             entity.UpdatedDate = DateTime.Now;
             await _context.SaveChangesAsync();
 
+            return Ok();
+        }
+
+        [HttpGet]
+        public IActionResult CreateSupportPlace(string moduleType, string? tab = null)
+        {
+            var normalizedModuleType = string.Equals(moduleType, ProgramTypes.SERVICIO_SOCIAL, StringComparison.OrdinalIgnoreCase)
+                ? ProgramTypes.SERVICIO_SOCIAL
+                : ProgramTypes.PRACTICAS_PROFESIONALES;
+
+            ViewBag.IsEdit = false;
+            ViewBag.ReturnTab = string.IsNullOrWhiteSpace(tab)
+                ? (normalizedModuleType == ProgramTypes.SERVICIO_SOCIAL ? "tab-lugares-ss" : "tab-lugares-dual")
+                : tab;
+
+            return View(new SupportPlaceViewModel
+            {
+                ModuleType = normalizedModuleType
+            });
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> CreateSupportPlace(SupportPlaceViewModel model, string? returnTab = null)
+        {
+            model.ModuleType = string.Equals(model.ModuleType, ProgramTypes.SERVICIO_SOCIAL, StringComparison.OrdinalIgnoreCase)
+                ? ProgramTypes.SERVICIO_SOCIAL
+                : ProgramTypes.PRACTICAS_PROFESIONALES;
+
+            returnTab = string.IsNullOrWhiteSpace(returnTab)
+                ? (model.ModuleType == ProgramTypes.SERVICIO_SOCIAL ? "tab-lugares-ss" : "tab-lugares-dual")
+                : returnTab;
+
+            if (await _context.OperationalOrganizations.AnyAsync(x => x.Status && x.Type == model.ModuleType && x.Name == model.Name))
+            {
+                ModelState.AddModelError(nameof(model.Name), "Ya existe un lugar de apoyo con ese nombre para el módulo seleccionado.");
+            }
+
+            if (!ModelState.IsValid)
+            {
+                ViewBag.IsEdit = false;
+                ViewBag.ReturnTab = returnTab;
+                return View(model);
+            }
+
+            _context.OperationalOrganizations.Add(new OperationalOrganization
+            {
+                Name = model.Name.Trim(),
+                Type = model.ModuleType,
+                Address = string.IsNullOrWhiteSpace(model.Address) ? null : model.Address.Trim(),
+                ContactName = string.IsNullOrWhiteSpace(model.ContactName) ? null : model.ContactName.Trim(),
+                Email = string.IsNullOrWhiteSpace(model.Email) ? null : model.Email.Trim(),
+                Phone = string.IsNullOrWhiteSpace(model.Phone) ? null : model.Phone.Trim(),
+                Status = true,
+                CreatedDate = DateTime.Now,
+            });
+
+            await _context.SaveChangesAsync();
+            TempData["SuccessMessage"] = "Lugar de apoyo creado correctamente.";
+            return RedirectToAction(nameof(Catalogos), new { tab = returnTab });
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> EditSupportPlace(int id, string? tab = null)
+        {
+            var entity = await _context.OperationalOrganizations
+                .AsNoTracking()
+                .FirstOrDefaultAsync(x => x.Status && x.Id == id);
+
+            if (entity == null)
+            {
+                return NotFound();
+            }
+
+            ViewBag.IsEdit = true;
+            ViewBag.ReturnTab = string.IsNullOrWhiteSpace(tab)
+                ? (entity.Type == ProgramTypes.SERVICIO_SOCIAL ? "tab-lugares-ss" : "tab-lugares-dual")
+                : tab;
+
+            return View("CreateSupportPlace", new SupportPlaceViewModel
+            {
+                Id = entity.Id,
+                Name = entity.Name,
+                ModuleType = entity.Type,
+                Address = entity.Address,
+                ContactName = entity.ContactName,
+                Email = entity.Email,
+                Phone = entity.Phone,
+            });
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> EditSupportPlace(SupportPlaceViewModel model, string? returnTab = null)
+        {
+            model.ModuleType = string.Equals(model.ModuleType, ProgramTypes.SERVICIO_SOCIAL, StringComparison.OrdinalIgnoreCase)
+                ? ProgramTypes.SERVICIO_SOCIAL
+                : ProgramTypes.PRACTICAS_PROFESIONALES;
+
+            returnTab = string.IsNullOrWhiteSpace(returnTab)
+                ? (model.ModuleType == ProgramTypes.SERVICIO_SOCIAL ? "tab-lugares-ss" : "tab-lugares-dual")
+                : returnTab;
+
+            if (!model.Id.HasValue)
+            {
+                return NotFound();
+            }
+
+            if (await _context.OperationalOrganizations.AnyAsync(x => x.Status && x.Id != model.Id.Value && x.Type == model.ModuleType && x.Name == model.Name))
+            {
+                ModelState.AddModelError(nameof(model.Name), "Ya existe un lugar de apoyo con ese nombre para el módulo seleccionado.");
+            }
+
+            if (!ModelState.IsValid)
+            {
+                ViewBag.IsEdit = true;
+                ViewBag.ReturnTab = returnTab;
+                return View("CreateSupportPlace", model);
+            }
+
+            var entity = await _context.OperationalOrganizations.FirstOrDefaultAsync(x => x.Status && x.Id == model.Id.Value);
+            if (entity == null)
+            {
+                return NotFound();
+            }
+
+            entity.Name = model.Name.Trim();
+            entity.Type = model.ModuleType;
+            entity.Address = string.IsNullOrWhiteSpace(model.Address) ? null : model.Address.Trim();
+            entity.ContactName = string.IsNullOrWhiteSpace(model.ContactName) ? null : model.ContactName.Trim();
+            entity.Email = string.IsNullOrWhiteSpace(model.Email) ? null : model.Email.Trim();
+            entity.Phone = string.IsNullOrWhiteSpace(model.Phone) ? null : model.Phone.Trim();
+
+            await _context.SaveChangesAsync();
+            TempData["SuccessMessage"] = "Lugar de apoyo actualizado correctamente.";
+            return RedirectToAction(nameof(Catalogos), new { tab = returnTab });
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteSupportPlace(int id)
+        {
+            var entity = await _context.OperationalOrganizations.FirstOrDefaultAsync(x => x.Status && x.Id == id);
+            if (entity == null)
+            {
+                return NotFound();
+            }
+
+            entity.Status = false;
+            await _context.SaveChangesAsync();
             return Ok();
         }
 

@@ -1,13 +1,17 @@
 @model ControlEscolar.ViewModels.OperationalTracking.AsesorEvaluacionesPageViewModel
 @{
-    ViewData["Title"] = "Evaluaciones Académicas";
-    Layout = "_LayoutTutor";
+    var isGlobalView = ViewBag.IsGlobalAdvisorView is bool flag && flag;
+    var moduleFilter = ViewBag.ModuleFilter as string ?? "";
+    var roleScopedModule = ViewBag.RoleScopedModule as string ?? "";
+    ViewData["Title"] = isGlobalView ? "Evaluaciones Académicas Globales" : "Evaluaciones Académicas";
+    Layout = isGlobalView ? "_LayoutCoordinador" : "_LayoutTutor";
+    var hasAttention = Model.ReadyToEvaluate > 0;
 }
 
-<div class="d-flex flex-column gap-4 fade-in">
+<div class="fade-in">
     @if (TempData["SuccessMessage"] != null)
     {
-        <div class="alert bg-success bg-opacity-10 border border-success text-success rounded-3 alert-dismissible fade show shadow-sm" role="alert">
+        <div class="alert-box-sep mb-4 shadow-sm border-theme alert-dismissible fade show" role="alert">
             <i class="bi bi-check-circle-fill me-2"></i> @TempData["SuccessMessage"]
             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         </div>
@@ -15,85 +19,115 @@
 
     @if (TempData["ErrorMessage"] != null)
     {
-        <div class="alert bg-danger-100 border border-danger text-danger rounded-3 alert-dismissible fade show shadow-sm" role="alert">
+        <div class="alert-box-sep mb-4 shadow-sm border-theme alert-dismissible fade show" role="alert">
             <i class="bi bi-exclamation-circle-fill me-2"></i> @TempData["ErrorMessage"]
             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         </div>
     }
 
-    <div class="row g-4">
-        <div class="col-lg-3">
-            <div class="admin-card-white p-4 rounded-4 border-theme shadow-sm h-100 d-flex flex-column bg-white text-center">
-                <div class="fs-1 fw-bold txt-primary-dark">@Model.TotalStudents</div>
-                <div class="txt-body text-xs fw-bold tracking-wide">ESTUDIANTES ASIGNADOS</div>
-            </div>
-        </div>
-        <div class="col-lg-3">
-            <div class="admin-card-white p-4 rounded-4 border-theme shadow-sm h-100 d-flex flex-column bg-white text-center">
-                <div class="fs-1 fw-bold text-info">@Model.ReadyToEvaluate</div>
-                <div class="txt-body text-xs fw-bold tracking-wide">LISTOS PARA EVALUAR</div>
-            </div>
-        </div>
-        <div class="col-lg-3">
-            <div class="admin-card-white p-4 rounded-4 border-theme shadow-sm h-100 d-flex flex-column bg-white text-center">
-                <div class="fs-1 fw-bold text-success">@Model.Evaluated</div>
-                <div class="txt-body text-xs fw-bold tracking-wide">YA EVALUADOS</div>
-            </div>
-        </div>
-        <div class="col-lg-3">
-            <div class="admin-card-white p-4 rounded-4 border-theme shadow-sm h-100 d-flex flex-column bg-white text-center">
-                <div class="fs-1 fw-bold text-warning">@Model.AverageScore</div>
-                <div class="txt-body text-xs fw-bold tracking-wide">PROMEDIO GENERAL</div>
-            </div>
+    <div class="catalog-filter-card mb-4">
+        <div class="d-flex flex-column gap-2">
+            <h1 class="txt-title fw-bold mb-0">@(isGlobalView ? "Evaluaciones Académicas Globales" : "Evaluaciones Académicas")</h1>
+            <p class="text-muted text-sm mb-0">Revisa bitácoras/reportes semanales, aprueba horas y luego registra la evaluación final.</p>
         </div>
     </div>
 
-    <div class="bg-surface p-4 rounded-4 border-theme shadow-sm d-flex flex-column flex-xl-row justify-content-between align-items-xl-center gap-3">
-        <form method="get" class="d-flex flex-column flex-md-row gap-3 flex-grow-1 w-100" style="max-width: 1000px;">
-            <div class="position-relative search-wrapper flex-grow-1">
-                <i class="bi bi-search position-absolute search-icon-left txt-body"></i>
-                <input type="text" name="search" class="form-control search-input-custom tab-search"
-                       placeholder="Buscar por alumno o matrícula..." value="@Model.SearchText">
+    @if (hasAttention)
+    {
+        <div class="admin-card-white p-3 mb-4 shadow-sm" style="border-left: 4px solid var(--warning-700, #f59e0b) !important; background: linear-gradient(135deg, #fffbeb 0%, #ffffff 100%);">
+            <div class="d-flex align-items-center gap-2 mb-2">
+                <i class="bi bi-bell-fill" style="color: var(--warning-700, #f59e0b); font-size: 1.1rem;"></i>
+                <span class="fw-bold txt-title text-xs text-uppercase tracking-wide">Requiere Atención</span>
+            </div>
+            <div class="d-flex flex-wrap gap-3">
+                <a href="#tablaEvaluaciones" class="d-flex align-items-center gap-2 bg-surface p-2 px-3 rounded-3 border text-decoration-none">
+                    <span class="badge bg-warning text-dark">@Model.ReadyToEvaluate</span>
+                    <span class="text-xs txt-title fw-semibold">sin pendientes y listos para evaluación</span>
+                </a>
+            </div>
+        </div>
+    }
+
+    <div class="catalog-filter-card mb-4">
+        <form method="get" class="row g-3 align-items-end">
+            <div class="col-md-4">
+                <label class="section-label text-muted mb-2 d-block">Buscar Alumno o Matrícula</label>
+                <div class="position-relative search-wrapper">
+                    <i class="bi bi-search position-absolute search-icon-left txt-body"></i>
+                    <input type="text" name="search" class="form-control search-input-custom tab-search"
+                           placeholder="Nombre o matrícula..." value="@Model.SearchText">
+                </div>
             </div>
 
-            <select name="status" class="form-select bg-app border-theme txt-title fw-bold tab-filter" style="width: auto; min-width: 180px;">
-                <option value="">Estado de Evaluación</option>
-                <option value="READY" selected="@(Model.StatusFilter == "READY")">Listos para Evaluar</option>
-                <option value="EVALUATED" selected="@(Model.StatusFilter == "EVALUATED")">Ya Evaluados</option>
-                <option value="PENDING" selected="@(Model.StatusFilter == "PENDING")">Pendientes</option>
-            </select>
+            @if (isGlobalView)
+            {
+                if (string.IsNullOrWhiteSpace(roleScopedModule))
+                {
+                    <div class="col-md-3">
+                        <label class="section-label text-muted mb-2 d-block">Módulo</label>
+                        <select name="module" class="form-select text-sm fw-semibold">
+                            <option value="">Todos los módulos</option>
+                            <option value="PRACTICAS_PROFESIONALES" selected="@(moduleFilter == "PRACTICAS_PROFESIONALES")">Módulo Dual</option>
+                            <option value="SERVICIO_SOCIAL" selected="@(moduleFilter == "SERVICIO_SOCIAL")">Servicio Social</option>
+                        </select>
+                    </div>
+                }
+                else
+                {
+                    <div class="col-md-3">
+                        <label class="section-label text-muted mb-2 d-block">Módulo</label>
+                        <input type="hidden" name="module" value="@roleScopedModule" />
+                        <div class="form-control bg-app fw-semibold">@(roleScopedModule == "PRACTICAS_PROFESIONALES" ? "Módulo Dual" : "Servicio Social")</div>
+                    </div>
+                }
+            }
 
-            <div class="d-flex gap-2 flex-shrink-0">
-                <button type="submit" class="btn btn-primary-sep d-flex align-items-center gap-2 shadow-sm bg-primary-900 text-white">
-                    <i class="bi bi-funnel-fill"></i> Filtrar
+            <div class="col-md-3">
+                <label class="section-label text-muted mb-2 d-block">Estado de Evaluación</label>
+                <select name="status" class="form-select text-sm fw-semibold">
+                    <option value="">Todos</option>
+                    <option value="READY" selected="@(Model.StatusFilter == "READY")">Listos para Evaluar</option>
+                    <option value="PENDING" selected="@(Model.StatusFilter == "PENDING")">Pendientes de Aprobación</option>
+                    <option value="EVALUATED" selected="@(Model.StatusFilter == "EVALUATED")">Ya Evaluados</option>
+                </select>
+            </div>
+
+            <div class="col-md-@(isGlobalView ? "2" : "5") d-flex gap-2 flex-wrap">
+                <button type="submit" class="btn-primary-sep text-xs px-4">
+                    <i class="bi bi-funnel me-2"></i> FILTRAR
                 </button>
-                <a href="@Url.Action("Evaluaciones")" class="btn btn-ghost-sep d-flex align-items-center gap-2 shadow-sm">
-                    <i class="bi bi-x-lg"></i> Limpiar
-                </a>
+                <a href="@Url.Action("Evaluaciones")" class="btn-ghost-sep text-xs px-4 bg-surface">LIMPIAR</a>
             </div>
         </form>
     </div>
 
-    <div class="admin-card-white p-0 rounded-4 border-theme shadow-sm overflow-hidden d-flex flex-column">
-        <div class="table-responsive bg-surface">
-            <table class="table table-borderless align-middle mb-0" style="min-width: 1100px;">
-                <thead class="admin-table-header">
+    <div class="catalog-table-card mb-4" id="tablaEvaluaciones">
+        <div class="table-responsive">
+            <table class="table table-borderless align-middle mb-0" id="tblEvaluaciones" style="min-width: 1200px;">
+                <thead>
                     <tr>
-                        <th class="py-3 px-4">Estudiante</th>
-                        <th class="py-3">Programa</th>
-                        <th class="py-3 text-center">Progreso</th>
-                        <th class="py-3 text-center">Calificación</th>
-                        <th class="py-3 text-center">Estado</th>
-                        <th class="py-3 text-end px-4">Acciones</th>
+                        <th class="px-4">Estudiante</th>
+                        @if (isGlobalView)
+                        {
+                            <th>Asesor</th>
+                        }
+                        <th>Programa</th>
+                        <th class="text-center">Reportes</th>
+                        <th class="text-center">Progreso</th>
+                        <th class="text-center">Calificación</th>
+                        <th class="text-center">Estado</th>
+                        <th class="text-end px-4">Acciones</th>
                     </tr>
                 </thead>
                 <tbody>
                     @if (!Model.Rows.Any())
                     {
                         <tr>
-                            <td colspan="6" class="text-center py-5 txt-body">
-                                <i class="bi bi-graph-up-arrow fs-2 d-block mb-2 opacity-50"></i>
-                                <span>No hay estudiantes para evaluar.</span>
+                            <td colspan="@(isGlobalView ? 8 : 7)">
+                                <div class="catalog-empty">
+                                    <i class="bi bi-graph-up-arrow"></i>
+                                    <span>Sin registros disponibles</span>
+                                </div>
                             </td>
                         </tr>
                     }
@@ -103,7 +137,6 @@
                         {
                             "SERVICIO_SOCIAL" => "Servicio Social",
                             "PRACTICAS_PROFESIONALES" => "Estadías Profesionales",
-                            "DUAL" => "Educación Dual",
                             _ => row.ProgramType
                         };
                         var progressColor = row.ProgressPercent >= 100
@@ -111,11 +144,13 @@
                             : row.ProgressPercent >= 50 ? "bg-primary-900" : "bg-warning";
                         var evalStatus = row.IsEvaluated
                             ? ("status-aceptado", "EVALUADO")
-                            : row.ProgressPercent >= 80
-                                ? ("bg-info text-white", "LISTO")
-                                : ("bg-secondary text-white", "EN PROGRESO");
-                        <tr class="border-bottom border-theme hover-bg-app">
-                            <td class="px-4 py-3">
+                            : row.HasPendingReports
+                                ? ("bg-warning text-dark", "PENDIENTE APROBACIÓN")
+                                : row.ReadyForEvaluation
+                                    ? ("bg-info text-white", "LISTO PARA EVALUAR")
+                                    : ("bg-secondary text-white", "EN PROCESO");
+                        <tr class="data-row">
+                            <td class="px-4">
                                 <div class="d-flex align-items-center gap-3">
                                     <div class="avatar-md avatar-sm bg-accent-light txt-primary-dark fw-bold flex-shrink-0">@row.Initials</div>
                                     <div>
@@ -124,9 +159,19 @@
                                     </div>
                                 </div>
                             </td>
+                            @if (isGlobalView)
+                            {
+                                <td>
+                                    <div class="txt-title fw-bold text-sm">@row.AdvisorName</div>
+                                </td>
+                            }
                             <td>
                                 <div class="txt-title fw-bold text-sm">@programLabel</div>
                                 <div class="txt-body text-xxs">@row.ProgramName</div>
+                            </td>
+                            <td class="text-center">
+                                <div class="txt-title fw-bold text-xxs mb-1">@row.ApprovedReports aprob. / @row.PendingReports pend.</div>
+                                <span class="badge bg-light border border-theme text-dark text-xxs px-2 py-1">Total: @row.TotalReports</span>
                             </td>
                             <td class="text-center">
                                 <div class="txt-title fw-bold text-xxs mb-1">@row.ProgressPercent%</div>
@@ -149,23 +194,36 @@
                                 <span class="badge @evalStatus.Item1 text-xxs px-2 py-1 shadow-sm">@evalStatus.Item2</span>
                             </td>
                             <td class="text-end px-4">
-                                <button class="btn btn-sm @(row.IsEvaluated ? "btn-ghost-sep text-primary" : "btn-primary-sep bg-primary-900 text-white") px-3 shadow-sm"
-                                        data-bs-toggle="modal" data-bs-target="#modalEvaluar"
-                                        data-assignment-id="@row.AssignmentId"
-                                        data-student-name="@row.StudentName"
-                                        data-score="@(row.EvaluationScore?.ToString("F1") ?? "")"
-                                        data-notes="@(row.EvaluationNotes ?? "")">
-                                    @if (row.IsEvaluated)
-                                    {
-                                        <i class="bi bi-pencil-square me-1"></i>
-                                        <span>Editar</span>
-                                    }
-                                    else
-                                    {
-                                        <i class="bi bi-star-fill me-1"></i>
-                                        <span>Evaluar</span>
-                                    }
-                                </button>
+                                <div class="d-flex justify-content-end gap-2">
+                                    <form asp-action="AprobarHorasPendientes" asp-controller="AsesorAcademico" method="post" class="d-inline">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="assignmentId" value="@row.AssignmentId" />
+                                        <button type="submit" class="btn-action btn-action-toggle-on" title="Aprobar reportes y horas" @(row.PendingReports == 0 ? "disabled" : "")>
+                                            <i class="bi bi-check-lg"></i>
+                                        </button>
+                                    </form>
+                                    <button type="button"
+                                            class="btn-action btn-action-delete"
+                                            title="Rechazar reportes pendientes"
+                                            @(row.PendingReports == 0 ? "disabled" : "")
+                                            data-bs-toggle="modal"
+                                            data-bs-target="#modalRechazarHoras"
+                                            data-assignment-id="@row.AssignmentId"
+                                            data-student-name="@row.StudentName">
+                                        <i class="bi bi-x-lg"></i>
+                                    </button>
+                                    <button type="button"
+                                            class="btn-action btn-action-edit"
+                                            title="Asignar horas manualmente"
+                                            data-bs-toggle="modal"
+                                            data-bs-target="#modalHorasManual"
+                                            data-assignment-id="@row.AssignmentId"
+                                            data-student-name="@row.StudentName"
+                                            data-approved-hours="@row.ApprovedHours"
+                                            data-total-hours="@row.TotalHours">
+                                        <i class="bi bi-clock-history"></i>
+                                    </button>
+                                </div>
                             </td>
                         </tr>
                     }
@@ -174,48 +232,96 @@
         </div>
         @if (Model.Rows.Any())
         {
-            <div class="p-3 border-top border-theme bg-app">
-                <span class="txt-body text-xs">@Model.Rows.Count estudiante(s) mostrado(s)</span>
+            <div class="catalog-pagination-bar">
+                <div class="d-flex align-items-center gap-3">
+                    <span class="rows-label">MOSTRAR:</span>
+                    <select id="tblEvaluacionesRpp" class="form-select form-select-sm rows-per-page">
+                        <option value="5">5</option>
+                        <option value="10" selected>10</option>
+                        <option value="20">20</option>
+                    </select>
+                    <div id="tblEvaluacionesCount" class="info-label"></div>
+                </div>
+                <nav aria-label="Paginación evaluaciones asesoría">
+                    <ul class="pagination pagination-sm mb-0" id="tblEvaluacionesPagination"></ul>
+                </nav>
             </div>
         }
     </div>
 </div>
 
-<!-- Modal Evaluar -->
-<div class="modal fade" id="modalEvaluar" tabindex="-1" aria-hidden="true">
+<!-- Modal Horas Manual -->
+<div class="modal fade" id="modalHorasManual" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-theme shadow-sm rounded-4 overflow-hidden bg-surface">
-            <form asp-action="GuardarEvaluacion" asp-controller="AsesorAcademico" method="post">
+            <form asp-action="AsignarHorasManual" asp-controller="AsesorAcademico" method="post">
                 @Html.AntiForgeryToken()
-                <input type="hidden" id="evalAssignmentId" name="assignmentId" value="" />
+                <input type="hidden" id="manualAssignmentId" name="assignmentId" value="" />
                 <div class="modal-header border-bottom border-theme p-4">
                     <h5 class="modal-title txt-title fw-bold">
-                        <i class="bi bi-star-fill me-2 text-primary"></i> Asignar Calificación Final
+                        <i class="bi bi-clock-history me-2 text-primary"></i> Asignar Horas Manualmente
                     </h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body p-4">
                     <div class="bg-white p-3 rounded-3 border border-theme mb-4">
                         <div class="txt-body text-xxs fw-bold mb-1">ESTUDIANTE</div>
-                        <div class="txt-title fw-bold" id="evalStudentName">—</div>
+                        <div class="txt-title fw-bold" id="manualStudentName">—</div>
                     </div>
                     <div class="row g-3">
-                        <div class="col-md-4">
-                            <label class="txt-body text-xs fw-bold tracking-wide mb-2 d-block">CALIFICACIÓN (0-10)</label>
-                            <input type="number" id="evalScore" name="score" class="form-control bg-app border-theme txt-title fw-bold"
-                                   min="0" max="10" step="0.1" placeholder="0.0" required>
+                        <div class="col-md-6">
+                            <label class="txt-body text-xs fw-bold tracking-wide mb-2 d-block">HORAS APROBADAS</label>
+                            <input type="number" id="manualApprovedHours" name="approvedHours" class="form-control bg-app border-theme txt-title fw-bold"
+                                   min="0" step="0.1" placeholder="0.0" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="txt-body text-xs fw-bold tracking-wide mb-2 d-block">HORAS REGISTRADAS</label>
+                            <input type="text" id="manualTotalHours" class="form-control bg-light" readonly>
                         </div>
                         <div class="col-md-12">
                             <label class="txt-body text-xs fw-bold tracking-wide mb-2 d-block">OBSERVACIONES</label>
-                            <textarea id="evalNotes" name="notes" class="form-control bg-app border-theme text-sm" rows="3"
-                                      placeholder="Comentarios sobre el desempeño..."></textarea>
+                            <textarea id="manualNotes" name="comments" class="form-control bg-app border-theme text-sm" rows="3"
+                                      placeholder="Justificación del ajuste manual de horas..."></textarea>
                         </div>
                     </div>
                 </div>
                 <div class="modal-footer border-top border-theme bg-app p-3">
                     <button type="button" class="btn btn-ghost-sep" data-bs-dismiss="modal">Cancelar</button>
                     <button type="submit" class="btn btn-primary-sep bg-primary-900 shadow-sm text-white px-4">
-                        Guardar Evaluación
+                        Guardar Horas
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Rechazo Horas -->
+<div class="modal fade" id="modalRechazarHoras" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-theme shadow-sm rounded-4 overflow-hidden bg-surface">
+            <form asp-action="RechazarHorasPendientes" asp-controller="AsesorAcademico" method="post">
+                @Html.AntiForgeryToken()
+                <input type="hidden" id="rechazoAssignmentId" name="assignmentId" value="" />
+                <div class="modal-header border-bottom border-theme p-4">
+                    <h5 class="modal-title txt-title fw-bold">
+                        <i class="bi bi-exclamation-circle-fill me-2 text-danger"></i> Rechazar Reportes Pendientes
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <div class="bg-white p-3 rounded-3 border border-theme mb-4">
+                        <div class="txt-body text-xxs fw-bold mb-1">ESTUDIANTE</div>
+                        <div class="txt-title fw-bold" id="rechazoStudentName">—</div>
+                    </div>
+                    <label class="txt-body text-xs fw-bold tracking-wide mb-2 d-block">COMENTARIOS *</label>
+                    <textarea name="comments" class="form-control bg-app border-theme text-sm" rows="4" required
+                              placeholder="Explica al alumno qué debe corregir en su bitácora/reporte semanal..."></textarea>
+                </div>
+                <div class="modal-footer border-top border-theme bg-app p-3">
+                    <button type="button" class="btn btn-ghost-sep" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary-sep bg-danger text-white shadow-sm px-4">
+                        Rechazar Reportes
                     </button>
                 </div>
             </form>
@@ -225,13 +331,92 @@
 
 @section Scripts {
     <script>
-        document.getElementById('modalEvaluar').addEventListener('show.bs.modal', function (event) {
+        (function () {
+            var table = document.getElementById('tblEvaluaciones');
+            if (!table) return;
+
+            var rows = Array.from(table.querySelectorAll('tbody tr.data-row'));
+            if (!rows.length) return;
+
+            var pageSize = 10;
+            var page = 1;
+            var total = rows.length;
+
+            var countEl = document.getElementById('tblEvaluacionesCount');
+            var rppEl = document.getElementById('tblEvaluacionesRpp');
+            var paginationEl = document.getElementById('tblEvaluacionesPagination');
+
+            function buildPagination(totalPages) {
+                if (!paginationEl) return;
+                paginationEl.innerHTML = '';
+
+                function createItem(label, targetPage, disabled, active) {
+                    var li = document.createElement('li');
+                    li.className = 'page-item' + (disabled ? ' disabled' : '') + (active ? ' active' : '');
+                    var link = document.createElement('a');
+                    link.className = 'page-link';
+                    link.href = '#';
+                    link.innerHTML = label;
+                    if (!disabled) {
+                        link.addEventListener('click', function (e) {
+                            e.preventDefault();
+                            page = targetPage;
+                            render();
+                        });
+                    }
+                    li.appendChild(link);
+                    paginationEl.appendChild(li);
+                }
+
+                createItem('<i class="bi bi-chevron-left"></i>', Math.max(1, page - 1), page === 1, false);
+                for (var i = 1; i <= totalPages; i++) {
+                    createItem(String(i), i, false, i === page);
+                }
+                createItem('<i class="bi bi-chevron-right"></i>', Math.min(totalPages, page + 1), page === totalPages, false);
+            }
+
+            function render() {
+                var totalPages = Math.max(1, Math.ceil(total / pageSize));
+                if (page > totalPages) page = totalPages;
+
+                var start = (page - 1) * pageSize;
+                var end = Math.min(start + pageSize, total);
+
+                rows.forEach(function (row, index) {
+                    row.style.display = (index >= start && index < end) ? '' : 'none';
+                });
+
+                if (countEl) {
+                    countEl.textContent = (start + 1) + ' - ' + end + ' DE ' + total;
+                }
+
+                buildPagination(totalPages);
+            }
+
+            if (rppEl) {
+                rppEl.addEventListener('change', function () {
+                    pageSize = parseInt(rppEl.value, 10);
+                    page = 1;
+                    render();
+                });
+            }
+
+            render();
+        })();
+
+        document.getElementById('modalHorasManual').addEventListener('show.bs.modal', function (event) {
             var btn = event.relatedTarget;
-            document.getElementById('evalAssignmentId').value = btn.getAttribute('data-assignment-id');
-            document.getElementById('evalStudentName').textContent = btn.getAttribute('data-student-name');
-            var score = btn.getAttribute('data-score');
-            document.getElementById('evalScore').value = score || '';
-            document.getElementById('evalNotes').value = btn.getAttribute('data-notes') || '';
+            document.getElementById('manualAssignmentId').value = btn.getAttribute('data-assignment-id');
+            document.getElementById('manualStudentName').textContent = btn.getAttribute('data-student-name');
+            document.getElementById('manualApprovedHours').value = btn.getAttribute('data-approved-hours') || '0';
+            document.getElementById('manualTotalHours').value = btn.getAttribute('data-total-hours') || '0';
+            document.getElementById('manualNotes').value = '';
+        });
+
+        document.getElementById('modalRechazarHoras').addEventListener('show.bs.modal', function (event) {
+            var btn = event.relatedTarget;
+            document.getElementById('rechazoAssignmentId').value = btn.getAttribute('data-assignment-id');
+            document.getElementById('rechazoStudentName').textContent = btn.getAttribute('data-student-name');
         });
     </script>
 }

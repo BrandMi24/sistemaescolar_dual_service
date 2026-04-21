@@ -1,7 +1,10 @@
 ﻿@model List<ControlEscolar.ViewModels.OperationalTracking.AsesorDocumentoRowViewModel>
 @{
-    ViewData["Title"] = "Validación de Documentación";
-    Layout = "_LayoutTutor";
+    var isGlobalView = ViewBag.IsGlobalAdvisorView is bool flag && flag;
+    var moduleFilter = ViewBag.ModuleFilter as string ?? "";
+    var roleScopedModule = ViewBag.RoleScopedModule as string ?? "";
+    ViewData["Title"] = isGlobalView ? "Revisión Global de Documentos" : "Validación de Documentación";
+    Layout = isGlobalView ? "_LayoutCoordinador" : "_LayoutTutor";
     var search = ViewBag.SearchText as string ?? "";
     var estadoFilter = ViewBag.EstadoFilter as string ?? "";
     int pendingCount = ViewBag.PendingCount ?? 0;
@@ -24,19 +27,38 @@
         </div>
     }
 
-    <!-- HEADER -->
-    <div class="d-flex flex-column gap-2 mb-2">
-        <h1 class="txt-title fw-bold mb-0">Revisión de Documentos</h1>
-        <p class="text-muted text-sm mb-0">Aprueba o rechaza los documentos que envían tus estudiantes</p>
+    <div class="catalog-filter-card">
+        <div class="d-flex flex-column gap-2">
+        <h1 class="txt-title fw-bold mb-0">@(isGlobalView ? "Revisión global de documentos" : "Revisión de Documentos")</h1>
+        <p class="text-muted text-sm mb-0">@(isGlobalView ? "Consulta archivos enviados en módulo dual y servicio social, junto con comentarios e historial del asesor académico." : "Aprueba o rechaza los documentos que envían tus estudiantes")</p>
+        </div>
     </div>
 
     <!-- FILTERS & ALERTS -->
-    <div class="bg-surface p-4 rounded-4 border-theme shadow-sm d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3">
+    <div class="catalog-filter-card d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3">
         <form method="get" class="d-flex flex-column flex-md-row gap-3 flex-grow-1 w-100">
             <div class="position-relative search-wrapper flex-grow-1">
                 <i class="bi bi-search position-absolute search-icon-left txt-body"></i>
                 <input type="text" name="search" class="form-control search-input-custom tab-search" placeholder="Buscar por alumno o matrícula..." value="@search">
             </div>
+            @if (isGlobalView)
+            {
+                if (string.IsNullOrWhiteSpace(roleScopedModule))
+                {
+                    <select name="module" class="form-select bg-app border-theme txt-title fw-bold tab-filter" style="width: auto; min-width: 190px;">
+                        <option value="">Todos los módulos</option>
+                        <option value="PRACTICAS_PROFESIONALES" selected="@(moduleFilter == "PRACTICAS_PROFESIONALES")">Módulo Dual</option>
+                        <option value="SERVICIO_SOCIAL" selected="@(moduleFilter == "SERVICIO_SOCIAL")">Servicio Social</option>
+                    </select>
+                }
+                else
+                {
+                    <input type="hidden" name="module" value="@roleScopedModule" />
+                    <span class="badge bg-primary-100 txt-primary-dark px-3 py-2 align-self-center">
+                        @(roleScopedModule == "PRACTICAS_PROFESIONALES" ? "Módulo Dual" : "Servicio Social")
+                    </span>
+                }
+            }
             <select name="estado" class="form-select bg-app border-theme txt-title fw-bold tab-filter" style="width: auto; min-width: 150px;">
                 <option value="">Todos los Documentos</option>
                 <option value="PENDING" selected="@(estadoFilter == "PENDING")">Solo Pendientes</option>
@@ -61,25 +83,31 @@
     </div>
 
     <!-- TABLE -->
-    <div class="admin-card-white p-0 rounded-4 border-theme shadow-sm overflow-hidden d-flex flex-column">
-        <div class="table-responsive bg-surface">
-            <table class="table table-borderless align-middle mb-0" style="min-width: 1100px;">
-                <thead class="admin-table-header">
+    <div class="catalog-table-card">
+        <div class="table-responsive">
+            <table class="table table-borderless align-middle mb-0" id="tblRevisionDocs" style="min-width: 1100px;">
+                <thead>
                     <tr>
-                        <th class="py-3 px-4">Estudiante</th>
-                        <th class="py-3">Documento</th>
-                        <th class="py-3">Fecha Envío</th>
-                        <th class="py-3 text-center">Estado</th>
-                        <th class="py-3 text-end px-4">Acciones</th>
+                        <th class="px-4">Estudiante</th>
+                        @if (isGlobalView)
+                        {
+                            <th>Asesor / Módulo</th>
+                        }
+                        <th>Documento</th>
+                        <th>Fecha Envío</th>
+                        <th class="text-center">Estado</th>
+                        <th class="text-end px-4">Acciones</th>
                     </tr>
                 </thead>
                 <tbody>
                     @if (!Model.Any())
                     {
                         <tr>
-                            <td colspan="5" class="text-center py-5 txt-body">
-                                <i class="bi bi-file-earmark-check fs-2 d-block mb-2 opacity-50"></i>
-                                <span>No hay documentos para revisar.</span>
+                            <td colspan="@(isGlobalView ? 6 : 5)">
+                                <div class="catalog-empty">
+                                    <i class="bi bi-file-earmark-check"></i>
+                                    <span>Sin registros disponibles</span>
+                                </div>
                             </td>
                         </tr>
                     }
@@ -91,8 +119,8 @@
                             "REJECTED" => ("bg-danger text-white", "RECHAZADO", "bi-x-circle-fill"),
                             _ => ("bg-warning text-dark", "PENDIENTE", "bi-clock-history")
                         };
-                        <tr class="border-bottom border-theme hover-bg-app data-row">
-                            <td class="px-4 py-3">
+                        <tr class="data-row">
+                            <td class="px-4">
                                 <div class="d-flex align-items-center gap-2">
                                     <div class="avatar-sm bg-info-light text-info fw-bold d-flex align-items-center justify-content-center flex-shrink-0">
                                         @doc.StudentName.Split(' ')[0][0]@(doc.StudentName.Split(' ').Length > 1 ? doc.StudentName.Split(' ')[1][0] : doc.StudentName[1])
@@ -105,6 +133,13 @@
                                     </div>
                                 </div>
                             </td>
+                            @if (isGlobalView)
+                            {
+                                <td>
+                                    <div class="txt-title fw-bold text-sm mb-1">@doc.AdvisorName</div>
+                                    <div class="txt-body text-xxs">@doc.ProgramType</div>
+                                </td>
+                            }
                             <td>
                                 <div class="txt-title fw-bold text-sm mb-1">@doc.Title</div>
                                 <div class="d-flex align-items-center gap-2">
@@ -143,19 +178,19 @@
                             <td class="text-end px-4">
                                 @if (doc.StatusCode == "PENDING")
                                 {
-                                    <div class="btn-group btn-group-sm gap-1" role="group">
+                                    <div class="d-flex justify-content-end gap-2">
                                         <form asp-action="AprobarDocumento" asp-controller="AsesorAcademico" method="post" class="d-inline" style="margin: 0;">
                                             @Html.AntiForgeryToken()
                                             <input type="hidden" name="documentId" value="@doc.DocumentId" />
-                                            <button type="submit" class="btn btn-sm btn-outline-success" title="Aprobar documento">
-                                                <i class="bi bi-check-lg me-1"></i> Aprobar
+                                            <button type="submit" class="btn-action btn-action-toggle-on" title="Aprobar documento">
+                                                <i class="bi bi-check-lg"></i>
                                             </button>
                                         </form>
-                                        <button type="button" class="btn btn-sm btn-outline-danger"
+                                        <button type="button" class="btn-action btn-action-delete"
                                                 data-bs-toggle="modal" data-bs-target="#modalRechazo"
                                                 data-doc-id="@doc.DocumentId" 
                                                 title="Rechazar documento">
-                                            <i class="bi bi-x-lg me-1"></i> Rechazar
+                                            <i class="bi bi-x-lg"></i>
                                         </button>
                                     </div>
                                 }
@@ -171,11 +206,19 @@
         </div>
         @if (Model.Any())
         {
-            <div class="p-3 border-top border-theme bg-app d-flex justify-content-between align-items-center">
-                <span class="txt-body text-xs">
-                    <i class="bi bi-info-circle me-1"></i>
-                    @Model.Count documento(s) encontrado(s)
-                </span>
+            <div class="catalog-pagination-bar">
+                <div class="d-flex align-items-center gap-3">
+                    <span class="rows-label">MOSTRAR:</span>
+                    <select id="tblRevisionDocsRpp" class="form-select form-select-sm rows-per-page">
+                        <option value="5">5</option>
+                        <option value="10" selected>10</option>
+                        <option value="20">20</option>
+                    </select>
+                    <div id="tblRevisionDocsInfo" class="info-label"></div>
+                </div>
+                <nav aria-label="Paginación revisión documentos">
+                    <ul class="pagination pagination-sm mb-0" id="tblRevisionDocsPagination"></ul>
+                </nav>
             </div>
         }
     </div>
@@ -225,5 +268,78 @@
         var popoverList = popoverTriggerList.map(function (popoverTriggerEl) {
             return new bootstrap.Popover(popoverTriggerEl)
         })
+
+        (function () {
+            var table = document.getElementById('tblRevisionDocs');
+            if (!table) return;
+
+            var rows = Array.from(table.querySelectorAll('tbody tr.data-row'));
+            if (!rows.length) return;
+
+            var page = 1;
+            var pageSize = 10;
+            var total = rows.length;
+
+            var rppEl = document.getElementById('tblRevisionDocsRpp');
+            var infoEl = document.getElementById('tblRevisionDocsInfo');
+            var paginationEl = document.getElementById('tblRevisionDocsPagination');
+
+            function buildPagination(totalPages) {
+                if (!paginationEl) return;
+                paginationEl.innerHTML = '';
+
+                function createItem(label, targetPage, disabled, active) {
+                    var li = document.createElement('li');
+                    li.className = 'page-item' + (disabled ? ' disabled' : '') + (active ? ' active' : '');
+                    var link = document.createElement('a');
+                    link.className = 'page-link';
+                    link.href = '#';
+                    link.innerHTML = label;
+                    if (!disabled) {
+                        link.addEventListener('click', function (e) {
+                            e.preventDefault();
+                            page = targetPage;
+                            render();
+                        });
+                    }
+                    li.appendChild(link);
+                    paginationEl.appendChild(li);
+                }
+
+                createItem('<i class="bi bi-chevron-left"></i>', Math.max(1, page - 1), page === 1, false);
+                for (var i = 1; i <= totalPages; i++) {
+                    createItem(String(i), i, false, i === page);
+                }
+                createItem('<i class="bi bi-chevron-right"></i>', Math.min(totalPages, page + 1), page === totalPages, false);
+            }
+
+            function render() {
+                var totalPages = Math.max(1, Math.ceil(total / pageSize));
+                if (page > totalPages) page = totalPages;
+
+                var start = (page - 1) * pageSize;
+                var end = Math.min(start + pageSize, total);
+
+                rows.forEach(function (row, index) {
+                    row.style.display = (index >= start && index < end) ? '' : 'none';
+                });
+
+                if (infoEl) {
+                    infoEl.textContent = (start + 1) + ' - ' + end + ' DE ' + total;
+                }
+
+                buildPagination(totalPages);
+            }
+
+            if (rppEl) {
+                rppEl.addEventListener('change', function () {
+                    pageSize = parseInt(rppEl.value, 10);
+                    page = 1;
+                    render();
+                });
+            }
+
+            render();
+        })();
     </script>
 }

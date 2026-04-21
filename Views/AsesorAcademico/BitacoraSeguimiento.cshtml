@@ -1,269 +1,409 @@
 @model ControlEscolar.ViewModels.OperationalTracking.AsesorSeguimientoViewModel
 @{
     ViewData["Title"] = "Bitácora de Seguimiento";
-    Layout = "_LayoutTutor";
+    var isGlobalView = ViewBag.IsGlobalAdvisorView is bool flag && flag;
+    Layout = isGlobalView ? "_LayoutCoordinador" : "_LayoutTutor";
+    var assignmentStatus = (Model.StatusCode ?? string.Empty).Trim().ToUpperInvariant();
+    var statusBadgeClass = assignmentStatus switch
+    {
+        "COMPLETED" or "FINALIZED" => "status-aceptado",
+        "IN_PROGRESS" => "bg-info text-white",
+        "REGISTERED" => "status-pendiente",
+        _ => "bg-secondary text-white"
+    };
+    var statusLabel = assignmentStatus switch
+    {
+        "COMPLETED" => "COMPLETADO",
+        "FINALIZED" => "FINALIZADO",
+        "IN_PROGRESS" => "EN PROCESO",
+        "REGISTERED" => "REGISTRADO",
+        _ => string.IsNullOrWhiteSpace(Model.StatusCode) ? "SIN ESTADO" : Model.StatusCode
+    };
 }
 
 <div class="d-flex flex-column gap-4 fade-in">
-    <!-- BACK BUTTON AND TITLE -->
-    <div class="d-flex flex-column gap-2">
-        <a href="@Url.Action("AlumnosAsignados")" class="text-decoration-none text-primary fw-bold text-sm mb-2">
-            <i class="bi bi-arrow-left me-2"></i> Volver a Mis Estudiantes
-        </a>
-        <h1 class="txt-title fw-bold mb-0">Bitácora de Seguimiento</h1>
-        <p class="text-muted text-sm mb-0">Historial completo de actividades y documentos del estudiante</p>
+    <div class="admin-card-white p-4 p-lg-5 shadow-sm advisor-hero">
+        <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3">
+            <div>
+                <a href="@Url.Action("AlumnosAsignados")" class="back-link-chip mb-3">
+                    <i class="bi bi-arrow-left"></i>
+                    <span>Volver a Mis Estudiantes</span>
+                </a>
+                <h1 class="txt-title fw-bold mb-1">Bitácora de Seguimiento</h1>
+                <p class="text-muted text-sm mb-0">Historial completo de actividades, reportes y documentación del estudiante.</p>
+            </div>
+        </div>
     </div>
 
-    <!-- STUDENT INFO SECTION -->
-    <div class="admin-card-white p-4 rounded-4 shadow-sm border-theme">
-        <div class="row g-4">
-            <div class="col-12 col-md-8">
-                <div class="d-flex gap-4">
-                    <div class="avatar-lg bg-primary-light text-primary fw-bold d-flex align-items-center justify-content-center flex-shrink-0">
+    <div class="admin-card-white p-4 shadow-sm student-summary-card">
+        <div class="row g-4 align-items-start">
+            <div class="col-12 col-xl-8">
+                <div class="d-flex gap-3 gap-lg-4 align-items-start">
+                    <div class="tracking-avatar bg-accent-light txt-primary-dark fw-bold d-flex align-items-center justify-content-center flex-shrink-0">
                         @Model.StudentName.Split(' ')[0][0]@(Model.StudentName.Split(' ').Length > 1 ? Model.StudentName.Split(' ')[1][0] : Model.StudentName[1])
                     </div>
                     <div class="flex-grow-1">
-                        <h5 class="txt-title fw-bold mb-2">@Model.StudentName</h5>
-                        <div class="d-flex flex-wrap gap-4 mb-3">
-                            <div>
-                                <p class="text-muted text-xs mb-1">Matrícula</p>
-                                <span class="badge bg-light text-dark fw-bold">@Model.Matricula</span>
+                        <h4 class="txt-title fw-bold mb-3">@Model.StudentName</h4>
+                        <div class="row g-3 summary-grid mb-3">
+                            <div class="col-6 col-md-4">
+                                <span class="summary-label">Matrícula</span>
+                                <div class="summary-value">@Model.Matricula</div>
                             </div>
-                            <div>
-                                <p class="text-muted text-xs mb-1">Carrera</p>
-                                <span class="text-sm fw-bold">@Model.CareerCode</span>
+                            <div class="col-6 col-md-4">
+                                <span class="summary-label">Carrera</span>
+                                <div class="summary-value">@Model.CareerCode</div>
                             </div>
-                            <div>
-                                <p class="text-muted text-xs mb-1">Grupo</p>
-                                <span class="text-sm fw-bold">@Model.GroupCode</span>
+                            <div class="col-6 col-md-4">
+                                <span class="summary-label">Grupo</span>
+                                <div class="summary-value">@Model.GroupCode</div>
                             </div>
-                            <div>
-                                <p class="text-muted text-xs mb-1">Programa</p>
-                                <span class="text-sm fw-bold">@Model.ProgramName</span>
+                            <div class="col-6 col-md-4">
+                                <span class="summary-label">Programa</span>
+                                <div class="summary-value">@Model.ProgramName</div>
+                            </div>
+                            <div class="col-6 col-md-4">
+                                <span class="summary-label">Asesor</span>
+                                <div class="summary-value">@Model.AdvisorName</div>
+                            </div>
+                            <div class="col-12 col-md-4">
+                                <span class="summary-label">Organización</span>
+                                <div class="summary-value">@Model.OrganizationName</div>
                             </div>
                         </div>
-                        <p class="text-muted text-sm mb-0">
-                            <i class="bi bi-building me-2"></i>
-                            @Model.OrganizationName
-                        </p>
                     </div>
                 </div>
             </div>
-
-            <div class="col-12 col-md-4">
-                <div class="border-start border-theme ps-4">
-                    <!-- Estado -->
-                    <div class="mb-4">
-                        <p class="text-muted text-xs text-uppercase fw-bold mb-2">Estado</p>
-                        <span class="badge bg-info-light text-info fw-bold px-3 py-2">@Model.StatusCode</span>
+            <div class="col-12 col-xl-4">
+                <div class="d-flex flex-column gap-3 status-panel">
+                    <div class="status-box">
+                        <span class="summary-label">Estado</span>
+                        <span class="badge @statusBadgeClass fw-bold px-3 py-2">@statusLabel</span>
                     </div>
-
-                    <!-- Evaluación -->
-                    @if (Model.EvaluationScore.HasValue)
-                    {
-                        <div class="mb-4">
-                            <p class="text-muted text-xs text-uppercase fw-bold mb-2">Calificación</p>
-                            <h4 class="text-success fw-bold mb-1">@Model.EvaluationScore.Value.ToString("F1")/10</h4>
-                            @if (!string.IsNullOrWhiteSpace(Model.EvaluationNotes))
-                            {
-                                <p class="text-muted text-xs mb-0">
-                                    <i class="bi bi-chat-left-text me-1"></i> @Model.EvaluationNotes
-                                </p>
-                            }
-                        </div>
-                    }
-                    else
-                    {
-                        <div class="mb-4">
-                            <p class="text-muted text-xs text-uppercase fw-bold mb-2">Calificación</p>
-                            <span class="badge bg-warning-light text-warning fw-bold">Sin calificar</span>
-                        </div>
-                    }
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- HOURS PROGRESS SECTION -->
     <div class="row g-3">
-        <div class="col-12 col-md-6">
-            <div class="admin-card-white p-4 rounded-4 shadow-sm border-theme">
-                <h6 class="txt-title fw-bold mb-3 border-bottom border-theme pb-2">Horas Completadas</h6>
-                <div class="d-flex align-items-end justify-content-between mb-4">
+        <div class="col-12 col-lg-6">
+            <div class="stat-card-sep h-100">
+                <div class="d-flex align-items-center justify-content-between mb-3">
+                    <span class="stat-label">Horas Completadas</span>
+                    <div class="icon-circle bg-primary-100 txt-primary-dark shadow-sm">
+                        <i class="bi bi-check2-circle fs-5"></i>
+                    </div>
+                </div>
+                <div class="d-flex align-items-end justify-content-between mb-3">
                     <div>
-                        <p class="text-muted text-xs mb-1">Horas Aprobadas</p>
-                        <h3 class="text-primary fw-bold mb-0">@Model.ApprovedHours.ToString("F1")</h3>
+                        <div class="stat-value">@Model.ApprovedHours.ToString("F1")</div>
+                        <span class="text-xxs txt-body fw-medium">Horas aprobadas</span>
                     </div>
                     <div class="text-end">
-                        <p class="text-muted text-xs mb-1">De @Model.RequiredHours Requeridas</p>
-                        <h4 class="text-success fw-bold mb-0">@Model.ProgressPercent%</h4>
+                        <div class="txt-title fw-bold fs-4 text-success">@Model.ProgressPercent%</div>
+                        <span class="text-xxs txt-body fw-medium">De @Model.RequiredHours requeridas</span>
                     </div>
                 </div>
-
-                <div class="progress mb-3" style="height: 12px;">
-                    <div class="progress-bar bg-primary" role="progressbar" 
-                         style="width: @Model.ProgressPercent%;" 
-                         aria-valuenow="@Model.ProgressPercent" 
-                         aria-valuemin="0" aria-valuemax="100"></div>
+                <div class="progress tracking-progress mb-3">
+                    <div class="progress-bar bg-primary" role="progressbar" style="width: @Model.ProgressPercent%;" aria-valuenow="@Model.ProgressPercent" aria-valuemin="0" aria-valuemax="100"></div>
                 </div>
-
-                <p class="text-muted text-xs mb-0">
+                <span class="text-xxs txt-body fw-medium">
                     <i class="bi bi-hourglass-split me-1"></i>
                     @(Model.RequiredHours - Model.ApprovedHours > 0 ? $"Faltan {(Model.RequiredHours - Model.ApprovedHours).ToString("F1")} horas" : "Meta completada")
-                </p>
+                </span>
             </div>
         </div>
 
-        <div class="col-12 col-md-6">
-            <div class="admin-card-white p-4 rounded-4 shadow-sm border-theme">
-                <h6 class="txt-title fw-bold mb-3 border-bottom border-theme pb-2">Horas Registradas</h6>
-                <div class="d-flex align-items-end justify-content-between">
-                    <div>
-                        <p class="text-muted text-xs mb-1">Total Registrado</p>
-                        <h3 class="text-info fw-bold mb-0">@Model.TotalHours.ToString("F1")</h3>
-                    </div>
-                    <div class="text-end">
-                        <p class="text-muted text-xs mb-1">Por Procesar</p>
-                        <h4 class="fw-bold mb-0" style="color: #fd7e14;">@(Model.TotalHours - Model.ApprovedHours).ToString("F1")</h4>
+        <div class="col-12 col-lg-6">
+            <div class="stat-card-sep h-100" style="border-left: 3px solid var(--warning-700, #f59e0b);">
+                <div class="d-flex align-items-center justify-content-between mb-3">
+                    <span class="stat-label">Horas Registradas</span>
+                    <div class="icon-circle bg-warning-100 shadow-sm" style="color: var(--warning-700, #f59e0b);">
+                        <i class="bi bi-clock-history fs-5"></i>
                     </div>
                 </div>
-
-                <div class="mt-4 p-3 bg-light rounded-3">
-                    <p class="text-muted text-xs mb-0">
-                        <i class="bi bi-info-circle me-2"></i>
-                        Horas pendientes de aprobación en sección de Evaluaciones
-                    </p>
+                <div class="d-flex align-items-end justify-content-between mb-3">
+                    <div>
+                        <div class="stat-value">@Model.TotalHours.ToString("F1")</div>
+                        <span class="text-xxs txt-body fw-medium">Total registrado</span>
+                    </div>
+                    <div class="text-end">
+                        <div class="txt-title fw-bold fs-4" style="color: #fd7e14;">@((Model.TotalHours - Model.ApprovedHours).ToString("F1"))</div>
+                        <span class="text-xxs txt-body fw-medium">Por procesar</span>
+                    </div>
+                </div>
+                <div class="rounded-3 border border-theme bg-app px-3 py-3 text-xxs txt-body fw-medium">
+                    <i class="bi bi-info-circle me-2"></i>
+                    Horas pendientes de aprobación en la sección de Evaluaciones.
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- TIMELINE SECTION -->
-    <div class="admin-card-white p-4 rounded-4 shadow-sm border-theme">
-        <h6 class="txt-title fw-bold mb-4 border-bottom border-theme pb-3">
-            <i class="bi bi-clock-history me-2"></i> Historial de Actividades
-        </h6>
+    <div class="catalog-table-card">
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 p-4 pb-0">
+            <div>
+                <h6 class="txt-title fw-bold text-xs text-uppercase tracking-wide mb-1"><i class="bi bi-clock-history me-2"></i>Historial de Actividades</h6>
+                <p class="text-muted text-xs mb-0">Seguimiento cronológico de reportes, observaciones y archivos asociados.</p>
+            </div>
+            <div class="text-xxs text-muted fw-bold">@Model.Timeline.Count registro(s) en bitácora</div>
+        </div>
 
-        @if (Model.Timeline.Any())
-        {
-            <div class="timeline">
-                @foreach (var item in Model.Timeline)
-                {
-                    <div class="timeline-item mb-4 pb-4 border-bottom border-light last:border-0">
-                        <!-- Timeline Dot -->
-                        <div class="timeline-marker mb-3">
-                            <div class="d-flex gap-3">
-                                <!-- Status Badge -->
-                                <div class="flex-shrink-0">
-                                    @if (item.StatusCode == "APPROVED")
+        <div class="table-responsive">
+            <table class="table table-borderless align-middle mb-0" id="tblBitacora" style="min-width: 1100px;">
+                <thead>
+                    <tr>
+                        <th class="px-4">Fecha</th>
+                        <th>Reporte / Bitácora</th>
+                        <th>Observaciones</th>
+                        <th class="text-center">Estado</th>
+                        <th class="text-end px-4">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (!Model.Timeline.Any())
+                    {
+                        <tr>
+                            <td colspan="5">
+                                <div class="catalog-empty">
+                                    <i class="bi bi-inbox"></i>
+                                    <span>Sin registros disponibles</span>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                    @foreach (var item in Model.Timeline)
+                    {
+                        <tr class="data-row">
+                            <td class="px-4">
+                                <div class="txt-title fw-bold text-sm">@item.UploadDate.ToString("dd/MM/yyyy")</div>
+                                <div class="txt-body text-xxs">@item.UploadDate.ToString("HH:mm")</div>
+                            </td>
+                            <td>
+                                <div class="txt-title fw-bold text-sm">@item.Title</div>
+                                <div class="txt-body text-xxs">@item.DocumentType</div>
+                            </td>
+                            <td>
+                                <div class="txt-body text-xs">@(string.IsNullOrWhiteSpace(item.Notes) ? "Sin notas del estudiante" : item.Notes)</div>
+                                @if (!string.IsNullOrWhiteSpace(item.ReviewComments))
+                                {
+                                    <div class="text-xxs text-warning mt-2"><i class="bi bi-chat-left-text me-1"></i>@item.ReviewComments</div>
+                                }
+                            </td>
+                            <td class="text-center">
+                                <span class="badge @item.StatusBadgeClass text-xxs px-3 py-2 shadow-sm">@item.StatusLabel</span>
+                            </td>
+                            <td class="text-end px-4">
+                                <div class="d-flex justify-content-end gap-2">
+                                    @if (!string.IsNullOrWhiteSpace(item.FilePath))
                                     {
-                                        <div class="timeline-dot bg-success d-flex align-items-center justify-content-center">
-                                            <i class="bi bi-check-lg text-white small"></i>
-                                        </div>
-                                    }
-                                    else if (item.StatusCode == "REJECTED")
-                                    {
-                                        <div class="timeline-dot bg-danger d-flex align-items-center justify-content-center">
-                                            <i class="bi bi-x-lg text-white small"></i>
-                                        </div>
-                                    }
-                                    else if (item.StatusCode == "PENDING")
-                                    {
-                                        <div class="timeline-dot bg-warning d-flex align-items-center justify-content-center">
-                                            <i class="bi bi-clock-history text-white small"></i>
-                                        </div>
+                                        <a href="@item.FilePath" target="_blank" class="btn-action btn-action-view" title="Descargar archivo">
+                                            <i class="bi bi-download"></i>
+                                        </a>
                                     }
                                     else
                                     {
-                                        <div class="timeline-dot bg-secondary d-flex align-items-center justify-content-center">
-                                            <i class="bi bi-circle-fill text-white" style="font-size: 0.4rem;"></i>
-                                        </div>
+                                        <span class="text-muted text-xxs">Sin archivo</span>
                                     }
                                 </div>
-
-                                <!-- Content -->
-                                <div class="flex-grow-1">
-                                    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2 mb-2">
-                                        <div>
-                                            <h6 class="txt-title fw-bold mb-1">@item.Title</h6>
-                                            <p class="text-muted text-xs mb-0">
-                                                <i class="bi bi-calendar-event me-1"></i>
-                                                @item.UploadDate.ToString("dd/MM/yyyy HH:mm")
-                                            </p>
-                                        </div>
-                                        <span class="badge @item.StatusBadgeClass fs-9">@item.StatusLabel</span>
-                                    </div>
-
-                                    @if (!string.IsNullOrWhiteSpace(item.Notes))
-                                    {
-                                        <p class="text-sm mb-2">
-                                            <i class="bi bi-file-text me-2"></i>
-                                            <span class="text-muted">@item.Notes</span>
-                                        </p>
-                                    }
-
-                                    @if (!string.IsNullOrWhiteSpace(item.ReviewComments))
-                                    {
-                                        <div class="alert alert-light border-start border-warning px-3 py-2 text-sm mb-2">
-                                            <strong class="text-warning">Comentarios del Asesor:</strong>
-                                            <p class="mb-0 mt-1">@item.ReviewComments</p>
-                                        </div>
-                                    }
-
-                                    @if (!string.IsNullOrWhiteSpace(item.FilePath))
-                                    {
-                                        <a href="@item.FilePath" target="_blank" class="btn btn-sm btn-outline-primary">
-                                            <i class="bi bi-download me-1"></i> Descargar Documento
-                                        </a>
-                                    }
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                }
-            </div>
-        }
-        else
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+        @if (Model.Timeline.Any())
         {
-            <div class="alert bg-light border border-theme rounded-3 text-center p-4">
-                <i class="bi bi-inbox" style="font-size: 2rem; color: #6c757d;"></i>
-                <p class="text-muted text-sm mt-3 mb-0">
-                    Aún no hay documentos registrados para este estudiante
-                </p>
+            <div class="catalog-pagination-bar">
+                <div class="d-flex align-items-center gap-3">
+                    <span class="rows-label">MOSTRAR:</span>
+                    <select id="tblBitacoraRpp" class="form-select form-select-sm rows-per-page">
+                        <option value="5">5</option>
+                        <option value="10" selected>10</option>
+                        <option value="20">20</option>
+                    </select>
+                    <div id="tblBitacoraCount" class="info-label"></div>
+                </div>
+                <nav aria-label="Paginación bitácora seguimiento">
+                    <ul class="pagination pagination-sm mb-0" id="tblBitacoraPagination"></ul>
+                </nav>
             </div>
         }
-    </div>
-
-    <!-- ACTION BUTTONS -->
-    <div class="d-flex flex-column flex-md-row gap-2 justify-content-center">
-        <a href="@Url.Action("AlumnosAsignados")" class="btn btn-ghost-sep">
-            <i class="bi bi-arrow-left me-2"></i> Volver a Lista
-        </a>
-        <a href="@Url.Action("Evaluaciones")" class="btn btn-primary-sep">
-            <i class="bi bi-graph-up-arrow me-2"></i> Evaluar Estudiante
-        </a>
     </div>
 </div>
 
 <style>
-    .timeline-dot {
-        width: 40px;
-        height: 40px;
-        border-radius: 50%;
-        display: flex;
+    .advisor-hero {
+        background: linear-gradient(120deg, rgba(19, 50, 43, 0.08), rgba(19, 50, 43, 0.015));
+        border-top: 4px solid var(--primary-900);
+    }
+
+    .back-link-chip {
+        display: inline-flex;
         align-items: center;
+        gap: .55rem;
+        padding: .65rem 1rem;
+        border-radius: 999px;
+        background: #fff;
+        color: var(--primary-700, #1f6feb);
+        font-size: .78rem;
+        font-weight: 700;
+        letter-spacing: .02em;
+        text-decoration: none;
+        box-shadow: 0 8px 24px rgba(15, 23, 42, .06);
+        border: 1px solid rgba(31, 111, 235, .12);
+        transition: transform .15s ease, box-shadow .15s ease, color .15s ease;
+    }
+
+    .back-link-chip:hover {
+        color: var(--primary-900, #13322B);
+        transform: translateY(-1px);
+        box-shadow: 0 10px 28px rgba(15, 23, 42, .1);
+    }
+
+    .tracking-avatar {
+        width: 72px;
+        height: 72px;
+        border-radius: 16px;
+        font-size: 1.65rem;
+    }
+
+    .student-summary-card {
+        border-radius: 1.25rem;
+    }
+
+    .summary-grid {
+        row-gap: 1rem;
+    }
+
+    .summary-label {
+        display: block;
+        font-size: .65rem;
+        font-weight: 700;
+        letter-spacing: .08em;
+        text-transform: uppercase;
+        color: var(--text-body, #6a6f7a);
+        margin-bottom: .3rem;
+    }
+
+    .summary-value {
+        font-size: .9rem;
+        font-weight: 700;
+        color: var(--text-title, #1a2b6b);
+        line-height: 1.35;
+    }
+
+    .status-panel {
+        border-left: 1px solid rgba(0, 0, 0, .08);
+        padding-left: 1.25rem;
+        min-height: 100%;
+    }
+
+    .status-box {
+        display: flex;
+        flex-direction: column;
+        gap: .45rem;
+        min-height: 84px;
         justify-content: center;
-        min-width: 40px;
     }
 
-    .timeline-item:last-child {
-        border-bottom: none !important;
+    .tracking-progress {
+        height: 10px;
+        background-color: var(--bg-app, #f5f6fa);
+        border-radius: 999px;
     }
 
-    .avatar-lg {
-        width: 70px;
-        height: 70px;
-        border-radius: 12px;
-        font-size: 1.5rem;
+    @@media (max-width: 1199px) {
+        .status-panel {
+            border-left: 0;
+            border-top: 1px solid rgba(0, 0, 0, .08);
+            padding-left: 0;
+            padding-top: 1rem;
+        }
+    }
+
+    @@media (max-width: 767px) {
+        .tracking-avatar {
+            width: 60px;
+            height: 60px;
+            border-radius: 14px;
+            font-size: 1.35rem;
+        }
     }
 </style>
+
+@section Scripts {
+    <script>
+        (function () {
+            var table = document.getElementById('tblBitacora');
+            if (!table) return;
+
+            var rows = Array.from(table.querySelectorAll('tbody tr.data-row'));
+            if (!rows.length) return;
+
+            var pageSize = 10;
+            var page = 1;
+            var total = rows.length;
+
+            var countEl = document.getElementById('tblBitacoraCount');
+            var rppEl = document.getElementById('tblBitacoraRpp');
+            var paginationEl = document.getElementById('tblBitacoraPagination');
+
+            function buildPagination(totalPages) {
+                if (!paginationEl) return;
+                paginationEl.innerHTML = '';
+
+                function createItem(label, targetPage, disabled, active) {
+                    var li = document.createElement('li');
+                    li.className = 'page-item' + (disabled ? ' disabled' : '') + (active ? ' active' : '');
+                    var link = document.createElement('a');
+                    link.className = 'page-link';
+                    link.href = '#';
+                    link.innerHTML = label;
+                    if (!disabled) {
+                        link.addEventListener('click', function (e) {
+                            e.preventDefault();
+                            page = targetPage;
+                            render();
+                        });
+                    }
+                    li.appendChild(link);
+                    paginationEl.appendChild(li);
+                }
+
+                createItem('<i class="bi bi-chevron-left"></i>', Math.max(1, page - 1), page === 1, false);
+                for (var i = 1; i <= totalPages; i++) {
+                    createItem(String(i), i, false, i === page);
+                }
+                createItem('<i class="bi bi-chevron-right"></i>', Math.min(totalPages, page + 1), page === totalPages, false);
+            }
+
+            function render() {
+                var totalPages = Math.max(1, Math.ceil(total / pageSize));
+                if (page > totalPages) page = totalPages;
+
+                var start = (page - 1) * pageSize;
+                var end = Math.min(start + pageSize, total);
+
+                rows.forEach(function (row, index) {
+                    row.style.display = (index >= start && index < end) ? '' : 'none';
+                });
+
+                if (countEl) {
+                    countEl.textContent = total === 0 ? '0 REGISTROS' : (start + 1) + ' - ' + end + ' DE ' + total;
+                }
+
+                buildPagination(totalPages);
+            }
+
+            if (rppEl) {
+                rppEl.addEventListener('change', function () {
+                    pageSize = parseInt(rppEl.value, 10);
+                    page = 1;
+                    render();
+                });
+            }
+
+            render();
+        })();
+    </script>
+}

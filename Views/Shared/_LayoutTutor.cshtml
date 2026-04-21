@@ -16,6 +16,7 @@
     <link rel="stylesheet" href="~/css/design-system.css" asp-append-version="true" />
     @* Usamos el CSS base del sistema para mantener la consistencia *@
     <link rel="stylesheet" href="~/css/coordinador-styles.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/catalogos-shared.css" asp-append-version="true" />
 
     <style>
             body {
@@ -59,8 +60,8 @@
 <body>
     @{
         bool hasTutorRole = User.IsInRole("Tutor") || User.IsInRole("Teacher") || User.IsInRole("Maestro");
-        bool hasAdvisorRole = User.IsInRole("AsesorAcademico") || User.IsInRole("Asesor") || User.IsInRole("AcademicSupervisor");
-        bool hasAdminRole = User.IsInRole("Admin") || User.IsInRole("Administrator") || User.IsInRole("Master");
+        bool hasAdvisorRole = User.IsInRole("AsesorAcademico") || User.IsInRole("ASESORACADEMICO") || User.IsInRole("Asesor academico") || User.IsInRole("ASESOR ACADEMICO") || User.IsInRole("Asesor") || User.IsInRole("AcademicSupervisor");
+        bool hasAdminRole = User.IsInRole("Admin") || User.IsInRole("ADMIN") || User.IsInRole("Administrator") || User.IsInRole("Master");
         bool isAdvisorOnly = hasAdvisorRole && !hasTutorRole && !hasAdminRole;
     }
     <div class="admin-layout">

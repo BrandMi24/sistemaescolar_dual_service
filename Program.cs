@@ -24,6 +24,7 @@ builder.Services.AddScoped<ControlEscolar.Services.IFileService, ControlEscolar.
 builder.Services.AddScoped<IPdfService, PdfService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<IModuleFlowConfigurationService, ModuleFlowConfigurationService>();
+builder.Services.AddScoped<IDualEducationService, DualEducationService>();
 
 // Configurar Entity Framework
 builder.Services.AddDbContext<ApplicationDbContext>(options =>

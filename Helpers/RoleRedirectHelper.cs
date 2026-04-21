@@ -5,13 +5,12 @@ namespace ControlEscolar.Helpers
 {
     public static class RoleRedirectHelper
     {
-        public static (string controller, string action) GetRedirect(List<string> roles)
+        private static readonly Dictionary<string, (string controller, string action)> RoleRoutes = new()
         {
-            // MAPA CENTRALIZADO
-            var roleRoutes = new Dictionary<string, (string controller, string action)>
-        {
-            { "COORDINADORSERVICIOSOCIAL", ("Coordinador", "Index") },
-            { "COORDINADORDUAL", ("Coordinador", "Index") },
+            { "COORDINADORSERVICIOSOCIAL", ("AsesorAcademico", "Index") },
+            { "COORDINADORDESERVICIOSOCIAL", ("AsesorAcademico", "Index") },
+            { "COORDINADORDUAL", ("AsesorAcademico", "Index") },
+            { "COORDINADORMODULODUAL", ("AsesorAcademico", "Index") },
             { "ADMIN", ("Coordinador", "Catalogos") },
             { "COORDINADOR", ("Coordinador", "Catalogos") },
             { "DOCENTE", ("Docente", "Index") },
@@ -21,15 +20,15 @@ namespace ControlEscolar.Helpers
             { "ASESORACADEMICO", ("AsesorAcademico", "Index") }
         };
 
-            // Buscar primer rol válido
+        public static (string controller, string action) GetRedirect(List<string> roles)
+        {
             foreach (var role in roles)
             {
                 var key = NormalizeRoleKey(role);
-                if (roleRoutes.ContainsKey(key))
-                    return roleRoutes[key];
+                if (RoleRoutes.TryGetValue(key, out var route))
+                    return route;
             }
 
-            // DEFAULT (fallback)
             return ("Home", "Index");
         }
 

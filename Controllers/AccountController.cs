@@ -16,6 +16,15 @@ namespace ControlEscolar.Controllers
 {
     public class AccountController : Controller
     {
+        private static readonly HashSet<string> AdvisorAreaRoles = new(StringComparer.OrdinalIgnoreCase)
+        {
+            "ASESORACADEMICO",
+            "COORDINADOR",
+            "COORDINADORDUAL",
+            "COORDINADORSERVICIOSOCIAL",
+            "ADMIN"
+        };
+
         private readonly ApplicationDbContext _context;
 
         public AccountController(ApplicationDbContext context)
@@ -214,11 +223,39 @@ namespace ControlEscolar.Controllers
                     expanded.Add(compact);
 
                 var normalized = RemoveRoleSeparators(RemoveDiacritics(trimmed)).ToUpperInvariant();
-                if (normalized == "ASESORACADEMICO" || normalized == "ACADEMICSUPERVISOR")
+                if (normalized == "ACADEMICSUPERVISOR")
                 {
                     expanded.Add("AsesorAcademico");
-                    expanded.Add("Asesor");
-                    expanded.Add("AcademicSupervisor");
+                }
+
+                if (normalized == "ASESORACADEMICO")
+                {
+                    // Backward-compatible alias used by existing views/layout checks.
+                    expanded.Add("AsesorAcademico");
+                }
+
+                if (normalized == "COORDINADORMODULODUAL" || normalized == "COORDINADORDUALMODULE")
+                {
+                    expanded.Add("COORDINADORDUAL");
+                    expanded.Add("CoordinadorDual");
+                }
+
+                if (normalized == "COORDINADORDESERVICIOSOCIAL")
+                {
+                    expanded.Add("COORDINADORSERVICIOSOCIAL");
+                    expanded.Add("COORDINADOR SERVICIO SOCIAL");
+                    expanded.Add("CoordinadorServicioSocial");
+                }
+
+                if (normalized == "COORDINADORSERVICIOSOCIAL")
+                {
+                    expanded.Add("COORDINADOR SERVICIO SOCIAL");
+                    expanded.Add("CoordinadorServicioSocial");
+                }
+
+                if (AdvisorAreaRoles.Contains(normalized))
+                {
+                    expanded.Add(normalized);
                 }
             }
 
@@ -248,7 +285,10 @@ namespace ControlEscolar.Controllers
 
             if (url.StartsWith("/AsesorAcademico", StringComparison.OrdinalIgnoreCase))
             {
-                return normalizedRoles.Contains("ASESORACADEMICO");
+                return normalizedRoles.Contains("ASESORACADEMICO")
+                    || normalizedRoles.Contains("COORDINADOR")
+                    || normalizedRoles.Contains("COORDINADORDUAL")
+                    || normalizedRoles.Contains("COORDINADORSERVICIOSOCIAL");
             }
 
             if (url.StartsWith("/Docente", StringComparison.OrdinalIgnoreCase))

@@ -1,0 +1,93 @@
+@model SupportPlaceViewModel
+@{
+    var isEdit = ViewBag.IsEdit as bool? ?? false;
+    var returnTab = ViewBag.ReturnTab as string ?? "tab-lugares-dual";
+    var isSocialModule = string.Equals(Model.ModuleType, "SERVICIO_SOCIAL", StringComparison.OrdinalIgnoreCase);
+
+    ViewData["Title"] = isEdit ? "Editar Lugar de Apoyo" : "Nuevo Lugar de Apoyo";
+    Layout = "_LayoutCoordinador";
+}
+
+<div class="fade-in d-flex flex-column gap-4">
+    <div class="bg-surface p-4 rounded-4 border-theme shadow-sm d-flex justify-content-between align-items-center">
+        <div>
+            <h3 class="txt-title fw-bold mb-1">@(isEdit ? "Editar lugar de apoyo" : "Registrar lugar de apoyo")</h3>
+            <span class="txt-body text-xs">@(isSocialModule ? "Captura la institución o dependencia para servicio social." : "Captura la empresa o institución para módulo dual.")</span>
+        </div>
+
+        <a href="@Url.Action("Catalogos", "Coordinador", new { tab = returnTab })" class="btn btn-sm btn-ghost-sep border border-theme shadow-sm fw-semibold">
+            Volver a Catálogos
+        </a>
+    </div>
+
+    <form asp-action="@(isEdit ? "EditSupportPlace" : "CreateSupportPlace")" asp-controller="Coordinador" method="post" novalidate>
+        @Html.AntiForgeryToken()
+        <input type="hidden" asp-for="Id" />
+        <input type="hidden" asp-for="ModuleType" />
+        <input type="hidden" name="returnTab" value="@returnTab" />
+
+        <div class="row g-4">
+            <div class="col-lg-8">
+                <div class="admin-card-white p-4 rounded-4 border-theme shadow-sm bg-white">
+                    <h6 class="txt-title fw-bold mb-4 border-bottom border-theme pb-2">DATOS DEL LUGAR DE APOYO</h6>
+
+                    <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+                    <div class="row g-3">
+                        <div class="col-md-12">
+                            <label asp-for="Name" class="fw-bold text-xs">NOMBRE</label>
+                            <input asp-for="Name" class="form-control search-input-custom" placeholder="Nombre de la institución, empresa o dependencia" />
+                            <span asp-validation-for="Name" class="text-danger text-xs"></span>
+                        </div>
+
+                        <div class="col-md-12">
+                            <label asp-for="Address" class="fw-bold text-xs">DIRECCIÓN</label>
+                            <input asp-for="Address" class="form-control search-input-custom" placeholder="Dirección completa" />
+                            <span asp-validation-for="Address" class="text-danger text-xs"></span>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label asp-for="ContactName" class="fw-bold text-xs">CONTACTO</label>
+                            <input asp-for="ContactName" class="form-control search-input-custom" placeholder="Nombre del contacto" />
+                            <span asp-validation-for="ContactName" class="text-danger text-xs"></span>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label asp-for="Phone" class="fw-bold text-xs">TELÉFONO</label>
+                            <input asp-for="Phone" class="form-control search-input-custom" placeholder="Teléfono" />
+                            <span asp-validation-for="Phone" class="text-danger text-xs"></span>
+                        </div>
+
+                        <div class="col-md-12">
+                            <label asp-for="Email" class="fw-bold text-xs">CORREO</label>
+                            <input asp-for="Email" class="form-control search-input-custom" placeholder="correo@institucion.mx" />
+                            <span asp-validation-for="Email" class="text-danger text-xs"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-4">
+                <div class="admin-card-white p-4 rounded-4 shadow-sm h-100 d-flex flex-column bg-white border-theme">
+                    <div class="mb-3 pb-3 border-bottom border-theme">
+                        <div class="txt-body text-xxs fw-bold mb-1">MÓDULO</div>
+                        <div class="txt-title fw-bold">@(isSocialModule ? "Servicio Social" : "Módulo Dual")</div>
+                    </div>
+
+                    <div class="txt-body text-xs mb-4">
+                        Este registro quedará disponible para la asignación de alumnos del módulo seleccionado.
+                    </div>
+
+                    <div class="mt-auto">
+                        <button type="submit" class="btn btn-primary-sep w-100 fw-bold py-2">@(isEdit ? "Guardar Cambios" : "Guardar Lugar de Apoyo")</button>
+                        <a href="@Url.Action("Catalogos", "Coordinador", new { tab = returnTab })" class="btn btn-ghost-sep border border-theme w-100 mt-2">Cancelar</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

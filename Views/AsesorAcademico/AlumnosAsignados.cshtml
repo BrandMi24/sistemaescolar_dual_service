@@ -1,7 +1,10 @@
 ﻿@model List<ControlEscolar.ViewModels.OperationalTracking.AsesorAlumnoRowViewModel>
 @{
-    ViewData["Title"] = "Mis Estudiantes Asignados";
-    Layout = "_LayoutTutor";
+    var isGlobalView = ViewBag.IsGlobalAdvisorView is bool flag && flag;
+    var moduleFilter = ViewBag.ModuleFilter as string ?? "";
+    var roleScopedModule = ViewBag.RoleScopedModule as string ?? "";
+    ViewData["Title"] = isGlobalView ? "Alumnos de Asesoría Académica" : "Mis Estudiantes Asignados";
+    Layout = isGlobalView ? "_LayoutCoordinador" : "_LayoutTutor";
     var search = ViewBag.SearchText as string ?? "";
     var programaFilter = ViewBag.ProgramaFilter as string ?? "";
 }
@@ -23,26 +26,48 @@
         </div>
     }
 
-    <!-- HEADER -->
-    <div class="d-flex flex-column gap-2">
-        <h1 class="txt-title fw-bold mb-0">Mis Estudiantes Asignados</h1>
-        <p class="text-muted text-sm mb-0">Gestiona y supervisa el progreso de tus estudiantes</p>
+    <div class="catalog-filter-card">
+        <div class="d-flex flex-column gap-2">
+        <h1 class="txt-title fw-bold mb-0">@(isGlobalView ? "Todos los alumnos de asesoría académica" : "Mis Estudiantes Asignados")</h1>
+        <p class="text-muted text-sm mb-0">@(isGlobalView ? "Filtra por módulo, asesor académico, horas aprobadas y revisa el historial general de seguimiento." : "Gestiona y supervisa el progreso de tus estudiantes")</p>
+        </div>
     </div>
 
     <!-- FILTERS -->
-    <div class="bg-surface p-4 rounded-4 border-theme shadow-sm d-flex flex-column flex-xl-row justify-content-between align-items-xl-center gap-3">
-        <form method="get" class="d-flex flex-column flex-md-row gap-3 flex-grow-1 w-100" style="max-width: 1000px;">
+    <div class="catalog-filter-card d-flex flex-column flex-xl-row justify-content-between align-items-xl-center gap-3">
+        <form method="get" class="d-flex flex-column flex-md-row gap-3 flex-grow-1 w-100">
             <div class="position-relative search-wrapper flex-grow-1">
                 <i class="bi bi-search position-absolute search-icon-left txt-body"></i>
                 <input type="text" name="search" class="form-control search-input-custom tab-search" placeholder="Buscar por alumno o matrícula..." value="@search">
             </div>
 
-            <select name="programa" class="form-select bg-app border-theme txt-title fw-bold tab-filter" style="width: auto; min-width: 180px;">
-                <option value="">Todos los Programas</option>
-                <option value="SERVICIO_SOCIAL" selected="@(programaFilter == "SERVICIO_SOCIAL")">Servicio Social</option>
-                <option value="PRACTICAS_PROFESIONALES" selected="@(programaFilter == "PRACTICAS_PROFESIONALES")">Estadías Profesionales</option>
-                <option value="DUAL" selected="@(programaFilter == "DUAL")">Educación Dual</option>
-            </select>
+            @if (isGlobalView)
+            {
+                if (string.IsNullOrWhiteSpace(roleScopedModule))
+                {
+                    <select name="module" class="form-select bg-app border-theme txt-title fw-bold tab-filter" style="width: auto; min-width: 190px;">
+                        <option value="">Todos los módulos</option>
+                        <option value="PRACTICAS_PROFESIONALES" selected="@(moduleFilter == "PRACTICAS_PROFESIONALES")">Módulo Dual</option>
+                        <option value="SERVICIO_SOCIAL" selected="@(moduleFilter == "SERVICIO_SOCIAL")">Servicio Social</option>
+                    </select>
+                }
+                else
+                {
+                    <input type="hidden" name="module" value="@roleScopedModule" />
+                    <span class="badge bg-primary-100 txt-primary-dark px-3 py-2 align-self-center">
+                        @(roleScopedModule == "PRACTICAS_PROFESIONALES" ? "Módulo Dual" : "Servicio Social")
+                    </span>
+                }
+            }
+
+            @if (isGlobalView && string.IsNullOrWhiteSpace(roleScopedModule))
+            {
+                <select name="programa" class="form-select bg-app border-theme txt-title fw-bold tab-filter" style="width: auto; min-width: 180px;">
+                    <option value="">Todos los Programas</option>
+                    <option value="SERVICIO_SOCIAL" selected="@(programaFilter == "SERVICIO_SOCIAL")">Servicio Social</option>
+                    <option value="PRACTICAS_PROFESIONALES" selected="@(programaFilter == "PRACTICAS_PROFESIONALES")">Estadías Profesionales</option>
+                </select>
+            }
 
             <div class="d-flex gap-2 flex-shrink-0">
                 <button type="submit" class="btn btn-primary-sep d-flex align-items-center gap-2 shadow-sm bg-primary-900 text-white">
@@ -56,32 +81,38 @@
     </div>
 
     <!-- TABLE -->
-    <div class="admin-card-white p-0 rounded-4 border-theme shadow-sm overflow-hidden d-flex flex-column">
-        <div class="table-responsive bg-surface">
-            <table class="table table-borderless align-middle mb-0" style="min-width: 1100px;">
-                <thead class="admin-table-header">
+    <div class="catalog-table-card">
+        <div class="table-responsive">
+            <table class="table table-borderless align-middle mb-0" id="tblAlumnos" style="min-width: 1100px;">
+                <thead>
                     <tr>
-                        <th class="py-3 px-4">Estudiante</th>
-                        <th class="py-3">Programa</th>
-                        <th class="py-3 text-center">Estado</th>
-                        <th class="py-3 text-center">Horas / Progreso</th>
-                        <th class="py-3 text-end px-4">Acciones</th>
+                        <th class="px-4">Estudiante</th>
+                        @if (isGlobalView)
+                        {
+                            <th>Asesor Académico</th>
+                        }
+                        <th>Programa</th>
+                        <th class="text-center">Estado</th>
+                        <th class="text-center">Horas / Progreso</th>
+                        <th class="text-end px-4">Acciones</th>
                     </tr>
                 </thead>
                 <tbody>
                     @if (!Model.Any())
                     {
                         <tr>
-                            <td colspan="5" class="text-center py-5 txt-body">
-                                <i class="bi bi-people fs-2 d-block mb-2 opacity-50"></i>
-                                @if (string.IsNullOrEmpty(search) && string.IsNullOrEmpty(programaFilter))
-                                {
-                                    <span>No tienes estudiantes asignados aún.</span>
-                                }
-                                else
-                                {
-                                    <span>No se encontraron estudiantes con ese filtro.</span>
-                                }
+                            <td colspan="@(isGlobalView ? 6 : 5)">
+                                <div class="catalog-empty">
+                                    <i class="bi bi-people"></i>
+                                    @if (string.IsNullOrEmpty(search) && string.IsNullOrEmpty(programaFilter))
+                                    {
+                                        <span>Sin estudiantes asignados</span>
+                                    }
+                                    else
+                                    {
+                                        <span>Sin registros disponibles</span>
+                                    }
+                                </div>
                             </td>
                         </tr>
                     }
@@ -101,8 +132,8 @@
                             "DUAL" => "Educación Dual",
                             _ => row.ProgramType
                         };
-                        <tr class="border-bottom border-theme hover-bg-app data-row">
-                            <td class="px-4 py-3">
+                        <tr class="data-row">
+                            <td class="px-4">
                                 <div class="d-flex align-items-center gap-3">
                                     <div class="avatar-md bg-primary-light text-primary fw-bold flex-shrink-0 d-flex align-items-center justify-content-center">
                                         @row.Initials
@@ -115,6 +146,13 @@
                                     </div>
                                 </div>
                             </td>
+                            @if (isGlobalView)
+                            {
+                                <td>
+                                    <div class="txt-title fw-bold text-sm mb-1">@row.AdvisorName</div>
+                                    <div class="txt-body text-xxs">@row.ProgramType</div>
+                                </td>
+                            }
                             <td>
                                 <div class="txt-title fw-bold text-sm mb-1">@programLabel</div>
                                 <span class="badge bg-light border border-theme text-dark text-xxs px-2 py-1">
@@ -134,22 +172,22 @@
                                 </div>
                             </td>
                             <td class="text-end px-4">
-                                <div class="btn-group btn-group-sm" role="group">
+                                <div class="d-flex justify-content-end gap-2">
                                     <a href="@Url.Action("BitacoraSeguimiento", new { assignmentId = row.AssignmentId })" 
-                                       class="btn btn-outline-primary" 
+                                       class="btn-action btn-action-view" 
                                        title="Ver bitácora de seguimiento" 
                                        data-bs-toggle="tooltip">
                                         <i class="bi bi-clock-history"></i>
                                     </a>
                                     <a href="@Url.Action("RevisionDocumentos")" 
-                                       class="btn btn-outline-warning" 
+                                       class="btn-action btn-action-edit" 
                                        title="Revisar documentos" 
                                        data-bs-toggle="tooltip">
                                         <i class="bi bi-file-earmark"></i>
                                     </a>
                                     <a href="@Url.Action("Evaluaciones")" 
-                                       class="btn btn-outline-success" 
-                                       title="Evaluar estudiante" 
+                                       class="btn-action btn-action-toggle-on" 
+                                       title="Ir a evaluaciones" 
                                        data-bs-toggle="tooltip">
                                         <i class="bi bi-graph-up"></i>
                                     </a>
@@ -162,12 +200,97 @@
         </div>
         @if (Model.Any())
         {
-            <div class="p-3 border-top border-theme bg-app d-flex justify-content-between align-items-center">
-                <span class="txt-body text-xs">
-                    <i class="bi bi-info-circle me-1"></i>
-                    @Model.Count estudiante(s) encontrado(s)
-                </span>
+            <div class="catalog-pagination-bar">
+                <div class="d-flex align-items-center gap-3">
+                    <span class="rows-label">MOSTRAR:</span>
+                    <select id="tblAlumnosRpp" class="form-select form-select-sm rows-per-page">
+                        <option value="5">5</option>
+                        <option value="10" selected>10</option>
+                        <option value="20">20</option>
+                    </select>
+                    <div id="tblAlumnosCount" class="info-label"></div>
+                </div>
+                <nav aria-label="Paginación alumnos asesoría">
+                    <ul class="pagination pagination-sm mb-0" id="tblAlumnosPagination"></ul>
+                </nav>
             </div>
         }
     </div>
 </div>
+
+@section Scripts {
+    <script>
+        (function () {
+            var table = document.getElementById('tblAlumnos');
+            if (!table) return;
+
+            var rows = Array.from(table.querySelectorAll('tbody tr.data-row'));
+            if (!rows.length) return;
+
+            var pageSize = 10;
+            var page = 1;
+            var total = rows.length;
+
+            var countEl = document.getElementById('tblAlumnosCount');
+            var rppEl = document.getElementById('tblAlumnosRpp');
+            var paginationEl = document.getElementById('tblAlumnosPagination');
+
+            function buildPagination(totalPages) {
+                if (!paginationEl) return;
+                paginationEl.innerHTML = '';
+
+                function createItem(label, targetPage, disabled, active) {
+                    var li = document.createElement('li');
+                    li.className = 'page-item' + (disabled ? ' disabled' : '') + (active ? ' active' : '');
+                    var link = document.createElement('a');
+                    link.className = 'page-link';
+                    link.href = '#';
+                    link.innerHTML = label;
+                    if (!disabled) {
+                        link.addEventListener('click', function (e) {
+                            e.preventDefault();
+                            page = targetPage;
+                            render();
+                        });
+                    }
+                    li.appendChild(link);
+                    paginationEl.appendChild(li);
+                }
+
+                createItem('<i class="bi bi-chevron-left"></i>', Math.max(1, page - 1), page === 1, false);
+                for (var i = 1; i <= totalPages; i++) {
+                    createItem(String(i), i, false, i === page);
+                }
+                createItem('<i class="bi bi-chevron-right"></i>', Math.min(totalPages, page + 1), page === totalPages, false);
+            }
+
+            function render() {
+                var totalPages = Math.max(1, Math.ceil(total / pageSize));
+                if (page > totalPages) page = totalPages;
+
+                var start = (page - 1) * pageSize;
+                var end = Math.min(start + pageSize, total);
+
+                rows.forEach(function (row, index) {
+                    row.style.display = (index >= start && index < end) ? '' : 'none';
+                });
+
+                if (countEl) {
+                    countEl.textContent = (start + 1) + ' - ' + end + ' DE ' + total;
+                }
+
+                buildPagination(totalPages);
+            }
+
+            if (rppEl) {
+                rppEl.addEventListener('change', function () {
+                    pageSize = parseInt(rppEl.value, 10);
+                    page = 1;
+                    render();
+                });
+            }
+
+            render();
+        })();
+    </script>
+}

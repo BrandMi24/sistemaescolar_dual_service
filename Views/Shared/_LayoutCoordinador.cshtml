@@ -16,6 +16,7 @@
     
     <link rel="stylesheet" href="~/css/design-system.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/coordinador-styles.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/catalogos-shared.css" asp-append-version="true" />
 
     <style>
             body {
@@ -92,33 +93,41 @@
 
             <nav class="sidebar-nav mt-1">
                 @{
-                    var isAdminRole = User.IsInRole("Admin") || User.IsInRole("ADMIN") || User.IsInRole("Administrator") || User.IsInRole("Master");
-                    var hasDualCoordinatorRole = User.IsInRole("Coordinador") || User.IsInRole("CoordinadorDual");
-                    var hasServiceCoordinatorRole = User.IsInRole("Coordinador") || User.IsInRole("CoordinadorServicioSocial");
+                    var isAdminRole = User.IsInRole("ADMIN");
+                    var isCoordinatorRole = User.IsInRole("COORDINADOR");
+                    var isDualCoordinatorRole = User.IsInRole("COORDINADORDUAL")
+                        || User.IsInRole("COORDINADOR MODULO DUAL")
+                        || User.IsInRole("COORDINADORMODULODUAL")
+                        || User.IsInRole("Coordinador modulo dual");
+                    var isServiceCoordinatorRole = User.IsInRole("COORDINADORSERVICIOSOCIAL")
+                        || User.IsInRole("COORDINADOR SERVICIO SOCIAL")
+                        || User.IsInRole("COORDINADORDESERVICIOSOCIAL")
+                        || User.IsInRole("Coordinador servicio social");
+                    var hasDualCoordinatorRole = isCoordinatorRole || isDualCoordinatorRole || isAdminRole;
+                    var hasServiceCoordinatorRole = isCoordinatorRole || isServiceCoordinatorRole || isAdminRole;
+                    var canSeeCoordinatorShell = isCoordinatorRole || isAdminRole;
                 }
-              <a class="nav-link px-3 py-2 mb-1 @(ViewContext.RouteData.Values["action"]?.ToString() == "Index" ? "active" : "")"
-                       href="@Url.Action("Catalogos", "Coordinador")">
-                    <i class="bi bi-grid-1x2-fill"></i> Panel Principal
-                </a>
+                @if (canSeeCoordinatorShell)
+                {
+                    <a class="nav-link px-3 py-2 mb-1 @(ViewContext.RouteData.Values["action"]?.ToString() == "Index" ? "active" : "")"
+                           href="@Url.Action("Catalogos", "Coordinador")">
+                        <i class="bi bi-grid-1x2-fill"></i> Panel Principal
+                    </a>
 
-                <div class="nav-group-label mt-4 mb-2 ps-3 opacity-50">Organización Escolar</div>
-                
-                <a class="nav-link px-3 py-2 mb-1 @(ViewContext.RouteData.Values["action"]?.ToString() == "Ciclos" ? "active" : "")"
-                       href="@Url.Action("Ciclos", "Coordinador")">
-                    <i class="bi bi-calendar3-range"></i> Ciclos Escolares
-                </a>
-                
-               @*  <a class="nav-link px-3 py-2 mb-1 @(ViewContext.RouteData.Values["action"]?.ToString() == "Catalogos" ? "active" : "")"
-                       href="@Url.Action("Catalogos", "Coordinador")">
-                    <i class="bi bi-folder2-open"></i> Catálogos Generales
-                </a> *@
-                
-                <a class="nav-link px-3 py-2 mb-1 @(ViewContext.RouteData.Values["action"]?.ToString() == "ImportStudentsCsv" ? "active" : "")"
-                       href="@Url.Action("ImportStudentsCsv", "Coordinador", new { tab = "tab-alumnos" })">
-                    <i class="bi bi-cloud-arrow-up-fill"></i> Carga Masiva (CSV)
-                </a>
+                    <div class="nav-group-label mt-4 mb-2 ps-3 opacity-50">Organización Escolar</div>
 
-                @if (isAdminRole || hasDualCoordinatorRole || hasServiceCoordinatorRole)
+                    <a class="nav-link px-3 py-2 mb-1 @(ViewContext.RouteData.Values["action"]?.ToString() == "Ciclos" ? "active" : "")"
+                           href="@Url.Action("Ciclos", "Coordinador")">
+                        <i class="bi bi-calendar3-range"></i> Ciclos Escolares
+                    </a>
+
+                    <a class="nav-link px-3 py-2 mb-1 @(ViewContext.RouteData.Values["action"]?.ToString() == "ImportStudentsCsv" ? "active" : "")"
+                           href="@Url.Action("ImportStudentsCsv", "Coordinador", new { tab = "tab-alumnos" })">
+                        <i class="bi bi-cloud-arrow-up-fill"></i> Carga Masiva (CSV)
+                    </a>
+                }
+
+                @if (isAdminRole || isCoordinatorRole || isDualCoordinatorRole || isServiceCoordinatorRole)
                 {
                     <div class="nav-group-label mt-4 mb-2 ps-3 opacity-50">Asesoría Académica Global</div>
 
@@ -130,16 +139,6 @@
                     <a class="nav-link px-3 py-2 mb-1 @(ViewContext.RouteData.Values["controller"]?.ToString() == "AsesorAcademico" && ViewContext.RouteData.Values["action"]?.ToString() == "AlumnosAsignados" ? "active" : "")"
                        href="@Url.Action("AlumnosAsignados", "AsesorAcademico")">
                         <i class="bi bi-people-fill"></i> Todos los Alumnos
-                    </a>
-
-                    <a class="nav-link px-3 py-2 mb-1"
-                       href="@Url.Action("AlumnosAsignados", "AsesorAcademico", new { module = "PRACTICAS_PROFESIONALES" })">
-                        <i class="bi bi-mortarboard-fill"></i> Alumnos Módulo Dual
-                    </a>
-
-                    <a class="nav-link px-3 py-2 mb-1"
-                       href="@Url.Action("AlumnosAsignados", "AsesorAcademico", new { module = "SERVICIO_SOCIAL" })">
-                        <i class="bi bi-heart-pulse-fill"></i> Alumnos Servicio Social
                     </a>
 
                     <a class="nav-link px-3 py-2 mb-1 @(ViewContext.RouteData.Values["controller"]?.ToString() == "AsesorAcademico" && ViewContext.RouteData.Values["action"]?.ToString() == "RevisionDocumentos" ? "active" : "")"

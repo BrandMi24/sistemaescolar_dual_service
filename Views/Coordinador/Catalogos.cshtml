@@ -1,3 +1,4 @@
+@using System.Text.Json
 @inject Microsoft.AspNetCore.Antiforgery.IAntiforgery Antiforgery
 @{
     ViewData["Title"] = "Gestión Académica y Usuarios";
@@ -661,140 +662,247 @@
     </div>
 
     <div id="tab-cuatrimestre" class="tab-content-pane" style="display:@(activeTab == "tab-cuatrimestre" ? "block" : "none");">
-        <div class="bg-surface p-4 rounded-4 border-theme shadow-sm mb-4">
-            <h5 class="txt-title fw-bold mb-1">Cuatrimestres Activos del Sistema</h5>
-            <p class="txt-body text-xs mb-0">Gestiona los cuatrimestres disponibles para operación académica y habilitación de módulos.</p>
+        <div class="catalog-filter-card mb-4">
+            <div class="d-flex flex-column gap-3">
+                <div class="d-flex flex-column flex-xl-row justify-content-between align-items-xl-center gap-3">
+                    <div style="max-width:850px;">
+                        <h5 class="fw-bold mb-1">Cuatrimestres Activos del Sistema</h5>
+                        <p class="text-xs mb-3">Gestiona los cuatrimestres disponibles para operación académica y habilitación de módulos.</p>
+                    </div>
+                    <div class="flex-shrink-0">
+                        <a href="@Url.Action("CreateCuatrimestre", "Coordinador", new { tab = "tab-cuatrimestre" })" class="btn btn-primary-sep bg-primary-900 shadow-sm d-flex align-items-center gap-2 text-white">
+                            Nuevo Cuatrimestre
+                        </a>
+                    </div>
+                </div>
+
+                <div class="row g-3 align-items-end">
+                    <div class="col-lg-6">
+                        <label>BUSCAR</label>
+                        <div class="position-relative search-wrapper">
+                            <i class="bi bi-search position-absolute search-icon-left"></i>
+                            <input type="text" id="dtSearchCuatrimestres" class="form-control search-input-custom" placeholder="Buscar número o nombre...">
+                        </div>
+                    </div>
+
+                    <div class="col-md-4 col-lg-3">
+                        <label>ESTATUS</label>
+                        <select id="filterActivoCuatrimestres" class="form-select">
+                            <option value="">Todos</option>
+                            <option value="SI">Activos</option>
+                            <option value="NO">Inactivos</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
         </div>
 
-        <div class="admin-card-white p-4 rounded-4 border-theme shadow-sm mb-4 bg-white">
-            <div class="d-flex justify-content-between align-items-center mb-3">
-                <div>
-                    <h6 class="txt-title fw-bold mb-1">Catálogo de Cuatrimestres</h6>
-                    <p class="txt-body text-xs mb-0">Crear, editar y borrar cuatrimestres habilitados para flujos de alumnos.</p>
-                </div>
-                <a href="@Url.Action("CreateCuatrimestre", "Coordinador", new { tab = "tab-cuatrimestre" })" class="btn btn-primary-sep shadow-sm">Nuevo Cuatrimestre</a>
-            </div>
-
+        <div class="catalog-table-card">
             <div class="table-responsive">
                 <table class="table table-borderless align-middle mb-0 w-100">
-                    <thead class="admin-table-header border-bottom border-theme">
+                    <thead>
                         <tr>
-                            <th class="px-3 py-3">Número</th>
-                            <th class="py-3">Nombre</th>
-                            <th class="py-3 text-center">Activo</th>
-                            <th class="py-3 text-end px-3">Acciones</th>
+                            <th class="px-4">Número</th>
+                            <th>Nombre</th>
+                            <th class="text-center">Activo</th>
+                            <th class="text-end px-4">Acciones</th>
                         </tr>
                     </thead>
-                    <tbody>
-                        @foreach (var item in cuatrimestres)
-                        {
-                            <tr>
-                                <td class="px-3 fw-bold txt-primary-dark">@item.Number</td>
-                                <td>@item.Name</td>
-                                <td class="text-center">
-                                    <span class="badge @(item.IsActive ? "status-aceptado" : "status-rechazado") text-xxs px-2 py-1">@(item.IsActive ? "Sí" : "No")</span>
-                                </td>
-                                <td class="text-end px-3">
-                                    <a href="@Url.Action("EditCuatrimestre", "Coordinador", new { id = item.Id, tab = "tab-cuatrimestre" })" class="btn btn-sm btn-ghost-sep text-primary px-2"><i class="bi bi-pencil"></i></a>
-                                    <button type="button" class="btn btn-sm btn-ghost-sep text-danger px-2" onclick="deleteCuatrimestre(@item.Id)"><i class="bi bi-trash"></i></button>
-                                </td>
-                            </tr>
-                        }
-                    </tbody>
+                    <tbody id="cuatrimestresBody"></tbody>
                 </table>
+            </div>
+
+            <div class="catalog-pagination-bar">
+                <div class="d-flex align-items-center gap-3">
+                    <span class="rows-label">MOSTRAR:</span>
+                    <select id="cuatrimestresRpp" class="form-select form-select-sm rows-per-page">
+                        <option value="5">5</option>
+                        <option value="10" selected>10</option>
+                        <option value="20">20</option>
+                    </select>
+                    <div id="cuatrimestresInfo" class="info-label"></div>
+                </div>
+                <nav aria-label="Paginación cuatrimestres">
+                    <ul class="pagination pagination-sm mb-0" id="cuatrimestresPagination"></ul>
+                </nav>
             </div>
         </div>
     </div>
 
     <div id="tab-config-modulos" class="tab-content-pane" style="display:@(activeTab == "tab-config-modulos" ? "block" : "none");">
-        <div class="bg-surface p-4 rounded-4 border-theme shadow-sm mb-4">
-            <h5 class="txt-title fw-bold mb-1">Configuración por Módulos y Reglas de Paso</h5>
-            <p class="txt-body text-xs mb-0">Define arranque de portal/seguimiento por módulo y las reglas de visibilidad por estatus.</p>
+        <div class="catalog-filter-card mb-4">
+            <h5 class="fw-bold mb-1">Configuración por Módulos y Reglas de Paso</h5>
+            <p class="text-xs mb-0">Define arranque de portal/seguimiento por módulo y las reglas de visibilidad por estatus.</p>
         </div>
 
-        <div class="admin-card-white p-4 rounded-4 border-theme shadow-sm mb-4 bg-white">
-            <div class="d-flex justify-content-between align-items-center mb-3">
-                <div>
-                    <h6 class="txt-title fw-bold mb-1">Configuración por Módulo</h6>
-                    <p class="txt-body text-xs mb-0">Define cuatrimestre de apertura de portal y de etapa de seguimiento.</p>
+        <div class="catalog-filter-card mb-4">
+            <div class="d-flex flex-column gap-3">
+                <div class="d-flex flex-column flex-xl-row justify-content-between align-items-xl-center gap-3">
+                    <div style="max-width:850px;">
+                        <h5 class="fw-bold mb-1">Configuración por Módulo</h5>
+                        <p class="text-xs mb-3">Define cuatrimestre de apertura de portal y de etapa de seguimiento.</p>
+                    </div>
+                    <div class="flex-shrink-0">
+                        <a href="@Url.Action("CreateModuleFlowConfig", "Coordinador", new { tab = "tab-config-modulos" })" class="btn btn-primary-sep bg-primary-900 shadow-sm d-flex align-items-center gap-2 text-white">
+                            Nueva Configuración
+                        </a>
+                    </div>
                 </div>
-                <a href="@Url.Action("CreateModuleFlowConfig", "Coordinador", new { tab = "tab-config-modulos" })" class="btn btn-primary-sep shadow-sm">Nueva Configuración</a>
-            </div>
 
+                <div class="row g-3 align-items-end">
+                    <div class="col-lg-6">
+                        <label>BUSCAR</label>
+                        <div class="position-relative search-wrapper">
+                            <i class="bi bi-search position-absolute search-icon-left"></i>
+                            <input type="text" id="dtSearchConfigModulos" class="form-control search-input-custom" placeholder="Buscar módulo o cuatrimestre...">
+                        </div>
+                    </div>
+
+                    <div class="col-md-4 col-lg-3">
+                        <label>MÓDULO</label>
+                        <select id="filterTipoConfigModulos" class="form-select">
+                            <option value="">Todos</option>
+                            <option value="PRACTICAS_PROFESIONALES">Módulo Dual</option>
+                            <option value="SERVICIO_SOCIAL">Servicio Social</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="catalog-table-card mb-4">
             <div class="table-responsive">
                 <table class="table table-borderless align-middle mb-0 w-100">
-                    <thead class="admin-table-header border-bottom border-theme">
+                    <thead>
                         <tr>
-                            <th class="px-3 py-3">Módulo</th>
-                            <th class="py-3">Inicio Portal</th>
-                            <th class="py-3">Inicio Seguimiento</th>
-                            <th class="py-3 text-end px-3">Acciones</th>
+                            <th class="px-4">Módulo</th>
+                            <th>Inicio Portal</th>
+                            <th>Inicio Seguimiento</th>
+                            <th class="text-end px-4">Acciones</th>
                         </tr>
                     </thead>
-                    <tbody>
-                        @foreach (var item in moduleConfigs)
-                        {
-                            <tr>
-                                <td class="px-3 fw-bold txt-primary-dark">@item.ModuleType</td>
-                                <td>@item.PortalStartCuatrimestre</td>
-                                <td>@item.TrackingStartCuatrimestre</td>
-                                <td class="text-end px-3">
-                                    <a href="@Url.Action("EditModuleFlowConfig", "Coordinador", new { id = item.Id, tab = "tab-config-modulos" })" class="btn btn-sm btn-ghost-sep text-primary px-2"><i class="bi bi-pencil"></i></a>
-                                    <button type="button" class="btn btn-sm btn-ghost-sep text-danger px-2" onclick="deleteModuleFlowConfig(@item.Id)"><i class="bi bi-trash"></i></button>
-                                </td>
-                            </tr>
-                        }
-                    </tbody>
+                    <tbody id="moduleConfigsBody"></tbody>
                 </table>
+            </div>
+
+            <div class="catalog-pagination-bar">
+                <div class="d-flex align-items-center gap-3">
+                    <span class="rows-label">MOSTRAR:</span>
+                    <select id="moduleConfigsRpp" class="form-select form-select-sm rows-per-page">
+                        <option value="5">5</option>
+                        <option value="10" selected>10</option>
+                        <option value="20">20</option>
+                    </select>
+                    <div id="moduleConfigsInfo" class="info-label"></div>
+                </div>
+                <nav aria-label="Paginación configuración módulos">
+                    <ul class="pagination pagination-sm mb-0" id="moduleConfigsPagination"></ul>
+                </nav>
             </div>
         </div>
 
-        <div class="admin-card-white p-4 rounded-4 border-theme shadow-sm bg-white">
-            <div class="d-flex justify-content-between align-items-center mb-3">
-                <div>
-                    <h6 class="txt-title fw-bold mb-1">Reglas de Paso por Estatus</h6>
-                    <p class="txt-body text-xs mb-0">Controla visibilidad de cada paso usando cuatrimestre mínimo y lista de estatus permitidos.</p>
+        <div class="catalog-filter-card mb-4">
+            <div class="d-flex flex-column gap-3">
+                <div class="d-flex flex-column flex-xl-row justify-content-between align-items-xl-center gap-3">
+                    <div style="max-width:850px;">
+                        <h5 class="fw-bold mb-1">Reglas de Paso por Estatus</h5>
+                        <p class="text-xs mb-3">Controla visibilidad de cada paso usando cuatrimestre mínimo y lista de estatus permitidos.</p>
+                    </div>
+                    <div class="flex-shrink-0">
+                        <a href="@Url.Action("CreateModuleStepRule", "Coordinador", new { tab = "tab-config-modulos" })" class="btn btn-primary-sep bg-primary-900 shadow-sm d-flex align-items-center gap-2 text-white">
+                            Nueva Regla
+                        </a>
+                    </div>
                 </div>
-                <a href="@Url.Action("CreateModuleStepRule", "Coordinador", new { tab = "tab-config-modulos" })" class="btn btn-primary-sep shadow-sm">Nueva Regla</a>
-            </div>
 
+                <div class="row g-3 align-items-end">
+                    <div class="col-lg-6">
+                        <label>BUSCAR</label>
+                        <div class="position-relative search-wrapper">
+                            <i class="bi bi-search position-absolute search-icon-left"></i>
+                            <input type="text" id="dtSearchModuleRules" class="form-control search-input-custom" placeholder="Buscar paso, nombre o estatus...">
+                        </div>
+                    </div>
+
+                    <div class="col-md-4 col-lg-3">
+                        <label>MÓDULO</label>
+                        <select id="filterTipoModuleRules" class="form-select">
+                            <option value="">Todos</option>
+                            <option value="PRACTICAS_PROFESIONALES">Módulo Dual</option>
+                            <option value="SERVICIO_SOCIAL">Servicio Social</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="catalog-table-card">
             <div class="table-responsive">
                 <table class="table table-borderless align-middle mb-0 w-100" style="min-width: 1080px;">
-                    <thead class="admin-table-header border-bottom border-theme">
+                    <thead>
                         <tr>
-                            <th class="px-3 py-3">Módulo</th>
-                            <th class="py-3">Paso</th>
-                            <th class="py-3">Nombre</th>
-                            <th class="py-3">Min. Cuatrimestre</th>
-                            <th class="py-3">Estatus Permitidos</th>
-                            <th class="py-3 text-end px-3">Acciones</th>
+                            <th class="px-4">Módulo</th>
+                            <th>Paso</th>
+                            <th>Nombre</th>
+                            <th>Min. Cuatrimestre</th>
+                            <th>Estatus Permitidos</th>
+                            <th class="text-end px-4">Acciones</th>
                         </tr>
                     </thead>
-                    <tbody>
-                        @foreach (var item in moduleStepRules)
-                        {
-                            <tr>
-                                <td class="px-3 fw-bold txt-primary-dark">@item.ModuleType</td>
-                                <td>@item.StepCode</td>
-                                <td>@item.StepName</td>
-                                <td>@(item.MinCuatrimestre?.ToString() ?? "-")</td>
-                                <td class="text-xs">@(string.IsNullOrWhiteSpace(item.AllowedStatusesCsv) ? "Todos" : item.AllowedStatusesCsv)</td>
-                                <td class="text-end px-3">
-                                    <a href="@Url.Action("EditModuleStepRule", "Coordinador", new { id = item.Id, tab = "tab-config-modulos" })" class="btn btn-sm btn-ghost-sep text-primary px-2"><i class="bi bi-pencil"></i></a>
-                                    <button type="button" class="btn btn-sm btn-ghost-sep text-danger px-2" onclick="deleteModuleStepRule(@item.Id)"><i class="bi bi-trash"></i></button>
-                                </td>
-                            </tr>
-                        }
-                    </tbody>
+                    <tbody id="moduleRulesBody"></tbody>
                 </table>
+            </div>
+
+            <div class="catalog-pagination-bar">
+                <div class="d-flex align-items-center gap-3">
+                    <span class="rows-label">MOSTRAR:</span>
+                    <select id="moduleRulesRpp" class="form-select form-select-sm rows-per-page">
+                        <option value="5">5</option>
+                        <option value="10" selected>10</option>
+                        <option value="20">20</option>
+                    </select>
+                    <div id="moduleRulesInfo" class="info-label"></div>
+                </div>
+                <nav aria-label="Paginación reglas módulos">
+                    <ul class="pagination pagination-sm mb-0" id="moduleRulesPagination"></ul>
+                </nav>
             </div>
         </div>
     </div>
 
     <div id="tab-lugares-dual" class="tab-content-pane" style="display:@(activeTab == "tab-lugares-dual" ? "block" : "none");">
         <div class="catalog-filter-card mb-4">
-            <h5 class="fw-bold mb-1">Lugar de Apoyo para el Módulo Dual</h5>
-            <p class="text-xs mb-0">Instituciones y empresas disponibles para asignación de estudiantes del módulo dual.</p>
+            <div class="d-flex flex-column gap-3">
+                <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3">
+                    <div>
+                        <h5 class="fw-bold mb-1">Lugar de Apoyo para el Módulo Dual</h5>
+                        <p class="text-xs mb-3">Instituciones y empresas disponibles para asignación de estudiantes del módulo dual.</p>
+                    </div>
+                    <a href="@Url.Action("CreateSupportPlace", "Coordinador", new { moduleType = "PRACTICAS_PROFESIONALES", tab = "tab-lugares-dual" })" class="btn btn-primary-sep bg-primary-900 shadow-sm d-flex align-items-center gap-2">
+                        Nuevo Lugar de Apoyo
+                    </a>
+                </div>
+
+                <div class="row g-3 align-items-end">
+                    <div class="col-lg-5">
+                        <label>BUSCAR</label>
+                        <div class="position-relative search-wrapper">
+                            <i class="bi bi-search position-absolute search-icon-left"></i>
+                            <input type="text" id="dtSearchLugaresDual" class="form-control search-input-custom" placeholder="Buscar nombre, dirección o correo...">
+                        </div>
+                    </div>
+
+                    <div class="col-md-4 col-lg-3">
+                        <label>CONTACTO</label>
+                        <input type="text" id="filterContactoLugaresDual" class="form-control search-input-custom" placeholder="Filtrar contacto...">
+                    </div>
+
+                    <div class="col-md-4 col-lg-2">
+                        <label>TELÉFONO</label>
+                        <input type="text" id="filterTelefonoLugaresDual" class="form-control search-input-custom" placeholder="Filtrar teléfono...">
+                    </div>
+                </div>
+            </div>
         </div>
 
         <div class="catalog-table-card">
@@ -807,38 +915,63 @@
                             <th>Contacto</th>
                             <th>Correo</th>
                             <th>Teléfono</th>
+                            <th class="text-end px-4">Acciones</th>
                         </tr>
                     </thead>
-                    <tbody>
-                        @if (!dualSupportPlaces.Any())
-                        {
-                            <tr>
-                                <td colspan="5" class="px-4 py-4 text-center text-muted">No hay lugares de apoyo registrados para módulo dual.</td>
-                            </tr>
-                        }
-                        else
-                        {
-                            @foreach (var place in dualSupportPlaces)
-                            {
-                                <tr>
-                                    <td class="px-4 fw-bold txt-title">@place.Name</td>
-                                    <td>@(string.IsNullOrWhiteSpace(place.Address) ? "-" : place.Address)</td>
-                                    <td>@(string.IsNullOrWhiteSpace(place.ContactName) ? "-" : place.ContactName)</td>
-                                    <td>@(string.IsNullOrWhiteSpace(place.Email) ? "-" : place.Email)</td>
-                                    <td>@(string.IsNullOrWhiteSpace(place.Phone) ? "-" : place.Phone)</td>
-                                </tr>
-                            }
-                        }
-                    </tbody>
+                    <tbody id="lugaresDualBody"></tbody>
                 </table>
+            </div>
+
+            <div class="catalog-pagination-bar">
+                <div class="d-flex align-items-center gap-3">
+                    <span class="rows-label">MOSTRAR:</span>
+                    <select id="lugaresDualRpp" class="form-select form-select-sm rows-per-page">
+                        <option value="5">5</option>
+                        <option value="10" selected>10</option>
+                        <option value="20">20</option>
+                    </select>
+                    <div id="lugaresDualInfo" class="info-label"></div>
+                </div>
+                <nav aria-label="Paginación lugares dual">
+                    <ul class="pagination pagination-sm mb-0" id="lugaresDualPagination"></ul>
+                </nav>
             </div>
         </div>
     </div>
 
     <div id="tab-lugares-ss" class="tab-content-pane" style="display:@(activeTab == "tab-lugares-ss" ? "block" : "none");">
         <div class="catalog-filter-card mb-4">
-            <h5 class="fw-bold mb-1">Lugar de Apoyo para Servicio Social</h5>
-            <p class="text-xs mb-0">Instituciones y dependencias disponibles para asignación de estudiantes de servicio social.</p>
+            <div class="d-flex flex-column gap-3">
+                <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3">
+                    <div>
+                        <h5 class="fw-bold mb-1">Lugar de Apoyo para Servicio Social</h5>
+                        <p class="text-xs mb-3">Instituciones y dependencias disponibles para asignación de estudiantes de servicio social.</p>
+                    </div>
+                    <a href="@Url.Action("CreateSupportPlace", "Coordinador", new { moduleType = "SERVICIO_SOCIAL", tab = "tab-lugares-ss" })" class="btn btn-primary-sep bg-primary-900 shadow-sm d-flex align-items-center gap-2">
+                        Nuevo Lugar de Apoyo
+                    </a>
+                </div>
+
+                <div class="row g-3 align-items-end">
+                    <div class="col-lg-5">
+                        <label>BUSCAR</label>
+                        <div class="position-relative search-wrapper">
+                            <i class="bi bi-search position-absolute search-icon-left"></i>
+                            <input type="text" id="dtSearchLugaresSs" class="form-control search-input-custom" placeholder="Buscar nombre, dirección o correo...">
+                        </div>
+                    </div>
+
+                    <div class="col-md-4 col-lg-3">
+                        <label>CONTACTO</label>
+                        <input type="text" id="filterContactoLugaresSs" class="form-control search-input-custom" placeholder="Filtrar contacto...">
+                    </div>
+
+                    <div class="col-md-4 col-lg-2">
+                        <label>TELÉFONO</label>
+                        <input type="text" id="filterTelefonoLugaresSs" class="form-control search-input-custom" placeholder="Filtrar teléfono...">
+                    </div>
+                </div>
+            </div>
         </div>
 
         <div class="catalog-table-card">
@@ -851,30 +984,26 @@
                             <th>Contacto</th>
                             <th>Correo</th>
                             <th>Teléfono</th>
+                            <th class="text-end px-4">Acciones</th>
                         </tr>
                     </thead>
-                    <tbody>
-                        @if (!socialSupportPlaces.Any())
-                        {
-                            <tr>
-                                <td colspan="5" class="px-4 py-4 text-center text-muted">No hay lugares de apoyo registrados para servicio social.</td>
-                            </tr>
-                        }
-                        else
-                        {
-                            @foreach (var place in socialSupportPlaces)
-                            {
-                                <tr>
-                                    <td class="px-4 fw-bold txt-title">@place.Name</td>
-                                    <td>@(string.IsNullOrWhiteSpace(place.Address) ? "-" : place.Address)</td>
-                                    <td>@(string.IsNullOrWhiteSpace(place.ContactName) ? "-" : place.ContactName)</td>
-                                    <td>@(string.IsNullOrWhiteSpace(place.Email) ? "-" : place.Email)</td>
-                                    <td>@(string.IsNullOrWhiteSpace(place.Phone) ? "-" : place.Phone)</td>
-                                </tr>
-                            }
-                        }
-                    </tbody>
+                    <tbody id="lugaresSsBody"></tbody>
                 </table>
+            </div>
+
+            <div class="catalog-pagination-bar">
+                <div class="d-flex align-items-center gap-3">
+                    <span class="rows-label">MOSTRAR:</span>
+                    <select id="lugaresSsRpp" class="form-select form-select-sm rows-per-page">
+                        <option value="5">5</option>
+                        <option value="10" selected>10</option>
+                        <option value="20">20</option>
+                    </select>
+                    <div id="lugaresSsInfo" class="info-label"></div>
+                </div>
+                <nav aria-label="Paginación lugares servicio social">
+                    <ul class="pagination pagination-sm mb-0" id="lugaresSsPagination"></ul>
+                </nav>
             </div>
         </div>
     </div>
@@ -1267,6 +1396,13 @@
                 return `<span class="badge ${badgeClass}">${value}</span>`;
             }
 
+            function moduleTypeLabel(value) {
+                const normalized = (value || '').toString().toUpperCase();
+                if (normalized === 'PRACTICAS_PROFESIONALES') return 'Módulo Dual';
+                if (normalized === 'SERVICIO_SOCIAL') return 'Servicio Social';
+                return value || '-';
+            }
+
             function fillRoleSelect(selectId, rows) {
                 const select = $(selectId);
                 const current = select.val();
@@ -1299,6 +1435,14 @@
                 const api = {};
 
                 function loadData() {
+                    if (cfg.data !== undefined) {
+                        const rows = typeof cfg.data === 'function' ? cfg.data() : cfg.data;
+                        allData = cfg.transform ? cfg.transform(rows || []) : (rows || []);
+                        if (cfg.onData) cfg.onData(allData);
+                        updateTable();
+                        return;
+                    }
+
                     $.get(cfg.url, function (response) {
                         const rows = (response && response.data !== undefined) ? response.data : (response || []);
                         allData = cfg.transform ? cfg.transform(rows) : rows;
@@ -1377,6 +1521,47 @@
                 api.redraw = function () { currentPage = 1; updateTable(); };
                 return api;
             }
+
+            const cuatrimestresData = @Html.Raw(JsonSerializer.Serialize(cuatrimestres.Select(x => new {
+                id = x.Id,
+                numero = x.Number,
+                nombre = x.Name,
+                activo = x.IsActive
+            }).ToList()));
+
+            const moduleConfigsData = @Html.Raw(JsonSerializer.Serialize(moduleConfigs.Select(x => new {
+                id = x.Id,
+                modulo = x.ModuleType,
+                inicioPortal = x.PortalStartCuatrimestre,
+                inicioSeguimiento = x.TrackingStartCuatrimestre
+            }).ToList()));
+
+            const moduleRulesData = @Html.Raw(JsonSerializer.Serialize(moduleStepRules.Select(x => new {
+                id = x.Id,
+                modulo = x.ModuleType,
+                paso = x.StepCode,
+                nombre = x.StepName,
+                minCuatrimestre = x.MinCuatrimestre,
+                estatus = x.AllowedStatusesCsv,
+            }).ToList()));
+
+            const dualSupportPlacesData = @Html.Raw(JsonSerializer.Serialize(dualSupportPlaces.Select(x => new {
+                id = x.Id,
+                nombre = x.Name,
+                direccion = x.Address,
+                contacto = x.ContactName,
+                correo = x.Email,
+                telefono = x.Phone
+            }).ToList()));
+
+            const socialSupportPlacesData = @Html.Raw(JsonSerializer.Serialize(socialSupportPlaces.Select(x => new {
+                id = x.Id,
+                nombre = x.Name,
+                direccion = x.Address,
+                contacto = x.ContactName,
+                correo = x.Email,
+                telefono = x.Phone
+            }).ToList()));
 
             // =============================================================
             // Tabla: PERSONAS
@@ -1707,6 +1892,167 @@
                 </tr>`
             });
 
+            const tblCuatrimestres = createTable({
+                data: cuatrimestresData,
+                bodyId: '#cuatrimestresBody',
+                infoId: '#cuatrimestresInfo',
+                paginationId: '#cuatrimestresPagination',
+                rowsPerPageId: '#cuatrimestresRpp',
+                colspan: 4,
+                getFilters: () => ({
+                    search: ($('#dtSearchCuatrimestres').val() || '').toLowerCase(),
+                    activo: ($('#filterActivoCuatrimestres').val() || '').toUpperCase()
+                }),
+                filter: (row, f) => {
+                    const haystack = `${row.numero || ''} ${row.nombre || ''}`.toLowerCase();
+                    const activo = row.activo ? 'SI' : 'NO';
+                    if (f.search && !haystack.includes(f.search)) return false;
+                    if (f.activo && activo !== f.activo) return false;
+                    return true;
+                },
+                renderRow: item => `<tr>
+                    <td class="px-4"><div class="txt-primary-dark fw-bold">${item.numero}</div></td>
+                    <td><div class="txt-title fw-bold">${item.nombre || '-'}</div></td>
+                    <td class="text-center"><span class="badge ${item.activo ? 'status-aceptado' : 'status-rechazado'}">${item.activo ? 'Sí' : 'No'}</span></td>
+                    <td class="text-end px-4">
+                        <div class="d-flex justify-content-end gap-2">
+                            <a href="/Coordinador/EditCuatrimestre/${item.id}?tab=tab-cuatrimestre" class="btn-action btn-action-edit" title="Editar"><i class="bi bi-pencil-square"></i></a>
+                            <button class="btn-action btn-action-delete" title="Eliminar" onclick="deleteCuatrimestre(${item.id})"><i class="bi bi-trash3-fill"></i></button>
+                        </div>
+                    </td>
+                </tr>`
+            });
+
+            const tblModuleConfigs = createTable({
+                data: moduleConfigsData,
+                bodyId: '#moduleConfigsBody',
+                infoId: '#moduleConfigsInfo',
+                paginationId: '#moduleConfigsPagination',
+                rowsPerPageId: '#moduleConfigsRpp',
+                colspan: 4,
+                getFilters: () => ({
+                    search: ($('#dtSearchConfigModulos').val() || '').toLowerCase(),
+                    modulo: ($('#filterTipoConfigModulos').val() || '').toUpperCase()
+                }),
+                filter: (row, f) => {
+                    const haystack = `${row.modulo || ''} ${row.inicioPortal || ''} ${row.inicioSeguimiento || ''}`.toLowerCase();
+                    if (f.search && !haystack.includes(f.search)) return false;
+                    if (f.modulo && (row.modulo || '').toUpperCase() !== f.modulo) return false;
+                    return true;
+                },
+                renderRow: item => `<tr>
+                    <td class="px-4"><div class="txt-title fw-bold">${moduleTypeLabel(item.modulo)}</div></td>
+                    <td>${item.inicioPortal}</td>
+                    <td>${item.inicioSeguimiento}</td>
+                    <td class="text-end px-4">
+                        <div class="d-flex justify-content-end gap-2">
+                            <a href="/Coordinador/EditModuleFlowConfig/${item.id}?tab=tab-config-modulos" class="btn-action btn-action-edit" title="Editar"><i class="bi bi-pencil-square"></i></a>
+                            <button class="btn-action btn-action-delete" title="Eliminar" onclick="deleteModuleFlowConfig(${item.id})"><i class="bi bi-trash3-fill"></i></button>
+                        </div>
+                    </td>
+                </tr>`
+            });
+
+            const tblModuleRules = createTable({
+                data: moduleRulesData,
+                bodyId: '#moduleRulesBody',
+                infoId: '#moduleRulesInfo',
+                paginationId: '#moduleRulesPagination',
+                rowsPerPageId: '#moduleRulesRpp',
+                colspan: 6,
+                getFilters: () => ({
+                    search: ($('#dtSearchModuleRules').val() || '').toLowerCase(),
+                    modulo: ($('#filterTipoModuleRules').val() || '').toUpperCase()
+                }),
+                filter: (row, f) => {
+                    const haystack = `${row.modulo || ''} ${row.paso || ''} ${row.nombre || ''} ${row.estatus || ''} ${row.minCuatrimestre || ''}`.toLowerCase();
+                    if (f.search && !haystack.includes(f.search)) return false;
+                    if (f.modulo && (row.modulo || '').toUpperCase() !== f.modulo) return false;
+                    return true;
+                },
+                renderRow: item => `<tr>
+                    <td class="px-4"><div class="txt-title fw-bold">${moduleTypeLabel(item.modulo)}</div></td>
+                    <td>${item.paso || '-'}</td>
+                    <td>${item.nombre || '-'}</td>
+                    <td>${item.minCuatrimestre || '-'}</td>
+                    <td class="text-xs">${item.estatus || 'Todos'}</td>
+                    <td class="text-end px-4">
+                        <div class="d-flex justify-content-end gap-2">
+                            <a href="/Coordinador/EditModuleStepRule/${item.id}?tab=tab-config-modulos" class="btn-action btn-action-edit" title="Editar"><i class="bi bi-pencil-square"></i></a>
+                            <button class="btn-action btn-action-delete" title="Eliminar" onclick="deleteModuleStepRule(${item.id})"><i class="bi bi-trash3-fill"></i></button>
+                        </div>
+                    </td>
+                </tr>`
+            });
+
+            const tblLugaresDual = createTable({
+                data: dualSupportPlacesData,
+                bodyId: '#lugaresDualBody',
+                infoId: '#lugaresDualInfo',
+                paginationId: '#lugaresDualPagination',
+                rowsPerPageId: '#lugaresDualRpp',
+                colspan: 6,
+                getFilters: () => ({
+                    search: ($('#dtSearchLugaresDual').val() || '').toLowerCase(),
+                    contacto: ($('#filterContactoLugaresDual').val() || '').toUpperCase(),
+                    telefono: ($('#filterTelefonoLugaresDual').val() || '').toUpperCase()
+                }),
+                filter: (row, f) => {
+                    const haystack = `${row.nombre || ''} ${row.direccion || ''} ${row.correo || ''}`.toLowerCase();
+                    if (f.search && !haystack.includes(f.search)) return false;
+                    if (f.contacto && !(row.contacto || '').toUpperCase().includes(f.contacto)) return false;
+                    if (f.telefono && !(row.telefono || '').toUpperCase().includes(f.telefono)) return false;
+                    return true;
+                },
+                renderRow: item => `<tr>
+                    <td class="px-4"><div class="txt-title fw-bold">${item.nombre || '-'}</div></td>
+                    <td>${item.direccion || '-'}</td>
+                    <td>${item.contacto || '-'}</td>
+                    <td>${item.correo || '-'}</td>
+                    <td>${item.telefono || '-'}</td>
+                    <td class="text-end px-4">
+                        <div class="d-flex justify-content-end gap-2">
+                            <a href="/Coordinador/EditSupportPlace/${item.id}?tab=tab-lugares-dual" class="btn-action btn-action-edit" title="Editar"><i class="bi bi-pencil-square"></i></a>
+                            <button class="btn-action btn-action-delete" title="Eliminar" onclick="deleteSupportPlace(${item.id}, 'tab-lugares-dual')"><i class="bi bi-trash3-fill"></i></button>
+                        </div>
+                    </td>
+                </tr>`
+            });
+
+            const tblLugaresSs = createTable({
+                data: socialSupportPlacesData,
+                bodyId: '#lugaresSsBody',
+                infoId: '#lugaresSsInfo',
+                paginationId: '#lugaresSsPagination',
+                rowsPerPageId: '#lugaresSsRpp',
+                colspan: 6,
+                getFilters: () => ({
+                    search: ($('#dtSearchLugaresSs').val() || '').toLowerCase(),
+                    contacto: ($('#filterContactoLugaresSs').val() || '').toUpperCase(),
+                    telefono: ($('#filterTelefonoLugaresSs').val() || '').toUpperCase()
+                }),
+                filter: (row, f) => {
+                    const haystack = `${row.nombre || ''} ${row.direccion || ''} ${row.correo || ''}`.toLowerCase();
+                    if (f.search && !haystack.includes(f.search)) return false;
+                    if (f.contacto && !(row.contacto || '').toUpperCase().includes(f.contacto)) return false;
+                    if (f.telefono && !(row.telefono || '').toUpperCase().includes(f.telefono)) return false;
+                    return true;
+                },
+                renderRow: item => `<tr>
+                    <td class="px-4"><div class="txt-title fw-bold">${item.nombre || '-'}</div></td>
+                    <td>${item.direccion || '-'}</td>
+                    <td>${item.contacto || '-'}</td>
+                    <td>${item.correo || '-'}</td>
+                    <td>${item.telefono || '-'}</td>
+                    <td class="text-end px-4">
+                        <div class="d-flex justify-content-end gap-2">
+                            <a href="/Coordinador/EditSupportPlace/${item.id}?tab=tab-lugares-ss" class="btn-action btn-action-edit" title="Editar"><i class="bi bi-pencil-square"></i></a>
+                            <button class="btn-action btn-action-delete" title="Eliminar" onclick="deleteSupportPlace(${item.id}, 'tab-lugares-ss')"><i class="bi bi-trash3-fill"></i></button>
+                        </div>
+                    </td>
+                </tr>`
+            });
+
             // =============================================================
             // Bindings de búsqueda y filtros
             // =============================================================
@@ -1718,6 +2064,11 @@
             $('#dtSearchBajas, #filterTipoBajas, #filterEstadoBajas').on('input change', () => tblBajas.redraw());
             $('#dtSearchCuentas, #filterRolCuentas, #filterEstadoCuentas').on('input change', () => tblCuentas.redraw());
             $('#dtSearchRoles').on('input', () => tblRoles.redraw());
+            $('#dtSearchCuatrimestres, #filterActivoCuatrimestres').on('input change', () => tblCuatrimestres.redraw());
+            $('#dtSearchConfigModulos, #filterTipoConfigModulos').on('input change', () => tblModuleConfigs.redraw());
+            $('#dtSearchModuleRules, #filterTipoModuleRules').on('input change', () => tblModuleRules.redraw());
+            $('#dtSearchLugaresDual, #filterContactoLugaresDual, #filterTelefonoLugaresDual').on('input change', () => tblLugaresDual.redraw());
+            $('#dtSearchLugaresSs, #filterContactoLugaresSs, #filterTelefonoLugaresSs').on('input change', () => tblLugaresSs.redraw());
 
             // =============================================================
             // Acciones globales (baja lógica / toggle / eliminar definitivo)
@@ -1737,6 +2088,11 @@
                 tblBajas.reload();
                 tblCuentas.reload();
                 tblRoles.reload();
+                tblCuatrimestres.reload();
+                tblModuleConfigs.reload();
+                tblModuleRules.reload();
+                tblLugaresDual.reload();
+                tblLugaresSs.reload();
             }
 
             window.eliminarRegistro = function (controlador, id) {
@@ -1826,6 +2182,20 @@
                 .then(r => {
                     if (!r.ok) throw new Error('No fue posible eliminar la regla');
                     window.location.href = '@Url.Action("Catalogos", "Coordinador", new { tab = "tab-config-modulos" })';
+                })
+                .catch(err => alert(err.message));
+            };
+
+            window.deleteSupportPlace = function (id, tab) {
+                if (!confirm('¿Deseas eliminar este lugar de apoyo?')) return;
+
+                fetch(`/Coordinador/DeleteSupportPlace/${id}`, {
+                    method: 'POST',
+                    headers: { 'RequestVerificationToken': csrfToken }
+                })
+                .then(r => {
+                    if (!r.ok) throw new Error('No fue posible eliminar el lugar de apoyo');
+                    window.location.href = `/Coordinador/Catalogos?tab=${tab}`;
                 })
                 .catch(err => alert(err.message));
             };

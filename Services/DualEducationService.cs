@@ -7,6 +7,12 @@ namespace ControlEscolar.Services;
 
 public class DualEducationService : IDualEducationService
 {
+    private static readonly string[] DualProgramTypes =
+    {
+        ProgramTypes.PRACTICAS_PROFESIONALES,
+        "DUAL"
+    };
+
     private readonly ApplicationDbContext _context;
 
     public DualEducationService(ApplicationDbContext context)
@@ -17,8 +23,9 @@ public class DualEducationService : IDualEducationService
     public Task<OperationalProgram?> GetDefaultProgramAsync()
     {
         return _context.OperationalPrograms
-            .Where(x => x.Status && x.IsActive && x.Type == ProgramTypes.PRACTICAS_PROFESIONALES)
-            .OrderBy(x => x.Id)
+            .Where(x => x.Status && x.IsActive && DualProgramTypes.Contains(x.Type))
+            .OrderByDescending(x => x.Year ?? 0)
+            .ThenBy(x => x.Id)
             .FirstOrDefaultAsync();
     }
 
@@ -28,7 +35,7 @@ public class DualEducationService : IDualEducationService
             .Include(x => x.Program)
             .Include(x => x.Organization)
             .Include(x => x.Documents.Where(d => d.Status))
-            .FirstOrDefaultAsync(x => x.StudentId == studentId && x.Status && x.Program.Type == ProgramTypes.PRACTICAS_PROFESIONALES);
+            .FirstOrDefaultAsync(x => x.StudentId == studentId && x.Status && DualProgramTypes.Contains(x.Program.Type));
     }
 
     public async Task<OperationalStudentAssignment> EnsureAssignmentAsync(int studentId)
@@ -42,7 +49,7 @@ public class DualEducationService : IDualEducationService
         var program = await GetDefaultProgramAsync();
         if (program == null)
         {
-            throw new InvalidOperationException("No existe un programa activo de modelo dual.");
+            program = await CreateDefaultDualProgramAsync();
         }
 
         var assignment = new OperationalStudentAssignment
@@ -57,6 +64,26 @@ public class DualEducationService : IDualEducationService
         _context.OperationalStudentAssignments.Add(assignment);
         await _context.SaveChangesAsync();
         return assignment;
+    }
+
+    private async Task<OperationalProgram> CreateDefaultDualProgramAsync()
+    {
+        var now = DateTime.Now;
+        var program = new OperationalProgram
+        {
+            Code = $"DUAL-AUTO-{now:yyyyMMddHHmmss}",
+            Name = "Programa Dual (Auto)",
+            Type = ProgramTypes.PRACTICAS_PROFESIONALES,
+            Year = now.Year,
+            Period = now.Month <= 4 ? "ENE-ABR" : now.Month <= 8 ? "MAY-AGO" : "SEP-DIC",
+            RequiredHours = 480,
+            IsActive = true,
+            Status = true
+        };
+
+        _context.OperationalPrograms.Add(program);
+        await _context.SaveChangesAsync();
+        return program;
     }
 
     public async Task<OperationalOrganization> UpsertOrganizationAsync(string type, int? selectedOrganizationId, string? name, string? address, string? contactName, string? email, string? phone)

@@ -298,4 +298,30 @@ namespace ControlEscolar.Models
 
         public bool IsActive { get; set; } = true;
     }
+
+    public class SupportPlaceViewModel
+    {
+        public int? Id { get; set; }
+
+        [Required]
+        [StringLength(200)]
+        public string Name { get; set; } = string.Empty;
+
+        [Required]
+        [StringLength(50)]
+        public string ModuleType { get; set; } = string.Empty;
+
+        [StringLength(300)]
+        public string? Address { get; set; }
+
+        [StringLength(150)]
+        public string? ContactName { get; set; }
+
+        [EmailAddress]
+        [StringLength(150)]
+        public string? Email { get; set; }
+
+        [StringLength(30)]
+        public string? Phone { get; set; }
+    }
 }
