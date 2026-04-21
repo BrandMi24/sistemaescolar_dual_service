@@ -13,11 +13,13 @@ namespace ControlEscolar.Controllers
     {
         private readonly ApplicationDbContext _context;
         private readonly IEmailService _emailService;
+        private readonly IPdfService _pdfService;
 
-        public ControlEscolarController(ApplicationDbContext context, IEmailService emailService)
+        public ControlEscolarController(ApplicationDbContext context, IEmailService emailService, IPdfService pdfService)
         {
             _context = context;
             _emailService = emailService;
+            _pdfService = pdfService;
         }
 
         public async Task<IActionResult> Index(string tab = "preinscripciones",
@@ -264,12 +266,17 @@ namespace ControlEscolar.Controllers
         {
             var entidad = await _context.Inscripciones
                 .Include(i => i.Preinscripcion)
-                    .ThenInclude(p => p.DatosPersonales)
+                    .ThenInclude(p => p!.DatosPersonales)
+                .Include(i => i.Preinscripcion)
+                    .ThenInclude(p => p!.Domicilio)
+                .Include(i => i.Preinscripcion)
+                    .ThenInclude(p => p!.Tutor)
+                .Include(i => i.Preinscripcion)
+                    .ThenInclude(p => p!.DatosEscolares)
                 .FirstOrDefaultAsync(i => i.academiccontrol_inscription_ID == id);
 
             if (entidad == null) return NotFound();
 
-            // Validar que los documentos estén validados o el pago validado antes de aprobar
             if (entidad.academiccontrol_inscription_state != EstadoInscripcion.DocumentosValidados.ToString()
                 && entidad.academiccontrol_inscription_state != EstadoInscripcion.PagoValidado.ToString())
             {
@@ -278,33 +285,106 @@ namespace ControlEscolar.Controllers
             }
 
             entidad.academiccontrol_inscription_state = EstadoInscripcion.Aprobada.ToString();
-
             await _context.SaveChangesAsync();
 
-            if (entidad.Preinscripcion?.DatosPersonales?.academiccontrol_preinscription_personaldata_email != null)
-            {
-                await _emailService.EnviarAsync(
-                    entidad.Preinscripcion.DatosPersonales.academiccontrol_preinscription_personaldata_email,
-                    "Documento Validado — Boleta de Estudios",
-                    $"Estimado(a) {entidad.Preinscripcion.DatosPersonales.academiccontrol_preinscription_personaldata_name}, " +
-                    $"su Boleta de Estudios ha sido validada correctamente."
-                );
+            var email = entidad.Preinscripcion?.DatosPersonales?.academiccontrol_preinscription_personaldata_email;
+            var nombre = entidad.Preinscripcion?.DatosPersonales?.academiccontrol_preinscription_personaldata_name ?? "Aspirante";
+            var matricula = entidad.academiccontrol_inscription_enrollment;
 
-                // Si los 3 están validados, mandar correo de documentos completos
-                if (entidad.academiccontrol_inscription_actaValidada &&
-                    entidad.academiccontrol_inscription_curpValidado &&
-                    entidad.academiccontrol_inscription_boletaValidada)
+            if (email != null)
+            {
+                try
                 {
-                    await _emailService.EnviarAsync(
-                        entidad.Preinscripcion.DatosPersonales.academiccontrol_preinscription_personaldata_email,
-                        "Documentación Completa — Inscripción en Proceso",
-                        $"Estimado(a) {entidad.Preinscripcion.DatosPersonales.academiccontrol_preinscription_personaldata_name}, " +
-                        $"todos sus documentos han sido validados correctamente. Su inscripción está siendo procesada."
+                    // Generar ficha PDF
+                    var pdfBytes = _pdfService.GenerarFichaInscripcion(entidad);
+
+                    await _emailService.EnviarConAdjuntoAsync(
+                        email,
+                        "¡Inscripción Aprobada! — Tu ficha de inscripción",
+                        $"Estimado(a) <strong>{nombre}</strong>,<br><br>" +
+                        $"Nos complace informarte que tu inscripción ha sido <strong>aprobada</strong> oficialmente.<br>" +
+                        $"Tu matrícula asignada es: <strong>{matricula}</strong>.<br><br>" +
+                        $"Encontrarás adjunta tu ficha de inscripción en formato PDF. Guárdala como comprobante oficial.<br><br>" +
+                        $"Bienvenido(a) a la Universidad Tecnológica de Tamaulipas Norte.",
+                        pdfBytes,
+                        $"Ficha_{matricula}.pdf"
                     );
+                }
+                catch
+                {
+                    // Si el correo falla, no bloquear la aprobación
                 }
             }
 
-            TempData["SuccessMessage"] = $"Inscripción aprobada. Matrícula: {entidad.academiccontrol_inscription_enrollment}.";
+            TempData["SuccessMessage"] = $"Inscripción aprobada. Matrícula: {matricula}. Se envió la ficha por correo al aspirante.";
+            return RedirectToAction(nameof(Index), new { tab = "inscripciones" });
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> SolicitarCorreccionDocumento(int id, string documento, string? motivo)
+        {
+            var entidad = await _context.Inscripciones
+                .Include(i => i.Preinscripcion)
+                    .ThenInclude(p => p.DatosPersonales)
+                .FirstOrDefaultAsync(i => i.academiccontrol_inscription_ID == id);
+
+            if (entidad == null) return NotFound();
+
+            // Marcar el documento específico con error
+            switch (documento?.ToLower())
+            {
+                case "acta":
+                    entidad.academiccontrol_inscription_actaConError = true;
+                    entidad.academiccontrol_inscription_actaValidada = false;
+                    break;
+                case "curp":
+                    entidad.academiccontrol_inscription_curpConError = true;
+                    entidad.academiccontrol_inscription_curpValidado = false;
+                    break;
+                case "boleta":
+                    entidad.academiccontrol_inscription_boletaConError = true;
+                    entidad.academiccontrol_inscription_boletaValidada = false;
+                    break;
+                default:
+                    TempData["ErrorMessage"] = "Documento no reconocido.";
+                    return RedirectToAction(nameof(Index), new { tab = "inscripciones" });
+            }
+
+            entidad.academiccontrol_inscription_state = EstadoInscripcion.DocumentoConError.ToString();
+            entidad.academiccontrol_inscription_errorReason = motivo;
+
+            await _context.SaveChangesAsync();
+
+            // Notificar al alumno por correo con el enlace directo de corrección
+            var email = entidad.Preinscripcion?.DatosPersonales?.academiccontrol_preinscription_personaldata_email;
+            var nombre = entidad.Preinscripcion?.DatosPersonales?.academiccontrol_preinscription_personaldata_name;
+            var folio = entidad.Preinscripcion?.academiccontrol_preinscription_folio;
+            var curp = entidad.Preinscripcion?.DatosPersonales?.academiccontrol_preinscription_personaldata_CURP;
+
+            if (email != null)
+            {
+                var enlace = Url.Action("AccesoCorreccion", "Aspirantes", null, Request.Scheme);
+
+                var nombreDoc = documento.ToLower() switch
+                {
+                    "acta" => "Acta de Nacimiento",
+                    "curp" => "CURP",
+                    "boleta" => "Boleta / Certificado de Estudios",
+                    _ => documento
+                };
+
+                var motivoTexto = string.IsNullOrEmpty(motivo) ? "" : $" Motivo: {motivo}.";
+                await _emailService.EnviarAsync(
+                    email,
+                    "Corrección de Documento Requerida — Inscripción",
+                    $"Estimado(a) {nombre}, su documento <strong>{nombreDoc}</strong> requiere corrección.{motivoTexto}<br/><br/>" +
+                    $"Por favor ingrese al siguiente enlace para subir el documento corregido:<br/>" +
+                    $"<a href='{enlace}'>{enlace}</a><br/><br/>" +
+                    $"Matrícula: {entidad.academiccontrol_inscription_enrollment}"
+                );
+            }
+
+            TempData["SuccessMessage"] = $"Se solicitó corrección del documento al aspirante.";
             return RedirectToAction(nameof(Index), new { tab = "inscripciones" });
         }
 
@@ -413,6 +493,7 @@ namespace ControlEscolar.Controllers
 
                 existing.academiccontrol_inscription_ticketconfig_career = config.academiccontrol_inscription_ticketconfig_career;
                 existing.academiccontrol_inscription_ticketconfig_limit = config.academiccontrol_inscription_ticketconfig_limit;
+                existing.academiccontrol_inscription_ticketconfig_inscriptionLimit = config.academiccontrol_inscription_ticketconfig_inscriptionLimit;
                 existing.academiccontrol_inscription_ticketconfig_startDate = config.academiccontrol_inscription_ticketconfig_startDate;
                 existing.academiccontrol_inscription_ticketconfig_endDate = config.academiccontrol_inscription_ticketconfig_endDate;
                 existing.academiccontrol_inscription_ticketconfig_status = config.academiccontrol_inscription_ticketconfig_status;

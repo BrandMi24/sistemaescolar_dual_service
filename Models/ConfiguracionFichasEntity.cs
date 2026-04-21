@@ -10,6 +10,7 @@
         public bool academiccontrol_inscription_ticketconfig_status { get; set; } = true;
         public DateTime academiccontrol_inscription_ticketconfig_createdDate { get; set; }
         public DateTime academiccontrol_inscription_ticketconfig_updatedDate { get; set; }
+        public int? academiccontrol_inscription_ticketconfig_inscriptionLimit { get; set; }
     }
 
     public class PeriodoInscripcionEntity
