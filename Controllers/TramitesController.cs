@@ -455,38 +455,52 @@ namespace ControlEscolar.Controllers
         [HttpPost]
         public async Task<IActionResult> GuardarEdicion([FromBody] TramitesCRUDViewModel model)
         {
-            try
+            using (var transaction = await _context.Database.BeginTransactionAsync())
             {
-                // 1. Bloqueo solo si hay Pendientes (solicitudes vivas)
-                bool tienePendientes = await _context.TramitesSolicitudes
-                    .AnyAsync(s => s.id_tramite == model.id && s.tramites_solicitud_estatus == "Pendiente");
-                if (tienePendientes)
-                    return Json(new { success = false, message = "No puedes editar: hay solicitudes pendientes." });
-
-                var tramite = await _context.CategoriasTramites.FindAsync(model.id);
-                tramite.nombre_tramite = model.nombre;
-
-                // 2. EDICIÓN SEGURA: En lugar de borrar todos y crear, actualizamos los que existen
-                // y solo agregamos los nuevos.
-                var existentes = await _context.TramitesRequisitos.Where(r => r.id_tramite == model.id).ToListAsync();
-
-                // Marcamos para borrar solo los que ya no están en la lista nueva (si no tienen documentos asociados)
-                // O mejor aún: solo permitimos renombrar.
-                foreach (var req in model.listaRequisitos)
+                try
                 {
-                    var existente = existentes.FirstOrDefault(e => e.nombre_documento == req.nombre); // Lógica simplificada
-                    if (existente == null)
-                    {
-                        _context.TramitesRequisitos.Add(new Requisito_Tramite { id_tramite = model.id, nombre_documento = req.nombre });
-                    }
-                }
+                    // 1. Verificación de seguridad
+                    bool tienePendientes = await _context.TramitesSolicitudes
+                        .AnyAsync(s => s.id_tramite == model.id && s.tramites_solicitud_estatus == "Pendiente");
+                    if (tienePendientes)
+                        return Json(new { success = false, message = "No puedes editar: hay solicitudes pendientes." });
 
-                await _context.SaveChangesAsync();
-                return Json(new { success = true });
-            }
-            catch (Exception ex)
-            {
-                return Json(new { success = false, message = "Error: " + ex.Message });
+                    // 2. Actualizar nombre del trámite
+                    var tramite = await _context.CategoriasTramites.FindAsync(model.id);
+                    if (tramite == null) return Json(new { success = false, message = "Trámite no encontrado." });
+                    tramite.nombre_tramite = model.nombre;
+
+                    // 3. SINCRONIZACIÓN: Borrar requisitos antiguos y agregar nuevos
+                    // Buscamos los requisitos existentes
+                    var existentes = await _context.TramitesRequisitos.Where(r => r.id_tramite == model.id).ToListAsync();
+
+                    // Eliminamos todos los registros antiguos
+                    _context.TramitesRequisitos.RemoveRange(existentes);
+
+                    // Guardamos el borrado
+                    await _context.SaveChangesAsync();
+
+                    // Insertamos los requisitos que vienen en el nuevo modelo
+                    foreach (var req in model.listaRequisitos)
+                    {
+                        _context.TramitesRequisitos.Add(new Requisito_Tramite
+                        {
+                            id_tramite = model.id,
+                            nombre_documento = req.nombre
+                        });
+                    }
+
+                    // 4. Guardar cambios y confirmar transacción
+                    await _context.SaveChangesAsync();
+                    await transaction.CommitAsync();
+
+                    return Json(new { success = true });
+                }
+                catch (Exception ex)
+                {
+                    await transaction.RollbackAsync();
+                    return Json(new { success = false, message = "Error: " + ex.Message });
+                }
             }
         }
         [HttpGet]
