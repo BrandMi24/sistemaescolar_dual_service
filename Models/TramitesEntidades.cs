@@ -10,6 +10,7 @@ namespace ControlEscolar.Models
         [Key]
         public int id_tramite { get; set; }
         public string nombre_tramite { get; set; }
+        public bool activo { get; set; } = true;
     }
 
     [Table("CE_TramitesRequisitos", Schema = "dbo")]
@@ -38,9 +39,9 @@ namespace ControlEscolar.Models
         [Required]
         public int id_tramite { get; set; }
 
-        public string tramites_solicitud_estatus { get; set; } = "Pendiente";
-        public string tramites_solicitud_archivo_path { get; set; } = "";
-        public string tramites_solicitud_observaciones { get; set; }
+        public string? tramites_solicitud_estatus { get; set; } = "Pendiente";
+        public string? tramites_solicitud_archivo_path { get; set; } = "";
+        public string? tramites_solicitud_observaciones { get; set; }
 
         [NotMapped]
         public int grado_solicitud { get; set; }
